@@ -1,14 +1,13 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "vips.h"
+// #include "bridge.h"
 import "C"
 import (
 	"errors"
 	"fmt"
 	"runtime"
 	"sync"
-	"unsafe"
 )
 
 // TODO(d): Tune these. Concurrency is set to a safe level but assumes
@@ -23,33 +22,6 @@ const VipsVersion = string(C.VIPS_VERSION)
 const VipsMajorVersion = int(C.VIPS_MAJOR_VERSION)
 const VipsMinorVersion = int(C.VIPS_MINOR_VERSION)
 
-func loadImage(buf []byte) (*C.VipsImage, ImageType, error) {
-	var image *C.VipsImage
-	imageType := determineImageType(buf)
-
-	if imageType == ImageTypeUnknown {
-		return nil, ImageTypeUnknown, errors.New("Unsupported image format")
-	}
-
-	imageBuf := unsafe.Pointer(&buf[0])
-	length := C.size_t(len(buf))
-
-	err := C.init_image(imageBuf, length, C.int(imageType), &image)
-	if err != 0 {
-		return nil, ImageTypeUnknown, handleVipsError()
-	}
-
-	return image, imageType, nil
-}
-
-func loadJpegImage(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
-	return nil, nil
-}
-
-func loadWebpImage(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
-	return nil, nil
-}
-
 func handleVipsError() error {
 	s := C.GoString(C.vips_error_buffer())
 	C.vips_error_clear()
@@ -58,7 +30,7 @@ func handleVipsError() error {
 }
 
 func FinalizeRequest() {
-	C.finalize_request()
+	C.vips_thread_shutdown()
 }
 
 var (

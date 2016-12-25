@@ -3,16 +3,16 @@ package gimage
 import "github.com/simplethingsllc/gimage/vips"
 
 type Mutation struct {
-	image   vips.Image
+	image   *vips.Image
 	options *Options
 }
 
-func NewMutation(buf []byte) (Mutation, error) {
+func NewMutation(buf []byte) (*Mutation, error) {
 	image, err := vips.NewImage(buf)
 	if err != nil {
-		return Mutation{}, err
+		return nil, err
 	}
-	return Mutation{image, &Options{}}, nil
+	return &Mutation{image, &Options{}}, nil
 }
 
 type ResizeOptions struct {
@@ -21,17 +21,17 @@ type ResizeOptions struct {
 	CenterSampling bool
 }
 
-func (o Mutation) ResizeH(width int, options *ResizeOptions) Mutation {
+func (o *Mutation) ResizeH(width int, options *ResizeOptions) *Mutation {
 	o.Resize(width, 0, options)
 	return o
 }
 
-func (o Mutation) ResizeV(height int, options *ResizeOptions) Mutation {
+func (o *Mutation) ResizeV(height int, options *ResizeOptions) *Mutation {
 	o.Resize(0, height, options)
 	return o
 }
 
-func (o Mutation) Resize(width, height int, options *ResizeOptions) Mutation {
+func (o *Mutation) Resize(width, height int, options *ResizeOptions) *Mutation {
 	o.options.Width = width
 	o.options.Height = height
 	if options != nil {
@@ -42,7 +42,7 @@ func (o Mutation) Resize(width, height int, options *ResizeOptions) Mutation {
 	return o
 }
 
-func (o Mutation) Apply() ([]byte, error) {
+func (o *Mutation) Apply() ([]byte, error) {
 	var err error
 	o.image, err = process(o.image, o.options)
 	if err != nil {

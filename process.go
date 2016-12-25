@@ -19,10 +19,10 @@ func Process(buf []byte, options *Options) ([]byte, error) {
 		return nil, err
 	}
 
-	return image.Bytes(), nil
+	return nil, nil
 }
 
-func process(image vips.Image, options *Options) (vips.Image, error) {
+func process(image *vips.Image, options *Options) (*vips.Image, error) {
 
 	// TODO(d): Rotation
 
@@ -92,8 +92,8 @@ func process(image vips.Image, options *Options) (vips.Image, error) {
 	xShrink := int(math.Max(1.0, math.Floor(xFactor)))
 	yShrink := int(math.Max(1.0, math.Floor(yFactor)))
 
-	xResidual := float64(xShrink) / xFactor
-	yResidual := float64(yShrink) / yFactor
+	// xResidual := float64(xShrink) / xFactor
+	// yResidual := float64(yShrink) / yFactor
 
 	// Optionally prevent enlargement
 
@@ -120,7 +120,7 @@ func process(image vips.Image, options *Options) (vips.Image, error) {
 
 	// Reload the image with a shrink factor on load
 	if shrinkFactor > 1 {
-		buf := CopyBuffer(image.Bytes())
+		buf := CopyBuffer(image.SourceBytes())
 		var err error
 		if imageType == vips.ImageTypeJpeg {
 			image, err = vips.NewJpegImage(buf, shrinkFactor)
@@ -136,8 +136,8 @@ func process(image vips.Image, options *Options) (vips.Image, error) {
 		yFactor = float64(shrunkHeight) / desiredHeight
 		xShrink = int(math.Max(1.0, math.Floor(xFactor)))
 		yShrink = int(math.Max(1.0, math.Floor(yFactor)))
-		xResidual = float64(xShrink) / xFactor
-		yResidual = float64(yShrink) / yFactor
+		// xResidual = float64(xShrink) / xFactor
+		// yResidual = float64(yShrink) / yFactor
 	}
 
 	// TODO(d): Remove alpha channel?
@@ -150,23 +150,23 @@ func process(image vips.Image, options *Options) (vips.Image, error) {
 
 	// TODO(d): Overlay setup
 
-	shrink := xShrink > 1 || yShrink > 1
-	reduce := xResidual != 1.0 || yResidual != 1.0
-	blur := options.GaussianBlur.Sigma != 0.0
-	sharpen := options.Sharpen.Sigma != 0.0
+	// shrink := xShrink > 1 || yShrink > 1
+	// reduce := xResidual != 1.0 || yResidual != 1.0
+	// blur := options.GaussianBlur.Sigma != 0.0
+	// sharpen := options.Sharpen.Sigma != 0.0
 
 	// TODO(d): Premultiply alpha if needed
 
-	if shrink {
-		if yShrink > 1 {
-			image = image.ShrinkV(yShrink)
-		}
-		if xShrink > 1 {
-			image = image.ShrinkH(xShrink)
-		}
-		shrunkWidth := image.Width()
-		shrunkHeight := image.Height
-	}
+	// if shrink {
+	// 	if yShrink > 1 {
+	// 		image = image.ShrinkV(yShrink)
+	// 	}
+	// 	if xShrink > 1 {
+	// 		image = image.ShrinkH(xShrink)
+	// 	}
+	// 	shrunkWidth := image.Width()
+	// 	shrunkHeight := image.Height
+	// }
 
 	return image, nil
 }
