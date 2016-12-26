@@ -6,7 +6,6 @@ import "C"
 import (
 	"errors"
 	"fmt"
-	"runtime"
 	"sync"
 )
 
@@ -22,6 +21,10 @@ const VipsVersion = string(C.VIPS_VERSION)
 const VipsMajorVersion = int(C.VIPS_MAJOR_VERSION)
 const VipsMinorVersion = int(C.VIPS_MINOR_VERSION)
 
+var (
+	requestLock sync.Mutex
+)
+
 func handleVipsError() error {
 	s := C.GoString(C.vips_error_buffer())
 	C.vips_error_clear()
@@ -29,23 +32,15 @@ func handleVipsError() error {
 	return errors.New(s)
 }
 
-func FinalizeRequest() {
+func ShutdownThread() {
 	C.vips_thread_shutdown()
 }
 
-var (
-	lock sync.Mutex
-)
-
+// TODO(d): Make this callable from client with options
 func init() {
 	if C.VIPS_MAJOR_VERSION < 8 {
 		panic("Requires libvips version 8+")
 	}
-
-	lock.Lock()
-	runtime.LockOSThread()
-	defer lock.Unlock()
-	defer runtime.UnlockOSThread()
 
 	err := C.vips_init(C.CString("gimage"))
 	if err != 0 {
@@ -55,4 +50,6 @@ func init() {
 	C.vips_cache_set_max_mem(maxCacheMem)
 	C.vips_cache_set_max(maxCacheSize)
 	C.vips_concurrency_set(concurrencyLevel)
+
+	initTypes()
 }

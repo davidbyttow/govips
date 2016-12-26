@@ -4,8 +4,6 @@ package vips
 // #include "bridge.h"
 import "C"
 
-// TODO(d): Autogenerate this file by inspecting C API (if possible)
-
 func (i Image) Shrink(hShrink, vShrink float64) (*Image, error) {
 	defer C.g_object_unref(C.gpointer(i.image))
 

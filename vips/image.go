@@ -93,7 +93,7 @@ func (i Image) OffsetY() float64 {
 
 func loadImage(buf []byte) (*C.VipsImage, ImageType, error) {
 	var image *C.VipsImage
-	imageType := determineImageType(buf)
+	imageType := DetermineImageType(buf)
 
 	if imageType == ImageTypeUnknown {
 		return nil, ImageTypeUnknown, errors.New("Unsupported image format")
