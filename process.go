@@ -7,9 +7,9 @@ import (
 )
 
 func Process(buf []byte, options *Options) ([]byte, error) {
-	defer vips.FinalizeRequest()
+	defer vips.ShutdownThread()
 
-	image, err := vips.NewImage(buf)
+	image, err := vips.LoadBuffer(buf)
 	if err != nil {
 		return nil, err
 	}
@@ -123,9 +123,9 @@ func process(image *vips.Image, options *Options) (*vips.Image, error) {
 		buf := CopyBuffer(image.SourceBytes())
 		var err error
 		if imageType == vips.ImageTypeJpeg {
-			image, err = vips.NewJpegImage(buf, shrinkFactor)
+			image, err = vips.LoadJpegBuffer(buf, shrinkFactor)
 		} else {
-			image, err = vips.NewWebpImage(buf, shrinkFactor)
+			image, err = vips.LoadWebpBuffer(buf, shrinkFactor)
 		}
 		if err != nil {
 			return image, err

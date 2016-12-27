@@ -1,13 +1,8 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "bridge.h"
+// #include "vips/vips.h"
 import "C"
-import (
-	"errors"
-	"runtime"
-	"unsafe"
-)
 
 type Image struct {
 	image       *C.VipsImage
@@ -21,12 +16,7 @@ func newImage(vipsImage *C.VipsImage, imageType ImageType, sourceBytes []byte) *
 		imageType:   imageType,
 		sourceBytes: sourceBytes,
 	}
-	runtime.SetFinalizer(image, freeImage)
 	return image
-}
-
-func freeImage(image *Image) {
-	C.free(unsafe.Pointer(image.image))
 }
 
 func LoadBuffer(bytes []byte) (*Image, error) {
@@ -101,29 +91,13 @@ func (i Image) OffsetY() float64 {
 
 // TODO(d): GuessInterpretation
 
-func loadBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
-	imageType := DetermineImageType(buf)
-
-	if imageType == ImageTypeUnknown {
-		return nil, ImageTypeUnknown, errors.New("Unsupported image format")
+func (i Image) Call(operation string, options *Options) error {
+	operation := C.vips_operation_new(C.CString(operation))
+	if operation == nil {
+		return handleVipsError()
 	}
 
-	var image *C.VipsImage
-	err := C.init_image(cPtr(buf),
-		C.size_t(len(buf)),
-		C.int(imageType),
-		&image)
+	if options != nil {
 
-	if err != 0 {
-		return nil, ImageTypeUnknown, handleVipsError()
 	}
-	return image, imageType, nil
-}
-
-func loadJpegBuffer(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
-	return nil, nil
-}
-
-func loadWebpBuffer(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
-	return nil, nil
 }

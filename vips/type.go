@@ -1,7 +1,7 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "bridge.h"
+// #include "vips/vips.h"
 import "C"
 import (
 	"strings"
@@ -33,8 +33,14 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeWebp:   "webp",
 }
 
+var (
+	once                sync.Once
+	typeLoaders         = make(map[string]ImageType)
+	supportedImageTypes = make(map[ImageType]bool)
+)
+
 func DetermineImageType(buf []byte) ImageType {
-	discoverSupportedImageTypes()
+	InitTypes()
 
 	size := len(buf)
 	if size == 0 {
@@ -58,32 +64,17 @@ func DetermineImageType(buf []byte) ImageType {
 	return imageType
 }
 
-var once sync.Once
-
-func discoverSupportedImageTypes() error {
-	var err error
+func InitTypes() {
 	once.Do(func() {
 		for k, v := range ImageTypes {
+			name := strings.ToLower("VipsForeignLoad" + v)
+			typeLoaders[name] = k
+			typeLoaders[name+"buffer"] = k
+
 			ret := C.vips_type_find(
 				C.CString("VipsOperation"),
 				C.CString(v+"load"))
 			supportedImageTypes[k] = int(ret) != 0
 		}
 	})
-	return err
-}
-
-var typeLoaders = make(map[string]ImageType)
-var supportedImageTypes = make(map[ImageType]bool)
-
-func initTypes() {
-	for k, v := range ImageTypes {
-		name := strings.ToLower("VipsForeignLoad" + v)
-		typeLoaders[name] = k
-		typeLoaders[name+"buffer"] = k
-	}
-
-	if err := discoverSupportedImageTypes(); err != nil {
-		panic(err)
-	}
 }

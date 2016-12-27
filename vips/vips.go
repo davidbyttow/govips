@@ -1,7 +1,7 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "bridge.h"
+// #include "vips/vips.h"
 import "C"
 import (
 	"errors"
@@ -51,5 +51,5 @@ func init() {
 	C.vips_cache_set_max(maxCacheSize)
 	C.vips_concurrency_set(concurrencyLevel)
 
-	initTypes()
+	InitTypes()
 }

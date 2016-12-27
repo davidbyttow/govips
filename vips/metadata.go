@@ -1,7 +1,7 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "bridge.h"
+// #include "vips/vips.h"
 import "C"
 
 type ImageSize struct {
@@ -22,6 +22,7 @@ type ImageMetadata struct {
 
 func LoadMetadata(image *Image) (*ImageMetadata, error) {
 	defer ShutdownThread()
+
 	return &ImageMetadata{
 		Size: ImageSize{
 			Width:  image.Width(),
