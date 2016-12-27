@@ -20,7 +20,12 @@ type ImageMetadata struct {
 	Type        string
 }
 
-func Metadata(image Image) (*ImageMetadata, error) {
+func LoadMetadata(image *Image) (*ImageMetadata, error) {
 	defer ShutdownThread()
-	return &ImageMetadata{}, nil
+	return &ImageMetadata{
+		Size: ImageSize{
+			Width:  image.Width(),
+			Height: image.Height(),
+		},
+	}, nil
 }

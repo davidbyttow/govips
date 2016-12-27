@@ -1,7 +1,23 @@
 package vips
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/davidbyttow/gimage"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
 
 func TestMetadata(t *testing.T) {
+	buf, err := gimage.ReadFile("../fixtures/canyon.jpg")
+	require.NoError(t, err)
 
+	image, err := LoadBuffer(buf)
+	require.NoError(t, err)
+	require.Equal(t, image.Type(), ImageTypeJpeg)
+
+	metadata, err := LoadMetadata(image)
+	require.NoError(t, err)
+	assert.Equal(t, 2560, metadata.Size.Width)
+	assert.Equal(t, 1600, metadata.Size.Height)
 }

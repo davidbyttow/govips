@@ -5,6 +5,7 @@ package vips
 import "C"
 import (
 	"errors"
+	"runtime"
 	"unsafe"
 )
 
@@ -14,33 +15,38 @@ type Image struct {
 	sourceBytes []byte
 }
 
-func newImage(image *C.VipsImage, imageType ImageType, sourceBytes []byte) *Image {
-	return &Image{
-		image:       image,
-		imageType:   ImageTypeJpeg,
+func newImage(vipsImage *C.VipsImage, imageType ImageType, sourceBytes []byte) *Image {
+	image := &Image{
+		image:       vipsImage,
+		imageType:   imageType,
 		sourceBytes: sourceBytes,
 	}
+	runtime.SetFinalizer(image, freeImage)
+	return image
 }
 
-func NewImage(bytes []byte) (*Image, error) {
-	// TODO(d): Load from vips
-	image, imageType, err := loadImage(bytes)
+func freeImage(image *Image) {
+	C.free(unsafe.Pointer(image.image))
+}
+
+func LoadBuffer(bytes []byte) (*Image, error) {
+	image, imageType, err := loadBuffer(bytes)
 	if err != nil {
 		return nil, err
 	}
 	return newImage(image, imageType, bytes), nil
 }
 
-func NewJpegImage(bytes []byte, shrinkFactor int) (*Image, error) {
-	image, err := loadJpegImage(bytes, shrinkFactor)
+func LoadJpegBuffer(bytes []byte, shrinkFactor int) (*Image, error) {
+	image, err := loadJpegBuffer(bytes, shrinkFactor)
 	if err != nil {
 		return nil, err
 	}
 	return newImage(image, ImageTypeJpeg, bytes), nil
 }
 
-func NewWebpImage(bytes []byte, shrinkFactor int) (*Image, error) {
-	image, err := loadWebpImage(bytes, shrinkFactor)
+func LoadWebpBuffer(bytes []byte, shrinkFactor int) (*Image, error) {
+	image, err := loadWebpBuffer(bytes, shrinkFactor)
 	if err != nil {
 		return nil, err
 	}
@@ -56,11 +62,11 @@ func (i Image) SourceBytes() []byte {
 }
 
 func (i Image) Width() int {
-	return int(C.vips_image_get_width(i.image))
+	return int(i.image.Xsize)
 }
 
 func (i Image) Height() int {
-	return int(C.vips_image_get_height(i.image))
+	return int(i.image.Ysize)
 }
 
 func (i Image) Bands() int {
@@ -91,29 +97,29 @@ func (i Image) OffsetY() float64 {
 
 // TODO(d): GuessInterpretation
 
-func loadImage(buf []byte) (*C.VipsImage, ImageType, error) {
-	var image *C.VipsImage
+func loadBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	imageType := DetermineImageType(buf)
 
 	if imageType == ImageTypeUnknown {
 		return nil, ImageTypeUnknown, errors.New("Unsupported image format")
 	}
 
-	imageBuf := unsafe.Pointer(&buf[0])
-	length := C.size_t(len(buf))
+	var image *C.VipsImage
+	err := C.init_image(cPtr(buf),
+		C.size_t(len(buf)),
+		C.int(imageType),
+		&image)
 
-	err := C.init_image(imageBuf, length, C.int(imageType), &image)
 	if err != 0 {
 		return nil, ImageTypeUnknown, handleVipsError()
 	}
-
 	return image, imageType, nil
 }
 
-func loadJpegImage(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
+func loadJpegBuffer(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
 	return nil, nil
 }
 
-func loadWebpImage(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
+func loadWebpBuffer(buf []byte, shrinkFactor int) (*C.VipsImage, error) {
 	return nil, nil
 }
