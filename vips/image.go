@@ -53,6 +53,10 @@ func LoadWebpBuffer(bytes []byte, shrinkFactor int) (*Image, error) {
 	return newImage(image, ImageTypeWebp, bytes), nil
 }
 
+func (i Image) SetImage(vipsImage *C.VipsImage) *Image {
+	return newImage(vipsImage, i.Type(), i.SourceBytes())
+}
+
 func (i Image) Type() ImageType {
 	return i.imageType
 }

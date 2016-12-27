@@ -19,8 +19,5 @@ func (i Image) Shrink(hShrink, vShrink float64) (*Image, error) {
 		return nil, handleVipsError()
 	}
 
-	return &Image{
-		image:     out,
-		imageType: i.Type(),
-	}, nil
+	return i.SetImage(out), nil
 }

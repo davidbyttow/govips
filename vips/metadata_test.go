@@ -20,4 +20,12 @@ func TestMetadata(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, 2560, metadata.Size.Width)
 	assert.Equal(t, 1600, metadata.Size.Height)
+
+	image, err = image.Shrink(0.5, 0.5)
+	require.NoError(t, err)
+
+	metadata, err = LoadMetadata(image)
+	require.NoError(t, err)
+	assert.Equal(t, 1280, metadata.Size.Width)
+	assert.Equal(t, 800, metadata.Size.Height)
 }
