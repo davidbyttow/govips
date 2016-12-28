@@ -3,12 +3,12 @@ package vips
 import (
 	"testing"
 
-	"github.com/davidbyttow/gimage"
+	"github.com/davidbyttow/gomore/io"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestJpeg(t *testing.T) {
-	buf, err := gimage.ReadFile("../fixtures/canyon.jpg")
+	buf, err := io.ReadFile("../fixtures/canyon.jpg")
 	if err != nil {
 		t.Fail()
 	}

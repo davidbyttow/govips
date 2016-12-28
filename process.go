@@ -3,7 +3,9 @@ package gimage
 import (
 	"math"
 
-	"github.com/simplethingsllc/gimage/vips"
+	"github.com/davidbyttow/gimage/vips"
+	"github.com/davidbyttow/gomore/common"
+	moreMath "github.com/davidbyttow/gomore/math"
 )
 
 func Process(buf []byte, options *Options) ([]byte, error) {
@@ -42,10 +44,10 @@ func process(image *vips.Image, options *Options) (*vips.Image, error) {
 		case CanvasStrategyEmbed:
 			crop := options.CanvasStrategy == CanvasStrategyCrop
 			if (crop && xFactor < yFactor) || (!crop && xFactor > yFactor) {
-				desiredHeight = Round(imageHeight / xFactor)
+				desiredHeight = moreMath.Round(imageHeight / xFactor)
 				yFactor = xFactor
 			} else {
-				desiredWidth = Round(imageWidth / yFactor)
+				desiredWidth = moreMath.Round(imageWidth / yFactor)
 				xFactor = yFactor
 			}
 		case CanvasStrategyMax:
@@ -53,11 +55,11 @@ func process(image *vips.Image, options *Options) (*vips.Image, error) {
 		case CanvasStrategyMin:
 			max := options.CanvasStrategy == CanvasStrategyMax
 			if (max && xFactor > yFactor) || (!max && xFactor < yFactor) {
-				desiredHeight = Round(imageHeight / xFactor)
+				desiredHeight = moreMath.Round(imageHeight / xFactor)
 				options.Height = int(desiredHeight)
 				yFactor = xFactor
 			} else {
-				desiredWidth = Round(imageWidth / yFactor)
+				desiredWidth = moreMath.Round(imageWidth / yFactor)
 				options.Width = int(desiredWidth)
 				xFactor = yFactor
 			}
@@ -71,7 +73,7 @@ func process(image *vips.Image, options *Options) (*vips.Image, error) {
 			options.Height = int(desiredHeight)
 		} else {
 			yFactor = xFactor
-			desiredHeight = Round(imageHeight / yFactor)
+			desiredHeight = moreMath.Round(imageHeight / yFactor)
 			options.Height = int(desiredHeight)
 		}
 	} else if desiredHeight > 0 {
@@ -81,7 +83,7 @@ func process(image *vips.Image, options *Options) (*vips.Image, error) {
 			options.Width = int(desiredWidth)
 		} else {
 			xFactor = yFactor
-			desiredWidth = Round(imageWidth / xFactor)
+			desiredWidth = moreMath.Round(imageWidth / xFactor)
 			options.Width = int(desiredWidth)
 		}
 	} else {
@@ -120,7 +122,7 @@ func process(image *vips.Image, options *Options) (*vips.Image, error) {
 
 	// Reload the image with a shrink factor on load
 	if shrinkFactor > 1 {
-		buf := CopyBuffer(image.SourceBytes())
+		buf := common.CopyBytes(image.SourceBytes())
 		var err error
 		if imageType == vips.ImageTypeJpeg {
 			image, err = vips.LoadJpegBuffer(buf, shrinkFactor)

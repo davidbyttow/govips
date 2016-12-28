@@ -4,6 +4,10 @@ package vips
 // #include "vips/vips.h"
 import "C"
 
+import (
+	"runtime"
+)
+
 type Image struct {
 	image       *C.VipsImage
 	imageType   ImageType
@@ -16,7 +20,12 @@ func newImage(vipsImage *C.VipsImage, imageType ImageType, sourceBytes []byte) *
 		imageType:   imageType,
 		sourceBytes: sourceBytes,
 	}
+	runtime.SetFinalizer(image, finalizeImage)
 	return image
+}
+
+func finalizeImage(i *Image) {
+	C.g_object_unref(C.gpointer(i.image))
 }
 
 func LoadBuffer(bytes []byte) (*Image, error) {
@@ -64,23 +73,23 @@ func (i Image) Height() int {
 }
 
 func (i Image) Bands() int {
-	return int(C.vips_image_get_bands(i.image))
+	return int(i.image.Bands)
 }
 
 func (i Image) ResX() float64 {
-	return float64(C.vips_image_get_xres(i.image))
+	return float64(i.image.Xres)
 }
 
 func (i Image) ResY() float64 {
-	return float64(C.vips_image_get_yres(i.image))
+	return float64(i.image.Yres)
 }
 
-func (i Image) OffsetX() float64 {
-	return float64(C.vips_image_get_xoffset(i.image))
+func (i Image) OffsetX() int {
+	return int(i.image.Xoffset)
 }
 
-func (i Image) OffsetY() float64 {
-	return float64(C.vips_image_get_yoffset(i.image))
+func (i Image) OffsetY() int {
+	return int(i.image.Yoffset)
 }
 
 // TODO(d): BandsFormat
@@ -90,14 +99,3 @@ func (i Image) OffsetY() float64 {
 // TODO(d): Interpretation
 
 // TODO(d): GuessInterpretation
-
-func (i Image) Call(operation string, options *Options) error {
-	operation := C.vips_operation_new(C.CString(operation))
-	if operation == nil {
-		return handleVipsError()
-	}
-
-	if options != nil {
-
-	}
-}
