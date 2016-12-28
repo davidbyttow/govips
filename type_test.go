@@ -8,10 +8,9 @@ import (
 )
 
 func TestJpeg(t *testing.T) {
-	buf, err := io.ReadFile("../fixtures/canyon.jpg")
-	if err != nil {
-		t.Fail()
-	}
+	buf, _ := io.ReadFile("fixtures/canyon.jpg")
+	assert.NotNil(t, buf)
+
 	imageType := DetermineImageType(buf)
 	assert.Equal(t, ImageTypeJpeg, imageType)
 }

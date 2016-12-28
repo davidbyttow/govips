@@ -8,7 +8,7 @@ import (
 )
 
 func TestMetadata(t *testing.T) {
-	buf, err := io.ReadFile("../fixtures/canyon.jpg")
+	buf, err := io.ReadFile("fixtures/canyon.jpg")
 	require.NoError(t, err)
 
 	image, err := LoadBuffer(buf)

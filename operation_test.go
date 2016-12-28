@@ -8,7 +8,7 @@ import (
 )
 
 func TestOperation(t *testing.T) {
-	buf, _ := io.ReadFile("../fixtures/canyon.jpg")
+	buf, _ := io.ReadFile("fixtures/canyon.jpg")
 	assert.NotNil(t, buf)
 
 	image, _ := LoadBuffer(buf)
