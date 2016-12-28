@@ -38,8 +38,8 @@ go_types = {
   "gchararray" : "string",
   "gdouble" : "float64",
   "gint" : "int",
-  "VipsBlob" : "Blob",
-  "VipsImage" : "Image",
+  "VipsBlob" : "*Blob",
+  "VipsImage" : "*Image",
   "VipsOperationMath" : "OperationMath",
   "VipsOperationMath2" : "OperationMath2",
   "VipsOperationRound" : "OperationRound",
@@ -164,6 +164,7 @@ def gen_operation(cls):
 
   result = find_first_output(op, all_required)
   this = find_first_input_image(op, all_required)
+  this_part = ''
 
   # shallow copy
   required = all_required[:]
@@ -171,8 +172,9 @@ def gen_operation(cls):
     required.remove(result)
   if this != None:
     required.remove(this)
+    this_part = '(image *Image) '
 
-  output = 'func (image Image) %s(%s)' % (upper_camelcase(nickname), gen_arg_list(op, required))
+  output = 'func %s%s(%s)' % (this_part, upper_camelcase(nickname), gen_arg_list(op, required))
   if result != None:
     output += ' %s' % go_types[result.value_type.name]
 
@@ -237,11 +239,13 @@ def find_class_methods(cls):
 
 def generate_file():
   methods, skipped = find_class_methods(vips_type_operation)
+  methods.sort()
+  skipped.sort()
   output = '%s\n\n' % preamble
   if len(skipped) > 0:
     output += '%s\n\n' % '\n'.join(skipped)
   output += '\n\n'.join(methods)
-  print output
+  print(output)
 
 
 if __name__ == '__main__':

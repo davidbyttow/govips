@@ -49,6 +49,7 @@ func init() {
 		panic(fmt.Sprintf("Failed to start vips code=%d", err))
 	}
 
+	C.vips_leak_set(toGboolean(true))
 	C.vips_cache_set_max_mem(maxCacheMem)
 	C.vips_cache_set_max(maxCacheSize)
 	C.vips_concurrency_set(concurrencyLevel)

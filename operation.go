@@ -39,16 +39,15 @@ func (o Operation) Name() string {
 }
 
 func newOperation(name string) *Operation {
-	op := C.vips_operation_new(C.CString(name))
-	operation := &Operation{
-		operation: op,
+	o := &Operation{
+		operation: C.vips_operation_new(C.CString(name)),
 	}
-	runtime.SetFinalizer(operation, finalizeOperation)
-	return operation
+	runtime.SetFinalizer(o, finalizeOperation)
+	return o
 }
 
 func finalizeOperation(o *Operation) {
-	C.g_object_unref(C.gpointer(o))
+	C.g_object_unref(C.gpointer(o.operation))
 }
 
 func (o Operation) applyOptions(options *Options) {

@@ -5,11 +5,11 @@ package gimage
 import "C"
 import "errors"
 
-func loadBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func loadBuffer(buf []byte) (*C.VipsImage, error) {
 	imageType := DetermineImageType(buf)
 
 	if imageType == ImageTypeUnknown {
-		return nil, ImageTypeUnknown, errors.New("Unsupported image format")
+		return nil, errors.New("Unsupported image format")
 	}
 
 	var image *C.VipsImage
@@ -19,9 +19,9 @@ func loadBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		&image)
 
 	if err != 0 {
-		return nil, ImageTypeUnknown, handleVipsError()
+		return nil, handleVipsError()
 	}
-	return image, imageType, nil
+	return image, nil
 }
 
 func loadJpegBuffer(buf []byte, shrinkFactor int) (*C.VipsImage, error) {

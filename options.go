@@ -31,12 +31,12 @@ var valueDeserializers = map[OptionType]ValueDeserializer{
 		*v = float64(C.g_value_get_double(&option.gvalue))
 	},
 	OptionTypeImage: func(option *Option) {
-		image := option.value.(*Image)
-		image.image = (*C.VipsImage)(C.g_value_get_object(&option.gvalue))
+		image := option.value.(**Image)
+		*image = newImage((*C.VipsImage)(C.g_value_get_object(&option.gvalue)))
 	},
 	OptionTypeBlob: func(option *Option) {
-		blob := option.value.(*Blob)
-		blob.blob = (*C.VipsBlob)(C.g_value_get_object(&option.gvalue))
+		blob := option.value.(**Blob)
+		*blob = newBlob((*C.VipsBlob)(C.g_value_dup_boxed(&option.gvalue)))
 	},
 }
 
@@ -114,7 +114,7 @@ func (o *Options) SetString(name string, s string) *Options {
 	return o
 }
 
-func (o *Options) SetImage(name string, image Image) *Options {
+func (o *Options) SetImage(name string, image *Image) *Options {
 	option := newInput(name, image, OptionTypeImage)
 	C.g_value_init(&option.gvalue, C.vips_image_get_type())
 	C.g_value_set_object(&option.gvalue, image.image)
@@ -122,10 +122,10 @@ func (o *Options) SetImage(name string, image Image) *Options {
 	return o
 }
 
-func (o *Options) SetBlob(name string, blob Blob) *Options {
+func (o *Options) SetBlob(name string, blob *Blob) *Options {
 	option := newInput(name, blob, OptionTypeBlob)
 	C.g_value_init(&option.gvalue, C.vips_blob_get_type())
-	C.g_value_set_object(&option.gvalue, blob.blob)
+	C.g_value_set_boxed(&option.gvalue, blob.blob)
 	o.options = append(o.options, option)
 	return o
 }
@@ -151,14 +151,14 @@ func (o *Options) SetDoubleOut(name string, v *float64) *Options {
 	return o
 }
 
-func (o *Options) SetImageOut(name string, image *Image) *Options {
+func (o *Options) SetImageOut(name string, image **Image) *Options {
 	option := newOutput(name, image, OptionTypeImage)
 	C.g_value_init(&option.gvalue, C.vips_image_get_type())
 	o.options = append(o.options, option)
 	return o
 }
 
-func (o *Options) SetBlobOut(name string, blob *Blob) *Options {
+func (o *Options) SetBlobOut(name string, blob **Blob) *Options {
 	option := newOutput(name, blob, OptionTypeBlob)
 	C.g_value_init(&option.gvalue, C.vips_blob_get_type())
 	o.options = append(o.options, option)
