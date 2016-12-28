@@ -56,3 +56,7 @@ func init() {
 
 	InitTypes()
 }
+
+func Shutdown() {
+	C.vips_shutdown()
+}

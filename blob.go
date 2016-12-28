@@ -26,5 +26,5 @@ func NewBlob(buf []byte) *Blob {
 }
 
 func finalizer(b *Blob) {
-	C.g_object_unref(C.gpointer(b.blob))
+	// TODO(d): Finalize this properly
 }
