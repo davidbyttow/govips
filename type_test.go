@@ -1,4 +1,4 @@
-package vips
+package gimage
 
 import (
 	"testing"

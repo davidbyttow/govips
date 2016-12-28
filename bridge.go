@@ -1,4 +1,4 @@
-package vips
+package gimage
 
 // #cgo pkg-config: vips
 // #include "bridge.h"
