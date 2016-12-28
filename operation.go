@@ -12,13 +12,11 @@ import (
 func Call(name string, options *Options) error {
 	operation := newOperation(name)
 
-	if operation == nil {
-		return handleVipsError()
-	}
-
 	// TODO(d): Unref the outputs
 
-	operation.applyOptions(options)
+	if options != nil {
+		operation.applyOptions(options)
+	}
 
 	if err := operation.build(); err != nil {
 		return err

@@ -16,7 +16,7 @@ func TestOperation(t *testing.T) {
 	assert.Equal(t, 2560, image.Width())
 	assert.Equal(t, 1600, image.Height())
 
-	out := image.Shrink(2.0, 2.0)
+	out := image.Shrink(2.0, 2.0, nil)
 	assert.Equal(t, 1280, out.Width())
 	assert.Equal(t, 800, out.Height())
 }

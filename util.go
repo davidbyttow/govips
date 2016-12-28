@@ -18,3 +18,10 @@ func toGboolean(b bool) C.gboolean {
 	}
 	return C.gboolean(0)
 }
+
+func fromGboolean(b C.gboolean) bool {
+	if b != 0 {
+		return false
+	}
+	return true
+}
