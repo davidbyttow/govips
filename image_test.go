@@ -6,6 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+// TODO(d): Fix this, as it's resulting in an odd error when image is loaded from file twice.
+// Likely has to do with operation caching and not releasing.
 func TestLoadFromFile(t *testing.T) {
 	// image, err := NewImageFromFile("fixtures/canyon.jpg", nil)
 	// assert.Nil(t, err)
