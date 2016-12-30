@@ -38,7 +38,3 @@ void SetProperty(VipsObject *object, const char *name, const GValue *value) {
     g_object_set_property( G_OBJECT( object ), name, value );
   }
 }
-
-void FilenameSplit8(const char* name, char *filename, char *option_string) {
-  vips__filename_split8(name, filename, option_string);
-}

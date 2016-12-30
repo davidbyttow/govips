@@ -6,8 +6,6 @@ import "C"
 
 import "runtime"
 
-var STRING_BUFFER = fixedString(4096)
-
 type Image struct {
 	image *C.VipsImage
 }
@@ -25,44 +23,30 @@ func finalizeImage(i *Image) {
 }
 
 func NewImageFromFile(path string, options *Options) (*Image, error) {
-	c_path := C.CString(path)
-	defer freeCString(c_path)
+	fileName, optionString := splitFilenameAndOptions(path)
 
-	c_filename := C.CString(STRING_BUFFER)
-	defer freeCString(c_filename)
-
-	c_optionString := C.CString(STRING_BUFFER)
-	defer freeCString(c_optionString)
-
-	C.FilenameSplit8(c_path, c_filename, c_optionString)
-
-	c_operationName := C.vips_foreign_find_load(c_filename)
-	if c_operationName == nil {
+	operationName, err := VipsForeignFindLoad(fileName)
+	if err != nil {
 		return nil, ErrUnsupportedImageFormat
 	}
 
 	var out *Image
 	if options == nil {
 		options = NewOptions().
-			SetString("filename", C.GoString(c_filename)).
+			SetString("filename", fileName).
 			SetImageOut("out", &out)
 	}
 
-	operationName := C.GoString(c_operationName)
-	optionString := C.GoString(c_optionString)
 	if err := CallOperation(operationName, options, optionString); err != nil {
 		return nil, err
 	}
-
 	return out, nil
 }
 
 func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
-	c_operationName := C.vips_foreign_find_load_buffer(
-		cPtr(bytes),
-		C.size_t(len(bytes)))
-	if c_operationName == nil {
-		return nil, ErrUnsupportedImageFormat
+	operationName, err := VipsForeignFindLoadBuffer(bytes)
+	if err != nil {
+		return nil, err
 	}
 
 	var out *Image
@@ -73,11 +57,9 @@ func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 			SetImageOut("out", &out)
 	}
 
-	operationName := C.GoString(c_operationName)
 	if err := CallOperation(operationName, options, ""); err != nil {
 		return nil, err
 	}
-
 	return out, nil
 }
 
@@ -119,4 +101,8 @@ func (i *Image) Coding() Coding {
 
 func (i *Image) Interpretation() Interpretation {
 	return Interpretation(int(i.image.Type))
+}
+
+func (i *Image) WriteToFile(path string, options *Option) {
+
 }

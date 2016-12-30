@@ -10,9 +10,9 @@ type Interpolator struct {
 }
 
 func NewInterpolate(name string) (*Interpolator, error) {
-	interp := C.vips_interpolate_new(C.CString(name))
-	if interp == nil {
-		return nil, ErrInvalidInterpolator
+	interp, err := VipsInterpolateNew(name)
+	if err != nil {
+		return nil, err
 	}
 	return &Interpolator{
 		name:   name,

@@ -52,7 +52,7 @@ func call(operation *Operation, options *Options) error {
 
 func newOperation(name string) *Operation {
 	o := &Operation{
-		operation: C.vips_operation_new(C.CString(name)),
+		operation: VipsOperationNew(name),
 	}
 	runtime.SetFinalizer(o, finalizeOperation)
 	return o

@@ -6,6 +6,4 @@
   error_requires_version_8
 #endif
 
-
 void SetProperty(VipsObject* object, const char* name, const GValue* value);
-void FilenameSplit8(const char* name, char *filename, char *option_string);
