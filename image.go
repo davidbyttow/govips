@@ -1,12 +1,14 @@
 package gimage
 
 // #cgo pkg-config: vips
-// #include "vips/vips.h"
+// #include "bridge.h"
 import "C"
 
 import (
 	"runtime"
 )
+
+var STRING_BUFFER = fixedString(4096)
 
 type Image struct {
 	image *C.VipsImage
@@ -24,9 +26,42 @@ func finalizeImage(i *Image) {
 	C.g_object_unref(C.gpointer(i.image))
 }
 
-func LoadBuffer(bytes []byte) (*Image, error) {
+func NewImageFromFile(path string, options *Options) (*Image, error) {
+	c_path := C.CString(path)
+	defer C.free(c_path)
+
+	c_filename := C.CString(STRING_BUFFER)
+	defer C.free(c_filename)
+
+	c_optionString := C.CString(STRING_BUFFER)
+	defer C.free(c_optionString)
+
+	C.filename_split8(c_path, c_filename, c_optionString)
+	return nil, nil
+}
+
+func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
+	c_operationName := C.vips_foreign_find_load_buffer(
+		cPtr(bytes),
+		C.size_t(len(bytes)))
+
+	if c_operationName == nil {
+		return nil, ErrUnsupportedImageFormat
+	}
+
+	var image *Image
 	blob := NewBlob(bytes)
-	image := JpegloadBuffer(blob, nil)
+	if options == nil {
+		options = NewOptions().
+			SetBlob("buffer", blob).
+			SetImageOut("out", &image)
+	}
+
+	operationName := C.GoString(c_operationName)
+	if err := Call(operationName, options); err != nil {
+		return nil, err
+	}
+
 	return image, nil
 }
 

@@ -3,5 +3,6 @@ package gimage
 import "errors"
 
 var (
-	ErrInvalidInterpolator = errors.New("Invalid interpolator")
+	ErrUnsupportedImageFormat = errors.New("UnsupportedImageFormat")
+	ErrInvalidInterpolator    = errors.New("Invalid interpolator")
 )

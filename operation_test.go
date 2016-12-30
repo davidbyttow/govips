@@ -11,7 +11,7 @@ func TestOperation(t *testing.T) {
 	buf, _ := io.ReadFile("fixtures/canyon.jpg")
 	assert.NotNil(t, buf)
 
-	image, _ := LoadBuffer(buf)
+	image, _ := NewImageFromBuffer(buf, nil)
 	assert.NotNil(t, image)
 	assert.Equal(t, 2560, image.Width())
 	assert.Equal(t, 1600, image.Height())

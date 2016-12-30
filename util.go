@@ -5,6 +5,7 @@ package gimage
 import "C"
 
 import (
+	"fmt"
 	"unsafe"
 )
 
@@ -24,4 +25,8 @@ func fromGboolean(b C.gboolean) bool {
 		return false
 	}
 	return true
+}
+
+func fixedString(size int) string {
+	return fmt.Sprintf("%%%d.%ds", size, size)
 }

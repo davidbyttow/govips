@@ -17,7 +17,7 @@ func loadAverage(file string) error {
 		return err
 	}
 
-	image, err := gimage.LoadBuffer(buf)
+	image, err := gimage.NewImageFromBuffer(buf)
 	if err != nil {
 		return err
 	}
