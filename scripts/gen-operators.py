@@ -40,6 +40,7 @@ go_types = {
   "gint" : "int",
   "VipsBlob" : "*Blob",
   "VipsImage" : "*Image",
+  "VipsInterpolate": "*Interpolator",
   "VipsOperationMath" : "OperationMath",
   "VipsOperationMath2" : "OperationMath2",
   "VipsOperationRound" : "OperationRound",
@@ -66,6 +67,7 @@ options_method_names = {
   "VipsArrayImage" : "SetImageArray",
   "VipsBlob" : "SetBlob",
   "VipsImage" : "SetImage",
+  "VipsInterpolate" : "SetInterpolator",
 }
 
 def get_type(prop):
