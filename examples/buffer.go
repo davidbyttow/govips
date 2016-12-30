@@ -1,4 +1,4 @@
-package avg
+package buffer
 
 import (
 	"flag"
@@ -11,7 +11,7 @@ import (
 
 const usage = "avg [input]"
 
-func loadAverage(file string) error {
+func run(file string) error {
 	buf, err := io.ReadFile(file)
 	if err != nil {
 		return err
@@ -22,9 +22,10 @@ func loadAverage(file string) error {
 		return err
 	}
 
-	avg := image.Avg(nil)
-	fmt.Printf("avg=%0.2f\n", avg)
+	fmt.Printf("Loaded %d x %d pixel image from %s\n",
+		image.Width(), image.Height(), file)
 
+	// TODO(d): Resave
 	return nil
 }
 
@@ -37,7 +38,7 @@ func main() {
 	file := os.Args[1]
 
 	defer gimage.Shutdown()
-	err := loadAverage(file)
+	err := run(file)
 	if err != nil {
 		os.Exit(1)
 	}
