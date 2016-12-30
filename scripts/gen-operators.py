@@ -188,7 +188,7 @@ def gen_operation(cls):
   output += '\tif (options == nil) {\n'
   output += '\t\toptions = NewOptions()\n'
   output += '\t}\n'
-  output += '\tCall("%s", options' % nickname
+  output += '\tCallOperation("%s", options' % nickname
 
   options = []
   for prop in all_required:
@@ -207,7 +207,7 @@ def gen_operation(cls):
         arg_name = 'int(%s)' % arg_name
     options.append('.\n\t\t%s("%s", %s)' % (method_name, prop.name, arg_name))
 
-  output += '%s)\n' % ''.join(options)
+  output += '%s, "")\n' % ''.join(options)
 
   if result != None:
     output += '\treturn %s\n' % cppize(result.name)

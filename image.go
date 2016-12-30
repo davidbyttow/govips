@@ -34,7 +34,7 @@ func NewImageFromFile(path string, options *Options) (*Image, error) {
 	c_optionString := C.CString(STRING_BUFFER)
 	defer freeCString(c_optionString)
 
-	C.filename_split8(c_path, c_filename, c_optionString)
+	C.FilenameSplit8(c_path, c_filename, c_optionString)
 
 	c_operationName := C.vips_foreign_find_load(c_filename)
 	if c_operationName == nil {
@@ -49,7 +49,8 @@ func NewImageFromFile(path string, options *Options) (*Image, error) {
 	}
 
 	operationName := C.GoString(c_operationName)
-	if err := Call(operationName, options); err != nil {
+	optionString := C.GoString(c_optionString)
+	if err := CallOperation(operationName, options, optionString); err != nil {
 		return nil, err
 	}
 
@@ -73,7 +74,7 @@ func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 	}
 
 	operationName := C.GoString(c_operationName)
-	if err := Call(operationName, options); err != nil {
+	if err := CallOperation(operationName, options, ""); err != nil {
 		return nil, err
 	}
 

@@ -9,9 +9,30 @@ import (
 	"unsafe"
 )
 
-func Call(name string, options *Options) error {
-	operation := newOperation(name)
+type Operation struct {
+	name      string
+	operation *C.VipsOperation
+}
 
+func (o Operation) Name() string {
+	return o.name
+}
+
+func CallOperation(name string, options *Options, operationString string) error {
+	operation := newOperation(name)
+	if operationString != "" {
+		c_operationString := C.CString(operationString)
+		defer freeCString(c_operationString)
+		if C.vips_object_set_from_string(
+			(*C.VipsObject)(unsafe.Pointer(operation)),
+			c_operationString) != 0 {
+			return handleVipsError()
+		}
+	}
+	return call(operation, options)
+}
+
+func call(operation *Operation, options *Options) error {
 	// TODO(d): Unref the outputs
 
 	if options != nil {
@@ -27,15 +48,6 @@ func Call(name string, options *Options) error {
 	}
 
 	return nil
-}
-
-type Operation struct {
-	name      string
-	operation *C.VipsOperation
-}
-
-func (o Operation) Name() string {
-	return o.name
 }
 
 func newOperation(name string) *Operation {
@@ -55,7 +67,7 @@ func (o Operation) applyOptions(options *Options) {
 		if option.isOutput {
 			continue
 		}
-		C.set_property(
+		C.SetProperty(
 			(*C.VipsObject)(unsafe.Pointer(o.operation)),
 			C.CString(option.name),
 			&option.gvalue)

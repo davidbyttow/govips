@@ -1,7 +1,7 @@
 
 #include "bridge.h"
 
-void set_property(VipsObject *object, const char *name, const GValue *value) {
+void SetProperty(VipsObject *object, const char *name, const GValue *value) {
   VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
   GType type = G_VALUE_TYPE( value );
 
@@ -39,6 +39,6 @@ void set_property(VipsObject *object, const char *name, const GValue *value) {
   }
 }
 
-void filename_split8(const char* name, char *filename, char *option_string) {
+void FilenameSplit8(const char* name, char *filename, char *option_string) {
   vips__filename_split8(name, filename, option_string);
 }

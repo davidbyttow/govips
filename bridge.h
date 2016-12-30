@@ -7,5 +7,5 @@
 #endif
 
 
-void set_property(VipsObject* object, const char* name, const GValue* value);
-void filename_split8(const char* name, char *filename, char *option_string);
+void SetProperty(VipsObject* object, const char* name, const GValue* value);
+void FilenameSplit8(const char* name, char *filename, char *option_string);
