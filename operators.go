@@ -30,8 +30,8 @@ import "C"
 // Unsupported: sum
 
 func (image *Image) Abs(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("abs", options.
@@ -41,8 +41,8 @@ func (image *Image) Abs(options *Options) *Image {
 }
 
 func (image *Image) Add(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("add", options.
@@ -53,8 +53,8 @@ func (image *Image) Add(right *Image, options *Options) *Image {
 }
 
 func (image *Image) Autorot(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("autorot", options.
@@ -64,8 +64,8 @@ func (image *Image) Autorot(options *Options) *Image {
 }
 
 func (image *Image) Avg(options *Options) float64 {
-	var out float64;
-	if (options == nil) {
+	var out float64
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("avg", options.
@@ -75,8 +75,8 @@ func (image *Image) Avg(options *Options) float64 {
 }
 
 func (image *Image) Bandbool(boolean OperationBoolean, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("bandbool", options.
@@ -87,8 +87,8 @@ func (image *Image) Bandbool(boolean OperationBoolean, options *Options) *Image 
 }
 
 func (image *Image) Bandfold(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("bandfold", options.
@@ -98,8 +98,8 @@ func (image *Image) Bandfold(options *Options) *Image {
 }
 
 func (image *Image) Bandmean(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("bandmean", options.
@@ -109,8 +109,8 @@ func (image *Image) Bandmean(options *Options) *Image {
 }
 
 func (image *Image) Bandunfold(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("bandunfold", options.
@@ -120,8 +120,8 @@ func (image *Image) Bandunfold(options *Options) *Image {
 }
 
 func (image *Image) Boolean(right *Image, boolean OperationBoolean, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("boolean", options.
@@ -133,8 +133,8 @@ func (image *Image) Boolean(right *Image, boolean OperationBoolean, options *Opt
 }
 
 func (image *Image) Buildlut(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("buildlut", options.
@@ -144,8 +144,8 @@ func (image *Image) Buildlut(options *Options) *Image {
 }
 
 func (image *Image) Byteswap(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("byteswap", options.
@@ -155,8 +155,8 @@ func (image *Image) Byteswap(options *Options) *Image {
 }
 
 func (image *Image) Cache(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("cache", options.
@@ -166,8 +166,8 @@ func (image *Image) Cache(options *Options) *Image {
 }
 
 func (image *Image) Cast(format BandFormat, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("cast", options.
@@ -178,8 +178,8 @@ func (image *Image) Cast(format BandFormat, options *Options) *Image {
 }
 
 func (image *Image) Cmc2Lch(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("CMC2LCh", options.
@@ -189,8 +189,8 @@ func (image *Image) Cmc2Lch(options *Options) *Image {
 }
 
 func (image *Image) Colourspace(space Interpretation, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("colourspace", options.
@@ -201,8 +201,8 @@ func (image *Image) Colourspace(space Interpretation, options *Options) *Image {
 }
 
 func (image *Image) Compass(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("compass", options.
@@ -213,8 +213,8 @@ func (image *Image) Compass(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Complex(cmplx OperationComplex, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("complex", options.
@@ -225,8 +225,8 @@ func (image *Image) Complex(cmplx OperationComplex, options *Options) *Image {
 }
 
 func (image *Image) Complex2(right *Image, cmplx OperationComplex2, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("complex2", options.
@@ -238,8 +238,8 @@ func (image *Image) Complex2(right *Image, cmplx OperationComplex2, options *Opt
 }
 
 func (image *Image) Complexform(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("complexform", options.
@@ -250,8 +250,8 @@ func (image *Image) Complexform(right *Image, options *Options) *Image {
 }
 
 func (image *Image) Complexget(get OperationComplexGet, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("complexget", options.
@@ -262,8 +262,8 @@ func (image *Image) Complexget(get OperationComplexGet, options *Options) *Image
 }
 
 func (image *Image) Conv(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("conv", options.
@@ -274,8 +274,8 @@ func (image *Image) Conv(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Conva(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("conva", options.
@@ -286,8 +286,8 @@ func (image *Image) Conva(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Convasep(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("convasep", options.
@@ -298,8 +298,8 @@ func (image *Image) Convasep(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Convf(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("convf", options.
@@ -310,8 +310,8 @@ func (image *Image) Convf(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Convi(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("convi", options.
@@ -322,8 +322,8 @@ func (image *Image) Convi(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Convsep(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("convsep", options.
@@ -334,8 +334,8 @@ func (image *Image) Convsep(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Copy(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("copy", options.
@@ -345,8 +345,8 @@ func (image *Image) Copy(options *Options) *Image {
 }
 
 func (image *Image) Countlines(direction Direction, options *Options) float64 {
-	var nolines float64;
-	if (options == nil) {
+	var nolines float64
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("countlines", options.
@@ -357,7 +357,7 @@ func (image *Image) Countlines(direction Direction, options *Options) float64 {
 }
 
 func (image *Image) Csvsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("csvsave", options.
@@ -366,8 +366,8 @@ func (image *Image) Csvsave(filename string, options *Options) {
 }
 
 func (image *Image) De00(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("dE00", options.
@@ -378,8 +378,8 @@ func (image *Image) De00(right *Image, options *Options) *Image {
 }
 
 func (image *Image) De76(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("dE76", options.
@@ -390,8 +390,8 @@ func (image *Image) De76(right *Image, options *Options) *Image {
 }
 
 func (image *Image) Decmc(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("dECMC", options.
@@ -402,8 +402,8 @@ func (image *Image) Decmc(right *Image, options *Options) *Image {
 }
 
 func (image *Image) Deviate(options *Options) float64 {
-	var out float64;
-	if (options == nil) {
+	var out float64
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("deviate", options.
@@ -413,8 +413,8 @@ func (image *Image) Deviate(options *Options) float64 {
 }
 
 func (image *Image) Divide(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("divide", options.
@@ -425,7 +425,7 @@ func (image *Image) Divide(right *Image, options *Options) *Image {
 }
 
 func (image *Image) DrawImage(sub *Image, x int, y int, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("draw_image", options.
@@ -436,7 +436,7 @@ func (image *Image) DrawImage(sub *Image, x int, y int, options *Options) {
 }
 
 func (image *Image) DrawSmudge(left int, top int, width int, height int, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("draw_smudge", options.
@@ -448,7 +448,7 @@ func (image *Image) DrawSmudge(left int, top int, width int, height int, options
 }
 
 func (image *Image) Dzsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("dzsave", options.
@@ -457,8 +457,8 @@ func (image *Image) Dzsave(filename string, options *Options) {
 }
 
 func (image *Image) Embed(x int, y int, width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("embed", options.
@@ -472,8 +472,8 @@ func (image *Image) Embed(x int, y int, width int, height int, options *Options)
 }
 
 func (image *Image) ExtractArea(left int, top int, width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("extract_area", options.
@@ -487,8 +487,8 @@ func (image *Image) ExtractArea(left int, top int, width int, height int, option
 }
 
 func (image *Image) ExtractBand(band int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("extract_band", options.
@@ -499,8 +499,8 @@ func (image *Image) ExtractBand(band int, options *Options) *Image {
 }
 
 func (image *Image) Falsecolour(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("falsecolour", options.
@@ -510,8 +510,8 @@ func (image *Image) Falsecolour(options *Options) *Image {
 }
 
 func (image *Image) Fastcor(ref *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("fastcor", options.
@@ -522,8 +522,8 @@ func (image *Image) Fastcor(ref *Image, options *Options) *Image {
 }
 
 func (image *Image) Flatten(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("flatten", options.
@@ -533,8 +533,8 @@ func (image *Image) Flatten(options *Options) *Image {
 }
 
 func (image *Image) Flip(direction Direction, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("flip", options.
@@ -545,8 +545,8 @@ func (image *Image) Flip(direction Direction, options *Options) *Image {
 }
 
 func (image *Image) Float2Rad(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("float2rad", options.
@@ -556,8 +556,8 @@ func (image *Image) Float2Rad(options *Options) *Image {
 }
 
 func (image *Image) Freqmult(mask *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("freqmult", options.
@@ -568,8 +568,8 @@ func (image *Image) Freqmult(mask *Image, options *Options) *Image {
 }
 
 func (image *Image) Fwfft(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("fwfft", options.
@@ -579,8 +579,8 @@ func (image *Image) Fwfft(options *Options) *Image {
 }
 
 func (image *Image) Gamma(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("gamma", options.
@@ -590,8 +590,8 @@ func (image *Image) Gamma(options *Options) *Image {
 }
 
 func (image *Image) Gaussblur(sigma float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("gaussblur", options.
@@ -602,8 +602,8 @@ func (image *Image) Gaussblur(sigma float64, options *Options) *Image {
 }
 
 func (image *Image) Globalbalance(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("globalbalance", options.
@@ -613,8 +613,8 @@ func (image *Image) Globalbalance(options *Options) *Image {
 }
 
 func (image *Image) Grid(tile_height int, across int, down int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("grid", options.
@@ -627,8 +627,8 @@ func (image *Image) Grid(tile_height int, across int, down int, options *Options
 }
 
 func (image *Image) HistCum(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_cum", options.
@@ -638,8 +638,8 @@ func (image *Image) HistCum(options *Options) *Image {
 }
 
 func (image *Image) HistEntropy(options *Options) float64 {
-	var out float64;
-	if (options == nil) {
+	var out float64
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_entropy", options.
@@ -649,8 +649,8 @@ func (image *Image) HistEntropy(options *Options) float64 {
 }
 
 func (image *Image) HistEqual(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_equal", options.
@@ -660,8 +660,8 @@ func (image *Image) HistEqual(options *Options) *Image {
 }
 
 func (image *Image) HistFind(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_find", options.
@@ -671,8 +671,8 @@ func (image *Image) HistFind(options *Options) *Image {
 }
 
 func (image *Image) HistFindIndexed(index *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_find_indexed", options.
@@ -683,8 +683,8 @@ func (image *Image) HistFindIndexed(index *Image, options *Options) *Image {
 }
 
 func (image *Image) HistFindNdim(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_find_ndim", options.
@@ -694,8 +694,8 @@ func (image *Image) HistFindNdim(options *Options) *Image {
 }
 
 func (image *Image) HistIsmonotonic(options *Options) bool {
-	var monotonic bool;
-	if (options == nil) {
+	var monotonic bool
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_ismonotonic", options.
@@ -705,8 +705,8 @@ func (image *Image) HistIsmonotonic(options *Options) bool {
 }
 
 func (image *Image) HistLocal(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_local", options.
@@ -718,8 +718,8 @@ func (image *Image) HistLocal(width int, height int, options *Options) *Image {
 }
 
 func (image *Image) HistMatch(ref *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_match", options.
@@ -730,8 +730,8 @@ func (image *Image) HistMatch(ref *Image, options *Options) *Image {
 }
 
 func (image *Image) HistNorm(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_norm", options.
@@ -741,8 +741,8 @@ func (image *Image) HistNorm(options *Options) *Image {
 }
 
 func (image *Image) HistPlot(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hist_plot", options.
@@ -752,8 +752,8 @@ func (image *Image) HistPlot(options *Options) *Image {
 }
 
 func (image *Image) HoughCircle(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hough_circle", options.
@@ -763,8 +763,8 @@ func (image *Image) HoughCircle(options *Options) *Image {
 }
 
 func (image *Image) HoughLine(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("hough_line", options.
@@ -774,8 +774,8 @@ func (image *Image) HoughLine(options *Options) *Image {
 }
 
 func (image *Image) Hsv2Srgb(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("HSV2sRGB", options.
@@ -785,8 +785,8 @@ func (image *Image) Hsv2Srgb(options *Options) *Image {
 }
 
 func (image *Image) IccExport(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("icc_export", options.
@@ -796,8 +796,8 @@ func (image *Image) IccExport(options *Options) *Image {
 }
 
 func (image *Image) IccImport(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("icc_import", options.
@@ -807,8 +807,8 @@ func (image *Image) IccImport(options *Options) *Image {
 }
 
 func (image *Image) IccTransform(output_profile string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("icc_transform", options.
@@ -819,8 +819,8 @@ func (image *Image) IccTransform(output_profile string, options *Options) *Image
 }
 
 func (image *Image) Ifthenelse(in1 *Image, in2 *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("ifthenelse", options.
@@ -832,8 +832,8 @@ func (image *Image) Ifthenelse(in1 *Image, in2 *Image, options *Options) *Image 
 }
 
 func (image *Image) Insert(sub *Image, x int, y int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("insert", options.
@@ -846,8 +846,8 @@ func (image *Image) Insert(sub *Image, x int, y int, options *Options) *Image {
 }
 
 func (image *Image) Invert(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("invert", options.
@@ -857,8 +857,8 @@ func (image *Image) Invert(options *Options) *Image {
 }
 
 func (image *Image) Invertlut(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("invertlut", options.
@@ -868,8 +868,8 @@ func (image *Image) Invertlut(options *Options) *Image {
 }
 
 func (image *Image) Invfft(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("invfft", options.
@@ -879,8 +879,8 @@ func (image *Image) Invfft(options *Options) *Image {
 }
 
 func (image *Image) Join(in2 *Image, direction Direction, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("join", options.
@@ -892,7 +892,7 @@ func (image *Image) Join(in2 *Image, direction Direction, options *Options) *Ima
 }
 
 func (image *Image) Jpegsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("jpegsave", options.
@@ -901,8 +901,8 @@ func (image *Image) Jpegsave(filename string, options *Options) {
 }
 
 func (image *Image) JpegsaveBuffer(options *Options) *Blob {
-	var buffer *Blob;
-	if (options == nil) {
+	var buffer *Blob
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("jpegsave_buffer", options.
@@ -912,7 +912,7 @@ func (image *Image) JpegsaveBuffer(options *Options) *Blob {
 }
 
 func (image *Image) JpegsaveMime(options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("jpegsave_mime", options.
@@ -920,8 +920,8 @@ func (image *Image) JpegsaveMime(options *Options) {
 }
 
 func (image *Image) Lab2Labq(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("Lab2LabQ", options.
@@ -931,8 +931,8 @@ func (image *Image) Lab2Labq(options *Options) *Image {
 }
 
 func (image *Image) Lab2Labs(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("Lab2LabS", options.
@@ -942,8 +942,8 @@ func (image *Image) Lab2Labs(options *Options) *Image {
 }
 
 func (image *Image) Lab2Lch(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("Lab2LCh", options.
@@ -953,8 +953,8 @@ func (image *Image) Lab2Lch(options *Options) *Image {
 }
 
 func (image *Image) Lab2Xyz(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("Lab2XYZ", options.
@@ -964,8 +964,8 @@ func (image *Image) Lab2Xyz(options *Options) *Image {
 }
 
 func (image *Image) Labelregions(options *Options) *Image {
-	var mask *Image;
-	if (options == nil) {
+	var mask *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("labelregions", options.
@@ -975,8 +975,8 @@ func (image *Image) Labelregions(options *Options) *Image {
 }
 
 func (image *Image) Labq2Lab(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("LabQ2Lab", options.
@@ -986,8 +986,8 @@ func (image *Image) Labq2Lab(options *Options) *Image {
 }
 
 func (image *Image) Labq2Labs(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("LabQ2LabS", options.
@@ -997,8 +997,8 @@ func (image *Image) Labq2Labs(options *Options) *Image {
 }
 
 func (image *Image) Labq2Srgb(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("LabQ2sRGB", options.
@@ -1008,8 +1008,8 @@ func (image *Image) Labq2Srgb(options *Options) *Image {
 }
 
 func (image *Image) Labs2Lab(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("LabS2Lab", options.
@@ -1019,8 +1019,8 @@ func (image *Image) Labs2Lab(options *Options) *Image {
 }
 
 func (image *Image) Labs2Labq(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("LabS2LabQ", options.
@@ -1030,8 +1030,8 @@ func (image *Image) Labs2Labq(options *Options) *Image {
 }
 
 func (image *Image) Lch2Cmc(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("LCh2CMC", options.
@@ -1041,8 +1041,8 @@ func (image *Image) Lch2Cmc(options *Options) *Image {
 }
 
 func (image *Image) Lch2Lab(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("LCh2Lab", options.
@@ -1052,8 +1052,8 @@ func (image *Image) Lch2Lab(options *Options) *Image {
 }
 
 func (image *Image) Linecache(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("linecache", options.
@@ -1063,8 +1063,8 @@ func (image *Image) Linecache(options *Options) *Image {
 }
 
 func (image *Image) Mapim(index *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mapim", options.
@@ -1075,8 +1075,8 @@ func (image *Image) Mapim(index *Image, options *Options) *Image {
 }
 
 func (image *Image) Maplut(lut *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("maplut", options.
@@ -1087,8 +1087,8 @@ func (image *Image) Maplut(lut *Image, options *Options) *Image {
 }
 
 func (image *Image) Match(sec *Image, xr1 int, yr1 int, xs1 int, ys1 int, xr2 int, yr2 int, xs2 int, ys2 int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("match", options.
@@ -1107,8 +1107,8 @@ func (image *Image) Match(sec *Image, xr1 int, yr1 int, xs1 int, ys1 int, xr2 in
 }
 
 func (image *Image) Math(math OperationMath, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("math", options.
@@ -1119,8 +1119,8 @@ func (image *Image) Math(math OperationMath, options *Options) *Image {
 }
 
 func (image *Image) Math2(right *Image, math2 OperationMath2, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("math2", options.
@@ -1132,7 +1132,7 @@ func (image *Image) Math2(right *Image, math2 OperationMath2, options *Options) 
 }
 
 func (image *Image) Matrixprint(options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("matrixprint", options.
@@ -1140,7 +1140,7 @@ func (image *Image) Matrixprint(options *Options) {
 }
 
 func (image *Image) Matrixsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("matrixsave", options.
@@ -1149,8 +1149,8 @@ func (image *Image) Matrixsave(filename string, options *Options) {
 }
 
 func (image *Image) Max(options *Options) float64 {
-	var out float64;
-	if (options == nil) {
+	var out float64
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("max", options.
@@ -1160,8 +1160,8 @@ func (image *Image) Max(options *Options) float64 {
 }
 
 func (image *Image) Measure(h int, v int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("measure", options.
@@ -1173,8 +1173,8 @@ func (image *Image) Measure(h int, v int, options *Options) *Image {
 }
 
 func (image *Image) Merge(sec *Image, direction Direction, dx int, dy int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("merge", options.
@@ -1188,8 +1188,8 @@ func (image *Image) Merge(sec *Image, direction Direction, dx int, dy int, optio
 }
 
 func (image *Image) Min(options *Options) float64 {
-	var out float64;
-	if (options == nil) {
+	var out float64
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("min", options.
@@ -1199,8 +1199,8 @@ func (image *Image) Min(options *Options) float64 {
 }
 
 func (image *Image) Morph(mask *Image, morph OperationMorphology, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("morph", options.
@@ -1212,8 +1212,8 @@ func (image *Image) Morph(mask *Image, morph OperationMorphology, options *Optio
 }
 
 func (image *Image) Mosaic(sec *Image, direction Direction, xref int, yref int, xsec int, ysec int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mosaic", options.
@@ -1229,8 +1229,8 @@ func (image *Image) Mosaic(sec *Image, direction Direction, xref int, yref int, 
 }
 
 func (image *Image) Mosaic1(sec *Image, direction Direction, xr1 int, yr1 int, xs1 int, ys1 int, xr2 int, yr2 int, xs2 int, ys2 int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mosaic1", options.
@@ -1250,8 +1250,8 @@ func (image *Image) Mosaic1(sec *Image, direction Direction, xr1 int, yr1 int, x
 }
 
 func (image *Image) Msb(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("msb", options.
@@ -1261,8 +1261,8 @@ func (image *Image) Msb(options *Options) *Image {
 }
 
 func (image *Image) Multiply(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("multiply", options.
@@ -1273,8 +1273,8 @@ func (image *Image) Multiply(right *Image, options *Options) *Image {
 }
 
 func (image *Image) Percent(percent float64, options *Options) int {
-	var threshold int;
-	if (options == nil) {
+	var threshold int
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("percent", options.
@@ -1285,8 +1285,8 @@ func (image *Image) Percent(percent float64, options *Options) int {
 }
 
 func (image *Image) Phasecor(in2 *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("phasecor", options.
@@ -1297,7 +1297,7 @@ func (image *Image) Phasecor(in2 *Image, options *Options) *Image {
 }
 
 func (image *Image) Pngsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("pngsave", options.
@@ -1306,8 +1306,8 @@ func (image *Image) Pngsave(filename string, options *Options) {
 }
 
 func (image *Image) PngsaveBuffer(options *Options) *Blob {
-	var buffer *Blob;
-	if (options == nil) {
+	var buffer *Blob
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("pngsave_buffer", options.
@@ -1317,7 +1317,7 @@ func (image *Image) PngsaveBuffer(options *Options) *Blob {
 }
 
 func (image *Image) Ppmsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("ppmsave", options.
@@ -1326,8 +1326,8 @@ func (image *Image) Ppmsave(filename string, options *Options) {
 }
 
 func (image *Image) Premultiply(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("premultiply", options.
@@ -1337,8 +1337,8 @@ func (image *Image) Premultiply(options *Options) *Image {
 }
 
 func (image *Image) Profile(rows **Image, options *Options) *Image {
-	var columns *Image;
-	if (options == nil) {
+	var columns *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("profile", options.
@@ -1349,8 +1349,8 @@ func (image *Image) Profile(rows **Image, options *Options) *Image {
 }
 
 func (image *Image) Project(rows **Image, options *Options) *Image {
-	var columns *Image;
-	if (options == nil) {
+	var columns *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("project", options.
@@ -1361,8 +1361,8 @@ func (image *Image) Project(rows **Image, options *Options) *Image {
 }
 
 func (image *Image) Quadratic(coeff *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("quadratic", options.
@@ -1373,8 +1373,8 @@ func (image *Image) Quadratic(coeff *Image, options *Options) *Image {
 }
 
 func (image *Image) Rad2Float(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("rad2float", options.
@@ -1384,7 +1384,7 @@ func (image *Image) Rad2Float(options *Options) *Image {
 }
 
 func (image *Image) Radsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("radsave", options.
@@ -1393,8 +1393,8 @@ func (image *Image) Radsave(filename string, options *Options) {
 }
 
 func (image *Image) RadsaveBuffer(options *Options) *Blob {
-	var buffer *Blob;
-	if (options == nil) {
+	var buffer *Blob
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("radsave_buffer", options.
@@ -1404,8 +1404,8 @@ func (image *Image) RadsaveBuffer(options *Options) *Blob {
 }
 
 func (image *Image) Rank(width int, height int, index int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("rank", options.
@@ -1418,7 +1418,7 @@ func (image *Image) Rank(width int, height int, index int, options *Options) *Im
 }
 
 func (image *Image) Rawsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("rawsave", options.
@@ -1427,7 +1427,7 @@ func (image *Image) Rawsave(filename string, options *Options) {
 }
 
 func (image *Image) RawsaveFd(fd int, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("rawsave_fd", options.
@@ -1436,8 +1436,8 @@ func (image *Image) RawsaveFd(fd int, options *Options) {
 }
 
 func (image *Image) Recomb(m *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("recomb", options.
@@ -1448,8 +1448,8 @@ func (image *Image) Recomb(m *Image, options *Options) *Image {
 }
 
 func (image *Image) Reduce(hshrink float64, vshrink float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("reduce", options.
@@ -1461,8 +1461,8 @@ func (image *Image) Reduce(hshrink float64, vshrink float64, options *Options) *
 }
 
 func (image *Image) Reduceh(hshrink float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("reduceh", options.
@@ -1473,8 +1473,8 @@ func (image *Image) Reduceh(hshrink float64, options *Options) *Image {
 }
 
 func (image *Image) Reducev(vshrink float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("reducev", options.
@@ -1485,8 +1485,8 @@ func (image *Image) Reducev(vshrink float64, options *Options) *Image {
 }
 
 func (image *Image) Relational(right *Image, relational OperationRelational, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("relational", options.
@@ -1498,8 +1498,8 @@ func (image *Image) Relational(right *Image, relational OperationRelational, opt
 }
 
 func (image *Image) Remainder(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("remainder", options.
@@ -1510,8 +1510,8 @@ func (image *Image) Remainder(right *Image, options *Options) *Image {
 }
 
 func (image *Image) Replicate(across int, down int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("replicate", options.
@@ -1523,8 +1523,8 @@ func (image *Image) Replicate(across int, down int, options *Options) *Image {
 }
 
 func (image *Image) Resize(scale float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("resize", options.
@@ -1535,8 +1535,8 @@ func (image *Image) Resize(scale float64, options *Options) *Image {
 }
 
 func (image *Image) Rot(angle Angle, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("rot", options.
@@ -1547,8 +1547,8 @@ func (image *Image) Rot(angle Angle, options *Options) *Image {
 }
 
 func (image *Image) Rot45(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("rot45", options.
@@ -1558,8 +1558,8 @@ func (image *Image) Rot45(options *Options) *Image {
 }
 
 func (image *Image) Round(round OperationRound, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("round", options.
@@ -1570,8 +1570,8 @@ func (image *Image) Round(round OperationRound, options *Options) *Image {
 }
 
 func (image *Image) Scale(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("scale", options.
@@ -1581,8 +1581,8 @@ func (image *Image) Scale(options *Options) *Image {
 }
 
 func (image *Image) Scrgb2Bw(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("scRGB2BW", options.
@@ -1592,8 +1592,8 @@ func (image *Image) Scrgb2Bw(options *Options) *Image {
 }
 
 func (image *Image) Scrgb2Srgb(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("scRGB2sRGB", options.
@@ -1603,8 +1603,8 @@ func (image *Image) Scrgb2Srgb(options *Options) *Image {
 }
 
 func (image *Image) Scrgb2Xyz(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("scRGB2XYZ", options.
@@ -1614,8 +1614,8 @@ func (image *Image) Scrgb2Xyz(options *Options) *Image {
 }
 
 func (image *Image) Sequential(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("sequential", options.
@@ -1625,8 +1625,8 @@ func (image *Image) Sequential(options *Options) *Image {
 }
 
 func (image *Image) Sharpen(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("sharpen", options.
@@ -1636,8 +1636,8 @@ func (image *Image) Sharpen(options *Options) *Image {
 }
 
 func (image *Image) Shrink(hshrink float64, vshrink float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("shrink", options.
@@ -1649,8 +1649,8 @@ func (image *Image) Shrink(hshrink float64, vshrink float64, options *Options) *
 }
 
 func (image *Image) Shrinkh(hshrink int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("shrinkh", options.
@@ -1661,8 +1661,8 @@ func (image *Image) Shrinkh(hshrink int, options *Options) *Image {
 }
 
 func (image *Image) Shrinkv(vshrink int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("shrinkv", options.
@@ -1673,8 +1673,8 @@ func (image *Image) Shrinkv(vshrink int, options *Options) *Image {
 }
 
 func (image *Image) Sign(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("sign", options.
@@ -1684,8 +1684,8 @@ func (image *Image) Sign(options *Options) *Image {
 }
 
 func (image *Image) Similarity(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("similarity", options.
@@ -1695,8 +1695,8 @@ func (image *Image) Similarity(options *Options) *Image {
 }
 
 func (image *Image) Spcor(ref *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("spcor", options.
@@ -1707,8 +1707,8 @@ func (image *Image) Spcor(ref *Image, options *Options) *Image {
 }
 
 func (image *Image) Spectrum(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("spectrum", options.
@@ -1718,8 +1718,8 @@ func (image *Image) Spectrum(options *Options) *Image {
 }
 
 func (image *Image) Srgb2Hsv(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("sRGB2HSV", options.
@@ -1729,8 +1729,8 @@ func (image *Image) Srgb2Hsv(options *Options) *Image {
 }
 
 func (image *Image) Srgb2Scrgb(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("sRGB2scRGB", options.
@@ -1740,8 +1740,8 @@ func (image *Image) Srgb2Scrgb(options *Options) *Image {
 }
 
 func (image *Image) Stats(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("stats", options.
@@ -1751,8 +1751,8 @@ func (image *Image) Stats(options *Options) *Image {
 }
 
 func (image *Image) Stdif(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("stdif", options.
@@ -1764,8 +1764,8 @@ func (image *Image) Stdif(width int, height int, options *Options) *Image {
 }
 
 func (image *Image) Subsample(xfac int, yfac int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("subsample", options.
@@ -1777,8 +1777,8 @@ func (image *Image) Subsample(xfac int, yfac int, options *Options) *Image {
 }
 
 func (image *Image) Subtract(right *Image, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("subtract", options.
@@ -1789,7 +1789,7 @@ func (image *Image) Subtract(right *Image, options *Options) *Image {
 }
 
 func (image *Image) Tiffsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("tiffsave", options.
@@ -1798,8 +1798,8 @@ func (image *Image) Tiffsave(filename string, options *Options) {
 }
 
 func (image *Image) Tilecache(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("tilecache", options.
@@ -1809,8 +1809,8 @@ func (image *Image) Tilecache(options *Options) *Image {
 }
 
 func (image *Image) Unpremultiply(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("unpremultiply", options.
@@ -1820,7 +1820,7 @@ func (image *Image) Unpremultiply(options *Options) *Image {
 }
 
 func (image *Image) Vipssave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("vipssave", options.
@@ -1829,7 +1829,7 @@ func (image *Image) Vipssave(filename string, options *Options) {
 }
 
 func (image *Image) Webpsave(filename string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("webpsave", options.
@@ -1838,8 +1838,8 @@ func (image *Image) Webpsave(filename string, options *Options) {
 }
 
 func (image *Image) WebpsaveBuffer(options *Options) *Blob {
-	var buffer *Blob;
-	if (options == nil) {
+	var buffer *Blob
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("webpsave_buffer", options.
@@ -1849,8 +1849,8 @@ func (image *Image) WebpsaveBuffer(options *Options) *Blob {
 }
 
 func (image *Image) Wrap(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("wrap", options.
@@ -1860,8 +1860,8 @@ func (image *Image) Wrap(options *Options) *Image {
 }
 
 func (image *Image) Xyz2Lab(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("XYZ2Lab", options.
@@ -1871,8 +1871,8 @@ func (image *Image) Xyz2Lab(options *Options) *Image {
 }
 
 func (image *Image) Xyz2Scrgb(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("XYZ2scRGB", options.
@@ -1882,8 +1882,8 @@ func (image *Image) Xyz2Scrgb(options *Options) *Image {
 }
 
 func (image *Image) Xyz2Yxy(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("XYZ2Yxy", options.
@@ -1893,8 +1893,8 @@ func (image *Image) Xyz2Yxy(options *Options) *Image {
 }
 
 func (image *Image) Yxy2Xyz(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("Yxy2XYZ", options.
@@ -1904,8 +1904,8 @@ func (image *Image) Yxy2Xyz(options *Options) *Image {
 }
 
 func (image *Image) Zoom(xfac int, yfac int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("zoom", options.
@@ -1917,8 +1917,8 @@ func (image *Image) Zoom(xfac int, yfac int, options *Options) *Image {
 }
 
 func Analyzeload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("analyzeload", options.
@@ -1928,8 +1928,8 @@ func Analyzeload(filename string, options *Options) *Image {
 }
 
 func Black(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("black", options.
@@ -1940,8 +1940,8 @@ func Black(width int, height int, options *Options) *Image {
 }
 
 func Csvload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("csvload", options.
@@ -1951,8 +1951,8 @@ func Csvload(filename string, options *Options) *Image {
 }
 
 func Eye(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("eye", options.
@@ -1963,8 +1963,8 @@ func Eye(width int, height int, options *Options) *Image {
 }
 
 func Fractsurf(width int, height int, fractal_dimension float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("fractsurf", options.
@@ -1976,8 +1976,8 @@ func Fractsurf(width int, height int, fractal_dimension float64, options *Option
 }
 
 func Gaussmat(sigma float64, min_ampl float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("gaussmat", options.
@@ -1988,8 +1988,8 @@ func Gaussmat(sigma float64, min_ampl float64, options *Options) *Image {
 }
 
 func Gaussnoise(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("gaussnoise", options.
@@ -2000,8 +2000,8 @@ func Gaussnoise(width int, height int, options *Options) *Image {
 }
 
 func Gifload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("gifload", options.
@@ -2011,8 +2011,8 @@ func Gifload(filename string, options *Options) *Image {
 }
 
 func GifloadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("gifload_buffer", options.
@@ -2022,8 +2022,8 @@ func GifloadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func Grey(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("grey", options.
@@ -2034,8 +2034,8 @@ func Grey(width int, height int, options *Options) *Image {
 }
 
 func Identity(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("identity", options.
@@ -2044,8 +2044,8 @@ func Identity(options *Options) *Image {
 }
 
 func Jpegload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("jpegload", options.
@@ -2055,8 +2055,8 @@ func Jpegload(filename string, options *Options) *Image {
 }
 
 func JpegloadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("jpegload_buffer", options.
@@ -2066,8 +2066,8 @@ func JpegloadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func Logmat(sigma float64, min_ampl float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("logmat", options.
@@ -2078,8 +2078,8 @@ func Logmat(sigma float64, min_ampl float64, options *Options) *Image {
 }
 
 func Magickload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("magickload", options.
@@ -2089,8 +2089,8 @@ func Magickload(filename string, options *Options) *Image {
 }
 
 func MagickloadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("magickload_buffer", options.
@@ -2100,8 +2100,8 @@ func MagickloadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func MaskButterworth(width int, height int, order float64, frequency_cutoff float64, amplitude_cutoff float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_butterworth", options.
@@ -2115,8 +2115,8 @@ func MaskButterworth(width int, height int, order float64, frequency_cutoff floa
 }
 
 func MaskButterworthBand(width int, height int, order float64, frequency_cutoff_x float64, frequency_cutoff_y float64, radius float64, amplitude_cutoff float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_butterworth_band", options.
@@ -2132,8 +2132,8 @@ func MaskButterworthBand(width int, height int, order float64, frequency_cutoff_
 }
 
 func MaskButterworthRing(width int, height int, order float64, frequency_cutoff float64, amplitude_cutoff float64, ringwidth float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_butterworth_ring", options.
@@ -2148,8 +2148,8 @@ func MaskButterworthRing(width int, height int, order float64, frequency_cutoff 
 }
 
 func MaskFractal(width int, height int, fractal_dimension float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_fractal", options.
@@ -2161,8 +2161,8 @@ func MaskFractal(width int, height int, fractal_dimension float64, options *Opti
 }
 
 func MaskGaussian(width int, height int, frequency_cutoff float64, amplitude_cutoff float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_gaussian", options.
@@ -2175,8 +2175,8 @@ func MaskGaussian(width int, height int, frequency_cutoff float64, amplitude_cut
 }
 
 func MaskGaussianBand(width int, height int, frequency_cutoff_x float64, frequency_cutoff_y float64, radius float64, amplitude_cutoff float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_gaussian_band", options.
@@ -2191,8 +2191,8 @@ func MaskGaussianBand(width int, height int, frequency_cutoff_x float64, frequen
 }
 
 func MaskGaussianRing(width int, height int, frequency_cutoff float64, amplitude_cutoff float64, ringwidth float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_gaussian_ring", options.
@@ -2206,8 +2206,8 @@ func MaskGaussianRing(width int, height int, frequency_cutoff float64, amplitude
 }
 
 func MaskIdeal(width int, height int, frequency_cutoff float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_ideal", options.
@@ -2219,8 +2219,8 @@ func MaskIdeal(width int, height int, frequency_cutoff float64, options *Options
 }
 
 func MaskIdealBand(width int, height int, frequency_cutoff_x float64, frequency_cutoff_y float64, radius float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_ideal_band", options.
@@ -2234,8 +2234,8 @@ func MaskIdealBand(width int, height int, frequency_cutoff_x float64, frequency_
 }
 
 func MaskIdealRing(width int, height int, frequency_cutoff float64, ringwidth float64, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("mask_ideal_ring", options.
@@ -2248,8 +2248,8 @@ func MaskIdealRing(width int, height int, frequency_cutoff float64, ringwidth fl
 }
 
 func Matrixload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("matrixload", options.
@@ -2259,8 +2259,8 @@ func Matrixload(filename string, options *Options) *Image {
 }
 
 func Pdfload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("pdfload", options.
@@ -2270,8 +2270,8 @@ func Pdfload(filename string, options *Options) *Image {
 }
 
 func PdfloadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("pdfload_buffer", options.
@@ -2281,8 +2281,8 @@ func PdfloadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func Perlin(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("perlin", options.
@@ -2293,8 +2293,8 @@ func Perlin(width int, height int, options *Options) *Image {
 }
 
 func Pngload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("pngload", options.
@@ -2304,8 +2304,8 @@ func Pngload(filename string, options *Options) *Image {
 }
 
 func PngloadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("pngload_buffer", options.
@@ -2315,8 +2315,8 @@ func PngloadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func Ppmload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("ppmload", options.
@@ -2326,8 +2326,8 @@ func Ppmload(filename string, options *Options) *Image {
 }
 
 func Radload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("radload", options.
@@ -2337,8 +2337,8 @@ func Radload(filename string, options *Options) *Image {
 }
 
 func Rawload(filename string, width int, height int, bands int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("rawload", options.
@@ -2351,8 +2351,8 @@ func Rawload(filename string, width int, height int, bands int, options *Options
 }
 
 func Sines(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("sines", options.
@@ -2363,8 +2363,8 @@ func Sines(width int, height int, options *Options) *Image {
 }
 
 func Svgload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("svgload", options.
@@ -2374,8 +2374,8 @@ func Svgload(filename string, options *Options) *Image {
 }
 
 func SvgloadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("svgload_buffer", options.
@@ -2385,7 +2385,7 @@ func SvgloadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func System(cmd_format string, options *Options) {
-	if (options == nil) {
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("system", options.
@@ -2393,8 +2393,8 @@ func System(cmd_format string, options *Options) {
 }
 
 func Text(text string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("text", options.
@@ -2404,8 +2404,8 @@ func Text(text string, options *Options) *Image {
 }
 
 func Tiffload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("tiffload", options.
@@ -2415,8 +2415,8 @@ func Tiffload(filename string, options *Options) *Image {
 }
 
 func TiffloadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("tiffload_buffer", options.
@@ -2426,8 +2426,8 @@ func TiffloadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func Tonelut(options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("tonelut", options.
@@ -2436,8 +2436,8 @@ func Tonelut(options *Options) *Image {
 }
 
 func Vipsload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("vipsload", options.
@@ -2447,8 +2447,8 @@ func Vipsload(filename string, options *Options) *Image {
 }
 
 func Webpload(filename string, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("webpload", options.
@@ -2458,8 +2458,8 @@ func Webpload(filename string, options *Options) *Image {
 }
 
 func WebploadBuffer(buffer *Blob, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("webpload_buffer", options.
@@ -2469,8 +2469,8 @@ func WebploadBuffer(buffer *Blob, options *Options) *Image {
 }
 
 func Worley(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("worley", options.
@@ -2481,8 +2481,8 @@ func Worley(width int, height int, options *Options) *Image {
 }
 
 func Xyz(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("xyz", options.
@@ -2493,8 +2493,8 @@ func Xyz(width int, height int, options *Options) *Image {
 }
 
 func Zone(width int, height int, options *Options) *Image {
-	var out *Image;
-	if (options == nil) {
+	var out *Image
+	if options == nil {
 		options = NewOptions()
 	}
 	CallOperation("zone", options.

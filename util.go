@@ -37,20 +37,3 @@ func fixedString(size int) string {
 	}
 	return string(b)
 }
-
-func splitFilenameAndOptions(file string) (string, string) {
-	c_file := C.CString(file)
-	defer freeCString(c_file)
-
-	c_filename := C.CString(STRING_BUFFER)
-	defer freeCString(c_filename)
-
-	c_optionString := C.CString(STRING_BUFFER)
-	defer freeCString(c_optionString)
-
-	C.vips__filename_split8(c_file, c_filename, c_optionString)
-
-	fileName := C.GoString(c_filename)
-	optionString := C.GoString(c_optionString)
-	return fileName, optionString
-}

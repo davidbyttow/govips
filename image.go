@@ -23,7 +23,7 @@ func finalizeImage(i *Image) {
 }
 
 func NewImageFromFile(path string, options *Options) (*Image, error) {
-	fileName, optionString := splitFilenameAndOptions(path)
+	fileName, optionString := VipsFilenameSplit8(path)
 
 	operationName, err := VipsForeignFindLoad(fileName)
 	if err != nil {
@@ -103,6 +103,16 @@ func (i *Image) Interpretation() Interpretation {
 	return Interpretation(int(i.image.Type))
 }
 
-func (i *Image) WriteToFile(path string, options *Option) {
-
+func (i *Image) WriteToFile(path string, options *Options) error {
+	fileName, optionString := VipsFilenameSplit8(path)
+	operationName, err := VipsForeignFindSave(fileName)
+	if err != nil {
+		return err
+	}
+	if options == nil {
+		options = NewOptions().
+			SetImage("in", i).
+			SetString("filename", fileName)
+	}
+	return CallOperation(operationName, options, optionString)
 }
