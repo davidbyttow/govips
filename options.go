@@ -13,6 +13,7 @@ const (
 	OptionTypeString
 	OptionTypeImage
 	OptionTypeBlob
+	OptionTypeInterpolator
 )
 
 type ValueDeserializer func(*Option)
@@ -127,6 +128,13 @@ func (o *Options) SetBlob(name string, blob *Blob) *Options {
 	C.g_value_init(&option.gvalue, C.vips_blob_get_type())
 	C.g_value_set_boxed(&option.gvalue, blob.blob)
 	o.options = append(o.options, option)
+	return o
+}
+
+func (o *Options) SetInterpolator(name string, interp *Interpolator) *Options {
+	option := newInput(name, interp, OptionTypeInterpolator)
+	C.g_value_init(&option.gvalue, C.vips_interpolate_get_type())
+	C.g_value_set_object(&option.gvalue, interp.interp)
 	return o
 }
 
