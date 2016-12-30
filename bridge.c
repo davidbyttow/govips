@@ -1,12 +1,6 @@
 
 #include "bridge.h"
 
-int init_image(void *buf, size_t len, int imageType, VipsImage **out) {
-  int ret = 1;
-  ret = vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
-  return ret;
-}
-
 void set_property(VipsObject *object, const char *name, const GValue *value) {
   VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
   GType type = G_VALUE_TYPE( value );
