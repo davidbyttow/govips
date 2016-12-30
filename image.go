@@ -4,9 +4,7 @@ package gimage
 // #include "bridge.h"
 import "C"
 
-import (
-	"runtime"
-)
+import "runtime"
 
 var STRING_BUFFER = fixedString(4096)
 
@@ -28,33 +26,26 @@ func finalizeImage(i *Image) {
 
 func NewImageFromFile(path string, options *Options) (*Image, error) {
 	c_path := C.CString(path)
-	defer C.free(c_path)
+	defer freeCString(c_path)
 
 	c_filename := C.CString(STRING_BUFFER)
-	defer C.free(c_filename)
+	defer freeCString(c_filename)
 
 	c_optionString := C.CString(STRING_BUFFER)
-	defer C.free(c_optionString)
+	defer freeCString(c_optionString)
 
 	C.filename_split8(c_path, c_filename, c_optionString)
-	return nil, nil
-}
 
-func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
-	c_operationName := C.vips_foreign_find_load_buffer(
-		cPtr(bytes),
-		C.size_t(len(bytes)))
-
+	c_operationName := C.vips_foreign_find_load(c_filename)
 	if c_operationName == nil {
 		return nil, ErrUnsupportedImageFormat
 	}
 
-	var image *Image
-	blob := NewBlob(bytes)
+	var out *Image
 	if options == nil {
 		options = NewOptions().
-			SetBlob("buffer", blob).
-			SetImageOut("out", &image)
+			SetString("filename", C.GoString(c_filename)).
+			SetImageOut("out", &out)
 	}
 
 	operationName := C.GoString(c_operationName)
@@ -62,7 +53,31 @@ func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 		return nil, err
 	}
 
-	return image, nil
+	return out, nil
+}
+
+func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
+	c_operationName := C.vips_foreign_find_load_buffer(
+		cPtr(bytes),
+		C.size_t(len(bytes)))
+	if c_operationName == nil {
+		return nil, ErrUnsupportedImageFormat
+	}
+
+	var out *Image
+	blob := NewBlob(bytes)
+	if options == nil {
+		options = NewOptions().
+			SetBlob("buffer", blob).
+			SetImageOut("out", &out)
+	}
+
+	operationName := C.GoString(c_operationName)
+	if err := Call(operationName, options); err != nil {
+		return nil, err
+	}
+
+	return out, nil
 }
 
 func (i *Image) Width() int {
