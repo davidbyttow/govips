@@ -58,10 +58,14 @@ func (i *Image) OffsetY() int {
 	return int(i.image.Yoffset)
 }
 
-// TODO(d): BandsFormat
+func (i *Image) BandFormat() BandFormat {
+	return BandFormat(int(i.image.BandFmt))
+}
 
-// TODO(d): Coding
+func (i *Image) Coding() Coding {
+	return Coding(int(i.image.Coding))
+}
 
-// TODO(d): Interpretation
-
-// TODO(d): GuessInterpretation
+func (i *Image) Interpretation() Interpretation {
+	return Interpretation(int(i.image.Type))
+}
