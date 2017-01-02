@@ -3,16 +3,16 @@ package avg
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/davidbyttow/gimage"
-	"github.com/davidbyttow/gomore/io"
 )
 
 const usage = "avg [input]"
 
 func loadAverage(file string) error {
-	buf, err := io.ReadFile(file)
+	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
 	}

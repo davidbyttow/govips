@@ -1,14 +1,14 @@
 package gimage
 
 import (
+	"io/ioutil"
 	"testing"
 
-	"github.com/davidbyttow/gomore/io"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestJpeg(t *testing.T) {
-	buf, _ := io.ReadFile("fixtures/canyon.jpg")
+	buf, _ := ioutil.ReadFile("fixtures/canyon.jpg")
 	assert.NotNil(t, buf)
 
 	imageType := DetermineImageType(buf)

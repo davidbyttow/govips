@@ -4,7 +4,11 @@ package gimage
 // #include "bridge.h"
 import "C"
 
-import "runtime"
+import (
+	"errors"
+	"runtime"
+	"unsafe"
+)
 
 type Image struct {
 	image *C.VipsImage
@@ -102,6 +106,18 @@ func (i *Image) Coding() Coding {
 
 func (i *Image) Interpretation() Interpretation {
 	return Interpretation(int(i.image.Type))
+}
+
+func (i *Image) ToBytes() ([]byte, error) {
+	var size C.size_t
+	c_data := C.vips_image_write_to_memory(i.image, &size)
+	if c_data == nil {
+		return nil, errors.New("Failed to write image to memory")
+	}
+	defer C.free(c_data)
+
+	bytes := C.GoBytes(unsafe.Pointer(c_data), C.int(size))
+	return bytes, nil
 }
 
 func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
