@@ -42,6 +42,7 @@ var valueDeserializers = map[OptionType]ValueDeserializer{
 	},
 	OptionTypeBlob: func(option *Option) {
 		blob := option.value.(**Blob)
+		debug("%#v", option.gvalue)
 		*blob = newBlob((*C.VipsBlob)(C.g_value_dup_boxed(&option.gvalue)))
 	},
 }

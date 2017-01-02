@@ -7,3 +7,4 @@
 #endif
 
 void SetProperty(VipsObject* object, const char* name, const GValue* value);
+int VipsJpegsaveBuffer(VipsImage* image, void **buf, size_t *len, int strip, int quality, int interlace);

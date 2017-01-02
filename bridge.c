@@ -38,3 +38,7 @@ void SetProperty(VipsObject *object, const char *name, const GValue *value) {
     g_object_set_property( G_OBJECT( object ), name, value );
   }
 }
+
+int VipsJpegsaveBuffer(VipsImage* in, void **buf, size_t *len, int strip, int quality, int interlace) {
+  return vips_jpegsave_buffer(in, buf, len, NULL);
+}

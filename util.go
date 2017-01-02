@@ -4,7 +4,10 @@ package govips
 // #include "bridge.h"
 import "C"
 
-import "unsafe"
+import (
+	go_debug "github.com/tj/go-debug"
+	"unsafe"
+)
 
 var STRING_BUFFER = fixedString(4096)
 
@@ -36,4 +39,10 @@ func fixedString(size int) string {
 		b[i] = '0'
 	}
 	return string(b)
+}
+
+var debugFn = go_debug.Debug("govips")
+
+func debug(fmt string, values ...interface{}) {
+	debugFn(fmt, values)
 }

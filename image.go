@@ -155,3 +155,12 @@ func (i *Image) WriteToFile(path string, options *Options) error {
 	}
 	return CallOperation(operationName, options, optionString)
 }
+
+func (t *Image) SaveAsJpeg() ([]byte, error) {
+	var data unsafe.Pointer
+	var length C.size_t
+	C.VipsJpegsaveBuffer(t.image, &data, &length, 1, 80, 0)
+	buf := C.GoBytes(data, C.int(length))
+	C.g_free(C.gpointer(data))
+	return buf, nil
+}

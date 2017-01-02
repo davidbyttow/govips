@@ -80,3 +80,7 @@ func vipsFilenameSplit8(file string) (string, string) {
 	optionString := C.GoString(c_optionString)
 	return fileName, optionString
 }
+
+func vipsColorspaceIsSupported(image *C.VipsImage) bool {
+	return fromGboolean(C.vips_colourspace_issupported(image))
+}

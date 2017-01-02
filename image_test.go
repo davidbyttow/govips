@@ -34,15 +34,17 @@ func TestWriteToBytes(t *testing.T) {
 
 	image = image.Resize(0.25, nil)
 
-	buf, err = image.WriteToBuffer(".jpeg", nil)
+	debug("Supported: %v", vipsColorspaceIsSupported(image.image))
+
+	buf, err = image.SaveAsJpeg()
+
+	// buf, err = image.WriteToBuffer(".jpeg", nil)
 	require.Nil(t, err)
 	assert.True(t, len(buf) > 0)
 
-	// fmt.Printf("Out: %v\n", buf[0:32])
-
 	// BUG(d): Figure out why this fails with unsupported image type
-	// image, err = NewImageFromBuffer(buf, nil)
-	// require.Nil(t, err)
-	// assert.Equal(t, 1280, image.Width())
-	// assert.Equal(t, 800, image.Height())
+	image, err = NewImageFromBuffer(buf, nil)
+	require.Nil(t, err)
+	assert.Equal(t, 640, image.Width())
+	assert.Equal(t, 400, image.Height())
 }
