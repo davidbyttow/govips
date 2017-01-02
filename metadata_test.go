@@ -1,4 +1,4 @@
-package gimage
+package govips
 
 import "testing"
 

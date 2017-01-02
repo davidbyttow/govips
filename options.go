@@ -1,4 +1,4 @@
-package gimage
+package govips
 
 // #cgo pkg-config: vips
 // #include "vips/vips.h"

@@ -1,4 +1,7 @@
-package gimage
+// Package govips provides a library for transforming images that is built on lipvips. Libvips
+// is an extremely fast C-library. Therefore, govips requires that libvips 8+ be installed
+// and available on the target environment.
+package govips
 
 //go:generate scripts/codegen.sh
 

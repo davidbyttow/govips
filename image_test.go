@@ -1,4 +1,4 @@
-package gimage
+package govips
 
 import (
 	"io/ioutil"
@@ -40,7 +40,7 @@ func TestWriteToBytes(t *testing.T) {
 
 	// fmt.Printf("Out: %v\n", buf[0:32])
 
-	// TODO(d): Figure out why this fails with unsupported image type
+	// BUG(d): Figure out why this fails with unsupported image type
 	// image, err = NewImageFromBuffer(buf, nil)
 	// require.Nil(t, err)
 	// assert.Equal(t, 1280, image.Width())
