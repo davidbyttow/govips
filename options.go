@@ -3,6 +3,7 @@ package gimage
 // #cgo pkg-config: vips
 // #include "vips/vips.h"
 import "C"
+import "unsafe"
 
 type OptionType int
 
@@ -31,6 +32,10 @@ var valueDeserializers = map[OptionType]ValueDeserializer{
 		v := option.value.(*float64)
 		*v = float64(C.g_value_get_double(&option.gvalue))
 	},
+	OptionTypeString: func(option *Option) {
+		s := option.value.(*string)
+		*s = C.GoString((*C.char)(unsafe.Pointer(C.g_value_get_string(&option.gvalue))))
+	},
 	OptionTypeImage: func(option *Option) {
 		image := option.value.(**Image)
 		*image = newImage((*C.VipsImage)(C.g_value_get_object(&option.gvalue)))
@@ -54,24 +59,29 @@ type Option struct {
 	isOutput   bool
 }
 
-func newOption(name string, value interface{}, optionType OptionType, isOutput bool) *Option {
-	return &Option{
+func newOption(name string, value interface{}, optionType OptionType, gType C.GType, isOutput bool) *Option {
+	o := &Option{
 		name:       name,
 		value:      value,
 		optionType: optionType,
 		isOutput:   isOutput,
 	}
+	C.g_value_init(&o.gvalue, gType)
+	return o
 }
 
-func newInput(name string, value interface{}, optionType OptionType) *Option {
-	return newOption(name, value, optionType, false)
+func newInput(name string, value interface{}, optionType OptionType, gType C.GType) *Option {
+	return newOption(name, value, optionType, gType, false)
 }
 
-func newOutput(name string, value interface{}, optionType OptionType) *Option {
-	return newOption(name, value, optionType, true)
+func newOutput(name string, value interface{}, optionType OptionType, gType C.GType) *Option {
+	return newOption(name, value, optionType, gType, true)
 }
 
 func (o *Option) Deserialize() {
+	if !o.isOutput {
+		panic("Option is not an output")
+	}
 	deserialize(o)
 }
 
@@ -83,92 +93,96 @@ func NewOptions() *Options {
 	return &Options{}
 }
 
-func (o *Options) SetBool(name string, b bool) *Options {
-	option := newInput(name, b, OptionTypeBool)
-	C.g_value_init(&option.gvalue, C.G_TYPE_BOOLEAN)
-	C.g_value_set_boolean(&option.gvalue, toGboolean(b))
-	o.options = append(o.options, option)
+func (t *Options) deserializeOutputs() {
+	for _, o := range t.options {
+		if o.isOutput {
+			o.Deserialize()
+		}
+	}
+}
+
+func (t *Options) addInput(name string, i interface{}, optionType OptionType, gType C.GType) *Option {
+	o := newInput(name, i, optionType, gType)
+	t.options = append(t.options, o)
 	return o
 }
 
-func (o *Options) SetInt(name string, v int) *Options {
-	option := newInput(name, v, OptionTypeInt)
-	C.g_value_init(&option.gvalue, C.G_TYPE_INT)
-	C.g_value_set_int(&option.gvalue, C.gint(v))
-	o.options = append(o.options, option)
+func (t *Options) addOutput(name string, i interface{}, optionType OptionType, gType C.GType) *Option {
+	o := newOutput(name, i, optionType, gType)
+	t.options = append(t.options, o)
 	return o
 }
 
-func (o *Options) SetDouble(name string, v float64) *Options {
-	option := newInput(name, v, OptionTypeDouble)
-	C.g_value_init(&option.gvalue, C.G_TYPE_DOUBLE)
-	C.g_value_set_double(&option.gvalue, C.gdouble(v))
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetBool(name string, b bool) *Options {
+	o := t.addInput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
+	C.g_value_set_boolean(&o.gvalue, toGboolean(b))
+	return t
 }
 
-func (o *Options) SetString(name string, s string) *Options {
-	option := newInput(name, s, OptionTypeString)
-	C.g_value_init(&option.gvalue, C.G_TYPE_STRING)
-	C.g_value_set_string(&option.gvalue, (*C.gchar)(C.CString(s)))
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetInt(name string, v int) *Options {
+	o := t.addInput(name, v, OptionTypeInt, C.G_TYPE_INT)
+	C.g_value_set_int(&o.gvalue, C.gint(v))
+	return t
 }
 
-func (o *Options) SetImage(name string, image *Image) *Options {
-	option := newInput(name, image, OptionTypeImage)
-	C.g_value_init(&option.gvalue, C.vips_image_get_type())
-	C.g_value_set_object(&option.gvalue, image.image)
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetDouble(name string, v float64) *Options {
+	o := t.addInput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
+	C.g_value_set_double(&o.gvalue, C.gdouble(v))
+	return t
 }
 
-func (o *Options) SetBlob(name string, blob *Blob) *Options {
-	option := newInput(name, blob, OptionTypeBlob)
-	C.g_value_init(&option.gvalue, C.vips_blob_get_type())
-	C.g_value_set_boxed(&option.gvalue, blob.blob)
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetString(name string, s string) *Options {
+	o := t.addInput(name, s, OptionTypeString, C.G_TYPE_STRING)
+	c_s := C.CString(s)
+	defer freeCString(c_s)
+	C.g_value_set_string(&o.gvalue, (*C.gchar)(c_s))
+	return t
 }
 
-func (o *Options) SetInterpolator(name string, interp *Interpolator) *Options {
-	option := newInput(name, interp, OptionTypeInterpolator)
-	C.g_value_init(&option.gvalue, C.vips_interpolate_get_type())
-	C.g_value_set_object(&option.gvalue, interp.interp)
-	return o
+func (t *Options) SetImage(name string, image *Image) *Options {
+	o := t.addInput(name, image, OptionTypeImage, C.vips_image_get_type())
+	C.g_value_set_object(&o.gvalue, image.image)
+	return t
 }
 
-func (o *Options) SetBoolOut(name string, b *bool) *Options {
-	option := newOutput(name, b, OptionTypeBool)
-	C.g_value_init(&option.gvalue, C.G_TYPE_BOOLEAN)
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetBlob(name string, blob *Blob) *Options {
+	o := t.addInput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
+	C.g_value_set_boxed(&o.gvalue, blob.c_blob)
+	return t
 }
 
-func (o *Options) SetIntOut(name string, v *int) *Options {
-	option := newOutput(name, v, OptionTypeInt)
-	C.g_value_init(&option.gvalue, C.G_TYPE_INT)
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetInterpolator(name string, interp *Interpolator) *Options {
+	o := t.addInput(name, interp, OptionTypeInterpolator, C.vips_interpolate_get_type())
+	C.g_value_set_object(&o.gvalue, interp.interp)
+	return t
 }
 
-func (o *Options) SetDoubleOut(name string, v *float64) *Options {
-	option := newOutput(name, v, OptionTypeDouble)
-	C.g_value_init(&option.gvalue, C.G_TYPE_DOUBLE)
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetBoolOut(name string, b *bool) *Options {
+	t.addOutput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
+	return t
 }
 
-func (o *Options) SetImageOut(name string, image **Image) *Options {
-	option := newOutput(name, image, OptionTypeImage)
-	C.g_value_init(&option.gvalue, C.vips_image_get_type())
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetIntOut(name string, v *int) *Options {
+	t.addOutput(name, v, OptionTypeInt, C.G_TYPE_INT)
+	return t
 }
 
-func (o *Options) SetBlobOut(name string, blob **Blob) *Options {
-	option := newOutput(name, blob, OptionTypeBlob)
-	C.g_value_init(&option.gvalue, C.vips_blob_get_type())
-	o.options = append(o.options, option)
-	return o
+func (t *Options) SetDoubleOut(name string, v *float64) *Options {
+	t.addOutput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
+	return t
+}
+
+func (t *Options) SetStringOut(name string, s *string) *Options {
+	t.addOutput(name, s, OptionTypeString, C.G_TYPE_STRING)
+	return t
+}
+
+func (t *Options) SetImageOut(name string, image **Image) *Options {
+	t.addOutput(name, image, OptionTypeImage, C.vips_image_get_type())
+	return t
+}
+
+func (t *Options) SetBlobOut(name string, blob **Blob) *Options {
+	t.addOutput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
+	return t
 }

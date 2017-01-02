@@ -10,7 +10,7 @@ type Interpolator struct {
 }
 
 func NewInterpolate(name string) (*Interpolator, error) {
-	interp, err := VipsInterpolateNew(name)
+	interp, err := vipsInterpolateNew(name)
 	if err != nil {
 		return nil, err
 	}

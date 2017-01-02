@@ -23,9 +23,9 @@ func finalizeImage(i *Image) {
 }
 
 func NewImageFromFile(path string, options *Options) (*Image, error) {
-	fileName, optionString := VipsFilenameSplit8(path)
+	fileName, optionString := vipsFilenameSplit8(path)
 
-	operationName, err := VipsForeignFindLoad(fileName)
+	operationName, err := vipsForeignFindLoad(fileName)
 	if err != nil {
 		return nil, ErrUnsupportedImageFormat
 	}
@@ -44,7 +44,7 @@ func NewImageFromFile(path string, options *Options) (*Image, error) {
 }
 
 func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
-	operationName, err := VipsForeignFindLoadBuffer(bytes)
+	operationName, err := vipsForeignFindLoadBuffer(bytes)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +60,7 @@ func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 	if err := CallOperation(operationName, options, ""); err != nil {
 		return nil, err
 	}
+
 	return out, nil
 }
 
@@ -103,9 +104,31 @@ func (i *Image) Interpretation() Interpretation {
 	return Interpretation(int(i.image.Type))
 }
 
+func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
+	fileName, optionString := vipsFilenameSplit8(suffix)
+	operationName, err := vipsForeignFindSaveBuffer(fileName)
+	if err != nil {
+		return nil, err
+	}
+	var blob *Blob
+	if options == nil {
+		options = NewOptions().
+			SetImage("in", i).
+			SetBlobOut("buffer", &blob)
+	}
+	err = CallOperation(operationName, options, optionString)
+	if err != nil {
+		return nil, err
+	}
+	if blob != nil {
+		return blob.ToBytes(), nil
+	}
+	return nil, nil
+}
+
 func (i *Image) WriteToFile(path string, options *Options) error {
-	fileName, optionString := VipsFilenameSplit8(path)
-	operationName, err := VipsForeignFindSave(fileName)
+	fileName, optionString := vipsFilenameSplit8(path)
+	operationName, err := vipsForeignFindSave(fileName)
 	if err != nil {
 		return err
 	}

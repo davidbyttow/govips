@@ -3,28 +3,44 @@ package gimage
 // #cgo pkg-config: vips
 // #include "bridge.h"
 import "C"
-import "runtime"
+import (
+	"runtime"
+	"unsafe"
+)
 
 type Blob struct {
-	blob *C.VipsBlob
+	c_blob *C.VipsBlob
 }
 
-func newBlob(blob *C.VipsBlob) *Blob {
+func newBlob(c_blob *C.VipsBlob) *Blob {
 	b := &Blob{
-		blob: blob,
+		c_blob: c_blob,
 	}
 	runtime.SetFinalizer(b, finalizer)
 	return b
 }
 
 func NewBlob(buf []byte) *Blob {
-	blob := C.vips_blob_new(
+	c_blob := C.vips_blob_new(
 		nil,
-		cPtr(buf),
+		byteArrayPointer(buf),
 		C.size_t(len(buf)))
-	return newBlob(blob)
+	return newBlob(c_blob)
+}
+
+func (t *Blob) ToBytes() []byte {
+	c_area := t.CArea()
+	return C.GoBytes(unsafe.Pointer(c_area), C.int(c_area.length))
+}
+
+func (t *Blob) Length() int {
+	return int(t.CArea().length)
+}
+
+func (t *Blob) CArea() *C.VipsArea {
+	return (*C.VipsArea)(unsafe.Pointer(t.c_blob))
 }
 
 func finalizer(b *Blob) {
-	// TODO(d): Finalize this properly
+	C.vips_area_unref(b.CArea())
 }

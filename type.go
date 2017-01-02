@@ -206,7 +206,7 @@ func DetermineImageType(buf []byte) ImageType {
 	}
 
 	cname := C.vips_foreign_find_load_buffer(
-		cPtr(buf),
+		byteArrayPointer(buf),
 		C.size_t(size))
 
 	if cname == nil {
@@ -223,15 +223,20 @@ func DetermineImageType(buf []byte) ImageType {
 }
 
 func InitTypes() {
+	c_type := C.CString("VipsOperation")
+	defer freeCString(c_type)
+
 	once.Do(func() {
 		for k, v := range ImageTypes {
 			name := strings.ToLower("VipsForeignLoad" + v)
 			typeLoaders[name] = k
 			typeLoaders[name+"buffer"] = k
 
+			c_func := C.CString(v + "load")
+			defer freeCString(c_func)
 			ret := C.vips_type_find(
-				C.CString("VipsOperation"),
-				C.CString(v+"load"))
+				c_type,
+				c_func)
 			supportedImageTypes[k] = int(ret) != 0
 		}
 	})

@@ -4,7 +4,7 @@ package gimage
 // #include "bridge.h"
 import "C"
 
-func VipsForeignFindLoad(filename string) (string, error) {
+func vipsForeignFindLoad(filename string) (string, error) {
 	c_filename := C.CString(filename)
 	defer freeCString(c_filename)
 
@@ -15,9 +15,9 @@ func VipsForeignFindLoad(filename string) (string, error) {
 	return C.GoString(c_operationName), nil
 }
 
-func VipsForeignFindLoadBuffer(bytes []byte) (string, error) {
+func vipsForeignFindLoadBuffer(bytes []byte) (string, error) {
 	c_operationName := C.vips_foreign_find_load_buffer(
-		cPtr(bytes),
+		byteArrayPointer(bytes),
 		C.size_t(len(bytes)))
 	if c_operationName == nil {
 		return "", ErrUnsupportedImageFormat
@@ -25,7 +25,7 @@ func VipsForeignFindLoadBuffer(bytes []byte) (string, error) {
 	return C.GoString(c_operationName), nil
 }
 
-func VipsForeignFindSave(filename string) (string, error) {
+func vipsForeignFindSave(filename string) (string, error) {
 	c_filename := C.CString(filename)
 	defer freeCString(c_filename)
 
@@ -36,7 +36,7 @@ func VipsForeignFindSave(filename string) (string, error) {
 	return C.GoString(c_operationName), nil
 }
 
-func VipsForeignFindSaveBuffer(filename string) (string, error) {
+func vipsForeignFindSaveBuffer(filename string) (string, error) {
 	c_filename := C.CString(filename)
 	defer freeCString(c_filename)
 
@@ -47,7 +47,7 @@ func VipsForeignFindSaveBuffer(filename string) (string, error) {
 	return C.GoString(c_operationName), nil
 }
 
-func VipsInterpolateNew(name string) (*C.VipsInterpolate, error) {
+func vipsInterpolateNew(name string) (*C.VipsInterpolate, error) {
 	c_name := C.CString(name)
 	defer freeCString(c_name)
 
@@ -58,13 +58,13 @@ func VipsInterpolateNew(name string) (*C.VipsInterpolate, error) {
 	return interp, nil
 }
 
-func VipsOperationNew(name string) *C.VipsOperation {
+func vipsOperationNew(name string) *C.VipsOperation {
 	c_name := C.CString(name)
 	defer freeCString(c_name)
 	return C.vips_operation_new(c_name)
 }
 
-func VipsFilenameSplit8(file string) (string, string) {
+func vipsFilenameSplit8(file string) (string, string) {
 	c_file := C.CString(file)
 	defer freeCString(c_file)
 

@@ -8,7 +8,7 @@ import "unsafe"
 
 var STRING_BUFFER = fixedString(4096)
 
-func cPtr(b []byte) unsafe.Pointer {
+func byteArrayPointer(b []byte) unsafe.Pointer {
 	return unsafe.Pointer(&b[0])
 }
 
@@ -25,9 +25,9 @@ func toGboolean(b bool) C.gboolean {
 
 func fromGboolean(b C.gboolean) bool {
 	if b != 0 {
-		return false
+		return true
 	}
-	return true
+	return false
 }
 
 func fixedString(size int) string {
