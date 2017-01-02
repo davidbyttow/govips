@@ -22,6 +22,24 @@ const (
 	ImageTypeWebp
 )
 
+var imageTypeExtensionMap = map[ImageType]string{
+	ImageTypeGif:    ".gif",
+	ImageTypeJpeg:   ".jpeg",
+	ImageTypeMagick: ".magick",
+	ImageTypePdf:    ".pdf",
+	ImageTypePng:    ".png",
+	ImageTypeSvg:    ".svg",
+	ImageTypeTiff:   ".tiff",
+	ImageTypeWebp:   ".webp",
+}
+
+func (i ImageType) OutputExt() string {
+	if ext, ok := imageTypeExtensionMap[i]; ok {
+		return ext
+	}
+	return ""
+}
+
 type OperationMath int
 
 const (
