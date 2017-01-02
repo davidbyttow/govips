@@ -30,7 +30,7 @@ func NewBlob(buf []byte) *Blob {
 
 func (t *Blob) ToBytes() []byte {
 	c_area := t.CArea()
-	return C.GoBytes(unsafe.Pointer(c_area), C.int(c_area.length))
+	return C.GoBytes(unsafe.Pointer(c_area.data), C.int(c_area.length))
 }
 
 func (t *Blob) Length() int {

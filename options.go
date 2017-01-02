@@ -17,39 +17,91 @@ const (
 	OptionTypeInterpolator
 )
 
-type ValueDeserializer func(*Option)
-
-var valueDeserializers = map[OptionType]ValueDeserializer{
-	OptionTypeBool: func(option *Option) {
-		b := option.value.(*bool)
-		*b = fromGboolean(C.g_value_get_boolean(&option.gvalue))
-	},
-	OptionTypeInt: func(option *Option) {
-		v := option.value.(*int)
-		*v = int(C.g_value_get_int(&option.gvalue))
-	},
-	OptionTypeDouble: func(option *Option) {
-		v := option.value.(*float64)
-		*v = float64(C.g_value_get_double(&option.gvalue))
-	},
-	OptionTypeString: func(option *Option) {
-		s := option.value.(*string)
-		*s = C.GoString((*C.char)(unsafe.Pointer(C.g_value_get_string(&option.gvalue))))
-	},
-	OptionTypeImage: func(option *Option) {
-		image := option.value.(**Image)
-		*image = newImage((*C.VipsImage)(C.g_value_get_object(&option.gvalue)))
-	},
-	OptionTypeBlob: func(option *Option) {
-		blob := option.value.(**Blob)
-		debug("%#v", option.gvalue)
-		*blob = newBlob((*C.VipsBlob)(C.g_value_dup_boxed(&option.gvalue)))
-	},
+type OptionTypeSerializer interface {
+	Serialize(*C.GValue, interface{})
+	Deserialize(interface{}, *C.GValue)
 }
 
-func deserialize(option *Option) {
-	fn := valueDeserializers[option.optionType]
-	fn(option)
+type BoolSerializer struct{}
+
+func (t BoolSerializer) Serialize(dst *C.GValue, src interface{}) {
+	C.g_value_set_boolean(dst, toGboolean(src.(bool)))
+}
+
+func (t BoolSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	*dst.(*bool) = fromGboolean(C.g_value_get_boolean(src))
+}
+
+type IntSerializer struct{}
+
+func (t IntSerializer) Serialize(dst *C.GValue, src interface{}) {
+	C.g_value_set_int(dst, C.gint(src.(int)))
+}
+
+func (t IntSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	*dst.(*int) = int(C.g_value_get_int(src))
+}
+
+type DoubleSerializer struct{}
+
+func (t DoubleSerializer) Serialize(dst *C.GValue, src interface{}) {
+	C.g_value_set_double(dst, C.gdouble(src.(float64)))
+}
+
+func (t DoubleSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	*dst.(*float64) = float64(C.g_value_get_double(src))
+}
+
+type StringSerializer struct{}
+
+func (t StringSerializer) Serialize(dst *C.GValue, src interface{}) {
+	c_s := C.CString(src.(string))
+	defer freeCString(c_s)
+	C.g_value_set_string(dst, (*C.gchar)(c_s))
+}
+
+func (t StringSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	*dst.(*string) = C.GoString((*C.char)(unsafe.Pointer(C.g_value_get_string(src))))
+}
+
+type ImageSerializer struct{}
+
+func (t ImageSerializer) Serialize(dst *C.GValue, src interface{}) {
+	C.g_value_set_object(dst, src.(*Image).image)
+}
+
+func (t ImageSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	*dst.(**Image) = newImage((*C.VipsImage)(C.g_value_get_object(src)))
+}
+
+type BlobSerializer struct{}
+
+func (t BlobSerializer) Serialize(dst *C.GValue, src interface{}) {
+	C.g_value_set_boxed(dst, src.(*Blob).c_blob)
+}
+
+func (t BlobSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	*dst.(**Blob) = newBlob((*C.VipsBlob)(C.g_value_dup_boxed(src)))
+}
+
+type InterpolatorSerializer struct{}
+
+func (t InterpolatorSerializer) Serialize(dst *C.GValue, src interface{}) {
+	C.g_value_set_object(dst, src.(*Interpolator).interp)
+}
+
+func (t InterpolatorSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	panic("Interpolator output not implemented")
+}
+
+var optionSerializers = map[OptionType]OptionTypeSerializer{
+	OptionTypeBool:         BoolSerializer{},
+	OptionTypeInt:          IntSerializer{},
+	OptionTypeDouble:       DoubleSerializer{},
+	OptionTypeString:       StringSerializer{},
+	OptionTypeImage:        ImageSerializer{},
+	OptionTypeBlob:         BlobSerializer{},
+	OptionTypeInterpolator: InterpolatorSerializer{},
 }
 
 type Option struct {
@@ -72,7 +124,9 @@ func newOption(name string, value interface{}, optionType OptionType, gType C.GT
 }
 
 func newInput(name string, value interface{}, optionType OptionType, gType C.GType) *Option {
-	return newOption(name, value, optionType, gType, false)
+	o := newOption(name, value, optionType, gType, false)
+	optionSerializers[o.optionType].Serialize(&o.gvalue, o.value)
+	return o
 }
 
 func newOutput(name string, value interface{}, optionType OptionType, gType C.GType) *Option {
@@ -83,7 +137,7 @@ func (o *Option) Deserialize() {
 	if !o.isOutput {
 		panic("Option is not an output")
 	}
-	deserialize(o)
+	optionSerializers[o.optionType].Deserialize(o.value, &o.gvalue)
 }
 
 type Options struct {
@@ -115,46 +169,37 @@ func (t *Options) addOutput(name string, i interface{}, optionType OptionType, g
 }
 
 func (t *Options) SetBool(name string, b bool) *Options {
-	o := t.addInput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
-	C.g_value_set_boolean(&o.gvalue, toGboolean(b))
+	t.addInput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
 	return t
 }
 
 func (t *Options) SetInt(name string, v int) *Options {
-	o := t.addInput(name, v, OptionTypeInt, C.G_TYPE_INT)
-	C.g_value_set_int(&o.gvalue, C.gint(v))
+	t.addInput(name, v, OptionTypeInt, C.G_TYPE_INT)
 	return t
 }
 
 func (t *Options) SetDouble(name string, v float64) *Options {
-	o := t.addInput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
-	C.g_value_set_double(&o.gvalue, C.gdouble(v))
+	t.addInput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
 	return t
 }
 
 func (t *Options) SetString(name string, s string) *Options {
-	o := t.addInput(name, s, OptionTypeString, C.G_TYPE_STRING)
-	c_s := C.CString(s)
-	defer freeCString(c_s)
-	C.g_value_set_string(&o.gvalue, (*C.gchar)(c_s))
+	t.addInput(name, s, OptionTypeString, C.G_TYPE_STRING)
 	return t
 }
 
 func (t *Options) SetImage(name string, image *Image) *Options {
-	o := t.addInput(name, image, OptionTypeImage, C.vips_image_get_type())
-	C.g_value_set_object(&o.gvalue, image.image)
+	t.addInput(name, image, OptionTypeImage, C.vips_image_get_type())
 	return t
 }
 
 func (t *Options) SetBlob(name string, blob *Blob) *Options {
-	o := t.addInput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
-	C.g_value_set_boxed(&o.gvalue, blob.c_blob)
+	t.addInput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
 	return t
 }
 
 func (t *Options) SetInterpolator(name string, interp *Interpolator) *Options {
-	o := t.addInput(name, interp, OptionTypeInterpolator, C.vips_interpolate_get_type())
-	C.g_value_set_object(&o.gvalue, interp.interp)
+	t.addInput(name, interp, OptionTypeInterpolator, C.vips_interpolate_get_type())
 	return t
 }
 

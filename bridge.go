@@ -22,6 +22,7 @@ func vipsForeignFindLoadBuffer(bytes []byte) (string, error) {
 	if c_operationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
+	debug("Found foreign load for buffer: %s", C.GoString(c_operationName))
 	return C.GoString(c_operationName), nil
 }
 
@@ -44,6 +45,7 @@ func vipsForeignFindSaveBuffer(filename string) (string, error) {
 	if c_operationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
+	debug("Found foreign save for buffer: %s", C.GoString(c_operationName))
 	return C.GoString(c_operationName), nil
 }
 

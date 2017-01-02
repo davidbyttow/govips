@@ -9,7 +9,7 @@ type Interpolator struct {
 	interp *C.VipsInterpolate
 }
 
-func NewInterpolate(name string) (*Interpolator, error) {
+func NewInterpolator(name string) (*Interpolator, error) {
 	interp, err := vipsInterpolateNew(name)
 	if err != nil {
 		return nil, err
