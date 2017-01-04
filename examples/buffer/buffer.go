@@ -1,4 +1,4 @@
-package avg
+package examples
 
 import (
 	"flag"
@@ -6,25 +6,26 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/davidbyttow/gimage"
+	"github.com/davidbyttow/govips"
 )
 
 const usage = "avg [input]"
 
-func loadAverage(file string) error {
+func run(file string) error {
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return err
 	}
 
-	image, err := gimage.NewImageFromBuffer(buf)
+	image, err := govips.NewImageFromBuffer(buf, nil)
 	if err != nil {
 		return err
 	}
 
-	avg := image.Avg(nil)
-	fmt.Printf("avg=%0.2f\n", avg)
+	fmt.Printf("Loaded %d x %d pixel image from %s\n",
+		image.Width(), image.Height(), file)
 
+	// TODO(d): Resave
 	return nil
 }
 
@@ -36,8 +37,8 @@ func main() {
 
 	file := os.Args[1]
 
-	defer gimage.Shutdown()
-	err := loadAverage(file)
+	defer govips.Shutdown()
+	err := run(file)
 	if err != nil {
 		os.Exit(1)
 	}
