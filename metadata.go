@@ -4,11 +4,13 @@ package govips
 // #include "vips/vips.h"
 import "C"
 
+// Represents the size of an image
 type ImageSize struct {
 	Width  int
 	Height int
 }
 
+// Represents metadata for an image
 type ImageMetadata struct {
 	Alpha       bool
 	Channels    int
@@ -20,6 +22,7 @@ type ImageMetadata struct {
 	Type        string
 }
 
+// Loads metadata for a given image
 func LoadMetadata(image *Image) (*ImageMetadata, error) {
 	defer ShutdownThread()
 
