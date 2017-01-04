@@ -218,13 +218,14 @@ def gen_operation(cls):
   output += '}'
   return output
 
+
 # we have a few synonyms ... don't generate twice
 generated = {}
 
 
 def find_class_methods(cls):
   methods = []
-  skipped = [];
+  skipped = []
   if not cls.is_abstract():
     gtype = Vips.type_find("VipsOperation", cls.name)
     nickname = Vips.nickname_find(gtype)
