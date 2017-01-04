@@ -5,11 +5,10 @@ package govips
 import "C"
 
 import (
-	go_debug "github.com/tj/go-debug"
 	"unsafe"
-)
 
-var STRING_BUFFER = fixedString(4096)
+	go_debug "github.com/tj/go-debug"
+)
 
 func byteArrayPointer(b []byte) unsafe.Pointer {
 	return unsafe.Pointer(&b[0])

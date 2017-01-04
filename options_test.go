@@ -56,21 +56,3 @@ func TestOptionBlob(t *testing.T) {
 	assert.Equal(t, len(bytes), out.Length())
 	assert.Equal(t, bytes, out.ToBytes())
 }
-
-// func (t *Options) SetImage(name string, image *Image) *Options {
-// 	o := t.addInput(name, image, OptionTypeImage, C.vips_image_get_type())
-// 	C.g_value_set_object(&o.gvalue, image.image)
-// 	return t
-// }
-
-// func (t *Options) SetBlob(name string, blob *Blob) *Options {
-// 	o := t.addInput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
-// 	C.g_value_set_boxed(&o.gvalue, blob.c_blob)
-// 	return t
-// }
-
-// func (t *Options) SetInterpolator(name string, interp *Interpolator) *Options {
-// 	o := t.addInput(name, interp, OptionTypeInterpolator, C.vips_interpolate_get_type())
-// 	C.g_value_set_object(&o.gvalue, interp.interp)
-// 	return t
-// }

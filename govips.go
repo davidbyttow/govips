@@ -22,8 +22,13 @@ const (
 	maxCacheSize     = 500
 )
 
+// VipsVersion if the primary version of libvips
 const VipsVersion = string(C.VIPS_VERSION)
+
+// VipsMajorVersion is the major version of libvips
 const VipsMajorVersion = int(C.VIPS_MAJOR_VERSION)
+
+// VipsMinorVersion if the minor vesrion of libvips
 const VipsMinorVersion = int(C.VIPS_MINOR_VERSION)
 
 var (
@@ -37,6 +42,7 @@ func handleVipsError() error {
 	return errors.New(s)
 }
 
+// ShutdownThread clears the cache for for the given thread
 func ShutdownThread() {
 	C.vips_thread_shutdown()
 }
@@ -60,6 +66,7 @@ func init() {
 	InitTypes()
 }
 
+// Shutdown stop libvips
 func Shutdown() {
 	C.vips_shutdown()
 }

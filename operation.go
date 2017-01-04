@@ -67,11 +67,11 @@ func (o *Operation) applyOptions(options *Options) {
 		if option.isOutput {
 			continue
 		}
-		c_name := C.CString(option.name)
-		defer freeCString(c_name)
+		cName := C.CString(option.name)
+		defer freeCString(cName)
 		C.SetProperty(
 			(*C.VipsObject)(unsafe.Pointer(o.operation)),
-			c_name,
+			cName,
 			&option.gvalue)
 	}
 }
@@ -88,11 +88,11 @@ func (o *Operation) writeOutputs(options *Options) {
 		if !option.isOutput {
 			continue
 		}
-		c_name := C.CString(option.name)
-		defer freeCString(c_name)
+		cName := C.CString(option.name)
+		defer freeCString(cName)
 		C.g_object_get_property(
 			(*C.GObject)(unsafe.Pointer(o.operation)),
-			(*C.gchar)(c_name),
+			(*C.gchar)(cName),
 			&option.gvalue)
 		option.Deserialize()
 	}

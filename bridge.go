@@ -4,56 +4,58 @@ package govips
 // #include "bridge.h"
 import "C"
 
-func vipsForeignFindLoad(filename string) (string, error) {
-	c_filename := C.CString(filename)
-	defer freeCString(c_filename)
+var stringBuffer4096 = fixedString(4096)
 
-	c_operationName := C.vips_foreign_find_load(c_filename)
-	if c_operationName == nil {
+func vipsForeignFindLoad(filename string) (string, error) {
+	cFilename := C.CString(filename)
+	defer freeCString(cFilename)
+
+	cOperationName := C.vips_foreign_find_load(cFilename)
+	if cOperationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
-	return C.GoString(c_operationName), nil
+	return C.GoString(cOperationName), nil
 }
 
 func vipsForeignFindLoadBuffer(bytes []byte) (string, error) {
-	c_operationName := C.vips_foreign_find_load_buffer(
+	cOperationName := C.vips_foreign_find_load_buffer(
 		byteArrayPointer(bytes),
 		C.size_t(len(bytes)))
-	if c_operationName == nil {
+	if cOperationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
-	debug("Found foreign load for buffer: %s", C.GoString(c_operationName))
-	return C.GoString(c_operationName), nil
+	debug("Found foreign load for buffer: %s", C.GoString(cOperationName))
+	return C.GoString(cOperationName), nil
 }
 
 func vipsForeignFindSave(filename string) (string, error) {
-	c_filename := C.CString(filename)
-	defer freeCString(c_filename)
+	cFilename := C.CString(filename)
+	defer freeCString(cFilename)
 
-	c_operationName := C.vips_foreign_find_save(c_filename)
-	if c_operationName == nil {
+	cOperationName := C.vips_foreign_find_save(cFilename)
+	if cOperationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
-	return C.GoString(c_operationName), nil
+	return C.GoString(cOperationName), nil
 }
 
 func vipsForeignFindSaveBuffer(filename string) (string, error) {
-	c_filename := C.CString(filename)
-	defer freeCString(c_filename)
+	cFilename := C.CString(filename)
+	defer freeCString(cFilename)
 
-	c_operationName := C.vips_foreign_find_save_buffer(c_filename)
-	if c_operationName == nil {
+	cOperationName := C.vips_foreign_find_save_buffer(cFilename)
+	if cOperationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
-	debug("Found foreign save for buffer: %s", C.GoString(c_operationName))
-	return C.GoString(c_operationName), nil
+	debug("Found foreign save for buffer: %s", C.GoString(cOperationName))
+	return C.GoString(cOperationName), nil
 }
 
 func vipsInterpolateNew(name string) (*C.VipsInterpolate, error) {
-	c_name := C.CString(name)
-	defer freeCString(c_name)
+	cName := C.CString(name)
+	defer freeCString(cName)
 
-	interp := C.vips_interpolate_new(c_name)
+	interp := C.vips_interpolate_new(cName)
 	if interp == nil {
 		return nil, ErrInvalidInterpolator
 	}
@@ -61,25 +63,25 @@ func vipsInterpolateNew(name string) (*C.VipsInterpolate, error) {
 }
 
 func vipsOperationNew(name string) *C.VipsOperation {
-	c_name := C.CString(name)
-	defer freeCString(c_name)
-	return C.vips_operation_new(c_name)
+	cName := C.CString(name)
+	defer freeCString(cName)
+	return C.vips_operation_new(cName)
 }
 
 func vipsFilenameSplit8(file string) (string, string) {
-	c_file := C.CString(file)
-	defer freeCString(c_file)
+	cFile := C.CString(file)
+	defer freeCString(cFile)
 
-	c_filename := C.CString(STRING_BUFFER)
-	defer freeCString(c_filename)
+	cFilename := C.CString(stringBuffer4096)
+	defer freeCString(cFilename)
 
-	c_optionString := C.CString(STRING_BUFFER)
+	cOptionString := C.CString(stringBuffer4096)
 	defer freeCString(c_optionString)
 
-	C.vips__filename_split8(c_file, c_filename, c_optionString)
+	C.vips__filename_split8(cFile, cFilename, cOptionString)
 
-	fileName := C.GoString(c_filename)
-	optionString := C.GoString(c_optionString)
+	fileName := C.GoString(cFilename)
+	optionString := C.GoString(cOptionString)
 	return fileName, optionString
 }
 

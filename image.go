@@ -27,7 +27,7 @@ func finalizeImage(i *Image) {
 	C.g_object_unref(C.gpointer(i.image))
 }
 
-// Loads an image buffer from disk and creates a new Image
+// NewImageFromFile loads an image buffer from disk and creates a new Image
 func NewImageFromFile(path string, options *Options) (*Image, error) {
 	fileName, optionString := vipsFilenameSplit8(path)
 
@@ -49,7 +49,7 @@ func NewImageFromFile(path string, options *Options) (*Image, error) {
 	return out, nil
 }
 
-// Loads an image buffer and creates a new Image
+// NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 	operationName, err := vipsForeignFindLoadBuffer(bytes)
 	if err != nil {

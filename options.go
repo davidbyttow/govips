@@ -77,7 +77,7 @@ func (t ImageSerializer) Deserialize(dst interface{}, src *C.GValue) {
 type BlobSerializer struct{}
 
 func (t BlobSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_boxed(dst, src.(*Blob).c_blob)
+	C.g_value_set_boxed(dst, src.(*Blob).cBlob)
 }
 
 func (t BlobSerializer) Deserialize(dst interface{}, src *C.GValue) {
