@@ -4,14 +4,14 @@ sudo: required
 dist: trusty
 
 go:
-  - 1.6
+#  - 1.6
   - 1.7
-  - tip
+#  - tip
 
 env:
-  - LIBVIPS=8.3
+#  - LIBVIPS=8.3
   - LIBVIPS=8.4
-  - LIBVIPS=master
+#  - LIBVIPS=master
 
 matrix:
   allow_failures:
