@@ -76,7 +76,7 @@ func vipsFilenameSplit8(file string) (string, string) {
 	defer freeCString(cFilename)
 
 	cOptionString := C.CString(stringBuffer4096)
-	defer freeCString(c_optionString)
+	defer freeCString(cOptionString)
 
 	C.vips__filename_split8(cFile, cFilename, cOptionString)
 
