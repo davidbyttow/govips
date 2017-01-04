@@ -186,7 +186,7 @@ def gen_operation(cls):
   output += ' {\n'
 
   if result != None:
-    output += '\tvar %s %s;\n' % (cppize(result.name), get_type(result))
+    output += '\tvar %s %s\n' % (cppize(result.name), get_type(result))
 
   output += '\tif options == nil {\n'
   output += '\t\toptions = NewOptions()\n'

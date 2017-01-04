@@ -23,9 +23,29 @@ This library supports all known operations available to libvips found here:
 - Go 1.4+
 
 # Installation
-```
+```bash
 go get -u gopkg.in/davidbyttow/libvips.v1
 ```
+
+# Example usage
+Govips aims to provide a mostly "at the metal" implementation of libvips in Go. If you're interested in a higher level abstraction, see [gotransform](https://github.com/simplethingsllc/gotransform), a library built on top of this to make image transformations easy.
+
+```go
+// Find the average value in an image across all bands.
+buf, err := ioutil.ReadFile(file)
+if err != nil {
+  return err
+}
+
+image, err := govips.NewImageFromBuffer(buf, nil)
+if err != nil {
+  return err
+}
+
+avg := image.Avg(nil)
+fmt.Printf("avg=%0.2f\n", avg)
+```
+
 
 # Credits
 Thank you to [John Cupitt](https://github.com/jcupitt) for maintaining libvips and providing feedback on govips.
