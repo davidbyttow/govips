@@ -41,7 +41,7 @@ func (t *Blob) Length() int {
 	return int(t.cArea().length)
 }
 
-// CArea returns the internal representation of the VipsArea for thsi blob
+// CArea returns the internal representation of the VipsArea for this blob
 func (t *Blob) cArea() *C.VipsArea {
 	return (*C.VipsArea)(unsafe.Pointer(t.cBlob))
 }
