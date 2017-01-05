@@ -191,7 +191,7 @@ def gen_operation(cls):
   for i in range(0, 2):
     with_options = (i == 1)
     if with_options:
-      output += '\n'
+      output += '\n\n'
     go_name = upper_camelcase(nickname)
     if with_options:
       go_name += 'Ex'
@@ -230,7 +230,7 @@ def gen_operation(cls):
     output += '%s)\n' % ''.join(options)
     if result != None:
       output += '\treturn %s\n' % lower_camelcase(result.name)
-    output += '}\n'
+    output += '}'
   return output
 
 
@@ -265,7 +265,7 @@ def generate_file():
   output = '%s\n\n' % preamble
   if len(skipped) > 0:
     output += '%s\n\n' % '\n'.join(skipped)
-  output += '\n'.join(methods)
+  output += '\n\n'.join(methods)
   print(output)
 
 
