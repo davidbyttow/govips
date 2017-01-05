@@ -1,4 +1,4 @@
-package examples
+package main
 
 import (
 	"flag"
@@ -20,22 +20,24 @@ func loadAverage(file string) error {
 		return err
 	}
 
-	avg := image.Avg(nil)
+	avg := image.Avg()
 	fmt.Printf("avg=%0.2f\n", avg)
 
 	return nil
 }
 
+var (
+	flagFile = flag.String("file", "", "file to compute average for")
+)
+
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "avg [input]")
+		fmt.Fprintf(os.Stderr, "avg -file input_file")
 	}
 	flag.Parse()
 
-	file := os.Args[1]
-
 	defer govips.Shutdown()
-	err := loadAverage(file)
+	err := loadAverage(*flagFile)
 	if err != nil {
 		os.Exit(1)
 	}

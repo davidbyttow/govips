@@ -1,4 +1,4 @@
-package examples
+package main
 
 import (
 	"flag"
@@ -9,10 +9,8 @@ import (
 	"github.com/davidbyttow/govips"
 )
 
-const usage = "avg [input]"
-
-func run(file string) error {
-	buf, err := ioutil.ReadFile(file)
+func run(inputFile, outputFile string) error {
+	buf, err := ioutil.ReadFile(inputFile)
 	if err != nil {
 		return err
 	}
@@ -23,22 +21,41 @@ func run(file string) error {
 	}
 
 	fmt.Printf("Loaded %d x %d pixel image from %s\n",
-		image.Width(), image.Height(), file)
+		image.Width(), image.Height(), inputFile)
 
-	// TODO(d): Resave
+	buf, err = image.WriteToBuffer(".png", nil)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Written to memory %p in png format, %d bytes\n", buf, len(buf))
+
+	image, err = govips.NewImageFromBuffer(buf, nil)
+	if err != nil {
+		return err
+	}
+
+	fmt.Printf("Loaded from memory, %d x %d pixel image\n", image.Width(), image.Height())
+
+	image.WriteToFile(outputFile, nil)
+	fmt.Printf("Written back to %s\n", outputFile)
+
 	return nil
 }
 
+var (
+	flagIn  = flag.String("in", "", "file to load")
+	flagOut = flag.String("out", "", "file to write out")
+)
+
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, usage)
+		fmt.Fprintf(os.Stderr, "buffer -in input_file -out output_file")
 	}
 	flag.Parse()
 
-	file := os.Args[1]
-
 	defer govips.Shutdown()
-	err := run(file)
+	err := run(*flagIn, *flagOut)
 	if err != nil {
 		os.Exit(1)
 	}
