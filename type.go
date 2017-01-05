@@ -112,6 +112,17 @@ const (
 	OperationComplexImag OperationComplexGet = C.VIPS_OPERATION_COMPLEXGET_IMAG
 )
 
+type Extend int
+
+const (
+	ExtendBlack      Extend = C.VIPS_EXTEND_BLACK
+	ExtendCopy       Extend = C.VIPS_EXTEND_COPY
+	ExtendRepeat     Extend = C.VIPS_EXTEND_REPEAT
+	ExtendMirror     Extend = C.VIPS_EXTEND_MIRROR
+	ExtendWhite      Extend = C.VIPS_EXTEND_WHITE
+	ExtendBackground Extend = C.VIPS_EXTEND_BACKGROUND
+)
+
 type Direction int
 
 const (
@@ -189,6 +200,14 @@ const (
 	CodingNone  Coding = C.VIPS_CODING_NONE
 	CodingLabq  Coding = C.VIPS_CODING_LABQ
 	CodingRad   Coding = C.VIPS_CODING_RAD
+)
+
+type Access int
+
+const (
+	AccessRandom               Access = C.VIPS_ACCESS_RANDOM
+	AccessSequential           Access = C.VIPS_ACCESS_SEQUENTIAL
+	AccessSequentialUnbuffered Access = C.VIPS_ACCESS_SEQUENTIAL_UNBUFFERED
 )
 
 type OperationMorphology int
