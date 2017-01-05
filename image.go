@@ -27,50 +27,6 @@ func finalizeImage(i *Image) {
 	C.g_object_unref(C.gpointer(i.image))
 }
 
-// NewImageFromFile loads an image buffer from disk and creates a new Image
-func NewImageFromFile(path string, options *Options) (*Image, error) {
-	fileName, optionString := vipsFilenameSplit8(path)
-
-	operationName, err := vipsForeignFindLoad(fileName)
-	if err != nil {
-		return nil, ErrUnsupportedImageFormat
-	}
-
-	var out *Image
-	if options == nil {
-		options = NewOptions().
-			SetString("filename", fileName).
-			SetImageOut("out", &out)
-	}
-
-	if err := CallOperation(operationName, options, optionString); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
-	operationName, err := vipsForeignFindLoadBuffer(bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	var out *Image
-	blob := NewBlob(bytes)
-	if options == nil {
-		options = NewOptions().
-			SetBlob("buffer", blob).
-			SetImageOut("out", &out)
-	}
-
-	if err := CallOperation(operationName, options, ""); err != nil {
-		return nil, err
-	}
-
-	return out, nil
-}
-
 // Returns the width of this image
 func (i *Image) Width() int {
 	return int(i.image.Xsize)
@@ -134,6 +90,51 @@ func (i *Image) ToBytes() ([]byte, error) {
 	return bytes, nil
 }
 
+// NewImageFromFile loads an image buffer from disk and creates a new Image
+func NewImageFromFile(path string, options *Options) (*Image, error) {
+	fileName, optionString := vipsFilenameSplit8(path)
+
+	operationName, err := vipsForeignFindLoad(fileName)
+	if err != nil {
+		return nil, ErrUnsupportedImageFormat
+	}
+
+	var out *Image
+	if options == nil {
+		options = NewOptions()
+	}
+
+	options.SetString("filename", fileName).
+		SetImageOut("out", &out)
+
+	if err := vipsCallString(operationName, options, optionString); err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// NewImageFromBuffer loads an image buffer and creates a new Image
+func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
+	operationName, err := vipsForeignFindLoadBuffer(bytes)
+	if err != nil {
+		return nil, err
+	}
+
+	var out *Image
+	blob := NewBlob(bytes)
+	if options == nil {
+		options = NewOptions().
+			SetBlob("buffer", blob).
+			SetImageOut("out", &out)
+	}
+
+	if err := vipsCall(operationName, options); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
 // Writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
 func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
 	fileName, optionString := vipsFilenameSplit8(suffix)
@@ -143,11 +144,11 @@ func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
 	}
 	var blob *Blob
 	if options == nil {
-		options = NewOptions().
-			SetImage("in", i).
-			SetBlobOut("buffer", &blob)
+		options = NewOptions()
 	}
-	err = CallOperation(operationName, options, optionString)
+	options.SetImage("in", i).
+		SetBlobOut("buffer", &blob)
+	err = vipsCallString(operationName, options, optionString)
 	if err != nil {
 		return nil, err
 	}
@@ -165,9 +166,9 @@ func (i *Image) WriteToFile(path string, options *Options) error {
 		return err
 	}
 	if options == nil {
-		options = NewOptions().
-			SetImage("in", i).
-			SetString("filename", fileName)
+		options = NewOptions()
 	}
-	return CallOperation(operationName, options, optionString)
+	options.SetImage("in", i).
+		SetString("filename", fileName)
+	return vipsCallString(operationName, options, optionString)
 }

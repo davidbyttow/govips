@@ -3,6 +3,7 @@ package govips
 // #cgo pkg-config: vips
 // #include "bridge.h"
 import "C"
+import "unsafe"
 
 var stringBuffer4096 = fixedString(4096)
 
@@ -24,7 +25,6 @@ func vipsForeignFindLoadBuffer(bytes []byte) (string, error) {
 	if cOperationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
-	debug("Found foreign load for buffer: %s", C.GoString(cOperationName))
 	return C.GoString(cOperationName), nil
 }
 
@@ -47,7 +47,6 @@ func vipsForeignFindSaveBuffer(filename string) (string, error) {
 	if cOperationName == nil {
 		return "", ErrUnsupportedImageFormat
 	}
-	debug("Found foreign save for buffer: %s", C.GoString(cOperationName))
 	return C.GoString(cOperationName), nil
 }
 
@@ -85,6 +84,72 @@ func vipsFilenameSplit8(file string) (string, string) {
 	return fileName, optionString
 }
 
-func vipsColorspaceIsSupported(image *C.VipsImage) bool {
-	return fromGboolean(C.vips_colourspace_issupported(image))
+func vipsCallString(name string, options *Options, optionString string) error {
+	operation := vipsOperationNew(name)
+	//defer C.g_object_unref(C.gpointer(operation))
+
+	if optionString != "" {
+		cOptionString := C.CString(optionString)
+		defer freeCString(cOptionString)
+
+		if C.vips_object_set_from_string(
+			(*C.VipsObject)(unsafe.Pointer(operation)),
+			cOptionString) != 0 {
+			return handleVipsError()
+		}
+	}
+	return vipsCallOperation(operation, options)
+}
+
+func vipsCall(name string, options *Options) error {
+	operation := vipsOperationNew(name)
+	//defer C.g_object_unref(C.gpointer(operation))
+
+	return vipsCallOperation(operation, options)
+}
+
+func vipsCallOperation(operation *C.VipsOperation, options *Options) error {
+	// TODO(d): Unref the outputs
+	if options != nil {
+		for _, option := range options.options {
+			if option.isOutput {
+				continue
+			}
+
+			cName := C.CString(option.name)
+			defer freeCString(cName)
+
+			C.SetProperty(
+				(*C.VipsObject)(unsafe.Pointer(operation)),
+				cName,
+				&option.gvalue)
+		}
+	}
+
+	if ret := C.vips_cache_operation_buildp(&operation); ret != 0 {
+		C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
+		return handleVipsError()
+	}
+
+	// We defer this here because the pointer may have changed.
+	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
+
+	if options != nil {
+		for _, option := range options.options {
+			if !option.isOutput {
+				continue
+			}
+
+			cName := C.CString(option.name)
+			defer freeCString(cName)
+
+			C.g_object_get_property(
+				(*C.GObject)(unsafe.Pointer(operation)),
+				(*C.gchar)(cName),
+				&option.gvalue)
+			option.Deserialize()
+		}
+	}
+
+	return nil
 }

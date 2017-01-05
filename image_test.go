@@ -19,7 +19,7 @@ func TestWriteToFile(t *testing.T) {
 	image, err := NewImageFromFile("fixtures/canyon.jpg", nil)
 	require.Nil(t, err)
 
-	image = image.Resize(0.25, nil)
+	image = image.Resize(0.25)
 
 	err = image.WriteToFile("./fixtures/canyon-out.jpg", nil)
 	require.Nil(t, err)
@@ -32,7 +32,7 @@ func TestWriteToBytes(t *testing.T) {
 	image, err := NewImageFromBuffer(buf, nil)
 	require.Nil(t, err)
 
-	image = image.Resize(0.25, nil)
+	image = image.Resize(0.25)
 
 	buf, err = image.WriteToBuffer(".jpeg", nil)
 	require.Nil(t, err)

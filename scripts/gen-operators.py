@@ -147,7 +147,7 @@ def upper_camelcase(str):
   return ''.join(c for c in str.title() if not c.isspace() and c != '_')
 
 
-def gen_arg_list(op, required):
+def gen_arg_list(op, required, with_options):
   args = [];
   for prop in required:
     arg = cppize(prop.name) + ' '
@@ -156,7 +156,8 @@ def gen_arg_list(op, required):
       arg += '*'
     arg += get_type(prop)
     args.append(arg)
-  args.append('options *Options')
+  if with_options:
+    args.append('options *Options')
   return ', '.join(args)
 
 
@@ -178,44 +179,50 @@ def gen_operation(cls):
     required.remove(this)
     this_part = '(image *Image) '
 
-  output = '// %s operation (see %s at http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)\n' % (upper_camelcase(nickname), nickname)
-  output += 'func %s%s(%s)' % (this_part, upper_camelcase(nickname), gen_arg_list(op, required))
-  if result != None:
-    output += ' %s' % go_types[result.value_type.name]
-
-  output += ' {\n'
-
-  if result != None:
-    output += '\tvar %s %s\n' % (cppize(result.name), get_type(result))
-
-  output += '\tif options == nil {\n'
-  output += '\t\toptions = NewOptions()\n'
-  output += '\t}\n'
-  output += '\tCallOperation("%s", options' % nickname
-
-  options = []
-  for prop in all_required:
-    method_name = get_options_method_name(prop)
-    arg_name = ''
-    if prop == this:
-      arg_name = 'image'
+  output = ''
+  for i in range(0, 2):
+    with_options = (i == 1)
+    if with_options:
+      output += '\n'
+    go_name = upper_camelcase(nickname)
+    if with_options:
+      go_name += 'Ex'
+    output += '// %s executes the \'%s\' operation\n' % (go_name, nickname)
+    output += '// (see %s at http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)\n' % nickname
+    output += 'func %s%s(%s)' % (this_part, go_name, gen_arg_list(op, required, with_options))
+    if result != None:
+      output += ' %s' % go_types[result.value_type.name]
+    output += ' {\n'
+    if result != None:
+      output += '\tvar %s %s\n' % (cppize(result.name), get_type(result))
+    if with_options:
+      output += '\tif options == nil {\n'
+      output += '\t\toptions = NewOptions()\n'
+      output += '\t}\n'
     else:
-      flags = op.get_argument_flags(prop.name)
-      arg_name = cppize(prop.name)
-      if flags & Vips.ArgumentFlags.OUTPUT:
-        method_name += 'Out'
-        if prop == result:
-          arg_name = '&' + arg_name
-      if GObject.type_is_a(param_enum, prop):
-        arg_name = 'int(%s)' % arg_name
-    options.append('.\n\t\t%s("%s", %s)' % (method_name, prop.name, arg_name))
+      output += '\toptions := NewOptions()\n'
+    output += '\tvipsCall("%s", options' % nickname
 
-  output += '%s, "")\n' % ''.join(options)
-
-  if result != None:
-    output += '\treturn %s\n' % cppize(result.name)
-
-  output += '}'
+    options = []
+    for prop in all_required:
+      method_name = get_options_method_name(prop)
+      arg_name = ''
+      if prop == this:
+        arg_name = 'image'
+      else:
+        flags = op.get_argument_flags(prop.name)
+        arg_name = cppize(prop.name)
+        if flags & Vips.ArgumentFlags.OUTPUT:
+          method_name += 'Out'
+          if prop == result:
+            arg_name = '&' + arg_name
+        if GObject.type_is_a(param_enum, prop):
+          arg_name = 'int(%s)' % arg_name
+      options.append('.\n\t\t%s("%s", %s)' % (method_name, prop.name, arg_name))
+    output += '%s)\n' % ''.join(options)
+    if result != None:
+      output += '\treturn %s\n' % cppize(result.name)
+    output += '}\n'
   return output
 
 
@@ -250,7 +257,7 @@ def generate_file():
   output = '%s\n\n' % preamble
   if len(skipped) > 0:
     output += '%s\n\n' % '\n'.join(skipped)
-  output += '\n\n'.join(methods)
+  output += '\n'.join(methods)
   print(output)
 
 
