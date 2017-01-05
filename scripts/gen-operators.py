@@ -138,19 +138,27 @@ def find_first_output(op, required):
   return prop
 
 
-# swap any "-" for "_"
 def cppize(name):
   return re.sub('-', '_', name)
 
 
-def upper_camelcase(str):
-  return ''.join(c for c in str.title() if not c.isspace() and c != '_')
+def upper_camelcase(name):
+  if not name:
+    return ''
+  name = cppize(name)
+  return ''.join(c for c in name.title() if not c.isspace() and c != '_')
+
+
+def lower_camelcase(name):
+  name = cppize(name)
+  parts = name.split('_')
+  return parts[0] + upper_camelcase(''.join(parts[1:]))
 
 
 def gen_arg_list(op, required, with_options):
   args = [];
   for prop in required:
-    arg = cppize(prop.name) + ' '
+    arg = lower_camelcase(prop.name) + ' '
     flags = op.get_argument_flags(prop.name)
     if flags & Vips.ArgumentFlags.OUTPUT:
       arg += '*'
@@ -194,7 +202,7 @@ def gen_operation(cls):
       output += ' %s' % go_types[result.value_type.name]
     output += ' {\n'
     if result != None:
-      output += '\tvar %s %s\n' % (cppize(result.name), get_type(result))
+      output += '\tvar %s %s\n' % (lower_camelcase(result.name), get_type(result))
     if with_options:
       output += '\tif options == nil {\n'
       output += '\t\toptions = NewOptions()\n'
@@ -211,7 +219,7 @@ def gen_operation(cls):
         arg_name = 'image'
       else:
         flags = op.get_argument_flags(prop.name)
-        arg_name = cppize(prop.name)
+        arg_name = lower_camelcase(prop.name)
         if flags & Vips.ArgumentFlags.OUTPUT:
           method_name += 'Out'
           if prop == result:
@@ -221,7 +229,7 @@ def gen_operation(cls):
       options.append('.\n\t\t%s("%s", %s)' % (method_name, prop.name, arg_name))
     output += '%s)\n' % ''.join(options)
     if result != None:
-      output += '\treturn %s\n' % cppize(result.name)
+      output += '\treturn %s\n' % lower_camelcase(result.name)
     output += '}\n'
   return output
 

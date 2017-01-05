@@ -3,23 +3,26 @@ package govips
 // #cgo pkg-config: vips
 // #include "vips/vips.h"
 import "C"
+import "runtime"
 
+// Interpolator represents an interpolator when resizing images
 type Interpolator struct {
-	name   string
 	interp *C.VipsInterpolate
 }
 
+// NewInterpolator creates a new Interpolator from the given name
 func NewInterpolator(name string) (*Interpolator, error) {
 	interp, err := vipsInterpolateNew(name)
 	if err != nil {
 		return nil, err
 	}
-	return &Interpolator{
-		name:   name,
+	out := &Interpolator{
 		interp: interp,
-	}, nil
+	}
+	runtime.SetFinalizer(out, finalizeInterpolator)
+	return out, nil
 }
 
-func (i Interpolator) Name() string {
-	return i.name
+func finalizeInterpolator(i *Interpolator) {
+	C.g_object_unref(C.gpointer(i.interp))
 }

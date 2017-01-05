@@ -10,7 +10,7 @@ import (
 	"unsafe"
 )
 
-// Immutable Image structure that represents an image in memory.
+// Image is an immutable structure that represents an image in memory
 type Image struct {
 	image *C.VipsImage
 }
@@ -27,66 +27,66 @@ func finalizeImage(i *Image) {
 	C.g_object_unref(C.gpointer(i.image))
 }
 
-// Returns the width of this image
+// Width returns the width of this image
 func (i *Image) Width() int {
 	return int(i.image.Xsize)
 }
 
-// Returns the height of this iamge
+// Height returns the height of this iamge
 func (i *Image) Height() int {
 	return int(i.image.Ysize)
 }
 
-// Returns the number of bands for this image
+// Bands returns the number of bands for this image
 func (i *Image) Bands() int {
 	return int(i.image.Bands)
 }
 
-// Returns the X resolution
+// ResX returns the X resolution
 func (i *Image) ResX() float64 {
 	return float64(i.image.Xres)
 }
 
-// Returns the Y resolution
+// ResY returns the Y resolution
 func (i *Image) ResY() float64 {
 	return float64(i.image.Yres)
 }
 
-// Returns the X offset
+// OffsetX returns the X offset
 func (i *Image) OffsetX() int {
 	return int(i.image.Xoffset)
 }
 
-// Returns the Y offset
+// OffsetY returns the Y offset
 func (i *Image) OffsetY() int {
 	return int(i.image.Yoffset)
 }
 
-// Returns the current band format
+// BandFormat returns the current band format
 func (i *Image) BandFormat() BandFormat {
 	return BandFormat(int(i.image.BandFmt))
 }
 
-// Returns the image coding
+// Coding returns the image coding
 func (i *Image) Coding() Coding {
 	return Coding(int(i.image.Coding))
 }
 
-// Returns the current interpretation
+// Interpretation returns the current interpretation
 func (i *Image) Interpretation() Interpretation {
 	return Interpretation(int(i.image.Type))
 }
 
-// Writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
+// ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (i *Image) ToBytes() ([]byte, error) {
-	var size C.size_t
-	c_data := C.vips_image_write_to_memory(i.image, &size)
-	if c_data == nil {
+	var cSize C.size_t
+	cData := C.vips_image_write_to_memory(i.image, &cSize)
+	if cData == nil {
 		return nil, errors.New("Failed to write image to memory")
 	}
-	defer C.free(c_data)
+	defer C.free(cData)
 
-	bytes := C.GoBytes(unsafe.Pointer(c_data), C.int(size))
+	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
 }
 
@@ -135,7 +135,7 @@ func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 	return out, nil
 }
 
-// Writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
+// WriteToBuffer writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
 func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
 	fileName, optionString := vipsFilenameSplit8(suffix)
 	operationName, err := vipsForeignFindSaveBuffer(fileName)
@@ -158,7 +158,7 @@ func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
 	return nil, nil
 }
 
-// Writes the image to a file on disk based on the format specified in the path
+// WriteToFile writes the image to a file on disk based on the format specified in the path
 func (i *Image) WriteToFile(path string, options *Options) error {
 	fileName, optionString := vipsFilenameSplit8(path)
 	operationName, err := vipsForeignFindSave(fileName)
