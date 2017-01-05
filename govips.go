@@ -63,7 +63,7 @@ func init() {
 	C.vips_cache_set_max(maxCacheSize)
 	C.vips_concurrency_set(concurrencyLevel)
 
-	InitTypes()
+	initTypes()
 }
 
 // Shutdown stop libvips
