@@ -2,6 +2,7 @@ package govips
 
 import (
 	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,7 +22,11 @@ func TestWriteToFile(t *testing.T) {
 
 	image = image.Resize(0.25)
 
-	err = image.WriteToFile("./fixtures/canyon-out.jpg", nil)
+	tempDir, err := ioutil.TempDir("", "TestWriteToFile")
+	require.Nil(t, err)
+	defer os.RemoveAll(tempDir)
+
+	err = image.WriteToFile(tempDir+"/canyon-out.jpg", nil)
 	require.Nil(t, err)
 }
 
