@@ -16,9 +16,10 @@ import (
 // TODO(d): Tune these. Concurrency is set to a safe level but assumes
 // openslide is not enabled.
 const (
-	concurrencyLevel = 25
-	maxCacheMem      = 100 * 1024 * 1024
-	maxCacheSize     = 500
+	defaultConcurrencyLevel = 25
+	defaultMaxCacheFiles    = 500
+	defaultMaxCacheMem      = 100 * 1024 * 1024
+	defaultMaxCacheSize     = 1000
 )
 
 // VipsVersion if the primary version of libvips
@@ -35,8 +36,16 @@ var (
 	initLock sync.Mutex
 )
 
+type Config struct {
+	ConcurrencyLevel int
+	MaxCacheFiles    int
+	MaxCacheMem      int
+	MaxCacheSize     int
+	ReportLeaks      bool
+}
+
 // Startup sets up the libvips support and ensures the versions are correct
-func Startup() {
+func Startup(config *Config) {
 	initLock.Lock()
 	defer initLock.Unlock()
 
@@ -58,10 +67,27 @@ func Startup() {
 
 	running = true
 
-	C.vips_leak_set(toGboolean(true))
-	C.vips_cache_set_max_mem(maxCacheMem)
-	C.vips_cache_set_max(maxCacheSize)
-	C.vips_concurrency_set(concurrencyLevel)
+	C.vips_concurrency_set(defaultConcurrencyLevel)
+	C.vips_cache_set_max(defaultMaxCacheSize)
+	C.vips_cache_set_max_mem(defaultMaxCacheMem)
+	C.vips_cache_set_max_files(defaultMaxCacheFiles)
+
+	if config != nil {
+		C.vips_leak_set(toGboolean(config.ReportLeaks))
+
+		if config.ConcurrencyLevel > 0 {
+			C.vips_concurrency_set(C.int(config.ConcurrencyLevel))
+		}
+		if config.MaxCacheFiles > 0 {
+			C.vips_cache_set_max_files(C.int(config.MaxCacheFiles))
+		}
+		if config.MaxCacheMem > 0 {
+			C.vips_cache_set_max_mem(C.size_t(config.MaxCacheMem))
+		}
+		if config.MaxCacheSize > 0 {
+			C.vips_cache_set_max(C.int(config.MaxCacheSize))
+		}
+	}
 
 	initTypes()
 }
@@ -69,7 +95,7 @@ func Startup() {
 func startupIfNeeded() {
 	if !running {
 		debug("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
-		Startup()
+		Startup(nil)
 	}
 }
 

@@ -33,7 +33,7 @@ func main() {
 	}
 	flag.Parse()
 
-	govips.Startup()
+	govips.Startup(nil)
 	defer govips.Shutdown()
 
 	err := run(*flagIn, *flagOut)
