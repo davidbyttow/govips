@@ -36,7 +36,9 @@ func main() {
 	}
 	flag.Parse()
 
+	govips.Startup()
 	defer govips.Shutdown()
+
 	err := loadAverage(*flagFile)
 	if err != nil {
 		os.Exit(1)

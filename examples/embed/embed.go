@@ -34,7 +34,9 @@ func main() {
 	}
 	flag.Parse()
 
+	govips.Startup()
 	defer govips.Shutdown()
+
 	err := run(*flagIn, *flagOut)
 	if err != nil {
 		os.Exit(1)
