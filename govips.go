@@ -44,7 +44,8 @@ type Config struct {
 	ReportLeaks      bool
 }
 
-// Startup sets up the libvips support and ensures the versions are correct
+// Startup sets up the libvips support and ensures the versions are correct. Pass in nil for
+// default configuration.
 func Startup(config *Config) {
 	initLock.Lock()
 	defer initLock.Unlock()
