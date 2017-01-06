@@ -273,23 +273,23 @@ var (
 
 // DetermineImageType attempts to determine the image type of the given buffer
 func DetermineImageType(buf []byte) ImageType {
-	initTypes()
+	startupIfNeeded()
 
 	size := len(buf)
 	if size == 0 {
 		return ImageTypeUnknown
 	}
 
-	cname := C.vips_foreign_find_load_buffer(
+	cName := C.vips_foreign_find_load_buffer(
 		byteArrayPointer(buf),
 		C.size_t(size))
 
-	if cname == nil {
+	if cName == nil {
 		return ImageTypeUnknown
 	}
 
 	imageType := ImageTypeUnknown
-	name := strings.ToLower(C.GoString(cname))
+	name := strings.ToLower(C.GoString(cName))
 	if imageType, ok := typeLoaders[name]; ok {
 		return imageType
 	}
@@ -299,10 +299,10 @@ func DetermineImageType(buf []byte) ImageType {
 
 // InitTypes initializes caches and figures out which image types are supported
 func initTypes() {
-	cType := C.CString("VipsOperation")
-	defer freeCString(cType)
-
 	once.Do(func() {
+		cType := C.CString("VipsOperation")
+		defer freeCString(cType)
+
 		for k, v := range imageTypes {
 			name := strings.ToLower("VipsForeignLoad" + v)
 			typeLoaders[name] = k
@@ -310,6 +310,7 @@ func initTypes() {
 
 			cFunc := C.CString(v + "load")
 			defer freeCString(cFunc)
+
 			ret := C.vips_type_find(
 				cType,
 				cFunc)

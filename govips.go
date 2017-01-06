@@ -9,7 +9,6 @@ package govips
 // #include "vips/vips.h"
 import "C"
 import (
-	"errors"
 	"fmt"
 	"sync"
 )
@@ -32,31 +31,32 @@ const VipsMajorVersion = int(C.VIPS_MAJOR_VERSION)
 const VipsMinorVersion = int(C.VIPS_MINOR_VERSION)
 
 var (
-	requestLock sync.Mutex
+	running  = false
+	initLock sync.Mutex
 )
 
-func handleVipsError() error {
-	s := C.GoString(C.vips_error_buffer())
-	C.vips_error_clear()
-	C.vips_thread_shutdown()
-	return errors.New(s)
-}
+// Startup sets up the libvips support and ensures the versions are correct
+func Startup() {
+	initLock.Lock()
+	defer initLock.Unlock()
 
-// ShutdownThread clears the cache for for the given thread
-func ShutdownThread() {
-	C.vips_thread_shutdown()
-}
+	if running {
+		panic("libvips already running")
+	}
 
-// TODO(d): Make this callable from client with options
-func init() {
 	if C.VIPS_MAJOR_VERSION < 8 {
 		panic("Requires libvips version 8+")
 	}
 
-	err := C.vips_init(C.CString("gimage"))
+	cName := C.CString("govips")
+	defer freeCString(cName)
+
+	err := C.vips_init(cName)
 	if err != 0 {
 		panic(fmt.Sprintf("Failed to start vips code=%d", err))
 	}
+
+	running = true
 
 	C.vips_leak_set(toGboolean(true))
 	C.vips_cache_set_max_mem(maxCacheMem)
@@ -66,7 +66,27 @@ func init() {
 	initTypes()
 }
 
-// Shutdown stop libvips
+func startupIfNeeded() {
+	if !running {
+		debug("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
+		Startup()
+	}
+}
+
+// Shutdown libvips
 func Shutdown() {
+	initLock.Lock()
+	defer initLock.Unlock()
+
+	if !running {
+		panic("libvips not running")
+	}
+
 	C.vips_shutdown()
+	running = false
+}
+
+// ShutdownThread clears the cache for for the given thread
+func ShutdownThread() {
+	C.vips_thread_shutdown()
 }

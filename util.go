@@ -43,5 +43,9 @@ func fixedString(size int) string {
 var debugFn = go_debug.Debug("govips")
 
 func debug(fmt string, values ...interface{}) {
-	debugFn(fmt, values)
+	if len(values) > 0 {
+		debugFn(fmt, values)
+	} else {
+		debugFn(fmt)
+	}
 }

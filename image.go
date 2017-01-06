@@ -92,6 +92,7 @@ func (i *Image) ToBytes() ([]byte, error) {
 
 // NewImageFromFile loads an image buffer from disk and creates a new Image
 func NewImageFromFile(path string, options *Options) (*Image, error) {
+	startupIfNeeded()
 	fileName, optionString := vipsFilenameSplit8(path)
 
 	operationName, err := vipsForeignFindLoad(fileName)
@@ -115,6 +116,7 @@ func NewImageFromFile(path string, options *Options) (*Image, error) {
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
+	startupIfNeeded()
 	operationName, err := vipsForeignFindLoadBuffer(bytes)
 	if err != nil {
 		return nil, err
@@ -137,6 +139,7 @@ func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 
 // WriteToBuffer writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
 func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
+	startupIfNeeded()
 	fileName, optionString := vipsFilenameSplit8(suffix)
 	operationName, err := vipsForeignFindSaveBuffer(fileName)
 	if err != nil {
@@ -160,6 +163,7 @@ func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
 
 // WriteToFile writes the image to a file on disk based on the format specified in the path
 func (i *Image) WriteToFile(path string, options *Options) error {
+	startupIfNeeded()
 	fileName, optionString := vipsFilenameSplit8(path)
 	operationName, err := vipsForeignFindSave(fileName)
 	if err != nil {
