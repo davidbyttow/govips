@@ -24,7 +24,7 @@ This library supports all known operations available to libvips found here:
 
 # Installation
 ```bash
-go get -u gopkg.in/davidbyttow/libvips.v1
+go get -u gopkg.in/davidbyttow/govips.v0
 ```
 
 # Example usage
