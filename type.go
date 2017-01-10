@@ -43,6 +43,18 @@ func (i ImageType) OutputExt() string {
 	return ""
 }
 
+// Kernel represents VipsKernel type
+type Kernel int
+
+// Kernel enum
+const (
+	KernelNearest  Kernel = C.VIPS_KERNEL_NEAREST
+	KernelLinear          = C.VIPS_KERNEL_LINEAR
+	KernelCubic           = C.VIPS_KERNEL_CUBIC
+	KernelLanczos2        = C.VIPS_KERNEL_LANCZOS2
+	KernelLanczos3        = C.VIPS_KERNEL_LANCZOS3
+)
+
 // OperationMath represents VIPS_OPERATION_MATH type
 type OperationMath int
 

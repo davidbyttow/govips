@@ -36,6 +36,7 @@ var (
 	initLock sync.Mutex
 )
 
+// Config allows fine-tuning of libvips library
 type Config struct {
 	ConcurrencyLevel int
 	MaxCacheFiles    int
