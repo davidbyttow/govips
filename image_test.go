@@ -52,8 +52,8 @@ func TestWriteToBytes(t *testing.T) {
 func TestLoadFromMemory(t *testing.T) {
 	size := 200
 
-	bytes := make([]byte, size * size * 3)
-	for i := 0; i < size * size; i++ {
+	bytes := make([]byte, size*size*3)
+	for i := 0; i < size*size; i++ {
 		bytes[i*3] = 0xFF
 		bytes[i*3+1] = 0
 		bytes[i*3+2] = 0
