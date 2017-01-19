@@ -46,6 +46,8 @@ avg := image.Avg(nil)
 fmt.Printf("avg=%0.2f\n", avg)
 ```
 
+# Contributing
+In short, feel free to file issues or send along pull requests. See this [guide on contributing](https://davidbyttow/govips/blob/master/CONTRIBUTING.md) for more information.
 
 # Credits
 Thank you to [John Cupitt](https://github.com/jcupitt) for maintaining libvips and providing feedback on govips.
