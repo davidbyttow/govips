@@ -94,6 +94,10 @@ func Startup(config *Config) {
 	initTypes()
 }
 
+func printVipsObjects() {
+	C.vips_object_print_all()
+}
+
 func startupIfNeeded() {
 	if !running {
 		debug("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
