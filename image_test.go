@@ -48,3 +48,24 @@ func TestWriteToBytes(t *testing.T) {
 	assert.Equal(t, 640, image.Width())
 	assert.Equal(t, 400, image.Height())
 }
+
+func TestLoadFromMemory(t *testing.T) {
+	size := 200
+
+	bytes := make([]byte, size * size * 3)
+	for i := 0; i < size * size; i++ {
+		bytes[i*3] = 0xFF
+		bytes[i*3+1] = 0
+		bytes[i*3+2] = 0
+	}
+
+	image, err := NewImageFromMemory(bytes, size, size, 3, BandFormatUchar)
+	require.Nil(t, err)
+
+	tempDir, err := ioutil.TempDir("", "TestLoadFromMemory")
+	require.Nil(t, err)
+	defer os.RemoveAll(tempDir)
+
+	err = image.WriteToFile(tempDir+"red-out.png", nil)
+	require.Nil(t, err)
+}

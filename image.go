@@ -90,6 +90,22 @@ func (i *Image) ToBytes() ([]byte, error) {
 	return bytes, nil
 }
 
+// NewImageFromMemory wraps an image around a memory area. The memory area must be a simple
+// array (e.g., RGBRGBRGB), left-to-right, top-to-bottom.
+func NewImageFromMemory(bytes []byte, width, height, bands int, format BandFormat) (*Image, error) {
+	startupIfNeeded()
+
+	vipsImage := C.vips_image_new_from_memory_copy(
+		byteArrayPointer(bytes),
+		C.size_t(len(bytes)),
+		C.int(width),
+		C.int(height),
+		C.int(bands),
+		C.VipsBandFormat(format))
+
+	return newImage(vipsImage), nil
+}
+
 // NewImageFromFile loads an image buffer from disk and creates a new Image
 func NewImageFromFile(path string, options *Options) (*Image, error) {
 	startupIfNeeded()
