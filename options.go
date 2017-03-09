@@ -69,7 +69,7 @@ func (t stringSerializer) deserialize(dst interface{}, src *C.GValue) {
 type imageSerializer struct{}
 
 func (t imageSerializer) serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_object(dst, src.(*Image).image)
+	C.g_value_set_object(dst, C.gpointer(src.(*Image).image))
 }
 
 func (t imageSerializer) deserialize(dst interface{}, src *C.GValue) {
@@ -79,7 +79,7 @@ func (t imageSerializer) deserialize(dst interface{}, src *C.GValue) {
 type blobSerializer struct{}
 
 func (t blobSerializer) serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_boxed(dst, src.(*Blob).cBlob)
+	C.g_value_set_boxed(dst, C.gconstpointer(src.(*Blob).cBlob))
 }
 
 func (t blobSerializer) deserialize(dst interface{}, src *C.GValue) {
@@ -89,7 +89,7 @@ func (t blobSerializer) deserialize(dst interface{}, src *C.GValue) {
 type interpolatorSerializer struct{}
 
 func (t interpolatorSerializer) serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_object(dst, src.(*Interpolator).interp)
+	C.g_value_set_object(dst, C.gpointer(src.(*Interpolator).interp))
 }
 
 func (t interpolatorSerializer) deserialize(dst interface{}, src *C.GValue) {
