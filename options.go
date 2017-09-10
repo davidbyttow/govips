@@ -172,8 +172,10 @@ func (t *Options) addOutput(name string, i interface{}, optionType OptionType, g
 	return o
 }
 
+// OptionFunc is a typeref that applies an option
 type OptionFunc func(t *Options)
 
+// With applies the given options
 func (t *Options) With(options ...OptionFunc) *Options {
 	for _, o := range options {
 		o(t)
@@ -188,14 +190,14 @@ func BoolInput(name string, b bool) OptionFunc {
 	}
 }
 
-// SetInt sets a integer value for an optional parameter
+// IntInput sets a integer value for an optional parameter
 func IntInput(name string, v int) OptionFunc {
 	return func(t *Options) {
 		t.addInput(name, v, OptionTypeInt, C.G_TYPE_INT)
 	}
 }
 
-// SetDouble sets a double value for an optional parameter
+// DoubleInput sets a double value for an optional parameter
 func DoubleInput(name string, v float64) OptionFunc {
 	return func(t *Options) {
 		t.addInput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)

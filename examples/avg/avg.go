@@ -15,7 +15,7 @@ func loadAverage(file string) error {
 		return err
 	}
 
-	image, err := govips.NewImageFromBuffer(buf, nil)
+	image, err := govips.NewImageFromBuffer(buf)
 	if err != nil {
 		return err
 	}

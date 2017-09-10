@@ -32,7 +32,7 @@ func NewImageFromMemory(bytes []byte, width, height, bands int, format BandForma
 }
 
 // NewImageFromFile loads an image buffer from disk and creates a new Image
-func NewImageFromFile(path string, options *Options) (*Image, error) {
+func NewImageFromFile(path string, opts ...OptionFunc) (*Image, error) {
 	startupIfNeeded()
 	fileName, optionString := vipsFilenameSplit8(path)
 
@@ -42,12 +42,10 @@ func NewImageFromFile(path string, options *Options) (*Image, error) {
 	}
 
 	var out *Image
-	if options == nil {
-		options = NewOptions(
-			StringInput("filename", fileName),
-			ImageOutput("out", &out),
-		)
-	}
+	options := NewOptions(opts...).With(
+		StringInput("filename", fileName),
+		ImageOutput("out", &out),
+	)
 
 	if err := vipsCallString(operationName, options, optionString); err != nil {
 		return nil, err
@@ -56,7 +54,7 @@ func NewImageFromFile(path string, options *Options) (*Image, error) {
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
+func NewImageFromBuffer(bytes []byte, opts ...OptionFunc) (*Image, error) {
 	startupIfNeeded()
 	operationName, err := vipsForeignFindLoadBuffer(bytes)
 	if err != nil {
@@ -65,12 +63,10 @@ func NewImageFromBuffer(bytes []byte, options *Options) (*Image, error) {
 
 	var out *Image
 	blob := NewBlob(bytes)
-	if options == nil {
-		options = NewOptions(
-			BlobInput("buffer", blob),
-			ImageOutput("out", &out),
-		)
-	}
+	options := NewOptions(opts...).With(
+		BlobInput("buffer", blob),
+		ImageOutput("out", &out),
+	)
 
 	if err := vipsCall(operationName, options); err != nil {
 		return nil, err
@@ -155,7 +151,7 @@ func (i *Image) ToBytes() ([]byte, error) {
 }
 
 // WriteToBuffer writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
-func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
+func (i *Image) WriteToBuffer(suffix string, opts ...OptionFunc) ([]byte, error) {
 	startupIfNeeded()
 	fileName, optionString := vipsFilenameSplit8(suffix)
 	operationName, err := vipsForeignFindSaveBuffer(fileName)
@@ -163,12 +159,10 @@ func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
 		return nil, err
 	}
 	var blob *Blob
-	if options == nil {
-		options = NewOptions(
-			ImageInput("in", i),
-			BlobOutput("buffer", &blob),
-		)
-	}
+	options := NewOptions(opts...).With(
+		ImageInput("in", i),
+		BlobOutput("buffer", &blob),
+	)
 	err = vipsCallString(operationName, options, optionString)
 	if err != nil {
 		return nil, err
@@ -180,18 +174,16 @@ func (i *Image) WriteToBuffer(suffix string, options *Options) ([]byte, error) {
 }
 
 // WriteToFile writes the image to a file on disk based on the format specified in the path
-func (i *Image) WriteToFile(path string, options *Options) error {
+func (i *Image) WriteToFile(path string, opts ...OptionFunc) error {
 	startupIfNeeded()
 	fileName, optionString := vipsFilenameSplit8(path)
 	operationName, err := vipsForeignFindSave(fileName)
 	if err != nil {
 		return err
 	}
-	if options == nil {
-		options = NewOptions(
-			ImageInput("in", i),
-			StringInput("filename", fileName),
-		)
-	}
+	options := NewOptions(opts...).With(
+		ImageInput("in", i),
+		StringInput("filename", fileName),
+	)
 	return vipsCallString(operationName, options, optionString)
 }

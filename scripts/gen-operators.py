@@ -155,7 +155,7 @@ def lower_camelcase(name):
   return parts[0] + upper_camelcase(''.join(parts[1:]))
 
 
-def gen_params(op, required, with_options):
+def gen_params(op, required):
   args = [];
   for prop in required:
     arg = lower_camelcase(prop.name) + ' '
@@ -164,18 +164,7 @@ def gen_params(op, required, with_options):
       arg += '*'
     arg += get_type(prop)
     args.append(arg)
-  if with_options:
-    args.append('options *Options')
-  return ', '.join(args)
-
-
-def gen_args(op, required, with_nil):
-  args = [];
-  for prop in required:
-    arg = lower_camelcase(prop.name) + ' '
-    args.append(arg)
-  if with_nil:
-    args.append('nil')
+  args.append('opts ...OptionFunc')
   return ', '.join(args)
 
 
@@ -200,58 +189,41 @@ def gen_operation(cls):
     this_ref = 'image.'
 
   output = ''
-  for i in range(0, 2):
-    with_options = (i == 1)
-    if with_options:
-      output += '\n\n'
-    go_name = upper_camelcase(nickname)
-    if with_options:
-      go_name += 'Ex'
-    output += '// %s executes the \'%s\' operation\n' % (go_name, nickname)
-    output += '// (see %s at http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)\n' % nickname
-    output += 'func %s%s(%s)' % (this_part, go_name, gen_params(op, required, with_options))
-    if result != None:
-      output += ' %s' % go_types[result.value_type.name]
-    output += ' {\n'
-    if not with_options:
-      return_part = ''
-      if result != None:
-        return_part = 'return '
-      output += '\t%s%s%sEx(%s)\n}' % (return_part, this_ref, go_name, gen_args(op, required, True))
-      continue
-    if result != None:
-      output += '\tvar %s %s\n' % (lower_camelcase(result.name), get_type(result))
-    if with_options:
-      output += '\tif options == nil {\n'
-      output += '\t\toptions = NewOptions()'
+  go_name = upper_camelcase(nickname)
+  output += '// %s executes the \'%s\' operation\n' % (go_name, nickname)
+  output += '// (see %s at http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)\n' % nickname
+  output += 'func %s%s(%s)' % (this_part, go_name, gen_params(op, required))
+  if result != None:
+    output += ' %s' % go_types[result.value_type.name]
+  output += ' {\n'
+  if result != None:
+    output += '\tvar %s %s\n' % (lower_camelcase(result.name), get_type(result))
+  output += '\toptions := NewOptions(opts...).With(\n'
+
+  options = []
+  for prop in all_required:
+    method_name = get_options_method_name(prop) + 'Input'
+    arg_name = ''
+    if prop == this:
+      arg_name = 'image'
     else:
-      output += '\toptions := NewOptions()'
+      flags = op.get_argument_flags(prop.name)
+      arg_name = lower_camelcase(prop.name)
+      if flags & Vips.ArgumentFlags.OUTPUT:
+        method_name = get_options_method_name(prop) + 'Output'
+        if prop == result:
+          arg_name = '&' + arg_name
+      if GObject.type_is_a(param_enum, prop):
+        arg_name = 'int(%s)' % arg_name
+    options.append('\t\t%s("%s", %s),\n' % (method_name, prop.name, arg_name))
+  output += ''.join(options)
 
-    options = []
-    for prop in all_required:
-      method_name = get_options_method_name(prop) + 'Input'
-      arg_name = ''
-      if prop == this:
-        arg_name = 'image'
-      else:
-        flags = op.get_argument_flags(prop.name)
-        arg_name = lower_camelcase(prop.name)
-        if flags & Vips.ArgumentFlags.OUTPUT:
-          method_name = get_options_method_name(prop) + 'Output'
-          if prop == result:
-            arg_name = '&' + arg_name
-        if GObject.type_is_a(param_enum, prop):
-          arg_name = 'int(%s)' % arg_name
-      options.append('\n\toptions.With(%s("%s", %s))' % (method_name, prop.name, arg_name))
-    output += '%s\n' % ''.join(options)
+  output += '\t)\n'
 
-    if with_options:
-      output += '\t}\n'
-
-    output += '\tvipsCall("%s", options)\n' % nickname
-    if result != None:
-      output += '\treturn %s\n' % lower_camelcase(result.name)
-    output += '}'
+  output += '\tvipsCall("%s", options)\n' % nickname
+  if result != None:
+    output += '\treturn %s\n' % lower_camelcase(result.name)
+  output += '}'
   return output
 
 

@@ -10,14 +10,14 @@ import (
 
 func run(inputFile, outputFile string) error {
 	in, err := govips.NewImageFromFile(inputFile,
-		govips.NewOptions().SetInt("access", int(govips.AccessSequentialUnbuffered)))
+		govips.IntInput("access", int(govips.AccessSequentialUnbuffered)))
 	if err != nil {
 		return err
 	}
 
 	out := in.Invert()
 
-	out.WriteToFile(outputFile, nil)
+	out.WriteToFile(outputFile)
 
 	return nil
 }

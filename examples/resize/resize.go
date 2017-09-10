@@ -10,7 +10,7 @@ import (
 
 func run(inputFile, outputFile string) error {
 	in, err := govips.NewImageFromFile(inputFile,
-		govips.NewOptions().SetInt("access", int(govips.AccessSequential)))
+		govips.IntInput("access", int(govips.AccessSequential)))
 	if err != nil {
 		return err
 	}
@@ -20,9 +20,9 @@ func run(inputFile, outputFile string) error {
 		return err
 	}
 
-	out := in.ResizeEx(0.2, govips.NewOptions().SetInterpolator("interpolate", interp))
+	out := in.Resize(0.2, govips.InterpolatorInput("interpolate", interp))
 
-	out.WriteToFile(outputFile, nil)
+	out.WriteToFile(outputFile)
 
 	return nil
 }

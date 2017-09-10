@@ -7,7 +7,7 @@ How fast is libvips? See this: [Speed and Memory Use](http://www.vips.ecs.soton.
 
 This library was inspired primarily based on the C++ wrapper in libvips.
 
-The intent for this is to enable developers to build extremely fast image processors in Go, which is suited well for concurrent requests. 
+The intent for this is to enable developers to build extremely fast image processors in Go, which is suited well for concurrent requests.
 
 Libvips is generally 4-8x faster than other graphics processors such as GraphicsMagick and ImageMagick.
 
@@ -37,12 +37,12 @@ if err != nil {
   return err
 }
 
-image, err := govips.NewImageFromBuffer(buf, nil)
+image, err := govips.NewImageFromBuffer(buf)
 if err != nil {
   return err
 }
 
-avg := image.Avg(nil)
+avg := image.Avg()
 fmt.Printf("avg=%0.2f\n", avg)
 ```
 

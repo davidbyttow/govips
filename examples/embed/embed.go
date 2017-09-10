@@ -10,15 +10,15 @@ import (
 
 func run(inputFile, outputFile string) error {
 	in, err := govips.NewImageFromFile(inputFile,
-		govips.NewOptions().SetInt("access", int(govips.AccessSequentialUnbuffered)))
+		govips.IntInput("access", int(govips.AccessSequentialUnbuffered)))
 	if err != nil {
 		return err
 	}
 
-	out := in.EmbedEx(10, 10, 1000, 1000,
-		govips.NewOptions().SetInt("extend", int(govips.ExtendCopy)))
+	out := in.Embed(10, 10, 1000, 1000,
+		govips.IntInput("extend", int(govips.ExtendCopy)))
 
-	out.WriteToFile(outputFile, nil)
+	out.WriteToFile(outputFile)
 
 	return nil
 }
