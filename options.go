@@ -69,7 +69,7 @@ func (t stringSerializer) deserialize(dst interface{}, src *C.GValue) {
 type imageSerializer struct{}
 
 func (t imageSerializer) serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_object(dst, src.(*Image).image)
+	C.g_value_set_object(dst, C.gpointer(src.(*Image).image))
 }
 
 func (t imageSerializer) deserialize(dst interface{}, src *C.GValue) {
@@ -79,7 +79,7 @@ func (t imageSerializer) deserialize(dst interface{}, src *C.GValue) {
 type blobSerializer struct{}
 
 func (t blobSerializer) serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_boxed(dst, src.(*Blob).cBlob)
+	C.g_value_set_boxed(dst, C.gconstpointer(src.(*Blob).cBlob))
 }
 
 func (t blobSerializer) deserialize(dst interface{}, src *C.GValue) {
@@ -89,7 +89,7 @@ func (t blobSerializer) deserialize(dst interface{}, src *C.GValue) {
 type interpolatorSerializer struct{}
 
 func (t interpolatorSerializer) serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_object(dst, src.(*Interpolator).interp)
+	C.g_value_set_object(dst, C.gpointer(src.(*Interpolator).interp))
 }
 
 func (t interpolatorSerializer) deserialize(dst interface{}, src *C.GValue) {
@@ -148,8 +148,8 @@ type Options struct {
 }
 
 // NewOptions returns a new option set
-func NewOptions() *Options {
-	return &Options{}
+func NewOptions(options ...OptionFunc) *Options {
+	return (&Options{}).With(options...)
 }
 
 func (t *Options) deserializeOutputs() {
@@ -172,80 +172,102 @@ func (t *Options) addOutput(name string, i interface{}, optionType OptionType, g
 	return o
 }
 
-// SetBool sets a boolean value for an optional parameter
-func (t *Options) SetBool(name string, b bool) *Options {
-	t.addInput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
+type OptionFunc func(t *Options)
+
+func (t *Options) With(options ...OptionFunc) *Options {
+	for _, o := range options {
+		o(t)
+	}
 	return t
+}
+
+// BoolInput sets a boolean value for an optional parameter
+func BoolInput(name string, b bool) OptionFunc {
+	return func(t *Options) {
+		t.addInput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
+	}
 }
 
 // SetInt sets a integer value for an optional parameter
-func (t *Options) SetInt(name string, v int) *Options {
-	t.addInput(name, v, OptionTypeInt, C.G_TYPE_INT)
-	return t
+func IntInput(name string, v int) OptionFunc {
+	return func(t *Options) {
+		t.addInput(name, v, OptionTypeInt, C.G_TYPE_INT)
+	}
 }
 
 // SetDouble sets a double value for an optional parameter
-func (t *Options) SetDouble(name string, v float64) *Options {
-	t.addInput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
-	return t
+func DoubleInput(name string, v float64) OptionFunc {
+	return func(t *Options) {
+		t.addInput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
+	}
 }
 
-// SetString sets a string value for an optional parameter
-func (t *Options) SetString(name string, s string) *Options {
-	t.addInput(name, s, OptionTypeString, C.G_TYPE_STRING)
-	return t
+// StringInput sets a string value for an optional parameter
+func StringInput(name string, s string) OptionFunc {
+	return func(t *Options) {
+		t.addInput(name, s, OptionTypeString, C.G_TYPE_STRING)
+	}
 }
 
-// SetImage sets a Image value for an optional parameter
-func (t *Options) SetImage(name string, image *Image) *Options {
-	t.addInput(name, image, OptionTypeImage, C.vips_image_get_type())
-	return t
+// ImageInput sets a Image value for an optional parameter
+func ImageInput(name string, image *Image) OptionFunc {
+	return func(t *Options) {
+		t.addInput(name, image, OptionTypeImage, C.vips_image_get_type())
+	}
 }
 
-// SetBlob sets a Vlob value for an optional parameter
-func (t *Options) SetBlob(name string, blob *Blob) *Options {
-	t.addInput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
-	return t
+// BlobInput sets a Blob value for an optional parameter
+func BlobInput(name string, blob *Blob) OptionFunc {
+	return func(t *Options) {
+		t.addInput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
+	}
 }
 
-// SetInterpolator sets a Interpolator value for an optional parameter
-func (t *Options) SetInterpolator(name string, interp *Interpolator) *Options {
-	t.addInput(name, interp, OptionTypeInterpolator, C.vips_interpolate_get_type())
-	return t
+// InterpolatorInput sets a Interpolator value for an optional parameter
+func InterpolatorInput(name string, interp *Interpolator) OptionFunc {
+	return func(t *Options) {
+		t.addInput(name, interp, OptionTypeInterpolator, C.vips_interpolate_get_type())
+	}
 }
 
-// SetBoolOut specifies a boolean output parameter for an operation
-func (t *Options) SetBoolOut(name string, b *bool) *Options {
-	t.addOutput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
-	return t
+// BoolOutput specifies a boolean output parameter for an operation
+func BoolOutput(name string, b *bool) OptionFunc {
+	return func(t *Options) {
+		t.addOutput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
+	}
 }
 
-// SetIntOut specifies a integer output parameter for an operation
-func (t *Options) SetIntOut(name string, v *int) *Options {
-	t.addOutput(name, v, OptionTypeInt, C.G_TYPE_INT)
-	return t
+// IntOutput specifies a integer output parameter for an operation
+func IntOutput(name string, v *int) OptionFunc {
+	return func(t *Options) {
+		t.addOutput(name, v, OptionTypeInt, C.G_TYPE_INT)
+	}
 }
 
-// SetDoubleOut specifies a boolean output parameter for an operation
-func (t *Options) SetDoubleOut(name string, v *float64) *Options {
-	t.addOutput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
-	return t
+// DoubleOutput specifies a boolean output parameter for an operation
+func DoubleOutput(name string, v *float64) OptionFunc {
+	return func(t *Options) {
+		t.addOutput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
+	}
 }
 
-// SetStringOut specifies a string output parameter for an operation
-func (t *Options) SetStringOut(name string, s *string) *Options {
-	t.addOutput(name, s, OptionTypeString, C.G_TYPE_STRING)
-	return t
+// StringOutput specifies a string output parameter for an operation
+func StringOutput(name string, s *string) OptionFunc {
+	return func(t *Options) {
+		t.addOutput(name, s, OptionTypeString, C.G_TYPE_STRING)
+	}
 }
 
-// SetImageOut specifies a Image output parameter for an operation
-func (t *Options) SetImageOut(name string, image **Image) *Options {
-	t.addOutput(name, image, OptionTypeImage, C.vips_image_get_type())
-	return t
+// ImageOutput specifies a Image output parameter for an operation
+func ImageOutput(name string, image **Image) OptionFunc {
+	return func(t *Options) {
+		t.addOutput(name, image, OptionTypeImage, C.vips_image_get_type())
+	}
 }
 
-// SetBlobOut specifies a Blob output parameter for an operation
-func (t *Options) SetBlobOut(name string, blob **Blob) *Options {
-	t.addOutput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
-	return t
+// BlobOutput specifies a Blob output parameter for an operation
+func BlobOutput(name string, blob **Blob) OptionFunc {
+	return func(t *Options) {
+		t.addOutput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
+	}
 }

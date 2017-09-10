@@ -11,15 +11,16 @@ func TestOptionPrimitives(t *testing.T) {
 	var i int
 	var d float64
 	var s string
-	options := NewOptions().
-		SetBool("b", true).
-		SetInt("i", 42).
-		SetDouble("d", 42.2).
-		SetString("s", "hi").
-		SetBoolOut("b", &b).
-		SetIntOut("i", &i).
-		SetDoubleOut("d", &d).
-		SetStringOut("s", &s)
+	options := NewOptions(
+		BoolInput("b", true),
+		IntInput("i", 42),
+		DoubleInput("d", 42.2),
+		StringInput("s", "hi"),
+		BoolOutput("b", &b),
+		IntOutput("i", &i),
+		DoubleOutput("d", &d),
+		StringOutput("s", &s),
+	)
 
 	assert.Equal(t, true, options.options[0].value.(bool))
 	assert.Equal(t, 42, options.options[1].value.(int))
@@ -43,9 +44,10 @@ func TestOptionBlob(t *testing.T) {
 	bytes := []byte{42, 43, 44}
 	in := NewBlob(bytes)
 	var out *Blob
-	options := NewOptions().
-		SetBlob("in", in).
-		SetBlobOut("out", &out)
+	options := NewOptions(
+		BlobInput("in", in),
+		BlobOutput("out", &out),
+	)
 
 	assert.Equal(t, in, (options.options[0].value.(*Blob)))
 
