@@ -15,7 +15,7 @@ func loadAverage(file string) error {
 		return err
 	}
 
-	image, err := govips.NewImageFromBuffer(buf)
+	image, err := vips.NewImageFromBuffer(buf)
 	if err != nil {
 		return err
 	}
@@ -36,8 +36,8 @@ func main() {
 	}
 	flag.Parse()
 
-	govips.Startup(nil)
-	defer govips.Shutdown()
+	vips.Startup(nil)
+	defer vips.Shutdown()
 
 	err := loadAverage(*flagFile)
 	if err != nil {

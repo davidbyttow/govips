@@ -15,7 +15,7 @@ func run(inputFile, outputFile string) error {
 		return err
 	}
 
-	image, err := govips.NewImageFromBuffer(buf)
+	image, err := vips.NewImageFromBuffer(buf)
 	if err != nil {
 		return err
 	}
@@ -23,14 +23,14 @@ func run(inputFile, outputFile string) error {
 	fmt.Printf("Loaded %d x %d pixel image from %s\n",
 		image.Width(), image.Height(), inputFile)
 
-	buf, err = image.WriteToBuffer(".png")
+	buf, err = image.WriteToBuffer(vips.ImageTypePNG)
 	if err != nil {
 		return err
 	}
 
 	fmt.Printf("Written to memory %p in png format, %d bytes\n", buf, len(buf))
 
-	image, err = govips.NewImageFromBuffer(buf)
+	image, err = vips.NewImageFromBuffer(buf)
 	if err != nil {
 		return err
 	}
@@ -54,8 +54,8 @@ func main() {
 	}
 	flag.Parse()
 
-	govips.Startup(nil)
-	defer govips.Shutdown()
+	vips.Startup(nil)
+	defer vips.Shutdown()
 
 	err := run(*flagIn, *flagOut)
 	if err != nil {

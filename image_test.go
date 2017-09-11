@@ -1,23 +1,24 @@
-package govips
+package vips_test
 
 import (
 	"io/ioutil"
 	"os"
 	"testing"
 
+	"github.com/davidbyttow/govips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestLoadFromFile(t *testing.T) {
-	image, err := NewImageFromFile("fixtures/canyon.jpg")
+	image, err := vips.NewImageFromFile("fixtures/canyon.jpg")
 	require.Nil(t, err)
 	assert.Equal(t, 2560, image.Width())
 	assert.Equal(t, 1600, image.Height())
 }
 
 func TestWriteToFile(t *testing.T) {
-	image, err := NewImageFromFile("fixtures/canyon.jpg")
+	image, err := vips.NewImageFromFile("fixtures/canyon.jpg")
 	require.Nil(t, err)
 
 	image = image.Resize(0.25)
@@ -34,16 +35,16 @@ func TestWriteToBytes(t *testing.T) {
 	buf, err := ioutil.ReadFile("fixtures/canyon.jpg")
 	require.Nil(t, err)
 
-	image, err := NewImageFromBuffer(buf)
+	image, err := vips.NewImageFromBuffer(buf)
 	require.Nil(t, err)
 
 	image = image.Resize(0.25)
 
-	buf, err = image.WriteToBuffer(".jpeg")
+	buf, err = image.WriteToBuffer(vips.ImageTypeJPEG)
 	require.Nil(t, err)
 	assert.True(t, len(buf) > 0)
 
-	image, err = NewImageFromBuffer(buf)
+	image, err = vips.NewImageFromBuffer(buf)
 	require.Nil(t, err)
 	assert.Equal(t, 640, image.Width())
 	assert.Equal(t, 400, image.Height())
@@ -59,7 +60,7 @@ func TestLoadFromMemory(t *testing.T) {
 		bytes[i*3+2] = 0
 	}
 
-	image, err := NewImageFromMemory(bytes, size, size, 3, BandFormatUchar)
+	image, err := vips.NewImageFromMemory(bytes, size, size, 3, vips.BandFormatUchar)
 	require.Nil(t, err)
 
 	tempDir, err := ioutil.TempDir("", "TestLoadFromMemory")

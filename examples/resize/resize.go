@@ -9,18 +9,18 @@ import (
 )
 
 func run(inputFile, outputFile string) error {
-	in, err := govips.NewImageFromFile(inputFile,
-		govips.IntInput("access", int(govips.AccessSequential)))
+	in, err := vips.NewImageFromFile(inputFile,
+		vips.IntInput("access", int(vips.AccessSequential)))
 	if err != nil {
 		return err
 	}
 
-	interp, err := govips.NewInterpolator("nohalo")
+	interp, err := vips.NewInterpolator("nohalo")
 	if err != nil {
 		return err
 	}
 
-	out := in.Resize(0.2, govips.InterpolatorInput("interpolate", interp))
+	out := in.Resize(0.2, vips.InterpolatorInput("interpolate", interp))
 
 	out.WriteToFile(outputFile)
 
@@ -38,8 +38,8 @@ func main() {
 	}
 	flag.Parse()
 
-	govips.Startup(nil)
-	defer govips.Shutdown()
+	vips.Startup(nil)
+	defer vips.Shutdown()
 
 	err := run(*flagIn, *flagOut)
 	if err != nil {

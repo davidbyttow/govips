@@ -9,14 +9,14 @@ import (
 )
 
 func run(inputFile, outputFile string) error {
-	in, err := govips.NewImageFromFile(inputFile,
-		govips.IntInput("access", int(govips.AccessSequentialUnbuffered)))
+	in, err := vips.NewImageFromFile(inputFile,
+		vips.IntInput("access", int(vips.AccessSequentialUnbuffered)))
 	if err != nil {
 		return err
 	}
 
 	out := in.Embed(10, 10, 1000, 1000,
-		govips.IntInput("extend", int(govips.ExtendCopy)))
+		vips.IntInput("extend", int(vips.ExtendCopy)))
 
 	out.WriteToFile(outputFile)
 
@@ -34,8 +34,8 @@ func main() {
 	}
 	flag.Parse()
 
-	govips.Startup(nil)
-	defer govips.Shutdown()
+	vips.Startup(nil)
+	defer vips.Shutdown()
 
 	err := run(*flagIn, *flagOut)
 	if err != nil {

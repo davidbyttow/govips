@@ -1,4 +1,4 @@
-package govips
+package vips
 
 import (
 	"testing"

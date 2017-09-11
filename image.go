@@ -1,4 +1,4 @@
-package govips
+package vips
 
 // #cgo pkg-config: vips
 // #include "bridge.h"
@@ -151,8 +151,9 @@ func (i *Image) ToBytes() ([]byte, error) {
 }
 
 // WriteToBuffer writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
-func (i *Image) WriteToBuffer(suffix string, opts ...OptionFunc) ([]byte, error) {
+func (i *Image) WriteToBuffer(imageType ImageType, opts ...OptionFunc) ([]byte, error) {
 	startupIfNeeded()
+	suffix := imageTypeExtensionMap[imageType]
 	fileName, optionString := vipsFilenameSplit8(suffix)
 	operationName, err := vipsForeignFindSaveBuffer(fileName)
 	if err != nil {

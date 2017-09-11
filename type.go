@@ -1,4 +1,4 @@
-package govips
+package vips
 
 // #cgo pkg-config: vips
 // #include "vips/vips.h"
@@ -14,25 +14,25 @@ type ImageType int
 // ImageType enum
 const (
 	ImageTypeUnknown ImageType = iota
-	ImageTypeGif
-	ImageTypeJpeg
+	ImageTypeGIF
+	ImageTypeJPEG
 	ImageTypeMagick
-	ImageTypePdf
-	ImageTypePng
-	ImageTypeSvg
-	ImageTypeTiff
-	ImageTypeWebp
+	ImageTypePDF
+	ImageTypePNG
+	ImageTypeSVG
+	ImageTypeTIFF
+	ImageTypeWEBP
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
-	ImageTypeGif:    ".gif",
-	ImageTypeJpeg:   ".jpeg",
+	ImageTypeGIF:    ".gif",
+	ImageTypeJPEG:   ".jpeg",
 	ImageTypeMagick: ".magick",
-	ImageTypePdf:    ".pdf",
-	ImageTypePng:    ".png",
-	ImageTypeSvg:    ".svg",
-	ImageTypeTiff:   ".tiff",
-	ImageTypeWebp:   ".webp",
+	ImageTypePDF:    ".pdf",
+	ImageTypePNG:    ".png",
+	ImageTypeSVG:    ".svg",
+	ImageTypeTIFF:   ".tiff",
+	ImageTypeWEBP:   ".webp",
 }
 
 // OutputExt returns the canonical extension for the ImageType
@@ -267,14 +267,14 @@ const (
 )
 
 var imageTypes = map[ImageType]string{
-	ImageTypeGif:    "gif",
-	ImageTypeJpeg:   "jpeg",
+	ImageTypeGIF:    "gif",
+	ImageTypeJPEG:   "jpeg",
 	ImageTypeMagick: "magick",
-	ImageTypePdf:    "pdf",
-	ImageTypePng:    "png",
-	ImageTypeSvg:    "svg",
-	ImageTypeTiff:   "tiff",
-	ImageTypeWebp:   "webp",
+	ImageTypePDF:    "pdf",
+	ImageTypePNG:    "png",
+	ImageTypeSVG:    "svg",
+	ImageTypeTIFF:   "tiff",
+	ImageTypeWEBP:   "webp",
 }
 
 var (

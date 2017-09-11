@@ -1,4 +1,4 @@
-package govips
+package vips
 
 // #cgo pkg-config: vips
 // #include "vips/vips.h"
