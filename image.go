@@ -12,7 +12,8 @@ import (
 
 // Image is an immutable structure that represents an image in memory
 type Image struct {
-	image *C.VipsImage
+	image      *C.VipsImage
+	callEvents []*CallEvent
 }
 
 // NewImageFromMemory wraps an image around a memory area. The memory area must be a simple
@@ -187,4 +188,21 @@ func (i *Image) WriteToFile(path string, opts ...OptionFunc) error {
 		StringInput("filename", fileName),
 	)
 	return vipsCallString(operationName, options, optionString)
+}
+
+type CallEvent struct {
+	Name    string
+	Options *Options
+}
+
+func (i *Image) CopyEvents(events []*CallEvent) {
+	i.callEvents = append(i.callEvents, events...)
+}
+
+func (i *Image) LogCallEvent(name string, options *Options) {
+	i.callEvents = append(i.callEvents, &CallEvent{name, options})
+}
+
+func (i *Image) CallEventLog() []*CallEvent {
+	return i.callEvents
 }

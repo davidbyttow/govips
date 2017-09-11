@@ -19,7 +19,6 @@ func run(inputFile, outputFile string) error {
 		vips.IntInput("extend", int(vips.ExtendCopy)))
 
 	out.WriteToFile(outputFile)
-
 	return nil
 }
 

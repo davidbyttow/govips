@@ -19,7 +19,7 @@ param_enum = GObject.GType.from_name("GParamEnum")
 today = datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")
 
 preamble ='''\
-package govips
+package vips
 
 //golint:ignore
 
@@ -201,11 +201,13 @@ def gen_operation(cls):
   output += '\toptions := NewOptions(opts...).With(\n'
 
   options = []
+  source_image = None
   for prop in all_required:
     method_name = get_options_method_name(prop) + 'Input'
     arg_name = ''
     if prop == this:
       arg_name = 'image'
+      source_image = arg_name
     else:
       flags = op.get_argument_flags(prop.name)
       arg_name = lower_camelcase(prop.name)
@@ -221,6 +223,14 @@ def gen_operation(cls):
   output += '\t)\n'
 
   output += '\tvipsCall("%s", options)\n' % nickname
+  # if this_ref:
+  #   output += '\t%sLogCallEvent("%s", options)\n' % (this_ref, nickname)
+  # elif result != None and get_type(result) == '*Image':
+  if result != None and get_type(result) == '*Image':
+    if source_image != None:
+      output += '\t%s.CopyEvents(%s.callEvents)\n' % (lower_camelcase(result.name), source_image)
+    output += '\t%s.LogCallEvent("%s", options)\n' % (lower_camelcase(result.name), nickname)
+
   if result != None:
     output += '\treturn %s\n' % lower_camelcase(result.name)
   output += '}'
