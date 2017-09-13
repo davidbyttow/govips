@@ -179,10 +179,10 @@ func newOutput(name string, value interface{}, optionType OptionType, gType C.GT
 }
 
 func (o *Option) String() string {
-	value := optionSerializers[o.OptionType].String(o.Value)
 	if o.IsOutput {
-		return fmt.Sprintf("%s* %s=%s", o.OptionType, o.Name, value)
+		return fmt.Sprintf("%s* %s", o.OptionType, o.Name)
 	}
+	value := optionSerializers[o.OptionType].String(o.Value)
 	return fmt.Sprintf("%s %s=%s", o.OptionType, o.Name, value)
 }
 
