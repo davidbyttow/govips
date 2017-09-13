@@ -6,7 +6,9 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
 	"runtime"
+	"strings"
 	"unsafe"
 )
 
@@ -193,6 +195,15 @@ func (i *Image) WriteToFile(path string, opts ...OptionFunc) error {
 type CallEvent struct {
 	Name    string
 	Options *Options
+}
+
+func (c CallEvent) String() string {
+	// TODO(d): Values and types
+	var args []string
+	for _, o := range c.Options.options {
+		args = append(args, o.name)
+	}
+	return fmt.Sprintf("%s(%s)", strings.Join(args, ", "))
 }
 
 func (i *Image) CopyEvents(events []*CallEvent) {
