@@ -178,6 +178,14 @@ func newOutput(name string, value interface{}, optionType OptionType, gType C.GT
 	return newOption(name, value, optionType, gType, true)
 }
 
+func (o *Option) String() string {
+	value := optionSerializers[o.OptionType].String(o.Value)
+	if o.IsOutput {
+		return fmt.Sprintf("%s* %s=%s", o.OptionType, o.Name, value)
+	}
+	return fmt.Sprintf("%s %s=%s", o.OptionType, o.Name, value)
+}
+
 func (o *Option) Deserialize() {
 	if !o.IsOutput {
 		panic("Option is not an output")

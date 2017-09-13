@@ -198,10 +198,9 @@ type CallEvent struct {
 }
 
 func (c CallEvent) String() string {
-	// TODO(d): Values and types
 	var args []string
-	for _, o := range c.Options.options {
-		args = append(args, o.name)
+	for _, o := range c.Options.Options {
+		args = append(args, o.String())
 	}
 	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
 }
