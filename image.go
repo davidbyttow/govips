@@ -203,7 +203,7 @@ func (c CallEvent) String() string {
 	for _, o := range c.Options.options {
 		args = append(args, o.name)
 	}
-	return fmt.Sprintf("%s(%s)", strings.Join(args, ", "))
+	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
 }
 
 func (i *Image) CopyEvents(events []*CallEvent) {
