@@ -1,8 +1,9 @@
-package vips
+package vips_test
 
 import (
 	"testing"
 
+	"github.com/davidbyttow/govips"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -11,28 +12,28 @@ func TestOptionPrimitives(t *testing.T) {
 	var i int
 	var d float64
 	var s string
-	options := NewOptions(
-		BoolInput("b", true),
-		IntInput("i", 42),
-		DoubleInput("d", 42.2),
-		StringInput("s", "hi"),
-		BoolOutput("b", &b),
-		IntOutput("i", &i),
-		DoubleOutput("d", &d),
-		StringOutput("s", &s),
+	options := vips.NewOptions(
+		vips.BoolInput("b", true),
+		vips.IntInput("i", 42),
+		vips.DoubleInput("d", 42.2),
+		vips.StringInput("s", "hi"),
+		vips.BoolOutput("b", &b),
+		vips.IntOutput("i", &i),
+		vips.DoubleOutput("d", &d),
+		vips.StringOutput("s", &s),
 	)
 
-	assert.Equal(t, true, options.options[0].value.(bool))
-	assert.Equal(t, 42, options.options[1].value.(int))
-	assert.Equal(t, 42.2, options.options[2].value.(float64))
-	assert.Equal(t, "hi", options.options[3].value.(string))
+	assert.Equal(t, true, options.Options[0].Value.(bool))
+	assert.Equal(t, 42, options.Options[1].Value.(int))
+	assert.Equal(t, 42.2, options.Options[2].Value.(float64))
+	assert.Equal(t, "hi", options.Options[3].Value.(string))
 
-	options.options[4].gvalue = options.options[0].gvalue
-	options.options[5].gvalue = options.options[1].gvalue
-	options.options[6].gvalue = options.options[2].gvalue
-	options.options[7].gvalue = options.options[3].gvalue
+	options.Options[4].GValue = options.Options[0].GValue
+	options.Options[5].GValue = options.Options[1].GValue
+	options.Options[6].GValue = options.Options[2].GValue
+	options.Options[7].GValue = options.Options[3].GValue
 
-	options.deserializeOutputs()
+	options.DeserializeOutputs()
 
 	assert.Equal(t, true, b)
 	assert.Equal(t, 42, i)
@@ -42,18 +43,18 @@ func TestOptionPrimitives(t *testing.T) {
 
 func TestOptionBlob(t *testing.T) {
 	bytes := []byte{42, 43, 44}
-	in := NewBlob(bytes)
-	var out *Blob
-	options := NewOptions(
-		BlobInput("in", in),
-		BlobOutput("out", &out),
+	in := vips.NewBlob(bytes)
+	var out *vips.Blob
+	options := vips.NewOptions(
+		vips.BlobInput("in", in),
+		vips.BlobOutput("out", &out),
 	)
 
-	assert.Equal(t, in, (options.options[0].value.(*Blob)))
+	assert.Equal(t, in, (options.Options[0].Value.(*vips.Blob)))
 
-	options.options[1].gvalue = options.options[0].gvalue
+	options.Options[1].GValue = options.Options[0].GValue
 
-	options.deserializeOutputs()
+	options.DeserializeOutputs()
 
 	assert.Equal(t, len(bytes), out.Length())
 	assert.Equal(t, bytes, out.ToBytes())

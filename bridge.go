@@ -111,18 +111,18 @@ func vipsCall(name string, options *Options) error {
 func vipsCallOperation(operation *C.VipsOperation, options *Options) error {
 	// TODO(d): Unref the outputs
 	if options != nil {
-		for _, option := range options.options {
-			if option.isOutput {
+		for _, option := range options.Options {
+			if option.IsOutput {
 				continue
 			}
 
-			cName := C.CString(option.name)
+			cName := C.CString(option.Name)
 			defer freeCString(cName)
 
 			C.SetProperty(
 				(*C.VipsObject)(unsafe.Pointer(operation)),
 				cName,
-				&option.gvalue)
+				&option.GValue)
 		}
 	}
 
@@ -135,18 +135,18 @@ func vipsCallOperation(operation *C.VipsOperation, options *Options) error {
 	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
 
 	if options != nil {
-		for _, option := range options.options {
-			if !option.isOutput {
+		for _, option := range options.Options {
+			if !option.IsOutput {
 				continue
 			}
 
-			cName := C.CString(option.name)
+			cName := C.CString(option.Name)
 			defer freeCString(cName)
 
 			C.g_object_get_property(
 				(*C.GObject)(unsafe.Pointer(operation)),
 				(*C.gchar)(cName),
-				&option.gvalue)
+				&option.GValue)
 			option.Deserialize()
 		}
 	}
