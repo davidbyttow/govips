@@ -78,6 +78,13 @@ func NewImageFromBuffer(bytes []byte, opts ...OptionFunc) (*Image, error) {
 	return out, nil
 }
 
+func NewThumbnailFromBuffer(bytes []byte, width int, opts ...OptionFunc) (*Image, error) {
+	startupIfNeeded()
+	blob := NewBlob(bytes)
+	out := ThumbnailBuffer(blob, width, opts...)
+	return out, nil
+}
+
 func newImage(vipsImage *C.VipsImage) *Image {
 	image := &Image{
 		image: vipsImage,
