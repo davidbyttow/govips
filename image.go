@@ -213,7 +213,9 @@ func (c CallEvent) String() string {
 }
 
 func (i *Image) CopyEvents(events []*CallEvent) {
-	i.callEvents = append(i.callEvents, events...)
+	if len(events) > 0 {
+		i.callEvents = append(i.callEvents, events...)
+	}
 }
 
 func (i *Image) LogCallEvent(name string, options *Options) {
