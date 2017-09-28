@@ -17,7 +17,7 @@ import (
 // TODO(d): Tune these. Concurrency is set to a safe level but assumes
 // openslide is not enabled.
 const (
-	defaultConcurrencyLevel = 25
+	defaultConcurrencyLevel = 10
 	defaultMaxCacheFiles    = 500
 	defaultMaxCacheMem      = 100 * 1024 * 1024
 	defaultMaxCacheSize     = 1000
