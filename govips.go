@@ -10,6 +10,7 @@ package vips
 import "C"
 import (
 	"fmt"
+	"runtime"
 	"sync"
 )
 
@@ -49,7 +50,9 @@ type Config struct {
 // default configuration.
 func Startup(config *Config) {
 	initLock.Lock()
+	runtime.LockOSThread()
 	defer initLock.Unlock()
+	defer runtime.UnlockOSThread()
 
 	if running {
 		panic("libvips already running")
@@ -108,7 +111,9 @@ func startupIfNeeded() {
 // Shutdown libvips
 func Shutdown() {
 	initLock.Lock()
+	runtime.LockOSThread()
 	defer initLock.Unlock()
+	defer runtime.UnlockOSThread()
 
 	if !running {
 		panic("libvips not running")
