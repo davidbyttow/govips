@@ -55,7 +55,8 @@ func Startup(config *Config) {
 	defer runtime.UnlockOSThread()
 
 	if running {
-		panic("libvips already running")
+		debug("warning libvips already started")
+		return
 	}
 
 	if C.VIPS_MAJOR_VERSION < 8 {
@@ -116,7 +117,8 @@ func Shutdown() {
 	defer runtime.UnlockOSThread()
 
 	if !running {
-		panic("libvips not running")
+		debug("warning libvips not started")
+		return
 	}
 
 	C.vips_shutdown()
