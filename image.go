@@ -18,6 +18,16 @@ type Image struct {
 	callEvents []*CallEvent
 }
 
+type ExportOptions struct {
+	Type           ImageType
+	Quality        int
+	Compression    int
+	Interlaced     bool
+	StripProfile   bool
+	StripMetadata  bool
+	Interpretation Interpretation
+}
+
 // NewImageFromMemory wraps an image around a memory area. The memory area must be a simple
 // array (e.g., RGBRGBRGB), left-to-right, top-to-bottom.
 func NewImageFromMemory(bytes []byte, width, height, bands int, format BandFormat) (*Image, error) {
@@ -34,49 +44,16 @@ func NewImageFromMemory(bytes []byte, width, height, bands int, format BandForma
 	return newImage(vipsImage), nil
 }
 
-// NewImageFromFile loads an image buffer from disk and creates a new Image
-func NewImageFromFile(path string, opts ...OptionFunc) (*Image, error) {
-	startupIfNeeded()
-	fileName, optionString := vipsFilenameSplit8(path)
-
-	operationName, err := vipsForeignFindLoad(fileName)
-	if err != nil {
-		return nil, ErrUnsupportedImageFormat
-	}
-
-	var out *Image
-	options := NewOptions(opts...).With(
-		StringInput("filename", fileName),
-		ImageOutput("out", &out),
-	)
-
-	if err := vipsCallString(operationName, options, optionString); err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 // NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(bytes []byte, opts ...OptionFunc) (*Image, error) {
 	startupIfNeeded()
-	operationName, err := vipsForeignFindLoadBuffer(bytes)
+
+	image, _, err := vipsLoadFromBuffer(bytes)
 	if err != nil {
 		return nil, err
 	}
 
-	var out *Image
-	blob := NewBlob(bytes)
-	options := NewOptions(opts...).With(
-		BlobInput("buffer", blob),
-		IntInput("access", int(AccessRandom)),
-		ImageOutput("out", &out),
-	)
-
-	if err := vipsCall(operationName, options); err != nil {
-		return nil, err
-	}
-
-	return out, nil
+	return newImage(image), nil
 }
 
 func NewThumbnailFromBuffer(bytes []byte, width int, opts ...OptionFunc) (*Image, error) {
@@ -95,7 +72,14 @@ func newImage(vipsImage *C.VipsImage) *Image {
 }
 
 func finalizeImage(i *Image) {
-	C.g_object_unref(C.gpointer(i.image))
+	i.Close()
+}
+
+func (i *Image) Close() {
+	if i.image != nil {
+		C.g_object_unref(C.gpointer(i.image))
+		i.image = nil
+	}
 }
 
 // Width returns the width of this image
@@ -162,42 +146,8 @@ func (i *Image) ToBytes() ([]byte, error) {
 }
 
 // WriteToBuffer writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
-func (i *Image) WriteToBuffer(imageType ImageType, opts ...OptionFunc) ([]byte, error) {
-	startupIfNeeded()
-	suffix := imageTypeExtensionMap[imageType]
-	fileName, optionString := vipsFilenameSplit8(suffix)
-	operationName, err := vipsForeignFindSaveBuffer(fileName)
-	if err != nil {
-		return nil, err
-	}
-	var blob *Blob
-	options := NewOptions(opts...).With(
-		ImageInput("in", i),
-		BlobOutput("buffer", &blob),
-	)
-	err = vipsCallString(operationName, options, optionString)
-	if err != nil {
-		return nil, err
-	}
-	if blob != nil {
-		return blob.ToBytes(), nil
-	}
-	return nil, nil
-}
-
-// WriteToFile writes the image to a file on disk based on the format specified in the path
-func (i *Image) WriteToFile(path string, opts ...OptionFunc) error {
-	startupIfNeeded()
-	fileName, optionString := vipsFilenameSplit8(path)
-	operationName, err := vipsForeignFindSave(fileName)
-	if err != nil {
-		return err
-	}
-	options := NewOptions(opts...).With(
-		ImageInput("in", i),
-		StringInput("filename", fileName),
-	)
-	return vipsCallString(operationName, options, optionString)
+func (i *Image) Export(options ExportOptions) ([]byte, error) {
+	return vipsExportBuffer(i.image, &options)
 }
 
 type CallEvent struct {

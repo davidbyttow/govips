@@ -1,7 +1,7 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "vips/vips.h"
+// #include "bridge.h"
 import "C"
 import (
 	"strings"
@@ -13,15 +13,15 @@ type ImageType int
 
 // ImageType enum
 const (
-	ImageTypeUnknown ImageType = iota
-	ImageTypeGIF
-	ImageTypeJPEG
-	ImageTypeMagick
-	ImageTypePDF
-	ImageTypePNG
-	ImageTypeSVG
-	ImageTypeTIFF
-	ImageTypeWEBP
+	ImageTypeUnknown ImageType = C.UNKNOWN
+	ImageTypeGIF     ImageType = C.GIF
+	ImageTypeJPEG    ImageType = C.JPEG
+	ImageTypeMagick  ImageType = C.MAGICK
+	ImageTypePDF     ImageType = C.PDF
+	ImageTypePNG     ImageType = C.PNG
+	ImageTypeSVG     ImageType = C.SVG
+	ImageTypeTIFF    ImageType = C.TIFF
+	ImageTypeWEBP    ImageType = C.WEBP
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -285,28 +285,11 @@ var (
 
 // DetermineImageType attempts to determine the image type of the given buffer
 func DetermineImageType(buf []byte) ImageType {
-	startupIfNeeded()
+	return vipsDetermineImageType(buf)
+}
 
-	size := len(buf)
-	if size == 0 {
-		return ImageTypeUnknown
-	}
-
-	cName := C.vips_foreign_find_load_buffer(
-		byteArrayPointer(buf),
-		C.size_t(size))
-
-	if cName == nil {
-		return ImageTypeUnknown
-	}
-
-	imageType := ImageTypeUnknown
-	name := strings.ToLower(C.GoString(cName))
-	if imageType, ok := typeLoaders[name]; ok {
-		return imageType
-	}
-
-	return imageType
+func IsTypeSupported(imageType ImageType) bool {
+	return supportedImageTypes[imageType]
 }
 
 // InitTypes initializes caches and figures out which image types are supported
