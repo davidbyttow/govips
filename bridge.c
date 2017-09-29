@@ -131,6 +131,10 @@ int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g,
 	);
 }
 
+int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c, double d, VipsInterpolate *interpolator) {
+	return vips_affine(in, out, a, b, c, d, "interpolate", interpolator, NULL);
+}
+
 int find_image_loader(int t) {
   switch (t) {
     case GIF:

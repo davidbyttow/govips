@@ -42,5 +42,6 @@ int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac);
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, int height, int extend, double r, double g, double b);
 int extract_image_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height);
 int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g, double b);
+int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c, double d, VipsInterpolate *interpolator);
 
 void gobject_set_property(VipsObject* object, const char* name, const GValue* value);
