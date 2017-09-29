@@ -68,6 +68,7 @@ func NewImageFromBuffer(bytes []byte, opts ...OptionFunc) (*Image, error) {
 	blob := NewBlob(bytes)
 	options := NewOptions(opts...).With(
 		BlobInput("buffer", blob),
+		IntInput("access", int(AccessRandom)),
 		ImageOutput("out", &out),
 	)
 
