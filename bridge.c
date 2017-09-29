@@ -139,45 +139,35 @@ int find_image_loader(int t) {
   switch (t) {
     case GIF:
       return vips_type_find("VipsOperation", "gifload");
+    case PDF:
+      return vips_type_find("VipsOperation", "pdfload");
+    case TIFF:
+      return vips_type_find("VipsOperation", "tiffload");
+    case SVG:
+      return vips_type_find("VipsOperation", "svgload");
+    case WEBP:
+      return vips_type_find("VipsOperation", "webpload");
+    case PNG:
+      return vips_type_find("VipsOperation", "pngload");
+    case JPEG:
+      return vips_type_find("VipsOperation", "jpegload");
+    case MAGICK:
+      return vips_type_find("VipsOperation", "magickload");
   }
-	if (t == GIF) {
-		return vips_type_find("VipsOperation", "gifload");
-	} else if (t == PDF) {
-		return vips_type_find("VipsOperation", "pdfload");
-	} if (t == TIFF) {
-		return vips_type_find("VipsOperation", "tiffload");
-	}
-	if (t == SVG) {
-		return vips_type_find("VipsOperation", "svgload");
-	}
-	if (t == WEBP) {
-		return vips_type_find("VipsOperation", "webpload");
-	}
-	if (t == PNG) {
-		return vips_type_find("VipsOperation", "pngload");
-	}
-	if (t == JPEG) {
-		return vips_type_find("VipsOperation", "jpegload");
-	}
-	if (t == MAGICK) {
-		return vips_type_find("VipsOperation", "magickload");
-	}
 	return 0;
 }
 
 int find_image_type_saver(int t) {
-	if (t == TIFF) {
-		return vips_type_find("VipsOperation", "tiffsave_buffer");
-	}
-	if (t == WEBP) {
-		return vips_type_find("VipsOperation", "webpsave_buffer");
-	}
-	if (t == PNG) {
-		return vips_type_find("VipsOperation", "pngsave_buffer");
-	}
-	if (t == JPEG) {
-		return vips_type_find("VipsOperation", "jpegsave_buffer");
-	}
+  switch (t) {
+    case TIFF:
+      return vips_type_find("VipsOperation", "tiffsave_buffer");
+    case WEBP:
+      return vips_type_find("VipsOperation", "webpsave_buffer");
+    case PNG:
+      return vips_type_find("VipsOperation", "pngsave_buffer");
+    case JPEG:
+      return vips_type_find("VipsOperation", "jpegsave_buffer");
+  }
 	return 0;
 }
 

@@ -5,12 +5,12 @@ dist: trusty
 
 go:
 #  - 1.6
-  - 1.7
+  - 1.9
 #  - tip
 
 env:
 #  - LIBVIPS=8.3
-  - LIBVIPS=8.4
+  - LIBVIPS=8.5.8
 #  - LIBVIPS=master
 
 matrix:
