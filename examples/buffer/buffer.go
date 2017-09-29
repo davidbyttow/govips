@@ -23,7 +23,7 @@ func run(inputFile, outputFile string) error {
 	fmt.Printf("Loaded %d x %d pixel image from %s\n",
 		image.Width(), image.Height(), inputFile)
 
-	buf, err = image.WriteToBuffer(vips.ImageTypePNG)
+	buf, err = image.Export(vips.ExportOptions{Type: vips.ImageTypePNG})
 	if err != nil {
 		return err
 	}
@@ -37,10 +37,14 @@ func run(inputFile, outputFile string) error {
 
 	fmt.Printf("Loaded from memory, %d x %d pixel image\n", image.Width(), image.Height())
 
-	image.WriteToFile(outputFile)
+	buf, err = image.Export(vips.ExportOptions{})
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(outputFile, buf, 0644)
 	fmt.Printf("Written back to %s\n", outputFile)
 
-	return nil
+	return err
 }
 
 var (

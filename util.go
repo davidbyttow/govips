@@ -18,6 +18,13 @@ func freeCString(s *C.char) {
 	C.free(unsafe.Pointer(s))
 }
 
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
+}
+
 func toGboolean(b bool) C.gboolean {
 	if b {
 		return C.gboolean(1)

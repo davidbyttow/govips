@@ -3,13 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/davidbyttow/govips"
 )
 
 func run(inputFile, outputFile string) error {
-	in, err := vips.NewImageFromFile(inputFile,
+	buf, _ := ioutil.ReadFile(inputFile)
+	in, err := vips.NewImageFromBuffer(buf,
 		vips.IntInput("access", int(vips.AccessSequential)))
 	if err != nil {
 		return err
@@ -22,9 +24,11 @@ func run(inputFile, outputFile string) error {
 
 	out := in.Resize(0.2, vips.InterpolatorInput("interpolate", interp))
 
-	out.WriteToFile(outputFile)
-
-	return nil
+	buf, err = out.Export(vips.ExportOptions{})
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(outputFile, buf, 0644)
 }
 
 var (
