@@ -7,6 +7,7 @@ import datetime
 import logging
 import re
 import sys
+from string import Template
 
 import gi
 gi.require_version('Vips', '8.0')
@@ -33,6 +34,8 @@ package vips
 // #cgo pkg-config: vips
 // #include "vips/vips.h"
 import "C"\
+
+// See http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html
 ''' % today
 
 go_types = {
@@ -41,7 +44,7 @@ go_types = {
   "gdouble" : "float64",
   "gint" : "int",
   "VipsBlob" : "*Blob",
-  "VipsImage" : "*Image",
+  "VipsImage" : "*C.VipsImage",
   "VipsInterpolate": "*Interpolator",
   "VipsOperationMath" : "OperationMath",
   "VipsOperationMath2" : "OperationMath2",
@@ -72,6 +75,7 @@ options_method_names = {
   "VipsInterpolate" : "Interpolator",
 }
 
+
 def get_type(prop):
   return go_types[prop.value_type.name]
 
@@ -91,35 +95,13 @@ def find_required(op):
       continue
     if flags & Vips.ArgumentFlags.DEPRECATED:
       continue
-
     required.append(prop)
-
   def priority_sort(a, b):
     pa = op.get_argument_priority(a.name)
     pb = op.get_argument_priority(b.name)
-
     return pa - pb
-
   required.sort(priority_sort)
-
   return required
-
-
-# find the first input image ... this will be used as "this"
-def find_first_input_image(op, required):
-  found = False
-  for prop in required:
-    flags = op.get_argument_flags(prop.name)
-    if not flags & Vips.ArgumentFlags.INPUT:
-      continue
-    if GObject.type_is_a(vips_type_image, prop.value_type):
-      found = True
-      break
-
-  if not found:
-    return None
-
-  return prop
 
 
 # find the first output arg ... this will be used as the result
@@ -168,73 +150,200 @@ def gen_params(op, required):
   return ', '.join(args)
 
 
+func_template = Template('''
+// $func_name executes the '$op_name' operation.
+func $func_name($args) ($return_types) {
+  $decls
+  $unrefs
+  options := NewOptions(opts...).With(
+    $input_options
+    $output_options
+  )
+  err = vipsCall("$op_name", options)
+  return $return_values
+}
+''')
+
+
+stream_template = Template('''
+func (os *OperationStream) $func_name($method_args) (*OperationStream, error) {
+  out, err := $func_name(os.image, $call_values)
+  if err != nil {
+    return os, err
+  }
+  os.SetImage(out)
+  return os, nil
+}
+''')
+
+
+def emit_func(d):
+  return func_template.substitute(d)
+
+
+def emit_method(d):
+  return stream_template.substitute(d)
+
+
+  # for prop in all_required:
+  #   method_name = get_options_method_name(prop) + 'Input'
+  #   arg_name = ''
+  #   if prop == this:
+  #     arg_name = 'image'
+  #     source_image = arg_name
+  #   else:
+  #     flags = op.get_argument_flags(prop.name)
+  #     arg_name = lower_camelcase(prop.name)
+  #     if flags & Vips.ArgumentFlags.OUTPUT:
+  #       method_name = get_options_method_name(prop) + 'Output'
+  #       if prop == result:
+  #         arg_name = '&' + arg_name
+  #     if GObject.type_is_a(param_enum, prop):
+  #       arg_name = 'int(%s)' % arg_name
+  #   options.append('\t\t%s("%s", %s),\n' % (method_name, prop.name, arg_name))
+  # output += ''.join(options)
+
+
 def gen_operation(cls):
   op = Vips.Operation.new(cls.name)
   gtype = Vips.type_find("VipsOperation", cls.name)
-  nickname = Vips.nickname_find(gtype)
-  all_required = find_required(op)
 
-  result = find_first_output(op, all_required)
-  this = find_first_input_image(op, all_required)
-  this_part = ''
-  this_ref = ''
+  op_name = Vips.nickname_find(gtype)
+  func_name = upper_camelcase(op_name)
 
-  # shallow copy
-  required = all_required[:]
-  if result != None:
-    required.remove(result)
-  if this != None:
-    required.remove(this)
-    this_part = '(image *Image) '
-    this_ref = 'image.'
+  args = []
+  decls = []
+  return_types = []
+  return_names = []
+  return_values = []
+  input_options = []
+  output_options = []
+  unrefs = []
+  method_args = []
+  call_values = []
+  images_in = 0
+  images_out = 0
 
-  output = ''
-  go_name = upper_camelcase(nickname)
-  output += '// %s executes the \'%s\' operation\n' % (go_name, nickname)
-  output += '// (see %s at http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)\n' % nickname
-  output += 'func %s%s(%s)' % (this_part, go_name, gen_params(op, required))
-  if result != None:
-    output += ' %s' % go_types[result.value_type.name]
-  output += ' {\n'
-  if result != None:
-    output += '\tvar %s %s\n' % (lower_camelcase(result.name), get_type(result))
-  output += '\toptions := NewOptions(opts...).With(\n'
+  all_props = find_required(op)
+  for prop in all_props:
+    name = lower_camelcase(prop.name)
+    prop_type = get_type(prop)
+    flags = op.get_argument_flags(prop.name)
+    method_name = get_options_method_name(prop)
 
-  options = []
-  source_image = None
-  for prop in all_required:
-    method_name = get_options_method_name(prop) + 'Input'
-    arg_name = ''
-    if prop == this:
-      arg_name = 'image'
-      source_image = arg_name
+    if flags & Vips.ArgumentFlags.OUTPUT:
+      if GObject.type_is_a(vips_type_image, prop.value_type):
+        images_out += 1
+      else:
+        method_args.append('%s *%s' % (name, prop_type))
+      return_types.append(prop_type)
+      decls.append('var %s %s' % (name, prop_type))
+      return_values.append(name)
+      output_options.append('%sOutput("%s", &%s),' % (method_name, prop.name, name))
     else:
-      flags = op.get_argument_flags(prop.name)
-      arg_name = lower_camelcase(prop.name)
-      if flags & Vips.ArgumentFlags.OUTPUT:
-        method_name = get_options_method_name(prop) + 'Output'
-        if prop == result:
-          arg_name = '&' + arg_name
+      if GObject.type_is_a(vips_type_image, prop.value_type):
+        images_in += 1
+        unrefs.append('defer C.g_object_unref(C.gpointer(%s))' % name)
+      else:
+        call_values.append(name)
+        method_args.append('%s %s' % (name, prop_type))
+      args.append('%s %s' % (name, prop_type))
+      arg_name = name
       if GObject.type_is_a(param_enum, prop):
         arg_name = 'int(%s)' % arg_name
-    options.append('\t\t%s("%s", %s),\n' % (method_name, prop.name, arg_name))
-  output += ''.join(options)
+      input_options.append('%sInput("%s", %s),' % (method_name, prop.name, arg_name))
 
-  output += '\t)\n'
+  args.append('opts ...OptionFunc')
+  decls.append('var err error')
+  return_types.append('error')
+  return_values.append('err')
+  method_args.append('opts ...OptionFunc')
+  call_values.append('opts...')
 
-  output += '\tvipsCall("%s", options)\n' % nickname
-  # if this_ref:
-  #   output += '\t%sLogCallEvent("%s", options)\n' % (this_ref, nickname)
-  # elif result != None and get_type(result) == '*Image':
-  if result != None and get_type(result) == '*Image':
-    if source_image != None:
-      output += '\t%s.CopyEvents(%s.callEvents)\n' % (lower_camelcase(result.name), source_image)
-    output += '\t%s.LogCallEvent("%s", options)\n' % (lower_camelcase(result.name), nickname)
+  funcs = []
 
-  if result != None:
-    output += '\treturn %s\n' % lower_camelcase(result.name)
-  output += '}'
-  return output
+  d = {
+    'op_name': op_name,
+    'func_name': func_name,
+    'args': ', '.join(args),
+    'decls': '\n\t'.join(decls),
+    'unrefs': '\n'.join(unrefs),
+    'input_options': '\n\t\t'.join(input_options),
+    'output_options': '\n\t\t'.join(output_options),
+    'return_types': ', '.join(return_types),
+    'return_values': ', '.join(return_values),
+  }
+
+  funcs.append(emit_func(d))
+
+  if images_in == 1 and images_out == 1:
+    d['method_args'] = ', '.join(method_args)
+    d['call_values'] = ', '.join(call_values)
+    funcs.append(emit_method(d))
+
+  return '\n'.join(funcs)
+
+  # this = find_inputs(op, all_required)
+  # result = find_outputs(op, all_required)
+  # this_part = ''
+  # this_ref = ''
+
+  # shallow copy
+  # required = all_required[:]
+  # if result != None:
+  #   required.remove(result)
+  # if this != None:
+  #   required.remove(this)
+  #   this_part = '(image *Image) '
+  #   this_ref = 'image.'
+
+  # output = ''
+  # go_name = upper_camelcase(nickname)
+  # output += '// %s executes the \'%s\' operation\n' % (go_name, nickname)
+  # output += '// (see %s at http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)\n' % nickname
+  # output += 'func %s%s(%s)' % (this_part, go_name, gen_params(op, required))
+  # if result != None:
+  #   output += ' %s' % go_types[result.value_type.name]
+  # output += ' {\n'
+  # if result != None:
+  #   output += '\tvar %s %s\n' % (lower_camelcase(result.name), get_type(result))
+  # output += '\toptions := NewOptions(opts...).With(\n'
+  #
+  # options = []
+  # source_image = None
+  # for prop in all_required:
+  #   method_name = get_options_method_name(prop) + 'Input'
+  #   arg_name = ''
+  #   if prop == this:
+  #     arg_name = 'image'
+  #     source_image = arg_name
+  #   else:
+  #     flags = op.get_argument_flags(prop.name)
+  #     arg_name = lower_camelcase(prop.name)
+  #     if flags & Vips.ArgumentFlags.OUTPUT:
+  #       method_name = get_options_method_name(prop) + 'Output'
+  #       if prop == result:
+  #         arg_name = '&' + arg_name
+  #     if GObject.type_is_a(param_enum, prop):
+  #       arg_name = 'int(%s)' % arg_name
+  #   options.append('\t\t%s("%s", %s),\n' % (method_name, prop.name, arg_name))
+  # output += ''.join(options)
+  #
+  # output += '\t)\n'
+  #
+  # output += '\tvipsCall("%s", options)\n' % nickname
+  # # if this_ref:
+  # #   output += '\t%sLogCallEvent("%s", options)\n' % (this_ref, nickname)
+  # # elif result != None and get_type(result) == '*Image':
+  # if result != None and get_type(result) == '*Image':
+  #   if source_image != None:
+  #     output += '\t%s.CopyEvents(%s.callEvents)\n' % (lower_camelcase(result.name), source_image)
+  #   output += '\t%s.LogCallEvent("%s", options)\n' % (lower_camelcase(result.name), nickname)
+  #
+  # if result != None:
+  #   output += '\treturn %s\n' % lower_camelcase(result.name)
+  # output += '}'
+  # return emit_func() + output
 
 
 # we have a few synonyms ... don't generate twice

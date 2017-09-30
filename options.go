@@ -20,6 +20,7 @@ const (
 	OptionTypeDouble       OptionType = "double"
 	OptionTypeString       OptionType = "string"
 	OptionTypeImage        OptionType = "Image"
+	OptionTypeVipsImage    OptionType = "VipsImage"
 	OptionTypeBlob         OptionType = "Blob"
 	OptionTypeInterpolator OptionType = "Interpolator"
 )
@@ -30,6 +31,7 @@ var optionSerializers = map[OptionType]OptionTypeSerializer{
 	OptionTypeDouble:       doubleSerializer{},
 	OptionTypeString:       stringSerializer{},
 	OptionTypeImage:        imageSerializer{},
+	OptionTypeVipsImage:    vipsImageSerializer{},
 	OptionTypeBlob:         blobSerializer{},
 	OptionTypeInterpolator: interpolatorSerializer{},
 }
@@ -101,15 +103,33 @@ func (t stringSerializer) String(i interface{}) string {
 type imageSerializer struct{}
 
 func (t imageSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_object(dst, C.gpointer(src.(*Image).image))
+	C.g_value_set_object(dst, C.gpointer(src.(*OperationStream).image))
 }
 
 func (t imageSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	*dst.(**Image) = newImage((*C.VipsImage)(C.g_value_get_object(src)))
+	*dst.(**OperationStream) = newStream((*C.VipsImage)(C.g_value_get_object(src)))
 }
 
 func (t imageSerializer) String(i interface{}) string {
-	image := i.(*Image)
+	image := i.(*OperationStream)
+	if image == nil {
+		return "nil"
+	}
+	return fmt.Sprintf("(%v,%d,%d)", image, image.Width(), image.Height())
+}
+
+type vipsImageSerializer struct{}
+
+func (t vipsImageSerializer) Serialize(dst *C.GValue, src interface{}) {
+	C.g_value_set_object(dst, C.gpointer(src.(*VipsImage)))
+}
+
+func (t vipsImageSerializer) Deserialize(dst interface{}, src *C.GValue) {
+	*dst.(**C.VipsImage) = (*C.VipsImage)(C.g_value_get_object(src))
+}
+
+func (t vipsImageSerializer) String(i interface{}) string {
+	image := i.(*C.VipsImage)
 	if image == nil {
 		return "nil"
 	}
