@@ -23,6 +23,13 @@ func NewInterpolator(name string) (*Interpolator, error) {
 	return out, nil
 }
 
+func (i *Interpolator) Close() {
+	if i.interp != nil {
+		C.g_object_unref(C.gpointer(i.interp))
+	}
+	i.interp = nil
+}
+
 func finalizeInterpolator(i *Interpolator) {
-	C.g_object_unref(C.gpointer(i.interp))
+	i.Close()
 }

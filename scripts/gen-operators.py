@@ -71,7 +71,7 @@ options_method_names = {
   "VipsArrayDouble" : "DoubleArray",
   "VipsArrayImage" : "ImageArray",
   "VipsBlob" : "Blob",
-  "VipsImage" : "Image",
+  "VipsImage" : "VipsImage",
   "VipsInterpolate" : "Interpolator",
 }
 
@@ -154,7 +154,6 @@ func_template = Template('''
 // $func_name executes the '$op_name' operation.
 func $func_name($args) ($return_types) {
   $decls
-  $unrefs
   options := NewOptions(opts...).With(
     $input_options
     $output_options
@@ -166,13 +165,13 @@ func $func_name($args) ($return_types) {
 
 
 stream_template = Template('''
-func (os *OperationStream) $func_name($method_args) (*OperationStream, error) {
+func (os *OperationStream) $func_name($method_args) error {
   out, err := $func_name(os.image, $call_values)
   if err != nil {
-    return os, err
+    return err
   }
   os.SetImage(out)
-  return os, nil
+  return nil
 }
 ''')
 

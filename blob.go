@@ -30,6 +30,17 @@ func NewBlob(buf []byte) *Blob {
 	return newBlob(cBlob)
 }
 
+func (t *Blob) Close() {
+	t.SetBlob(nil)
+}
+
+func (t *Blob) SetBlob(blob *C.VipsBlob) {
+	if t.cBlob != nil {
+		C.vips_area_unref(t.cArea())
+	}
+	t.cBlob = blob
+}
+
 // ToBytes creates a copy of the blob's byte array
 func (t *Blob) ToBytes() []byte {
 	area := t.cArea()
@@ -47,5 +58,5 @@ func (t *Blob) cArea() *C.VipsArea {
 }
 
 func finalizer(b *Blob) {
-	C.vips_area_unref(b.cArea())
+	b.Close()
 }

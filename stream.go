@@ -27,8 +27,18 @@ type ExportOptions struct {
 	Interpretation Interpretation
 }
 
+func NewStreamFromBuffer(bytes []byte, fn func(*OperationStream) error) error {
+	defer ShutdownThread()
+	stream, err := OpenFromBuffer(bytes)
+	if err != nil {
+		return err
+	}
+	defer stream.Close()
+	return fn(stream)
+}
+
 // OpenFromBuffer loads an image buffer and creates a new Image
-func OpenFromBuffer(bytes []byte, opts ...OptionFunc) (*OperationStream, error) {
+func OpenFromBuffer(bytes []byte) (*OperationStream, error) {
 	startupIfNeeded()
 
 	image, _, err := vipsLoadFromBuffer(bytes)

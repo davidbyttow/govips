@@ -98,7 +98,13 @@ func Startup(config *Config) {
 	initTypes()
 }
 
-func printVipsObjects() {
+func PrintObjectReport(label string) {
+	fmt.Printf("\n=======================================\n%s...\n", label)
+	C.vips_object_print_all()
+	fmt.Printf("=======================================\n\n")
+}
+
+func PrintInternalObjects() {
 	C.vips_object_print_all()
 }
 
