@@ -43,16 +43,16 @@ func (i ImageType) OutputExt() string {
 	return ""
 }
 
-// Kernel represents VipsKernel type
-type Kernel int
+// ReductionSampler represents VipsKernel type
+type ReductionSampler int
 
-// Kernel enum
+// ReductionSampler enum
 const (
-	KernelNearest  Kernel = C.VIPS_KERNEL_NEAREST
-	KernelLinear          = C.VIPS_KERNEL_LINEAR
-	KernelCubic           = C.VIPS_KERNEL_CUBIC
-	KernelLanczos2        = C.VIPS_KERNEL_LANCZOS2
-	KernelLanczos3        = C.VIPS_KERNEL_LANCZOS3
+	ReductionSamplerNearest  ReductionSampler = C.VIPS_KERNEL_NEAREST
+	ReductionSamplerLinear                    = C.VIPS_KERNEL_LINEAR
+	ReductionSamplerCubic                     = C.VIPS_KERNEL_CUBIC
+	ReductionSamplerLanczos2                  = C.VIPS_KERNEL_LANCZOS2
+	ReductionSamplerLanczos3                  = C.VIPS_KERNEL_LANCZOS3
 )
 
 type Interpolator int
