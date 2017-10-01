@@ -14,7 +14,7 @@ func TestWriteToBytes(t *testing.T) {
 	require.NoError(t, err)
 
 	vips.NewStreamFromBuffer(buf, func(stream *vips.ImageRef) error {
-		err := stream.Resize(0.25)
+		err := stream.Resize(0.25, vips.InputInterpolator("interpolate", vips.InterpolateNoHalo))
 		require.NoError(t, err)
 
 		buf, err = stream.Export(vips.ExportOptions{})

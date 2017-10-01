@@ -58,10 +58,20 @@ const (
 type Interpolator int
 
 const (
-	Bicubic Interpolator = iota
-	Bilinear
-	Nohalo
+	InterpolateBicubic Interpolator = iota
+	InterpolateBilinear
+	InterpolateNoHalo
 )
+
+var interpolators = map[Interpolator]string{
+	InterpolateBicubic:  "bicubic",
+	InterpolateBilinear: "bilinear",
+	InterpolateNoHalo:   "nohalo",
+}
+
+func (i Interpolator) String() string {
+	return interpolators[i]
+}
 
 // OperationMath represents VIPS_OPERATION_MATH type
 type OperationMath int
@@ -206,24 +216,24 @@ type Interpretation int
 const (
 	InterpretationError     Interpretation = C.VIPS_INTERPRETATION_ERROR
 	InterpretationMultiband Interpretation = C.VIPS_INTERPRETATION_MULTIBAND
-	InterpretationBw        Interpretation = C.VIPS_INTERPRETATION_B_W
+	InterpretationBW        Interpretation = C.VIPS_INTERPRETATION_B_W
 	InterpretationHistogram Interpretation = C.VIPS_INTERPRETATION_HISTOGRAM
-	InterpretationXyz       Interpretation = C.VIPS_INTERPRETATION_XYZ
-	InterpretationLab       Interpretation = C.VIPS_INTERPRETATION_LAB
+	InterpretationXYZ       Interpretation = C.VIPS_INTERPRETATION_XYZ
+	InterpretationLAB       Interpretation = C.VIPS_INTERPRETATION_LAB
 	InterpretationCMYK      Interpretation = C.VIPS_INTERPRETATION_CMYK
-	InterpretationLabq      Interpretation = C.VIPS_INTERPRETATION_LABQ
-	InterpretationRgb       Interpretation = C.VIPS_INTERPRETATION_RGB
-	InterpretationCmd       Interpretation = C.VIPS_INTERPRETATION_CMC
-	InterpretationLch       Interpretation = C.VIPS_INTERPRETATION_LCH
-	InterpretationLabs      Interpretation = C.VIPS_INTERPRETATION_LABS
-	InterpretationSrgb      Interpretation = C.VIPS_INTERPRETATION_sRGB
-	InterpretationYxy       Interpretation = C.VIPS_INTERPRETATION_YXY
+	InterpretationLABQ      Interpretation = C.VIPS_INTERPRETATION_LABQ
+	InterpretationRGB       Interpretation = C.VIPS_INTERPRETATION_RGB
+	InterpretationCMC       Interpretation = C.VIPS_INTERPRETATION_CMC
+	InterpretationLCH       Interpretation = C.VIPS_INTERPRETATION_LCH
+	InterpretationLABS      Interpretation = C.VIPS_INTERPRETATION_LABS
+	InterpretationSRGB      Interpretation = C.VIPS_INTERPRETATION_sRGB
+	InterpretationYXY       Interpretation = C.VIPS_INTERPRETATION_YXY
 	InterpretationFourier   Interpretation = C.VIPS_INTERPRETATION_FOURIER
-	InterpretationRgb16     Interpretation = C.VIPS_INTERPRETATION_RGB16
+	InterpretationGB16      Interpretation = C.VIPS_INTERPRETATION_RGB16
 	InterpretationGrey16    Interpretation = C.VIPS_INTERPRETATION_GREY16
 	InterpretationMatrix    Interpretation = C.VIPS_INTERPRETATION_MATRIX
-	InterpretationScRgb     Interpretation = C.VIPS_INTERPRETATION_scRGB
-	InterpretationHsv       Interpretation = C.VIPS_INTERPRETATION_HSV
+	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
+	InterpretationHSV       Interpretation = C.VIPS_INTERPRETATION_HSV
 )
 
 // BandFormat represents VIPS_FORMAT type
@@ -251,8 +261,8 @@ type Coding int
 const (
 	CodingError Coding = C.VIPS_CODING_ERROR
 	CodingNone  Coding = C.VIPS_CODING_NONE
-	CodingLabq  Coding = C.VIPS_CODING_LABQ
-	CodingRad   Coding = C.VIPS_CODING_RAD
+	CodingLABQ  Coding = C.VIPS_CODING_LABQ
+	CodingRAD   Coding = C.VIPS_CODING_RAD
 )
 
 // Access represents VIPS_ACCESS

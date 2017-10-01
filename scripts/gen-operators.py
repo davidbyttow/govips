@@ -231,11 +231,11 @@ def gen_operation(cls):
         arg_name = 'int(%s)' % arg_name
       input_options.append('Input%s("%s", %s),' % (method_name, prop.name, arg_name))
 
-  args.append('options ...VipsOption')
+  args.append('options ...*VipsOption')
   decls.append('var err error')
   return_types.append('error')
   return_values.append('err')
-  method_args.append('options ...VipsOption')
+  method_args.append('options ...*VipsOption')
   call_values.append('options...')
 
   funcs = []

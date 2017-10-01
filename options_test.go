@@ -11,7 +11,7 @@ func TestOptionPrimitives(t *testing.T) {
 	var i int
 	var d float64
 	var s string
-	options := []vips.VipsOption{
+	options := []*vips.VipsOption{
 		vips.InputBool("b", true),
 		vips.InputInt("i", 42),
 		vips.InputDouble("d", 42.2),
@@ -22,15 +22,11 @@ func TestOptionPrimitives(t *testing.T) {
 		vips.OutputString("s", &s),
 	}
 
+	// TODO(d): Write tests
 	for i := 0; i < 8; i++ {
 		opt := options[i]
-		switch opt.(type) {
-		case vips.VipsInput:
-			i := opt.(vips.VipsInput)
-			i.Serialize()
-		case vips.VipsOutput:
-			o := opt.(vips.VipsOutput)
-			o.Deserialize()
+		if !opt.Output() {
+
 		}
 	}
 }

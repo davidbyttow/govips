@@ -75,29 +75,31 @@ func vipsOperationNew(name string) *C.VipsOperation {
 	return C.vips_operation_new(cName)
 }
 
-func vipsCall(name string, options []VipsOption) error {
+func vipsCall(name string, options []*VipsOption) error {
 	operation := vipsOperationNew(name)
 	return vipsCallOperation(operation, options)
 }
 
-func closeOptions(options []VipsOption) {
+func closeOptions(options []*VipsOption) {
 	for _, o := range options {
 		o.Close()
 	}
 }
 
-func vipsCallOperation(operation *C.VipsOperation, options []VipsOption) error {
+func vipsCallOperation(operation *C.VipsOperation, options []*VipsOption) error {
 	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
-	defer closeOptions(options)
 
 	// Set the inputs
 	for _, option := range options {
-		if input, ok := option.(VipsInput); ok {
-			cName := C.CString(option.Name())
-			defer freeCString(cName)
-			C.gobject_set_property(
-				(*C.VipsObject)(unsafe.Pointer(operation)), cName, input.Serialize())
+		if option.Output() {
+			continue
 		}
+		defer option.Close()
+
+		cName := C.CString(option.Name)
+		defer freeCString(cName)
+		C.gobject_set_property(
+			(*C.VipsObject)(unsafe.Pointer(operation)), cName, option.GValue())
 	}
 
 	if ret := C.vips_cache_operation_buildp(&operation); ret != 0 {
@@ -106,13 +108,15 @@ func vipsCallOperation(operation *C.VipsOperation, options []VipsOption) error {
 
 	// Write back the outputs
 	for _, option := range options {
-		if output, ok := option.(VipsOutput); ok {
-			cName := C.CString(option.Name())
-			defer freeCString(cName)
-			C.g_object_get_property(
-				(*C.GObject)(unsafe.Pointer(operation)), (*C.gchar)(cName), output.GValue())
-			output.Deserialize()
+		if !option.Output() {
+			continue
 		}
+		defer option.Close()
+		cName := C.CString(option.Name)
+		defer freeCString(cName)
+
+		C.g_object_get_property(
+			(*C.GObject)(unsafe.Pointer(operation)), (*C.gchar)(cName), option.GValue())
 	}
 
 	return nil
@@ -131,7 +135,7 @@ func vipsPrepareForExport(image *C.VipsImage, options *ExportOptions) (*C.VipsIm
 
 	// Use a default interpretation and cast it to C type
 	if options.Interpretation == 0 {
-		options.Interpretation = InterpretationSrgb
+		options.Interpretation = InterpretationSRGB
 	}
 
 	interpretation := C.VipsInterpretation(options.Interpretation)
