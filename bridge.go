@@ -75,29 +75,28 @@ func vipsOperationNew(name string) *C.VipsOperation {
 	return C.vips_operation_new(cName)
 }
 
-func vipsCall(name string, options *Options) error {
+func vipsCall(name string, options []VipsOption) error {
 	operation := vipsOperationNew(name)
 	return vipsCallOperation(operation, options)
 }
 
-func vipsCallOperation(operation *C.VipsOperation, options *Options) error {
+func closeOptions(options []VipsOption) {
+	for _, o := range options {
+		o.Close()
+	}
+}
+
+func vipsCallOperation(operation *C.VipsOperation, options []VipsOption) error {
 	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
-	defer options.Release()
+	defer closeOptions(options)
 
 	// Set the inputs
-	if options != nil {
-		for _, option := range options.Options {
-			if option.IsOutput {
-				continue
-			}
-
-			cName := C.CString(option.Name)
+	for _, option := range options {
+		if input, ok := option.(VipsInput); ok {
+			cName := C.CString(option.Name())
 			defer freeCString(cName)
-
 			C.gobject_set_property(
-				(*C.VipsObject)(unsafe.Pointer(operation)),
-				cName,
-				&option.GValue)
+				(*C.VipsObject)(unsafe.Pointer(operation)), cName, input.Serialize())
 		}
 	}
 
@@ -106,20 +105,13 @@ func vipsCallOperation(operation *C.VipsOperation, options *Options) error {
 	}
 
 	// Write back the outputs
-	if options != nil {
-		for _, option := range options.Options {
-			if !option.IsOutput {
-				continue
-			}
-
-			cName := C.CString(option.Name)
+	for _, option := range options {
+		if output, ok := option.(VipsOutput); ok {
+			cName := C.CString(option.Name())
 			defer freeCString(cName)
-
 			C.g_object_get_property(
-				(*C.GObject)(unsafe.Pointer(operation)),
-				(*C.gchar)(cName),
-				&option.GValue)
-			option.Deserialize()
+				(*C.GObject)(unsafe.Pointer(operation)), (*C.gchar)(cName), output.GValue())
+			output.Deserialize()
 		}
 	}
 

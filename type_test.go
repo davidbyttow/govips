@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestJpeg(t *testing.T) {
+func TestJPEG(t *testing.T) {
 	buf, _ := ioutil.ReadFile("fixtures/canyon.jpg")
 	assert.NotNil(t, buf)
 

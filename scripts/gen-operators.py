@@ -70,9 +70,9 @@ options_method_names = {
   "gint" : "Int",
   "VipsArrayDouble" : "DoubleArray",
   "VipsArrayImage" : "ImageArray",
-  "VipsBlob" : "Blob",
-  "VipsImage" : "VipsImage",
-  "VipsInterpolate" : "Interpolator",
+  # "VipsBlob" : "Blob",
+  "VipsImage" : "Image",
+  # "VipsInterpolate" : "Interpolator",
 }
 
 
@@ -154,7 +154,7 @@ func_template = Template('''
 // $func_name executes the '$op_name' operation.
 func $func_name($args) ($return_types) {
   $decls
-  options := NewOptions(opts...).With(
+  options = append(options,
     $input_options
     $output_options
   )
@@ -165,12 +165,12 @@ func $func_name($args) ($return_types) {
 
 
 stream_template = Template('''
-func (os *OperationStream) $func_name($method_args) error {
-  out, err := $func_name(os.image, $call_values)
+func (in *ImageRef) $func_name($method_args) error {
+  out, err := $func_name(in.image, $call_values)
   if err != nil {
     return err
   }
-  os.SetImage(out)
+  in.SetImage(out)
   return nil
 }
 ''')
@@ -182,25 +182,6 @@ def emit_func(d):
 
 def emit_method(d):
   return stream_template.substitute(d)
-
-
-  # for prop in all_required:
-  #   method_name = get_options_method_name(prop) + 'Input'
-  #   arg_name = ''
-  #   if prop == this:
-  #     arg_name = 'image'
-  #     source_image = arg_name
-  #   else:
-  #     flags = op.get_argument_flags(prop.name)
-  #     arg_name = lower_camelcase(prop.name)
-  #     if flags & Vips.ArgumentFlags.OUTPUT:
-  #       method_name = get_options_method_name(prop) + 'Output'
-  #       if prop == result:
-  #         arg_name = '&' + arg_name
-  #     if GObject.type_is_a(param_enum, prop):
-  #       arg_name = 'int(%s)' % arg_name
-  #   options.append('\t\t%s("%s", %s),\n' % (method_name, prop.name, arg_name))
-  # output += ''.join(options)
 
 
 def gen_operation(cls):
@@ -217,7 +198,6 @@ def gen_operation(cls):
   return_values = []
   input_options = []
   output_options = []
-  unrefs = []
   method_args = []
   call_values = []
   images_in = 0
@@ -238,11 +218,10 @@ def gen_operation(cls):
       return_types.append(prop_type)
       decls.append('var %s %s' % (name, prop_type))
       return_values.append(name)
-      output_options.append('%sOutput("%s", &%s),' % (method_name, prop.name, name))
+      output_options.append('Output%s("%s", &%s),' % (method_name, prop.name, name))
     else:
       if GObject.type_is_a(vips_type_image, prop.value_type):
         images_in += 1
-        unrefs.append('defer C.g_object_unref(C.gpointer(%s))' % name)
       else:
         call_values.append(name)
         method_args.append('%s %s' % (name, prop_type))
@@ -250,14 +229,14 @@ def gen_operation(cls):
       arg_name = name
       if GObject.type_is_a(param_enum, prop):
         arg_name = 'int(%s)' % arg_name
-      input_options.append('%sInput("%s", %s),' % (method_name, prop.name, arg_name))
+      input_options.append('Input%s("%s", %s),' % (method_name, prop.name, arg_name))
 
-  args.append('opts ...OptionFunc')
+  args.append('options ...VipsOption')
   decls.append('var err error')
   return_types.append('error')
   return_values.append('err')
-  method_args.append('opts ...OptionFunc')
-  call_values.append('opts...')
+  method_args.append('options ...VipsOption')
+  call_values.append('options...')
 
   funcs = []
 
@@ -266,7 +245,6 @@ def gen_operation(cls):
     'func_name': func_name,
     'args': ', '.join(args),
     'decls': '\n\t'.join(decls),
-    'unrefs': '\n'.join(unrefs),
     'input_options': '\n\t\t'.join(input_options),
     'output_options': '\n\t\t'.join(output_options),
     'return_types': ', '.join(return_types),
@@ -281,68 +259,6 @@ def gen_operation(cls):
     funcs.append(emit_method(d))
 
   return '\n'.join(funcs)
-
-  # this = find_inputs(op, all_required)
-  # result = find_outputs(op, all_required)
-  # this_part = ''
-  # this_ref = ''
-
-  # shallow copy
-  # required = all_required[:]
-  # if result != None:
-  #   required.remove(result)
-  # if this != None:
-  #   required.remove(this)
-  #   this_part = '(image *Image) '
-  #   this_ref = 'image.'
-
-  # output = ''
-  # go_name = upper_camelcase(nickname)
-  # output += '// %s executes the \'%s\' operation\n' % (go_name, nickname)
-  # output += '// (see %s at http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)\n' % nickname
-  # output += 'func %s%s(%s)' % (this_part, go_name, gen_params(op, required))
-  # if result != None:
-  #   output += ' %s' % go_types[result.value_type.name]
-  # output += ' {\n'
-  # if result != None:
-  #   output += '\tvar %s %s\n' % (lower_camelcase(result.name), get_type(result))
-  # output += '\toptions := NewOptions(opts...).With(\n'
-  #
-  # options = []
-  # source_image = None
-  # for prop in all_required:
-  #   method_name = get_options_method_name(prop) + 'Input'
-  #   arg_name = ''
-  #   if prop == this:
-  #     arg_name = 'image'
-  #     source_image = arg_name
-  #   else:
-  #     flags = op.get_argument_flags(prop.name)
-  #     arg_name = lower_camelcase(prop.name)
-  #     if flags & Vips.ArgumentFlags.OUTPUT:
-  #       method_name = get_options_method_name(prop) + 'Output'
-  #       if prop == result:
-  #         arg_name = '&' + arg_name
-  #     if GObject.type_is_a(param_enum, prop):
-  #       arg_name = 'int(%s)' % arg_name
-  #   options.append('\t\t%s("%s", %s),\n' % (method_name, prop.name, arg_name))
-  # output += ''.join(options)
-  #
-  # output += '\t)\n'
-  #
-  # output += '\tvipsCall("%s", options)\n' % nickname
-  # # if this_ref:
-  # #   output += '\t%sLogCallEvent("%s", options)\n' % (this_ref, nickname)
-  # # elif result != None and get_type(result) == '*Image':
-  # if result != None and get_type(result) == '*Image':
-  #   if source_image != None:
-  #     output += '\t%s.CopyEvents(%s.callEvents)\n' % (lower_camelcase(result.name), source_image)
-  #   output += '\t%s.LogCallEvent("%s", options)\n' % (lower_camelcase(result.name), nickname)
-  #
-  # if result != None:
-  #   output += '\treturn %s\n' % lower_camelcase(result.name)
-  # output += '}'
-  # return emit_func() + output
 
 
 # we have a few synonyms ... don't generate twice

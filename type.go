@@ -55,6 +55,14 @@ const (
 	KernelLanczos3        = C.VIPS_KERNEL_LANCZOS3
 )
 
+type Interpolator int
+
+const (
+	Bicubic Interpolator = iota
+	Bilinear
+	Nohalo
+)
+
 // OperationMath represents VIPS_OPERATION_MATH type
 type OperationMath int
 

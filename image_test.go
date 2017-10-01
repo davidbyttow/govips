@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/davidbyttow/govips"
+	vips "github.com/davidbyttow/govips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -13,7 +13,7 @@ func TestWriteToBytes(t *testing.T) {
 	buf, err := ioutil.ReadFile("fixtures/canyon.jpg")
 	require.NoError(t, err)
 
-	vips.NewStreamFromBuffer(buf, func(stream *vips.OperationStream) error {
+	vips.NewStreamFromBuffer(buf, func(stream *vips.ImageRef) error {
 		err := stream.Resize(0.25)
 		require.NoError(t, err)
 
