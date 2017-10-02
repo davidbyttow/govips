@@ -11,6 +11,8 @@ import (
 	"unsafe"
 )
 
+// ImageRef contains a libvips image and manages its lifecycle. You should
+// close an image when done or it will leak until the next GC
 type ImageRef struct {
 	image *C.VipsImage
 }
@@ -50,6 +52,7 @@ func finalizeStream(ref *ImageRef) {
 	ref.Close()
 }
 
+// SetImage resets the image for this image and frees the previous one
 func (ref *ImageRef) SetImage(image *C.VipsImage) {
 	if ref.image != nil {
 		C.g_object_unref(C.gpointer(ref.image))
@@ -57,10 +60,12 @@ func (ref *ImageRef) SetImage(image *C.VipsImage) {
 	ref.image = image
 }
 
+// Close closes an image and frees internal memory associated with it
 func (ref *ImageRef) Close() {
 	ref.SetImage(nil)
 }
 
+// Image returns a handle to the internal vips image, just in case
 func (ref *ImageRef) Image() *C.VipsImage {
 	return ref.image
 }

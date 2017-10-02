@@ -8,8 +8,10 @@ import (
 	"sync"
 )
 
+// ResizeStrategy is the strategy to use when resizing an image
 type ResizeStrategy int
 
+// ResizeStrategy enum
 const (
 	ResizeStrategyAuto ResizeStrategy = iota
 	ResizeStrategyEmbed
@@ -17,8 +19,10 @@ const (
 	ResizeStrategyStretch
 )
 
+// Anchor represents the an anchor for cropping and other image operations
 type Anchor int
 
+// Anchor enum
 const (
 	AnchorAuto Anchor = iota
 	AnchorCenter
@@ -28,14 +32,24 @@ const (
 	AnchorLeft
 )
 
+// ExportParams are options when exporting an image to file or buffer
 type ExportParams struct {
-	Type           ImageType
+	Format         ImageType
 	Quality        int
 	Compression    int
 	Interlaced     bool
 	StripProfile   bool
 	StripMetadata  bool
 	Interpretation Interpretation
+}
+
+// ResizeParams are options for resizing images
+type ResizeParams struct {
+	PadStrategy             Extend
+	ResizeStrategy          ResizeStrategy
+	CropAnchor              Anchor
+	ReductionSampler        Kernel
+	EnlargementInterpolator Interpolator
 }
 
 // ImageType represents an image type
@@ -85,14 +99,17 @@ const (
 	KernelLanczos3 Kernel = C.VIPS_KERNEL_LANCZOS3
 )
 
+// Interpolator represents the vips interpolator types
 type Interpolator string
 
+// Interpolator enum
 const (
 	InterpolateBicubic  Interpolator = "bicubic"
 	InterpolateBilinear Interpolator = "bilinear"
 	InterpolateNoHalo   Interpolator = "nohalo"
 )
 
+// String returns the canonical name of the interpolator
 func (i Interpolator) String() string {
 	return string(i)
 }

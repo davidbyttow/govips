@@ -7,17 +7,17 @@ import (
 	"unsafe"
 )
 
-type VipsFunc func(*C.GValue)
-
-type VipsOption struct {
+// Option is a type that is passed to internal libvips functions
+type Option struct {
 	Name   string
 	gvalue C.GValue
 	closer func(gv *C.GValue)
 	output bool
 }
 
-func NewOption(name string, gtype C.GType, output bool, closer func(gv *C.GValue)) *VipsOption {
-	v := &VipsOption{
+// NewOption returns a new option instance
+func NewOption(name string, gtype C.GType, output bool, closer func(gv *C.GValue)) *Option {
+	v := &Option{
 		Name:   name,
 		output: output,
 		closer: closer,
@@ -26,61 +26,71 @@ func NewOption(name string, gtype C.GType, output bool, closer func(gv *C.GValue
 	return v
 }
 
-func (v *VipsOption) Output() bool {
+// Output returns true if this option is an output-only option
+func (v *Option) Output() bool {
 	return v.output
 }
 
-func (v *VipsOption) Close() {
+// Close releases memory associated with this option
+func (v *Option) Close() {
 	if v.closer != nil {
 		v.closer(&v.gvalue)
 	}
 	C.g_value_unset(&v.gvalue)
 }
 
-func (v *VipsOption) GValue() *C.GValue {
+// GValue returns the internal gvalue type
+func (v *Option) GValue() *C.GValue {
 	return &v.gvalue
 }
 
-func InputBool(name string, v bool) *VipsOption {
+// InputBool represents a boolean input option
+func InputBool(name string, v bool) *Option {
 	o := NewOption(name, C.G_TYPE_BOOLEAN, false, nil)
 	C.g_value_set_boolean(&o.gvalue, toGboolean(v))
 	return o
 }
 
-func OutputBool(name string, v *bool) *VipsOption {
+// OutputBool represents a boolean output option
+func OutputBool(name string, v *bool) *Option {
 	o := NewOption(name, C.G_TYPE_BOOLEAN, true, func(gv *C.GValue) {
 		*v = fromGboolean(C.g_value_get_boolean(gv))
 	})
 	return o
 }
 
-func InputInt(name string, v int) *VipsOption {
+// InputInt represents a int input option
+func InputInt(name string, v int) *Option {
 	o := NewOption(name, C.G_TYPE_INT, false, nil)
 	C.g_value_set_int(&o.gvalue, C.gint(v))
 	return o
 }
 
-func OutputInt(name string, v *int) *VipsOption {
+// OutputInt represents a int output option
+func OutputInt(name string, v *int) *Option {
 	o := NewOption(name, C.G_TYPE_INT, true, func(gv *C.GValue) {
 		*v = int(C.g_value_get_int(gv))
 	})
 	return o
 }
 
-func InputDouble(name string, v float64) *VipsOption {
+// InputDouble represents a float64 input option
+func InputDouble(name string, v float64) *Option {
 	o := NewOption(name, C.G_TYPE_DOUBLE, false, nil)
 	C.g_value_set_double(&o.gvalue, C.gdouble(v))
 	return o
 }
 
-func OutputDouble(name string, v *float64) *VipsOption {
+// OutputDouble represents a float output option
+func OutputDouble(name string, v *float64) *Option {
 	o := NewOption(name, C.G_TYPE_DOUBLE, true, func(gv *C.GValue) {
 		*v = float64(C.g_value_get_double(gv))
 	})
 	return o
 }
 
-func InputString(name string, v string) *VipsOption {
+// InputString represents a string input option
+func InputString(name string, v string) *Option {
 	cStr := C.CString(v)
 	o := NewOption(name, C.G_TYPE_STRING, false, func(gv *C.GValue) {
 		freeCString(cStr)
@@ -89,27 +99,31 @@ func InputString(name string, v string) *VipsOption {
 	return o
 }
 
-func OutputString(name string, v *string) *VipsOption {
+// OutputString represents a string output option
+func OutputString(name string, v *string) *Option {
 	o := NewOption(name, C.G_TYPE_STRING, true, func(gv *C.GValue) {
 		*v = C.GoString((*C.char)(unsafe.Pointer(C.g_value_get_string(gv))))
 	})
 	return o
 }
 
-func InputImage(name string, v *C.VipsImage) *VipsOption {
+// InputImage represents a VipsImage input option
+func InputImage(name string, v *C.VipsImage) *Option {
 	o := NewOption(name, C.vips_image_get_type(), false, nil)
 	C.g_value_set_object(&o.gvalue, C.gpointer(v))
 	return o
 }
 
-func OutputImage(name string, v **C.VipsImage) *VipsOption {
+// OutputImage represents a VipsImage output option
+func OutputImage(name string, v **C.VipsImage) *Option {
 	o := NewOption(name, C.vips_image_get_type(), true, func(gv *C.GValue) {
 		*v = (*C.VipsImage)(C.g_value_get_object(gv))
 	})
 	return o
 }
 
-func InputInterpolator(name string, interp Interpolator) *VipsOption {
+// InputInterpolator represents a Interpolator input option
+func InputInterpolator(name string, interp Interpolator) *Option {
 	cStr := C.CString(interp.String())
 	defer freeCString(cStr)
 	interpolator := C.vips_interpolate_new(cStr)

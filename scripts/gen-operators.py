@@ -70,9 +70,7 @@ options_method_names = {
   "gint" : "Int",
   "VipsArrayDouble" : "DoubleArray",
   "VipsArrayImage" : "ImageArray",
-  # "VipsBlob" : "Blob",
   "VipsImage" : "Image",
-  # "VipsInterpolate" : "Interpolator",
 }
 
 
@@ -151,7 +149,7 @@ def gen_params(op, required):
 
 
 func_template = Template('''
-// $func_name executes the '$op_name' operation.
+// $func_name executes the '$op_name' operation
 func $func_name($args) ($return_types) {
   $decls
   options = append(options,
@@ -165,6 +163,7 @@ func $func_name($args) ($return_types) {
 
 
 stream_template = Template('''
+// $func_name executes the '$op_name' operation
 func (in *ImageRef) $func_name($method_args) error {
   out, err := $func_name(in.image, $call_values)
   if err != nil {
@@ -231,11 +230,11 @@ def gen_operation(cls):
         arg_name = 'int(%s)' % arg_name
       input_options.append('Input%s("%s", %s),' % (method_name, prop.name, arg_name))
 
-  args.append('options ...*VipsOption')
+  args.append('options ...*Option')
   decls.append('var err error')
   return_types.append('error')
   return_values.append('err')
-  method_args.append('options ...*VipsOption')
+  method_args.append('options ...*Option')
   call_values.append('options...')
 
   funcs = []

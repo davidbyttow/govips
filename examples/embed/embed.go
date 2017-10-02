@@ -29,6 +29,7 @@ func main() {
 func embed(inputFile, outputFile string) error {
 	return vips.NewPipeline().
 		LoadFile(inputFile).
-		Embed(1200, 1200, vips.ExtendBlack).
+		PadStrategy(vips.ExtendBlack).
+		Resize(1200, 1200).
 		OutputFile(outputFile)
 }

@@ -1,4 +1,4 @@
-// Package govips provides a library for transforming images that is built on lipvips. Libvips
+// Package vips provides a library for transforming images that is built on lipvips. Libvips
 // is an extremely fast C-library. Therefore, govips requires that libvips 8+ be installed
 // and available on the target environment.
 package vips
@@ -98,14 +98,11 @@ func Startup(config *Config) {
 	initTypes()
 }
 
+// PrintObjectReport outputs all of the current internal objects in libvips
 func PrintObjectReport(label string) {
-	fmt.Printf("\n=======================================\n%s...\n", label)
+	fmt.Printf("\n=======================================\nMemory leaks: %s...\n", label)
 	C.vips_object_print_all()
 	fmt.Printf("=======================================\n\n")
-}
-
-func PrintInternalObjects() {
-	C.vips_object_print_all()
 }
 
 func startupIfNeeded() {

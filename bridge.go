@@ -75,18 +75,18 @@ func vipsOperationNew(name string) *C.VipsOperation {
 	return C.vips_operation_new(cName)
 }
 
-func vipsCall(name string, options []*VipsOption) error {
+func vipsCall(name string, options []*Option) error {
 	operation := vipsOperationNew(name)
 	return vipsCallOperation(operation, options)
 }
 
-func closeOptions(options []*VipsOption) {
+func closeOptions(options []*Option) {
 	for _, o := range options {
 		o.Close()
 	}
 }
 
-func vipsCallOperation(operation *C.VipsOperation, options []*VipsOption) error {
+func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
 
 	// Set the inputs
@@ -184,17 +184,17 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	}
 
 	cLen := C.size_t(0)
-	cErr := C.int(0)
+	var cErr C.int
 	interlaced := C.int(boolToInt(params.Interlaced))
 	quality := C.int(params.Quality)
 	stripMetadata := C.int(boolToInt(params.StripMetadata))
 
-	if params.Type != ImageTypeUnknown && !IsTypeSupported(params.Type) {
-		return nil, fmt.Errorf("cannot save to %#v", imageTypes[params.Type])
+	if params.Format != ImageTypeUnknown && !IsTypeSupported(params.Format) {
+		return nil, fmt.Errorf("cannot save to %#v", imageTypes[params.Format])
 	}
 
 	var ptr unsafe.Pointer
-	switch params.Type {
+	switch params.Format {
 	case ImageTypeWEBP:
 		cErr = C.save_webp_buffer(tmpImage, &ptr, &cLen, stripMetadata, quality)
 	case ImageTypePNG:

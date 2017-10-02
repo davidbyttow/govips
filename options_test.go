@@ -11,7 +11,7 @@ func TestOptionPrimitives(t *testing.T) {
 	var i int
 	var d float64
 	var s string
-	options := []*vips.VipsOption{
+	options := []*vips.Option{
 		vips.InputBool("b", true),
 		vips.InputInt("i", 42),
 		vips.InputDouble("d", 42.2),
