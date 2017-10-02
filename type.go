@@ -8,6 +8,36 @@ import (
 	"sync"
 )
 
+type ResizeStrategy int
+
+const (
+	ResizeStrategyAuto ResizeStrategy = iota
+	ResizeStrategyEmbed
+	ResizeStrategyCrop
+	ResizeStrategyStretch
+)
+
+type Anchor int
+
+const (
+	AnchorAuto Anchor = iota
+	AnchorCenter
+	AnchorTop
+	AnchorRight
+	AnchorBottom
+	AnchorLeft
+)
+
+type ExportParams struct {
+	Type           ImageType
+	Quality        int
+	Compression    int
+	Interlaced     bool
+	StripProfile   bool
+	StripMetadata  bool
+	Interpretation Interpretation
+}
+
 // ImageType represents an image type
 type ImageType int
 
@@ -43,34 +73,28 @@ func (i ImageType) OutputExt() string {
 	return ""
 }
 
-// ReductionSampler represents VipsKernel type
-type ReductionSampler int
+// Kernel represents VipsKernel type
+type Kernel int
 
-// ReductionSampler enum
+// Kernel enum
 const (
-	ReductionSamplerNearest  ReductionSampler = C.VIPS_KERNEL_NEAREST
-	ReductionSamplerLinear                    = C.VIPS_KERNEL_LINEAR
-	ReductionSamplerCubic                     = C.VIPS_KERNEL_CUBIC
-	ReductionSamplerLanczos2                  = C.VIPS_KERNEL_LANCZOS2
-	ReductionSamplerLanczos3                  = C.VIPS_KERNEL_LANCZOS3
+	KernelNearest  Kernel = C.VIPS_KERNEL_NEAREST
+	KernelLinear   Kernel = C.VIPS_KERNEL_LINEAR
+	KernelCubic    Kernel = C.VIPS_KERNEL_CUBIC
+	KernelLanczos2 Kernel = C.VIPS_KERNEL_LANCZOS2
+	KernelLanczos3 Kernel = C.VIPS_KERNEL_LANCZOS3
 )
 
-type Interpolator int
+type Interpolator string
 
 const (
-	InterpolateBicubic Interpolator = iota
-	InterpolateBilinear
-	InterpolateNoHalo
+	InterpolateBicubic  Interpolator = "bicubic"
+	InterpolateBilinear Interpolator = "bilinear"
+	InterpolateNoHalo   Interpolator = "nohalo"
 )
-
-var interpolators = map[Interpolator]string{
-	InterpolateBicubic:  "bicubic",
-	InterpolateBilinear: "bilinear",
-	InterpolateNoHalo:   "nohalo",
-}
 
 func (i Interpolator) String() string {
-	return interpolators[i]
+	return string(i)
 }
 
 // OperationMath represents VIPS_OPERATION_MATH type
