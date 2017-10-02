@@ -64,7 +64,7 @@ func vipsInterpolateNew(name string) (*C.VipsInterpolate, error) {
 
 	interp := C.vips_interpolate_new(cName)
 	if interp == nil {
-		return nil, ErrInvalidInterpolator
+		return nil, fmt.Errorf("Invalid interpolator: %s", name)
 	}
 	return interp, nil
 }
@@ -75,110 +75,70 @@ func vipsOperationNew(name string) *C.VipsOperation {
 	return C.vips_operation_new(cName)
 }
 
-func vipsFilenameSplit8(file string) (string, string) {
-	cFile := C.CString(file)
-	defer freeCString(cFile)
-
-	cFilename := C.CString(stringBuffer4096)
-	defer freeCString(cFilename)
-
-	cOptionString := C.CString(stringBuffer4096)
-	defer freeCString(cOptionString)
-
-	C.vips__filename_split8(cFile, cFilename, cOptionString)
-
-	fileName := C.GoString(cFilename)
-	optionString := C.GoString(cOptionString)
-	return fileName, optionString
+func vipsCall(name string, options []*Option) error {
+	operation := vipsOperationNew(name)
+	return vipsCallOperation(operation, options)
 }
 
-func vipsCallString(name string, options *Options, optionString string) error {
-	operation := vipsOperationNew(name)
-	//defer C.g_object_unref(C.gpointer(operation))
-
-	if optionString != "" {
-		cOptionString := C.CString(optionString)
-		defer freeCString(cOptionString)
-
-		if C.vips_object_set_from_string(
-			(*C.VipsObject)(unsafe.Pointer(operation)),
-			cOptionString) != 0 {
-			return handleVipsError()
-		}
+func closeOptions(options []*Option) {
+	for _, o := range options {
+		o.Close()
 	}
-	return vipsCallOperation(operation, options)
 }
 
-func vipsCall(name string, options *Options) error {
-	operation := vipsOperationNew(name)
-	//defer C.g_object_unref(C.gpointer(operation))
+func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
+	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
 
-	return vipsCallOperation(operation, options)
-}
-
-func vipsCallOperation(operation *C.VipsOperation, options *Options) error {
-	// TODO(d): Unref the outputs
-	if options != nil {
-		for _, option := range options.Options {
-			if option.IsOutput {
-				continue
-			}
-
-			cName := C.CString(option.Name)
-			defer freeCString(cName)
-
-			C.gobject_set_property(
-				(*C.VipsObject)(unsafe.Pointer(operation)),
-				cName,
-				&option.GValue)
+	// Set the inputs
+	for _, option := range options {
+		if option.Output() {
+			continue
 		}
+		defer option.Close()
+
+		cName := C.CString(option.Name)
+		defer freeCString(cName)
+		C.gobject_set_property(
+			(*C.VipsObject)(unsafe.Pointer(operation)), cName, option.GValue())
 	}
 
 	if ret := C.vips_cache_operation_buildp(&operation); ret != 0 {
-		C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
 		return handleVipsError()
 	}
 
-	// We defer this here because the pointer may have changed.
-	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
-
-	if options != nil {
-		for _, option := range options.Options {
-			if !option.IsOutput {
-				continue
-			}
-
-			cName := C.CString(option.Name)
-			defer freeCString(cName)
-
-			C.g_object_get_property(
-				(*C.GObject)(unsafe.Pointer(operation)),
-				(*C.gchar)(cName),
-				&option.GValue)
-			option.Deserialize()
+	// Write back the outputs
+	for _, option := range options {
+		if !option.Output() {
+			continue
 		}
+		defer option.Close()
+		cName := C.CString(option.Name)
+		defer freeCString(cName)
+
+		C.g_object_get_property(
+			(*C.GObject)(unsafe.Pointer(operation)), (*C.gchar)(cName), option.GValue())
 	}
 
 	return nil
 }
 
-func vipsPrepareForExport(image *C.VipsImage, options *ExportOptions) (*C.VipsImage, error) {
+func vipsPrepareForExport(image *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
 	var outImage *C.VipsImage
 
-	if options.StripProfile {
+	if params.StripProfile {
 		C.remove_icc_profile(image)
 	}
 
-	if options.Quality == 0 {
-		options.Quality = defaultQuality
+	if params.Quality == 0 {
+		params.Quality = defaultQuality
 	}
 
 	// Use a default interpretation and cast it to C type
-	if options.Interpretation == 0 {
-		options.Interpretation = InterpretationSrgb
+	if params.Interpretation == 0 {
+		params.Interpretation = InterpretationSRGB
 	}
 
-	interpretation := C.VipsInterpretation(options.Interpretation)
+	interpretation := C.VipsInterpretation(params.Interpretation)
 
 	// Apply the proper colour space
 	if int(C.is_colorspace_supported(image)) == 1 {
@@ -211,8 +171,8 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	return image, imageType, nil
 }
 
-func vipsExportBuffer(image *C.VipsImage, options *ExportOptions) ([]byte, error) {
-	tmpImage, err := vipsPrepareForExport(image, options)
+func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) {
+	tmpImage, err := vipsPrepareForExport(image, params)
 	if err != nil {
 		return nil, err
 	}
@@ -224,21 +184,21 @@ func vipsExportBuffer(image *C.VipsImage, options *ExportOptions) ([]byte, error
 	}
 
 	cLen := C.size_t(0)
-	cErr := C.int(0)
-	interlaced := C.int(boolToInt(options.Interlaced))
-	quality := C.int(options.Quality)
-	stripMetadata := C.int(boolToInt(options.StripMetadata))
+	var cErr C.int
+	interlaced := C.int(boolToInt(params.Interlaced))
+	quality := C.int(params.Quality)
+	stripMetadata := C.int(boolToInt(params.StripMetadata))
 
-	if options.Type != ImageTypeUnknown && !IsTypeSupported(options.Type) {
-		return nil, fmt.Errorf("cannot save to %#v", imageTypes[options.Type])
+	if params.Format != ImageTypeUnknown && !IsTypeSupported(params.Format) {
+		return nil, fmt.Errorf("cannot save to %#v", imageTypes[params.Format])
 	}
 
 	var ptr unsafe.Pointer
-	switch options.Type {
+	switch params.Format {
 	case ImageTypeWEBP:
 		cErr = C.save_webp_buffer(tmpImage, &ptr, &cLen, stripMetadata, quality)
 	case ImageTypePNG:
-		cErr = C.save_png_buffer(tmpImage, &ptr, &cLen, stripMetadata, C.int(options.Compression), quality, interlaced)
+		cErr = C.save_png_buffer(tmpImage, &ptr, &cLen, stripMetadata, C.int(params.Compression), quality, interlaced)
 	case ImageTypeTIFF:
 		cErr = C.save_tiff_buffer(tmpImage, &ptr, &cLen)
 	default:
@@ -324,4 +284,11 @@ func vipsShrink(input *C.VipsImage, shrink int) (*C.VipsImage, error) {
 	}
 
 	return image, nil
+}
+
+func handleVipsError() error {
+	s := C.GoString(C.vips_error_buffer())
+	C.vips_error_clear()
+	C.vips_thread_shutdown()
+	return errors.New(s)
 }

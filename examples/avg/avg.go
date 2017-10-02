@@ -3,32 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/davidbyttow/govips"
 )
 
-func loadAverage(file string) error {
-	buf, err := ioutil.ReadFile(file)
-	if err != nil {
-		return err
-	}
-
-	image, err := vips.NewImageFromBuffer(buf)
-	if err != nil {
-		return err
-	}
-
-	avg := image.Avg()
-	fmt.Printf("avg=%0.2f\n", avg)
-
-	return nil
-}
-
-var (
-	flagFile = flag.String("file", "", "file to compute average for")
-)
+var flagFile = flag.String("file", "", "file to compute average for")
 
 func main() {
 	flag.Usage = func() {
@@ -37,10 +17,21 @@ func main() {
 	flag.Parse()
 
 	vips.Startup(nil)
-	defer vips.Shutdown()
+	avg(*flagFile)
+	vips.ShutdownThread()
+	vips.Shutdown()
 
-	err := loadAverage(*flagFile)
+	vips.PrintObjectReport("avg")
+}
+
+func avg(file string) error {
+	image, err := vips.NewImageFromFile(file)
 	if err != nil {
-		os.Exit(1)
+		return err
 	}
+	defer image.Close()
+
+	avg, _ := vips.Avg(image.Image())
+	fmt.Printf("avg=%0.2f\n", avg)
+	return nil
 }

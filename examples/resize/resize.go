@@ -3,33 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/davidbyttow/govips"
 )
-
-func run(inputFile, outputFile string) error {
-	buf, _ := ioutil.ReadFile(inputFile)
-	in, err := vips.NewImageFromBuffer(buf,
-		vips.IntInput("access", int(vips.AccessSequential)))
-	if err != nil {
-		return err
-	}
-
-	interp, err := vips.NewInterpolator("nohalo")
-	if err != nil {
-		return err
-	}
-
-	out := in.Resize(0.2, vips.InterpolatorInput("interpolate", interp))
-
-	buf, err = out.Export(vips.ExportOptions{})
-	if err != nil {
-		return err
-	}
-	return ioutil.WriteFile(outputFile, buf, 0644)
-}
 
 var (
 	flagIn  = flag.String("in", "", "file to load")
@@ -43,10 +20,15 @@ func main() {
 	flag.Parse()
 
 	vips.Startup(nil)
-	defer vips.Shutdown()
+	resize(*flagIn, *flagOut)
+	vips.Shutdown()
 
-	err := run(*flagIn, *flagOut)
-	if err != nil {
-		os.Exit(1)
-	}
+	vips.PrintObjectReport("resize")
+}
+
+func resize(inputFile, outputFile string) error {
+	return vips.NewPipeline().
+		LoadFile(inputFile).
+		Reduce(0.2).
+		OutputFile(outputFile)
 }

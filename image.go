@@ -6,46 +6,30 @@ import "C"
 
 import (
 	"errors"
-	"fmt"
+	"io/ioutil"
 	"runtime"
-	"strings"
 	"unsafe"
 )
 
-// Image is an immutable structure that represents an image in memory
-type Image struct {
-	image      *C.VipsImage
-	callEvents []*CallEvent
+// ImageRef contains a libvips image and manages its lifecycle. You should
+// close an image when done or it will leak until the next GC
+type ImageRef struct {
+	image *C.VipsImage
 }
 
-type ExportOptions struct {
-	Type           ImageType
-	Quality        int
-	Compression    int
-	Interlaced     bool
-	StripProfile   bool
-	StripMetadata  bool
-	Interpretation Interpretation
-}
-
-// NewImageFromMemory wraps an image around a memory area. The memory area must be a simple
-// array (e.g., RGBRGBRGB), left-to-right, top-to-bottom.
-func NewImageFromMemory(bytes []byte, width, height, bands int, format BandFormat) (*Image, error) {
+// NewImageFromFile loads an image from file and creates a new ImageRef
+func NewImageFromFile(file string) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage := C.vips_image_new_from_memory_copy(
-		byteArrayPointer(bytes),
-		C.size_t(len(bytes)),
-		C.int(width),
-		C.int(height),
-		C.int(bands),
-		C.VipsBandFormat(format))
-
-	return newImage(vipsImage), nil
+	buf, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	return NewImageFromBuffer(buf)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(bytes []byte, opts ...OptionFunc) (*Image, error) {
+func NewImageFromBuffer(bytes []byte) (*ImageRef, error) {
 	startupIfNeeded()
 
 	image, _, err := vipsLoadFromBuffer(bytes)
@@ -53,89 +37,93 @@ func NewImageFromBuffer(bytes []byte, opts ...OptionFunc) (*Image, error) {
 		return nil, err
 	}
 
-	return newImage(image), nil
+	return newImageRef(image), nil
 }
 
-func NewThumbnailFromBuffer(bytes []byte, width int, opts ...OptionFunc) (*Image, error) {
-	startupIfNeeded()
-	blob := NewBlob(bytes)
-	out := ThumbnailBuffer(blob, width, opts...)
-	return out, nil
-}
-
-func newImage(vipsImage *C.VipsImage) *Image {
-	image := &Image{
+func newImageRef(vipsImage *C.VipsImage) *ImageRef {
+	stream := &ImageRef{
 		image: vipsImage,
 	}
-	runtime.SetFinalizer(image, finalizeImage)
-	return image
+	runtime.SetFinalizer(stream, finalizeStream)
+	return stream
 }
 
-func finalizeImage(i *Image) {
-	i.Close()
+func finalizeStream(ref *ImageRef) {
+	ref.Close()
 }
 
-func (i *Image) Close() {
-	if i.image != nil {
-		C.g_object_unref(C.gpointer(i.image))
-		i.image = nil
+// SetImage resets the image for this image and frees the previous one
+func (ref *ImageRef) SetImage(image *C.VipsImage) {
+	if ref.image != nil {
+		C.g_object_unref(C.gpointer(ref.image))
 	}
+	ref.image = image
+}
+
+// Close closes an image and frees internal memory associated with it
+func (ref *ImageRef) Close() {
+	ref.SetImage(nil)
+}
+
+// Image returns a handle to the internal vips image, just in case
+func (ref *ImageRef) Image() *C.VipsImage {
+	return ref.image
 }
 
 // Width returns the width of this image
-func (i *Image) Width() int {
-	return int(i.image.Xsize)
+func (ref *ImageRef) Width() int {
+	return int(ref.image.Xsize)
 }
 
 // Height returns the height of this iamge
-func (i *Image) Height() int {
-	return int(i.image.Ysize)
+func (ref *ImageRef) Height() int {
+	return int(ref.image.Ysize)
 }
 
 // Bands returns the number of bands for this image
-func (i *Image) Bands() int {
-	return int(i.image.Bands)
+func (ref *ImageRef) Bands() int {
+	return int(ref.image.Bands)
 }
 
 // ResX returns the X resolution
-func (i *Image) ResX() float64 {
-	return float64(i.image.Xres)
+func (ref *ImageRef) ResX() float64 {
+	return float64(ref.image.Xres)
 }
 
 // ResY returns the Y resolution
-func (i *Image) ResY() float64 {
-	return float64(i.image.Yres)
+func (ref *ImageRef) ResY() float64 {
+	return float64(ref.image.Yres)
 }
 
 // OffsetX returns the X offset
-func (i *Image) OffsetX() int {
-	return int(i.image.Xoffset)
+func (ref *ImageRef) OffsetX() int {
+	return int(ref.image.Xoffset)
 }
 
 // OffsetY returns the Y offset
-func (i *Image) OffsetY() int {
-	return int(i.image.Yoffset)
+func (ref *ImageRef) OffsetY() int {
+	return int(ref.image.Yoffset)
 }
 
 // BandFormat returns the current band format
-func (i *Image) BandFormat() BandFormat {
-	return BandFormat(int(i.image.BandFmt))
+func (ref *ImageRef) BandFormat() BandFormat {
+	return BandFormat(int(ref.image.BandFmt))
 }
 
 // Coding returns the image coding
-func (i *Image) Coding() Coding {
-	return Coding(int(i.image.Coding))
+func (ref *ImageRef) Coding() Coding {
+	return Coding(int(ref.image.Coding))
 }
 
 // Interpretation returns the current interpretation
-func (i *Image) Interpretation() Interpretation {
-	return Interpretation(int(i.image.Type))
+func (ref *ImageRef) Interpretation() Interpretation {
+	return Interpretation(int(ref.image.Type))
 }
 
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
-func (i *Image) ToBytes() ([]byte, error) {
+func (ref *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t
-	cData := C.vips_image_write_to_memory(i.image, &cSize)
+	cData := C.vips_image_write_to_memory(ref.image, &cSize)
 	if cData == nil {
 		return nil, errors.New("Failed to write image to memory")
 	}
@@ -143,36 +131,4 @@ func (i *Image) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
-}
-
-// WriteToBuffer writes the image to a buffer in a format represented by the given suffix (e.g., .jpeg)
-func (i *Image) Export(options ExportOptions) ([]byte, error) {
-	return vipsExportBuffer(i.image, &options)
-}
-
-type CallEvent struct {
-	Name    string
-	Options *Options
-}
-
-func (c CallEvent) String() string {
-	var args []string
-	for _, o := range c.Options.Options {
-		args = append(args, o.String())
-	}
-	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
-}
-
-func (i *Image) CopyEvents(events []*CallEvent) {
-	if len(events) > 0 {
-		i.callEvents = append(i.callEvents, events...)
-	}
-}
-
-func (i *Image) LogCallEvent(name string, options *Options) {
-	i.callEvents = append(i.callEvents, &CallEvent{name, options})
-}
-
-func (i *Image) CallEventLog() []*CallEvent {
-	return i.callEvents
 }

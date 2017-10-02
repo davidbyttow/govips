@@ -8,6 +8,50 @@ import (
 	"sync"
 )
 
+// ResizeStrategy is the strategy to use when resizing an image
+type ResizeStrategy int
+
+// ResizeStrategy enum
+const (
+	ResizeStrategyAuto ResizeStrategy = iota
+	ResizeStrategyEmbed
+	ResizeStrategyCrop
+	ResizeStrategyStretch
+)
+
+// Anchor represents the an anchor for cropping and other image operations
+type Anchor int
+
+// Anchor enum
+const (
+	AnchorAuto Anchor = iota
+	AnchorCenter
+	AnchorTop
+	AnchorRight
+	AnchorBottom
+	AnchorLeft
+)
+
+// ExportParams are options when exporting an image to file or buffer
+type ExportParams struct {
+	Format         ImageType
+	Quality        int
+	Compression    int
+	Interlaced     bool
+	StripProfile   bool
+	StripMetadata  bool
+	Interpretation Interpretation
+}
+
+// ResizeParams are options for resizing images
+type ResizeParams struct {
+	PadStrategy             Extend
+	ResizeStrategy          ResizeStrategy
+	CropAnchor              Anchor
+	ReductionSampler        Kernel
+	EnlargementInterpolator Interpolator
+}
+
 // ImageType represents an image type
 type ImageType int
 
@@ -49,11 +93,26 @@ type Kernel int
 // Kernel enum
 const (
 	KernelNearest  Kernel = C.VIPS_KERNEL_NEAREST
-	KernelLinear          = C.VIPS_KERNEL_LINEAR
-	KernelCubic           = C.VIPS_KERNEL_CUBIC
-	KernelLanczos2        = C.VIPS_KERNEL_LANCZOS2
-	KernelLanczos3        = C.VIPS_KERNEL_LANCZOS3
+	KernelLinear   Kernel = C.VIPS_KERNEL_LINEAR
+	KernelCubic    Kernel = C.VIPS_KERNEL_CUBIC
+	KernelLanczos2 Kernel = C.VIPS_KERNEL_LANCZOS2
+	KernelLanczos3 Kernel = C.VIPS_KERNEL_LANCZOS3
 )
+
+// Interpolator represents the vips interpolator types
+type Interpolator string
+
+// Interpolator enum
+const (
+	InterpolateBicubic  Interpolator = "bicubic"
+	InterpolateBilinear Interpolator = "bilinear"
+	InterpolateNoHalo   Interpolator = "nohalo"
+)
+
+// String returns the canonical name of the interpolator
+func (i Interpolator) String() string {
+	return string(i)
+}
 
 // OperationMath represents VIPS_OPERATION_MATH type
 type OperationMath int
@@ -198,24 +257,24 @@ type Interpretation int
 const (
 	InterpretationError     Interpretation = C.VIPS_INTERPRETATION_ERROR
 	InterpretationMultiband Interpretation = C.VIPS_INTERPRETATION_MULTIBAND
-	InterpretationBw        Interpretation = C.VIPS_INTERPRETATION_B_W
+	InterpretationBW        Interpretation = C.VIPS_INTERPRETATION_B_W
 	InterpretationHistogram Interpretation = C.VIPS_INTERPRETATION_HISTOGRAM
-	InterpretationXyz       Interpretation = C.VIPS_INTERPRETATION_XYZ
-	InterpretationLab       Interpretation = C.VIPS_INTERPRETATION_LAB
+	InterpretationXYZ       Interpretation = C.VIPS_INTERPRETATION_XYZ
+	InterpretationLAB       Interpretation = C.VIPS_INTERPRETATION_LAB
 	InterpretationCMYK      Interpretation = C.VIPS_INTERPRETATION_CMYK
-	InterpretationLabq      Interpretation = C.VIPS_INTERPRETATION_LABQ
-	InterpretationRgb       Interpretation = C.VIPS_INTERPRETATION_RGB
-	InterpretationCmd       Interpretation = C.VIPS_INTERPRETATION_CMC
-	InterpretationLch       Interpretation = C.VIPS_INTERPRETATION_LCH
-	InterpretationLabs      Interpretation = C.VIPS_INTERPRETATION_LABS
-	InterpretationSrgb      Interpretation = C.VIPS_INTERPRETATION_sRGB
-	InterpretationYxy       Interpretation = C.VIPS_INTERPRETATION_YXY
+	InterpretationLABQ      Interpretation = C.VIPS_INTERPRETATION_LABQ
+	InterpretationRGB       Interpretation = C.VIPS_INTERPRETATION_RGB
+	InterpretationCMC       Interpretation = C.VIPS_INTERPRETATION_CMC
+	InterpretationLCH       Interpretation = C.VIPS_INTERPRETATION_LCH
+	InterpretationLABS      Interpretation = C.VIPS_INTERPRETATION_LABS
+	InterpretationSRGB      Interpretation = C.VIPS_INTERPRETATION_sRGB
+	InterpretationYXY       Interpretation = C.VIPS_INTERPRETATION_YXY
 	InterpretationFourier   Interpretation = C.VIPS_INTERPRETATION_FOURIER
-	InterpretationRgb16     Interpretation = C.VIPS_INTERPRETATION_RGB16
+	InterpretationGB16      Interpretation = C.VIPS_INTERPRETATION_RGB16
 	InterpretationGrey16    Interpretation = C.VIPS_INTERPRETATION_GREY16
 	InterpretationMatrix    Interpretation = C.VIPS_INTERPRETATION_MATRIX
-	InterpretationScRgb     Interpretation = C.VIPS_INTERPRETATION_scRGB
-	InterpretationHsv       Interpretation = C.VIPS_INTERPRETATION_HSV
+	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
+	InterpretationHSV       Interpretation = C.VIPS_INTERPRETATION_HSV
 )
 
 // BandFormat represents VIPS_FORMAT type
@@ -243,8 +302,8 @@ type Coding int
 const (
 	CodingError Coding = C.VIPS_CODING_ERROR
 	CodingNone  Coding = C.VIPS_CODING_NONE
-	CodingLabq  Coding = C.VIPS_CODING_LABQ
-	CodingRad   Coding = C.VIPS_CODING_RAD
+	CodingLABQ  Coding = C.VIPS_CODING_LABQ
+	CodingRAD   Coding = C.VIPS_CODING_RAD
 )
 
 // Access represents VIPS_ACCESS

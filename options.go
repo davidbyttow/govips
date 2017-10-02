@@ -4,323 +4,133 @@ package vips
 // #include "vips/vips.h"
 import "C"
 import (
-	"fmt"
 	"unsafe"
-
-	"github.com/spf13/cast"
 )
 
-// OptionType represents the data type of an option
-type OptionType string
-
-// OptionType enum
-const (
-	OptionTypeBool         OptionType = "bool"
-	OptionTypeInt          OptionType = "int"
-	OptionTypeDouble       OptionType = "double"
-	OptionTypeString       OptionType = "string"
-	OptionTypeImage        OptionType = "Image"
-	OptionTypeBlob         OptionType = "Blob"
-	OptionTypeInterpolator OptionType = "Interpolator"
-)
-
-var optionSerializers = map[OptionType]OptionTypeSerializer{
-	OptionTypeBool:         boolSerializer{},
-	OptionTypeInt:          intSerializer{},
-	OptionTypeDouble:       doubleSerializer{},
-	OptionTypeString:       stringSerializer{},
-	OptionTypeImage:        imageSerializer{},
-	OptionTypeBlob:         blobSerializer{},
-	OptionTypeInterpolator: interpolatorSerializer{},
-}
-
-type OptionTypeSerializer interface {
-	Serialize(*C.GValue, interface{})
-	Deserialize(interface{}, *C.GValue)
-	String(interface{}) string
-}
-
-type boolSerializer struct{}
-
-func (t boolSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_boolean(dst, toGboolean(src.(bool)))
-}
-
-func (t boolSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	*dst.(*bool) = fromGboolean(C.g_value_get_boolean(src))
-}
-
-func (t boolSerializer) String(i interface{}) string {
-	return cast.ToString(i)
-}
-
-type intSerializer struct{}
-
-func (t intSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_int(dst, C.gint(src.(int)))
-}
-
-func (t intSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	*dst.(*int) = int(C.g_value_get_int(src))
-}
-
-func (t intSerializer) String(i interface{}) string {
-	return cast.ToString(i)
-}
-
-type doubleSerializer struct{}
-
-func (t doubleSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_double(dst, C.gdouble(src.(float64)))
-}
-
-func (t doubleSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	*dst.(*float64) = float64(C.g_value_get_double(src))
-}
-
-func (t doubleSerializer) String(i interface{}) string {
-	return cast.ToString(i)
-}
-
-type stringSerializer struct{}
-
-func (t stringSerializer) Serialize(dst *C.GValue, src interface{}) {
-	cStr := C.CString(src.(string))
-	defer freeCString(cStr)
-	C.g_value_set_string(dst, (*C.gchar)(cStr))
-}
-
-func (t stringSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	*dst.(*string) = C.GoString((*C.char)(unsafe.Pointer(C.g_value_get_string(src))))
-}
-
-func (t stringSerializer) String(i interface{}) string {
-	return cast.ToString(i)
-}
-
-type imageSerializer struct{}
-
-func (t imageSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_object(dst, C.gpointer(src.(*Image).image))
-}
-
-func (t imageSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	*dst.(**Image) = newImage((*C.VipsImage)(C.g_value_get_object(src)))
-}
-
-func (t imageSerializer) String(i interface{}) string {
-	image := i.(*Image)
-	if image == nil {
-		return "nil"
-	}
-	return fmt.Sprintf("(%v,%d,%d)", image, image.Width(), image.Height())
-}
-
-type blobSerializer struct{}
-
-func (t blobSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_boxed(dst, C.gconstpointer(src.(*Blob).cBlob))
-}
-
-func (t blobSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	*dst.(**Blob) = newBlob((*C.VipsBlob)(C.g_value_dup_boxed(src)))
-}
-
-func (t blobSerializer) String(i interface{}) string {
-	blob := i.(*Blob)
-	if blob == nil {
-		return "nil"
-	}
-	return fmt.Sprintf("(%v,%d)", blob, blob.Length())
-}
-
-type interpolatorSerializer struct{}
-
-func (t interpolatorSerializer) Serialize(dst *C.GValue, src interface{}) {
-	C.g_value_set_object(dst, C.gpointer(src.(*Interpolator).interp))
-}
-
-func (t interpolatorSerializer) Deserialize(dst interface{}, src *C.GValue) {
-	panic("Interpolator output not implemented")
-}
-
-func (t interpolatorSerializer) String(i interface{}) string {
-	interp := i.(*Interpolator)
-	return fmt.Sprintf("%v", interp)
-}
-
+// Option is a type that is passed to internal libvips functions
 type Option struct {
-	Name       string
-	Value      interface{}
-	OptionType OptionType
-	GValue     C.GValue
-	IsOutput   bool
+	Name   string
+	gvalue C.GValue
+	closer func(gv *C.GValue)
+	output bool
 }
 
-func newOption(name string, value interface{}, optionType OptionType, gType C.GType, isOutput bool) *Option {
-	o := &Option{
-		Name:       name,
-		Value:      value,
-		OptionType: optionType,
-		IsOutput:   isOutput,
+// NewOption returns a new option instance
+func NewOption(name string, gtype C.GType, output bool, closer func(gv *C.GValue)) *Option {
+	v := &Option{
+		Name:   name,
+		output: output,
+		closer: closer,
 	}
-	C.g_value_init(&o.GValue, gType)
+	C.g_value_init(&v.gvalue, gtype)
+	return v
+}
+
+// Output returns true if this option is an output-only option
+func (v *Option) Output() bool {
+	return v.output
+}
+
+// Close releases memory associated with this option
+func (v *Option) Close() {
+	if v.closer != nil {
+		v.closer(&v.gvalue)
+	}
+	C.g_value_unset(&v.gvalue)
+}
+
+// GValue returns the internal gvalue type
+func (v *Option) GValue() *C.GValue {
+	return &v.gvalue
+}
+
+// InputBool represents a boolean input option
+func InputBool(name string, v bool) *Option {
+	o := NewOption(name, C.G_TYPE_BOOLEAN, false, nil)
+	C.g_value_set_boolean(&o.gvalue, toGboolean(v))
 	return o
 }
 
-func newInput(name string, value interface{}, optionType OptionType, gType C.GType) *Option {
-	o := newOption(name, value, optionType, gType, false)
-	optionSerializers[o.OptionType].Serialize(&o.GValue, o.Value)
+// OutputBool represents a boolean output option
+func OutputBool(name string, v *bool) *Option {
+	o := NewOption(name, C.G_TYPE_BOOLEAN, true, func(gv *C.GValue) {
+		*v = fromGboolean(C.g_value_get_boolean(gv))
+	})
 	return o
 }
 
-func newOutput(name string, value interface{}, optionType OptionType, gType C.GType) *Option {
-	return newOption(name, value, optionType, gType, true)
-}
-
-func (o *Option) String() string {
-	if o.IsOutput {
-		return fmt.Sprintf("%s* %s", o.OptionType, o.Name)
-	}
-	value := optionSerializers[o.OptionType].String(o.Value)
-	return fmt.Sprintf("%s %s=%s", o.OptionType, o.Name, value)
-}
-
-func (o *Option) Deserialize() {
-	if !o.IsOutput {
-		panic("Option is not an output")
-	}
-	optionSerializers[o.OptionType].Deserialize(o.Value, &o.GValue)
-}
-
-// Options specifies optional parameters for an operation
-type Options struct {
-	Options []*Option
-}
-
-// NewOptions returns a new option set
-func NewOptions(options ...OptionFunc) *Options {
-	return (&Options{}).With(options...)
-}
-
-func (t *Options) DeserializeOutputs() {
-	for _, o := range t.Options {
-		if o.IsOutput {
-			o.Deserialize()
-		}
-	}
-}
-
-func (t *Options) AddInput(name string, i interface{}, optionType OptionType, gType C.GType) *Option {
-	o := newInput(name, i, optionType, gType)
-	t.Options = append(t.Options, o)
+// InputInt represents a int input option
+func InputInt(name string, v int) *Option {
+	o := NewOption(name, C.G_TYPE_INT, false, nil)
+	C.g_value_set_int(&o.gvalue, C.gint(v))
 	return o
 }
 
-func (t *Options) AddOutput(name string, i interface{}, optionType OptionType, gType C.GType) *Option {
-	o := newOutput(name, i, optionType, gType)
-	t.Options = append(t.Options, o)
+// OutputInt represents a int output option
+func OutputInt(name string, v *int) *Option {
+	o := NewOption(name, C.G_TYPE_INT, true, func(gv *C.GValue) {
+		*v = int(C.g_value_get_int(gv))
+	})
 	return o
 }
 
-// OptionFunc is a typeref that applies an option
-type OptionFunc func(t *Options)
-
-// With applies the given options
-func (t *Options) With(options ...OptionFunc) *Options {
-	for _, o := range options {
-		o(t)
-	}
-	return t
+// InputDouble represents a float64 input option
+func InputDouble(name string, v float64) *Option {
+	o := NewOption(name, C.G_TYPE_DOUBLE, false, nil)
+	C.g_value_set_double(&o.gvalue, C.gdouble(v))
+	return o
 }
 
-// BoolInput sets a boolean value for an optional parameter
-func BoolInput(name string, b bool) OptionFunc {
-	return func(t *Options) {
-		t.AddInput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
-	}
+// OutputDouble represents a float output option
+func OutputDouble(name string, v *float64) *Option {
+	o := NewOption(name, C.G_TYPE_DOUBLE, true, func(gv *C.GValue) {
+		*v = float64(C.g_value_get_double(gv))
+	})
+	return o
 }
 
-// IntInput sets a integer value for an optional parameter
-func IntInput(name string, v int) OptionFunc {
-	return func(t *Options) {
-		t.AddInput(name, v, OptionTypeInt, C.G_TYPE_INT)
-	}
+// InputString represents a string input option
+func InputString(name string, v string) *Option {
+	cStr := C.CString(v)
+	o := NewOption(name, C.G_TYPE_STRING, false, func(gv *C.GValue) {
+		freeCString(cStr)
+	})
+	C.g_value_set_string(&o.gvalue, (*C.gchar)(cStr))
+	return o
 }
 
-// DoubleInput sets a double value for an optional parameter
-func DoubleInput(name string, v float64) OptionFunc {
-	return func(t *Options) {
-		t.AddInput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
-	}
+// OutputString represents a string output option
+func OutputString(name string, v *string) *Option {
+	o := NewOption(name, C.G_TYPE_STRING, true, func(gv *C.GValue) {
+		*v = C.GoString((*C.char)(unsafe.Pointer(C.g_value_get_string(gv))))
+	})
+	return o
 }
 
-// StringInput sets a string value for an optional parameter
-func StringInput(name string, s string) OptionFunc {
-	return func(t *Options) {
-		t.AddInput(name, s, OptionTypeString, C.G_TYPE_STRING)
-	}
+// InputImage represents a VipsImage input option
+func InputImage(name string, v *C.VipsImage) *Option {
+	o := NewOption(name, C.vips_image_get_type(), false, nil)
+	C.g_value_set_object(&o.gvalue, C.gpointer(v))
+	return o
 }
 
-// ImageInput sets a Image value for an optional parameter
-func ImageInput(name string, image *Image) OptionFunc {
-	return func(t *Options) {
-		t.AddInput(name, image, OptionTypeImage, C.vips_image_get_type())
-	}
+// OutputImage represents a VipsImage output option
+func OutputImage(name string, v **C.VipsImage) *Option {
+	o := NewOption(name, C.vips_image_get_type(), true, func(gv *C.GValue) {
+		*v = (*C.VipsImage)(C.g_value_get_object(gv))
+	})
+	return o
 }
 
-// BlobInput sets a Blob value for an optional parameter
-func BlobInput(name string, blob *Blob) OptionFunc {
-	return func(t *Options) {
-		t.AddInput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
-	}
-}
+// InputInterpolator represents a Interpolator input option
+func InputInterpolator(name string, interp Interpolator) *Option {
+	cStr := C.CString(interp.String())
+	defer freeCString(cStr)
+	interpolator := C.vips_interpolate_new(cStr)
 
-// InterpolatorInput sets a Interpolator value for an optional parameter
-func InterpolatorInput(name string, interp *Interpolator) OptionFunc {
-	return func(t *Options) {
-		t.AddInput(name, interp, OptionTypeInterpolator, C.vips_interpolate_get_type())
-	}
-}
-
-// BoolOutput specifies a boolean output parameter for an operation
-func BoolOutput(name string, b *bool) OptionFunc {
-	return func(t *Options) {
-		t.AddOutput(name, b, OptionTypeBool, C.G_TYPE_BOOLEAN)
-	}
-}
-
-// IntOutput specifies a integer output parameter for an operation
-func IntOutput(name string, v *int) OptionFunc {
-	return func(t *Options) {
-		t.AddOutput(name, v, OptionTypeInt, C.G_TYPE_INT)
-	}
-}
-
-// DoubleOutput specifies a boolean output parameter for an operation
-func DoubleOutput(name string, v *float64) OptionFunc {
-	return func(t *Options) {
-		t.AddOutput(name, v, OptionTypeDouble, C.G_TYPE_DOUBLE)
-	}
-}
-
-// StringOutput specifies a string output parameter for an operation
-func StringOutput(name string, s *string) OptionFunc {
-	return func(t *Options) {
-		t.AddOutput(name, s, OptionTypeString, C.G_TYPE_STRING)
-	}
-}
-
-// ImageOutput specifies a Image output parameter for an operation
-func ImageOutput(name string, image **Image) OptionFunc {
-	return func(t *Options) {
-		t.AddOutput(name, image, OptionTypeImage, C.vips_image_get_type())
-	}
-}
-
-// BlobOutput specifies a Blob output parameter for an operation
-func BlobOutput(name string, blob **Blob) OptionFunc {
-	return func(t *Options) {
-		t.AddOutput(name, blob, OptionTypeBlob, C.vips_blob_get_type())
-	}
+	o := NewOption(name, C.vips_interpolate_get_type(), false, func(gv *C.GValue) {
+		defer C.g_object_unref(C.gpointer(interpolator))
+	})
+	C.g_value_set_object(&o.gvalue, C.gpointer(interpolator))
+	return o
 }
