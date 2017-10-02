@@ -48,6 +48,11 @@ func (pipe *Pipeline) OutputFile(file string) error {
 	return ioutil.WriteFile(file, buf, 0644)
 }
 
+// Image returns the current image in the pipeline
+func (pipe *Pipeline) Image() *ImageRef {
+	return pipe.image
+}
+
 func (pipe *Pipeline) export() ([]byte, error) {
 	defer ShutdownThread()
 	defer pipe.reset()
