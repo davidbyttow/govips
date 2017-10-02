@@ -18,32 +18,23 @@ This library supports all known operations available to libvips found here:
 - [VipsOperation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/VipsOperation.html)
 
 # Requirements
-- [libvips](https://github.com/jcupitt/libvips) 8+ (8.3+ recommended for GIF, PDF, SVG support)
+- [libvips](https://github.com/jcupitt/libvips) 8+ (8.5.8+ recommended for GIF, PDF, SVG support)
 - C compatible compiler such as gcc 4.6+ or clang 3.0+
-- Go 1.4+
+- Go 1.9+
 
 # Installation
 ```bash
-go get -u gopkg.in/davidbyttow/vips.v0
+go get -u github.com/davidbyttow/vips
 ```
 
 # Example usage
-Govips aims to provide a mostly "at the metal" implementation of libvips in Go. If you're interested in a higher level abstraction, see [gotransform](https://github.com/simplethingsllc/gotransform), a library built on top of this to make image transformations easy.
-
 ```go
-// Find the average value in an image across all bands.
-buf, err := ioutil.ReadFile(file)
-if err != nil {
-  return err
-}
-
-image, err := vips.NewImageFromBuffer(buf)
-if err != nil {
-  return err
-}
-
-avg := image.Avg()
-fmt.Printf("avg=%0.2f\n", avg)
+// Resize an image with padding
+return vips.NewPipeline().
+	LoadFile(inputFile).
+	PadStrategy(vips.ExtendBlack).
+	Resize(1200, 1200).
+	OutputFile(outputFile)
 ```
 
 # Contributing
