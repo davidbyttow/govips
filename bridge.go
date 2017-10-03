@@ -6,6 +6,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	dbg "runtime/debug"
 	"unsafe"
 )
 
@@ -287,8 +288,10 @@ func vipsShrink(input *C.VipsImage, shrink int) (*C.VipsImage, error) {
 }
 
 func handleVipsError() error {
+	defer C.vips_thread_shutdown()
+	defer C.vips_error_clear()
+
 	s := C.GoString(C.vips_error_buffer())
-	C.vips_error_clear()
-	C.vips_thread_shutdown()
-	return errors.New(s)
+	stack := string(dbg.Stack())
+	return fmt.Errorf("%s\nStack:\n%s", s, stack)
 }
