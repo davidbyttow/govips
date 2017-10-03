@@ -22,14 +22,14 @@ func NewPipeline() *Pipeline {
 func (pipe *Pipeline) LoadFile(file string) *Pipeline {
 	pipe.reset()
 	pipe.image, pipe.err = NewImageFromFile(file)
-	return pipe
+	return pipe.Format(pipe.image.Format())
 }
 
 // LoadBuffer loads a buffer into the pipeline
 func (pipe *Pipeline) LoadBuffer(buf []byte) *Pipeline {
 	pipe.reset()
 	pipe.image, pipe.err = NewImageFromBuffer(buf)
-	return pipe
+	return pipe.Format(pipe.image.Format())
 }
 
 // Output exports the pipeline to a buffer and closes it

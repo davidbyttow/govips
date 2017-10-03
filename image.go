@@ -14,7 +14,8 @@ import (
 // ImageRef contains a libvips image and manages its lifecycle. You should
 // close an image when done or it will leak until the next GC
 type ImageRef struct {
-	image *C.VipsImage
+	image  *C.VipsImage
+	format ImageType
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
@@ -29,20 +30,21 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(bytes []byte) (*ImageRef, error) {
+func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, _, err := vipsLoadFromBuffer(bytes)
+	image, format, err := vipsLoadFromBuffer(buf)
 	if err != nil {
 		return nil, err
 	}
 
-	return newImageRef(image), nil
+	return newImageRef(image, format), nil
 }
 
-func newImageRef(vipsImage *C.VipsImage) *ImageRef {
+func newImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
 	stream := &ImageRef{
-		image: vipsImage,
+		image:  vipsImage,
+		format: format,
 	}
 	runtime.SetFinalizer(stream, finalizeStream)
 	return stream
@@ -58,6 +60,11 @@ func (ref *ImageRef) SetImage(image *C.VipsImage) {
 		C.g_object_unref(C.gpointer(ref.image))
 	}
 	ref.image = image
+}
+
+// Format returns the initial format of the vips image when loaded
+func (ref *ImageRef) Format() ImageType {
+	return ref.format
 }
 
 // Close closes an image and frees internal memory associated with it
