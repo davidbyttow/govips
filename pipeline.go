@@ -3,6 +3,7 @@ package vips
 import (
 	"io/ioutil"
 	"math"
+	"runtime"
 )
 
 // Pipeline is an interface for chaining together image operations
@@ -27,6 +28,7 @@ func (pipe *Pipeline) LoadFile(file string) *Pipeline {
 
 // LoadBuffer loads a buffer into the pipeline
 func (pipe *Pipeline) LoadBuffer(buf []byte) *Pipeline {
+	defer runtime.KeepAlive(buf)
 	pipe.reset()
 	pipe.image, pipe.err = NewImageFromBuffer(buf)
 	return pipe.Format(pipe.image.Format())
