@@ -25,26 +25,10 @@ type TransformParams struct {
 	Invert                  bool
 	BlurSigma               float64
 	Flip                    FlipDirection
-<<<<<<< HEAD
-	Width                   int
-	Height                  int
-	ScaleX                  float64
-	ScaleY                  float64
-	CropOffsetX             int
-	CropOffsetY             int
-}
-
-func (t *TransformParams) SetTargets(width, height int, scaleX, scaleY float64) {
-	t.Width = width
-	t.Height = height
-	t.ScaleX = scaleX
-	t.ScaleY = scaleY
-=======
 	Width                   Scalar
 	Height                  Scalar
 	CropOffsetX             Scalar
 	CropOffsetY             Scalar
->>>>>>> Relative values supported
 }
 
 // Transform handles single image transformations
