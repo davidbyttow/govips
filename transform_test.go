@@ -8,11 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPipelineExport(t *testing.T) {
-	buf, err := vips.NewPipeline().
+func TestTransform(t *testing.T) {
+	buf, err := vips.NewTransform().
 		LoadFile("fixtures/canyon.jpg").
 		Reduce(0.25).
-		Output()
+		Apply()
 
 	require.NoError(t, err)
 	require.True(t, len(buf) > 0)

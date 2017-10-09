@@ -35,7 +35,7 @@ type transform struct {
 	Resize  vips.ResizeStrategy
 	Width   int
 	Height  int
-	Flip    vips.Direction
+	Flip    vips.FlipDirection
 	Format  vips.ImageType
 	Zoom    int
 	Blur    float64
@@ -57,7 +57,7 @@ func TestCleanup(t *testing.T) {
 					Resize:  resize,
 					Width:   size.w,
 					Height:  size.h,
-					Flip:    vips.DirectionHorizontal,
+					Flip:    vips.FlipBoth,
 					Kernel:  vips.KernelLanczos3,
 					Format:  format,
 					Blur:    4,
@@ -77,7 +77,7 @@ func TestCleanup(t *testing.T) {
 			go func(i int) {
 				defer wg.Done()
 
-				buf, err := vips.NewPipeline().
+				buf, err := vips.NewTransform().
 					LoadFile("fixtures/canyon.jpg").
 					ResizeStrategy(transform.Resize).
 					Resize(transform.Width, transform.Height).
@@ -88,7 +88,8 @@ func TestCleanup(t *testing.T) {
 					Interpolator(transform.Interp).
 					Zoom(transform.Zoom, transform.Zoom).
 					Quality(transform.Quality).
-					Output()
+					OutputBytes().
+					Apply()
 				require.NoError(t, err)
 
 				image, err := vips.NewImageFromBuffer(buf)

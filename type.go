@@ -4,6 +4,7 @@ package vips
 // #include "bridge.h"
 import "C"
 import (
+	"io"
 	"strings"
 	"sync"
 )
@@ -19,6 +20,19 @@ const (
 	ResizeStrategyStretch
 )
 
+// ExportParams are options when exporting an image to file or buffer
+type ExportParams struct {
+	OutputFile     string
+	Writer         io.Writer
+	Format         ImageType
+	Quality        int
+	Compression    int
+	Interlaced     bool
+	StripProfile   bool
+	StripMetadata  bool
+	Interpretation Interpretation
+}
+
 // Anchor represents the an anchor for cropping and other image operations
 type Anchor int
 
@@ -32,25 +46,16 @@ const (
 	AnchorLeft
 )
 
-// ExportParams are options when exporting an image to file or buffer
-type ExportParams struct {
-	Format         ImageType
-	Quality        int
-	Compression    int
-	Interlaced     bool
-	StripProfile   bool
-	StripMetadata  bool
-	Interpretation Interpretation
-}
+// FlipDirection represents the direction to flip
+type FlipDirection int
 
-// ResizeParams are options for resizing images
-type ResizeParams struct {
-	PadStrategy             Extend
-	ResizeStrategy          ResizeStrategy
-	CropAnchor              Anchor
-	ReductionSampler        Kernel
-	EnlargementInterpolator Interpolator
-}
+// Flip enum
+const (
+	FlipNone FlipDirection = iota
+	FlipHorizontal
+	FlipVertical
+	FlipBoth
+)
 
 // ImageType represents an image type
 type ImageType int
@@ -92,6 +97,7 @@ type Kernel int
 
 // Kernel enum
 const (
+	KernelAuto     Kernel = -1
 	KernelNearest  Kernel = C.VIPS_KERNEL_NEAREST
 	KernelLinear   Kernel = C.VIPS_KERNEL_LINEAR
 	KernelCubic    Kernel = C.VIPS_KERNEL_CUBIC
