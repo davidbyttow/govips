@@ -27,8 +27,10 @@ func main() {
 }
 
 func resize(inputFile, outputFile string) error {
-	return vips.NewPipeline().
+	_, err := vips.NewTransform().
 		LoadFile(inputFile).
 		Reduce(0.2).
-		OutputFile(outputFile)
+		OutputFile(outputFile).
+		Apply()
+	return err
 }

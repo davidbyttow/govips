@@ -6,6 +6,7 @@ import "C"
 
 import (
 	"errors"
+	"io"
 	"io/ioutil"
 	"runtime"
 	"unsafe"
@@ -16,6 +17,15 @@ import (
 type ImageRef struct {
 	image  *C.VipsImage
 	format ImageType
+}
+
+// LoadImage loads an ImageRef from the given reader
+func LoadImage(r io.Reader) (*ImageRef, error) {
+	buf, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+	return NewImageFromBuffer(buf)
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
@@ -31,6 +41,7 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+	defer runtime.KeepAlive(buf)
 	startupIfNeeded()
 
 	image, format, err := vipsLoadFromBuffer(buf)

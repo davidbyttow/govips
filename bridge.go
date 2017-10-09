@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	defaultQuality = 80
+	defaultQuality     = 90
+	defaultCompression = 6
 )
 
 var stringBuffer4096 = fixedString(4096)
@@ -123,34 +124,38 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	return nil
 }
 
-func vipsPrepareForExport(image *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
-	var outImage *C.VipsImage
-
+func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
 	if params.StripProfile {
-		C.remove_icc_profile(image)
+		C.remove_icc_profile(input)
 	}
 
 	if params.Quality == 0 {
 		params.Quality = defaultQuality
 	}
 
+	if params.Compression == 0 {
+		params.Compression = defaultCompression
+	}
+
 	// Use a default interpretation and cast it to C type
 	if params.Interpretation == 0 {
-		params.Interpretation = InterpretationSRGB
+		params.Interpretation = Interpretation(input.Type)
 	}
 
 	interpretation := C.VipsInterpretation(params.Interpretation)
 
 	// Apply the proper colour space
-	if int(C.is_colorspace_supported(image)) == 1 {
-		err := C.to_colorspace(image, &outImage, interpretation)
+	if int(C.is_colorspace_supported(input)) == 1 && interpretation != input.Type {
+		var out *C.VipsImage
+		defer C.g_object_unref(C.gpointer(input))
+		err := C.to_colorspace(input, &out, interpretation)
 		if int(err) != 0 {
 			return nil, handleVipsError()
 		}
-		image = outImage
+		input = out
 	}
 
-	return image, nil
+	return input, nil
 }
 
 func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
@@ -282,6 +287,26 @@ func vipsShrink(input *C.VipsImage, shrink int) (*C.VipsImage, error) {
 	err := C.shrink_image(input, &image, C.double(float64(shrink)), C.double(float64(shrink)))
 	if err != 0 {
 		return nil, handleVipsError()
+	}
+
+	return image, nil
+}
+
+func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error) {
+	var image *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+
+	bg := [3]C.double{
+		C.double(color.R),
+		C.double(color.G),
+		C.double(color.B),
+	}
+
+	if int(C.has_alpha_channel(input)) > 0 {
+		err := C.flatten_image_background(input, &image, bg[0], bg[1], bg[2])
+		if int(err) != 0 {
+			return nil, handleVipsError()
+		}
 	}
 
 	return image, nil
