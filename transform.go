@@ -29,6 +29,8 @@ type TransformParams struct {
 	Height                  int
 	ScaleX                  float64
 	ScaleY                  float64
+	CropOffsetX             int
+	CropOffsetY             int
 }
 
 func (t *TransformParams) SetTargets(width, height int, scaleX, scaleY float64) {
@@ -109,6 +111,13 @@ func (t *Transform) Zoom(x, y int) *Transform {
 // Anchor sets the anchor for cropping
 func (t *Transform) Anchor(anchor Anchor) *Transform {
 	t.tx.CropAnchor = anchor
+	return t
+}
+
+// CropOffset sets the target offset from the crop position
+func (t *Transform) CropOffset(x, y int) *Transform {
+	t.tx.CropOffsetX = x
+	t.tx.CropOffsetY = y
 	return t
 }
 
@@ -392,31 +401,46 @@ func maybeCrop(image *ImageRef, p *TransformParams) error {
 	left, top := 0, 0
 	middleX := (imageW - p.Width + 1) >> 1
 	middleY := (imageH - p.Height + 1) >> 1
-	switch p.CropAnchor {
-	case AnchorTop:
-		left = middleX
-	case AnchorBottom:
-		left = middleX
-		top = imageH - p.Height
-	case AnchorRight:
-		left = imageW - p.Width
-		top = middleY
-	case AnchorLeft:
-		top = middleY
-	case AnchorTopRight:
-		left = imageW - p.Width
-	case AnchorTopLeft:
-	case AnchorBottomRight:
-		left = imageW - p.Width
-		top = imageH - p.Height
-	case AnchorBottomLeft:
-		top = imageH - p.Height
-	default:
-		left = middleX
-		top = middleY
+	if p.CropOffsetX != 0 || p.CropOffsetY != 0 {
+		if p.CropOffsetX >= 0 {
+			left = middleX + minInt(p.CropOffsetX, middleX)
+		} else {
+			left = middleX - maxInt(p.CropOffsetX, middleX)
+		}
+		if p.CropOffsetY >= 0 {
+			top = middleY + minInt(p.CropOffsetY, middleY)
+		} else {
+			top = middleY - maxInt(p.CropOffsetY, middleY)
+		}
+	} else {
+		switch p.CropAnchor {
+		case AnchorTop:
+			left = middleX
+		case AnchorBottom:
+			left = middleX
+			top = imageH - p.Height
+		case AnchorRight:
+			left = imageW - p.Width
+			top = middleY
+		case AnchorLeft:
+			top = middleY
+		case AnchorTopRight:
+			left = imageW - p.Width
+		case AnchorTopLeft:
+		case AnchorBottomRight:
+			left = imageW - p.Width
+			top = imageH - p.Height
+		case AnchorBottomLeft:
+			top = imageH - p.Height
+		default:
+			left = middleX
+			top = middleY
+		}
 	}
 	left = maxInt(left, 0)
 	top = maxInt(top, 0)
+	width = minInt(left+width, p.Width)
+	height = minInt(top+height, p.Height)
 	return image.ExtractArea(left, top, width, height)
 }
 

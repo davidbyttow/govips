@@ -7,63 +7,53 @@ import (
 
 	"github.com/davidbyttow/govips"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResizeCrop(t *testing.T) {
-	if testing.Short() {
-		return
-	}
-	file := "fixtures/colors.png"
-	buf, err := vips.NewTransform().
-		LoadFile(file).
-		Resize(100, 300).
-		ResizeStrategy(vips.ResizeStrategyCrop).
-		Apply()
-	assert.NoError(t, err)
-	assertGoldenMatch(t, file, buf)
+	goldenTest(t, "fixtures/colors.png", func(tx *vips.Transform) {
+		tx.Resize(100, 300).
+			ResizeStrategy(vips.ResizeStrategyCrop)
+	})
 }
 
 func TestResizeShapes(t *testing.T) {
-	if testing.Short() {
-		return
-	}
-	file := "fixtures/shapes.png"
-	buf, err := vips.NewTransform().
-		LoadFile(file).
-		Resize(341, 256).
-		Apply()
-	assert.NoError(t, err)
-	assertGoldenMatch(t, file, buf)
+	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+		tx.Resize(341, 256)
+	})
 }
 
 func TestCenterCrop(t *testing.T) {
-	if testing.Short() {
-		return
-	}
-	file := "fixtures/shapes.png"
-	buf, err := vips.NewTransform().
-		LoadFile(file).
-		Resize(341, 256).
-		ResizeStrategy(vips.ResizeStrategyCrop).
-		Apply()
-	assert.NoError(t, err)
-	t.Name()
-	assertGoldenMatch(t, file, buf)
+	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+		tx.Resize(341, 256).
+			ResizeStrategy(vips.ResizeStrategyCrop)
+	})
 }
 
 func TestBottomRightCrop(t *testing.T) {
+	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+		tx.Resize(341, 256).
+			ResizeStrategy(vips.ResizeStrategyCrop).
+			Anchor(vips.AnchorBottomRight)
+	})
+}
+
+func TestOffsetCrop(t *testing.T) {
+	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
+		tx.Resize(500, 720).
+			CropOffset(120, 0).Kernel(vips.KernelNearest).
+			ResizeStrategy(vips.ResizeStrategyCrop)
+	})
+}
+
+func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) {
 	if testing.Short() {
 		return
 	}
-	file := "fixtures/shapes.png"
-	buf, err := vips.NewTransform().
-		LoadFile(file).
-		Resize(341, 256).
-		ResizeStrategy(vips.ResizeStrategyCrop).
-		Anchor(vips.AnchorBottomRight).
-		Apply()
-	assert.NoError(t, err)
-	t.Name()
+	tx := vips.NewTransform().LoadFile(file)
+	fn(tx)
+	buf, err := tx.Apply()
+	require.NoError(t, err)
 	assertGoldenMatch(t, file, buf)
 }
 

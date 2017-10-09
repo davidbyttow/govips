@@ -123,11 +123,9 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	return nil
 }
 
-func vipsPrepareForExport(image *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
-	var outImage *C.VipsImage
-
+func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
 	if params.StripProfile {
-		C.remove_icc_profile(image)
+		C.remove_icc_profile(input)
 	}
 
 	if params.Quality == 0 {
@@ -136,21 +134,23 @@ func vipsPrepareForExport(image *C.VipsImage, params *ExportParams) (*C.VipsImag
 
 	// Use a default interpretation and cast it to C type
 	if params.Interpretation == 0 {
-		params.Interpretation = InterpretationSRGB
+		params.Interpretation = Interpretation(input.Type)
 	}
 
 	interpretation := C.VipsInterpretation(params.Interpretation)
 
 	// Apply the proper colour space
-	if int(C.is_colorspace_supported(image)) == 1 {
-		err := C.to_colorspace(image, &outImage, interpretation)
+	if int(C.is_colorspace_supported(input)) == 1 && interpretation != input.Type {
+		var out *C.VipsImage
+		defer C.g_object_unref(C.gpointer(input))
+		err := C.to_colorspace(input, &out, interpretation)
 		if int(err) != 0 {
 			return nil, handleVipsError()
 		}
-		image = outImage
+		input = out
 	}
 
-	return image, nil
+	return input, nil
 }
 
 func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
