@@ -20,10 +20,10 @@ var (
 		vips.ResizeStrategyEmbed,
 	}
 	sizes = []size{
-		size{100, 100},
-		size{500, 0},
-		size{0, 500},
-		size{1000, 1000},
+		{100, 100},
+		{500, 0},
+		{0, 500},
+		{1000, 1000},
 	}
 	formats = []vips.ImageType{
 		vips.ImageTypeJPEG,
