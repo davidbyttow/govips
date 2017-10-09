@@ -10,6 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestEmbed(t *testing.T) {
+	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+		tx.Resize(512, 256)
+	})
+}
+
 func TestResizeCrop(t *testing.T) {
 	goldenTest(t, "fixtures/colors.png", func(tx *vips.Transform) {
 		tx.Resize(100, 300).

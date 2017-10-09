@@ -376,12 +376,21 @@ func resize(bb *Blackboard) error {
 	shrinkY := ratio(bb.Height(), bb.targetHeight)
 
 	cropMode := bb.ResizeStrategy == ResizeStrategyCrop
+	stretchMode := bb.ResizeStrategy == ResizeStrategyStretch
 
-	if cropMode {
+	if !stretchMode {
 		if shrinkX > 0 && shrinkY > 0 {
-			shrinkX = math.Min(shrinkX, shrinkY)
+			if cropMode {
+				shrinkX = math.Min(shrinkX, shrinkY)
+			} else {
+				shrinkX = math.Max(shrinkX, shrinkY)
+			}
 		} else {
-			shrinkX = math.Max(shrinkX, shrinkY)
+			if cropMode {
+				shrinkX = math.Min(shrinkX, shrinkY)
+			} else {
+				shrinkX = math.Max(shrinkX, shrinkY)
+			}
 		}
 		shrinkY = shrinkX
 	}
@@ -396,7 +405,7 @@ func resize(bb *Blackboard) error {
 		}
 
 		// If stretching then we're done.
-		if bb.ResizeStrategy == ResizeStrategyStretch {
+		if stretchMode {
 			return nil
 		}
 	}
