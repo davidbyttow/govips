@@ -103,9 +103,6 @@ func (t *Transform) OutputFile(file string) *Transform {
 func (t *Transform) Zoom(x, y int) *Transform {
 	t.tx.ZoomX = x
 	t.tx.ZoomY = y
-	// if err := t.image.Zoom(x, y); err != nil {
-	// 	t.err = err
-	// }
 	return t
 }
 
@@ -292,9 +289,11 @@ func (t *Transform) transform(image *ImageRef) error {
 		return err
 	}
 
-	if err := applyFX(image, t.tx); err != nil {
+	if err := postProcess(image, t.tx); err != nil {
 		return err
 	}
+
+	// TODO(d): Flatten image
 
 	return nil
 }
@@ -330,53 +329,37 @@ func resize(image *ImageRef, p *TransformParams) error {
 	shrinkX := scale(image.Width(), p.Width)
 	shrinkY := scale(image.Height(), p.Height)
 
-	crop := p.ResizeStrategy == ResizeStrategyCrop
+	cropMode := p.ResizeStrategy == ResizeStrategyCrop
 
-	direction := DirectionHorizontal
-
-	if crop && shrinkX >= shrinkY {
-		direction = DirectionVertical
-	} else if !crop && shrinkX < shrinkY {
-		direction = DirectionVertical
-	}
-
-	if direction == DirectionHorizontal {
+	if cropMode {
+		if shrinkX > 0 && shrinkY > 0 {
+			shrinkX = math.Min(shrinkX, shrinkY)
+		} else {
+			shrinkX = math.Max(shrinkX, shrinkY)
+		}
 		shrinkY = shrinkX
-	} else {
-		shrinkX = shrinkY
 	}
 
-	if err := image.Resize(
-		1.0/shrinkX,
-		InputDouble("vscale", 1.0/shrinkY),
-		InputInt("kernel", int(kernel)),
-	); err != nil {
-		return err
-	}
+	if shrinkX != 1 || shrinkY != 1 {
+		if err := image.Resize(
+			1.0/shrinkX,
+			InputDouble("vscale", 1.0/shrinkY),
+			InputInt("kernel", int(kernel)),
+		); err != nil {
+			return err
+		}
 
-	// If stretching then we're done.
-	if p.ResizeStrategy == ResizeStrategyStretch {
-		return nil
+		// If stretching then we're done.
+		if p.ResizeStrategy == ResizeStrategyStretch {
+			return nil
+		}
 	}
 
 	// Crop if necessary
-	if crop {
-		if p.Width < image.Width() || p.Height < image.Height() {
-			var left, top int
-			width, height := image.Width(), image.Height()
-			if p.Width < image.Width() {
-				width = p.Width
-				left = (image.Width() - p.Width) >> 1
-			}
-			if p.Height < image.Height() {
-				height = p.Height
-				top = (image.Height() - p.Height) >> 1
-			}
-			if err := image.ExtractArea(left, top, width, height); err != nil {
-				return err
-			}
+	if cropMode {
+		if err := maybeCrop(image, p); err != nil {
+			return err
 		}
-		return nil
 	}
 
 	// Now we might need to embed to match the target dimensions
@@ -399,12 +382,51 @@ func resize(image *ImageRef, p *TransformParams) error {
 	return nil
 }
 
-func applyFX(image *ImageRef, p *TransformParams) error {
+func maybeCrop(image *ImageRef, p *TransformParams) error {
+	if p.Width >= image.Width() && p.Height >= image.Height() {
+		return nil
+	}
+	imageW, imageH := image.Width(), image.Height()
+	width := minInt(p.Width, imageW)
+	height := minInt(p.Height, imageH)
+	left, top := 0, 0
+	middleX := (imageW - p.Width + 1) >> 1
+	middleY := (imageH - p.Height + 1) >> 1
+	switch p.CropAnchor {
+	case AnchorTop:
+		left = middleX
+	case AnchorBottom:
+		left = middleX
+		top = imageH - p.Height
+	case AnchorRight:
+		left = imageW - p.Width
+		top = middleY
+	case AnchorLeft:
+		top = middleY
+	case AnchorTopRight:
+		left = imageW - p.Width
+	case AnchorTopLeft:
+	case AnchorBottomRight:
+		left = imageW - p.Width
+		top = imageH - p.Height
+	case AnchorBottomLeft:
+		top = imageH - p.Height
+	default:
+		left = middleX
+		top = middleY
+	}
+	left = maxInt(left, 0)
+	top = maxInt(top, 0)
+	return image.ExtractArea(left, top, width, height)
+}
+
+func postProcess(image *ImageRef, p *TransformParams) error {
 	if p.ZoomX > 0 || p.ZoomY > 0 {
 		if err := image.Zoom(p.ZoomX, p.ZoomY); err != nil {
 			return err
 		}
 	}
+
 	if p.Flip != FlipNone {
 		var err error
 		switch p.Flip {
@@ -438,7 +460,18 @@ func applyFX(image *ImageRef, p *TransformParams) error {
 	return nil
 }
 
+func minInt(a, b int) int {
+	return int(math.Min(float64(a), float64(b)))
+}
+
+func maxInt(a, b int) int {
+	return int(math.Max(float64(a), float64(b)))
+}
+
 func scale(x, y int) float64 {
+	if x == y {
+		return 1
+	}
 	return float64(x) / float64(y)
 }
 

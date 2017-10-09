@@ -23,7 +23,20 @@ func TestResizeCrop(t *testing.T) {
 	assertGoldenMatch(t, file, buf)
 }
 
-func TestPerfectCrop(t *testing.T) {
+func TestResizeShapes(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+	file := "fixtures/shapes.png"
+	buf, err := vips.NewTransform().
+		LoadFile(file).
+		Resize(341, 256).
+		Apply()
+	assert.NoError(t, err)
+	assertGoldenMatch(t, file, buf)
+}
+
+func TestCenterCrop(t *testing.T) {
 	if testing.Short() {
 		return
 	}
@@ -32,6 +45,22 @@ func TestPerfectCrop(t *testing.T) {
 		LoadFile(file).
 		Resize(341, 256).
 		ResizeStrategy(vips.ResizeStrategyCrop).
+		Apply()
+	assert.NoError(t, err)
+	t.Name()
+	assertGoldenMatch(t, file, buf)
+}
+
+func TestBottomRightCrop(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+	file := "fixtures/shapes.png"
+	buf, err := vips.NewTransform().
+		LoadFile(file).
+		Resize(341, 256).
+		ResizeStrategy(vips.ResizeStrategyCrop).
+		Anchor(vips.AnchorBottomRight).
 		Apply()
 	assert.NoError(t, err)
 	t.Name()

@@ -287,6 +287,26 @@ func vipsShrink(input *C.VipsImage, shrink int) (*C.VipsImage, error) {
 	return image, nil
 }
 
+func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error) {
+	var image *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+
+	bg := [3]C.double{
+		C.double(color.R),
+		C.double(color.G),
+		C.double(color.B),
+	}
+
+	if int(C.has_alpha_channel(input)) > 0 {
+		err := C.flatten_image_background(input, &image, bg[0], bg[1], bg[2])
+		if int(err) != 0 {
+			return nil, handleVipsError()
+		}
+	}
+
+	return image, nil
+}
+
 func handleVipsError() error {
 	defer C.vips_thread_shutdown()
 	defer C.vips_error_clear()

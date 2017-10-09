@@ -22,16 +22,25 @@ const (
 
 // ExportParams are options when exporting an image to file or buffer
 type ExportParams struct {
-	OutputFile     string
-	Writer         io.Writer
-	Format         ImageType
-	Quality        int
-	Compression    int
-	Interlaced     bool
-	StripProfile   bool
-	StripMetadata  bool
-	Interpretation Interpretation
+	OutputFile      string
+	Writer          io.Writer
+	Format          ImageType
+	Quality         int
+	Compression     int
+	Interlaced      bool
+	StripProfile    bool
+	StripMetadata   bool
+	Interpretation  Interpretation
+	BackgroundColor Color
 }
+
+// Color represents an RGB
+type Color struct {
+	R, G, B uint8
+}
+
+// ColorBlack is shorthand for black RGB
+var ColorBlack = Color{0, 0, 0}
 
 // Anchor represents the an anchor for cropping and other image operations
 type Anchor int
@@ -41,8 +50,12 @@ const (
 	AnchorAuto Anchor = iota
 	AnchorCenter
 	AnchorTop
+	AnchorTopRight
+	AnchorTopLeft
 	AnchorRight
 	AnchorBottom
+	AnchorBottomLeft
+	AnchorBottomRight
 	AnchorLeft
 )
 
