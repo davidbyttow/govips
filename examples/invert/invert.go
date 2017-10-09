@@ -27,8 +27,10 @@ func main() {
 }
 
 func invert(inputFile, outputFile string) error {
-	return vips.NewPipeline().
+	_, err := vips.NewTransform().
 		LoadFile(inputFile).
 		Invert().
-		OutputFile(outputFile)
+		OutputFile(outputFile).
+		Apply()
+	return err
 }
