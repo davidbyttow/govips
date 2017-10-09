@@ -7,30 +7,6 @@ import (
 	"os"
 )
 
-type InputValue struct {
-	i int
-	f float64
-}
-
-func IntValue(i int) InputValue {
-	return InputValue{i: i}
-}
-
-func ScaleValue(f float64) InputValue {
-	return InputValue{f: f}
-}
-
-func (v *InputValue) IsZero() bool {
-	return v.i == 0 && v.f == 0
-}
-
-func (v InputValue) Abs(base int) float64 {
-	if v.f > 0 {
-		return v.f * float64(base)
-	}
-	return float64(v.i)
-}
-
 // InputParams are options when importing an image from file or buffer
 type InputParams struct {
 	InputFile string
@@ -49,17 +25,19 @@ type TransformParams struct {
 	Invert                  bool
 	BlurSigma               float64
 	Flip                    FlipDirection
-	Width                   InputValue
-	Height                  InputValue
-	CropOffsetX             InputValue
-	CropOffsetY             InputValue
+	Width                   int
+	Height                  int
+	ScaleX                  float64
+	ScaleY                  float64
+	CropOffsetX             int
+	CropOffsetY             int
 }
 
 func (t *TransformParams) SetTargets(width, height int, scaleX, scaleY float64) {
-	t.Width.i = width
-	t.Height.i = height
-	t.Width.f = scaleX
-	t.Height.f = scaleY
+	t.Width = width
+	t.Height = height
+	t.ScaleX = scaleX
+	t.ScaleY = scaleY
 }
 
 // Transform handles single image transformations
@@ -138,15 +116,8 @@ func (t *Transform) Anchor(anchor Anchor) *Transform {
 
 // CropOffset sets the target offset from the crop position
 func (t *Transform) CropOffset(x, y int) *Transform {
-	t.tx.CropOffsetX.i = x
-	t.tx.CropOffsetY.i = y
-	return t
-}
-
-// CropOffset sets the target offset from the crop position
-func (t *Transform) CropOffsetScale(x, y float64) *Transform {
-	t.tx.CropOffsetX.f = x
-	t.tx.CropOffsetY.f = y
+	t.tx.CropOffsetX = x
+	t.tx.CropOffsetY = y
 	return t
 }
 
