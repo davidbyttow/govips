@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	defaultQuality = 80
+	defaultQuality     = 90
+	defaultCompression = 6
 )
 
 var stringBuffer4096 = fixedString(4096)
@@ -130,6 +131,10 @@ func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImag
 
 	if params.Quality == 0 {
 		params.Quality = defaultQuality
+	}
+
+	if params.Compression == 0 {
+		params.Compression = defaultCompression
 	}
 
 	// Use a default interpretation and cast it to C type
