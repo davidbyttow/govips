@@ -11,7 +11,7 @@ import (
 func TestTransform(t *testing.T) {
 	buf, err := vips.NewTransform().
 		LoadFile("fixtures/canyon.jpg").
-		Reduce(0.25).
+		Scale(0.25).
 		Apply()
 
 	require.NoError(t, err)

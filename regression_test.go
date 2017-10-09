@@ -23,6 +23,12 @@ func TestResizeShapes(t *testing.T) {
 	})
 }
 
+func TestRelativeResizeShapes(t *testing.T) {
+	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+		tx.ScaleHeight(0.5)
+	})
+}
+
 func TestCenterCrop(t *testing.T) {
 	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
 		tx.Resize(341, 256).
@@ -41,7 +47,15 @@ func TestBottomRightCrop(t *testing.T) {
 func TestOffsetCrop(t *testing.T) {
 	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
 		tx.Resize(500, 720).
-			CropOffset(120, 0).Kernel(vips.KernelNearest).
+			CropOffset(120, 0).
+			ResizeStrategy(vips.ResizeStrategyCrop)
+	})
+}
+
+func TestRelativeOffsetCrop(t *testing.T) {
+	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
+		tx.Resize(500, 720).
+			CropOffsetPercent(0.1066, 0).
 			ResizeStrategy(vips.ResizeStrategyCrop)
 	})
 }
@@ -65,7 +79,10 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte) {
 	goldenFile := file[:i] + "." + t.Name() + ".golden" + file[i:]
 	golden, _ := ioutil.ReadFile(goldenFile)
 	if golden != nil {
-		assert.Equal(t, golden, buf)
+		if !assert.Equal(t, golden, buf) {
+			failed := file[:i] + "." + t.Name() + ".failed" + file[i:]
+			ioutil.WriteFile(failed, buf, 0644)
+		}
 		return
 	}
 	t.Log("Writing golden file: " + goldenFile)

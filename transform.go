@@ -25,6 +25,7 @@ type TransformParams struct {
 	Invert                  bool
 	BlurSigma               float64
 	Flip                    FlipDirection
+<<<<<<< HEAD
 	Width                   int
 	Height                  int
 	ScaleX                  float64
@@ -38,13 +39,23 @@ func (t *TransformParams) SetTargets(width, height int, scaleX, scaleY float64) 
 	t.Height = height
 	t.ScaleX = scaleX
 	t.ScaleY = scaleY
+=======
+	Width                   Scalar
+	Height                  Scalar
+	CropOffsetX             Scalar
+	CropOffsetY             Scalar
+>>>>>>> Relative values supported
 }
 
 // Transform handles single image transformations
 type Transform struct {
-	input  *InputParams
-	tx     *TransformParams
-	export *ExportParams
+	input        *InputParams
+	tx           *TransformParams
+	export       *ExportParams
+	targetWidth  int
+	targetHeight int
+	cropOffsetX  int
+	cropOffsetY  int
 }
 
 // NewTransform constructs a new transform for execution
@@ -116,8 +127,15 @@ func (t *Transform) Anchor(anchor Anchor) *Transform {
 
 // CropOffset sets the target offset from the crop position
 func (t *Transform) CropOffset(x, y int) *Transform {
-	t.tx.CropOffsetX = x
-	t.tx.CropOffsetY = y
+	t.tx.CropOffsetX.SetInt(x)
+	t.tx.CropOffsetY.SetInt(y)
+	return t
+}
+
+// CropOffsetPercent sets the target offset from the crop position
+func (t *Transform) CropOffsetPercent(x, y float64) *Transform {
+	t.tx.CropOffsetX.SetRelative(x)
+	t.tx.CropOffsetY.SetRelative(y)
 	return t
 }
 
@@ -184,49 +202,39 @@ func (t *Transform) Stretch() *Transform {
 
 // ScaleWidth scales the image by its width proportionally
 func (t *Transform) ScaleWidth(scale float64) *Transform {
-	return t.Scale(scale, 0)
+	t.tx.Width.SetRelative(scale)
+	return t
 }
 
 // ScaleHeight scales the height of the image proportionally
 func (t *Transform) ScaleHeight(scale float64) *Transform {
-	return t.Scale(0, scale)
-}
-
-// Scale the image
-func (t *Transform) Scale(scaleX, scaleY float64) *Transform {
-	t.tx.SetTargets(0, 0, scaleX, scaleY)
+	t.tx.Height.SetRelative(scale)
 	return t
 }
 
-// Reduce the image proportionally
-func (t *Transform) Reduce(scale float64) *Transform {
-	if scale >= 1 {
-		panic("scale must be less than 1")
-	}
-	return t.Scale(scale, scale)
-}
-
-// Enlarge the image proportionally
-func (t *Transform) Enlarge(scale float64) *Transform {
-	if scale <= 1 {
-		panic("scale must be greater than 1")
-	}
-	return t.Scale(scale, scale)
+// Scale the image
+func (t *Transform) Scale(scale float64) *Transform {
+	t.tx.Width.SetRelative(scale)
+	t.tx.Height.SetRelative(scale)
+	return t
 }
 
 // ResizeWidth resizes the image to the given width, maintaining aspect ratio
 func (t *Transform) ResizeWidth(width int) *Transform {
-	return t.Resize(width, 0)
+	t.tx.Width.SetInt(width)
+	return t
 }
 
 // ResizeHeight resizes the image to the given height, maintaining aspect ratio
 func (t *Transform) ResizeHeight(height int) *Transform {
-	return t.Resize(0, height)
+	t.tx.Height.SetInt(height)
+	return t
 }
 
 // Resize resizes the image to the given width and height
 func (t *Transform) Resize(width, height int) *Transform {
-	t.tx.SetTargets(width, height, 0, 0)
+	t.tx.Width.SetInt(width)
+	t.tx.Height.SetInt(height)
 	return t
 }
 
@@ -293,52 +301,97 @@ func (t *Transform) exportImage(image *ImageRef) ([]byte, error) {
 	return buf, err
 }
 
+type Blackboard struct {
+	*TransformParams
+	image        *ImageRef
+	aspectRatio  float64
+	targetWidth  int
+	targetHeight int
+	targetScale  float64
+	cropOffsetX  int
+	cropOffsetY  int
+}
+
+func NewBlackboard(image *ImageRef, p *TransformParams) *Blackboard {
+	bb := &Blackboard{
+		TransformParams: p,
+		image:           image,
+	}
+	imageWidth := image.Width()
+	imageHeight := image.Height()
+	bb.aspectRatio = ratio(imageWidth, imageHeight)
+	bb.cropOffsetX = p.CropOffsetX.GetRounded(imageWidth)
+	bb.cropOffsetY = p.CropOffsetY.GetRounded(imageHeight)
+
+	if p.Width.Value() == 0 && p.Height.Value() == 0 {
+		return bb
+	}
+
+	bb.targetWidth = p.Width.GetRounded(imageWidth)
+	bb.targetHeight = p.Height.GetRounded(imageHeight)
+
+	switch {
+	case bb.targetWidth > 0 && bb.targetHeight > 0:
+		// Nothing to do
+	case bb.targetWidth > 0:
+		bb.targetHeight = roundFloat(ratio(bb.targetWidth, imageWidth) * float64(imageHeight))
+	case bb.targetHeight > 0:
+		bb.targetWidth = roundFloat(ratio(bb.targetHeight, imageHeight) * float64(imageWidth))
+	}
+
+	if p.Width.IsRelative() && p.Height.IsRelative() {
+		sx, sy := p.Width.Value(), p.Height.Value()
+		if sx == 0 {
+			sx = sy
+		} else if sy == 0 {
+			sy = sx
+		}
+		if sx == sy {
+			bb.targetScale = sx
+		}
+	}
+	return bb
+}
+
+func (bb *Blackboard) Width() int {
+	return bb.image.Width()
+}
+
+func (bb *Blackboard) Height() int {
+	return bb.image.Height()
+}
+
 func (t *Transform) transform(image *ImageRef) error {
-	if err := resize(image, t.tx); err != nil {
+	bb := NewBlackboard(image, t.tx)
+	if err := resize(bb); err != nil {
 		return err
 	}
 
-	if err := postProcess(image, t.tx); err != nil {
+	if err := postProcess(bb); err != nil {
 		return err
 	}
 
-	// TODO(d): Flatten image
+	// TODO(d): Flatten image backgrounds (e.g., PNG)
 
 	return nil
 }
 
-func resize(image *ImageRef, p *TransformParams) error {
-	kernel := p.ReductionSampler
+func resize(bb *Blackboard) error {
+	kernel := bb.ReductionSampler
 
 	// Check for the simple scale down cases
-	if (p.ScaleX > 0 && p.ScaleX <= 1) || (p.ScaleY > 0 && p.ScaleY < 1) {
-		scaleX := p.ScaleX
-		scaleY := p.ScaleY
-		if scaleX == 0 {
-			scaleX = scaleY
-		} else if scaleY == 0 {
-			scaleY = scaleX
-		}
-		if scaleX == scaleY {
-			return image.Resize(scaleX, InputInt("kernel", int(kernel)))
-		}
+	if bb.targetScale != 0 {
+		return bb.image.Resize(bb.targetScale, InputInt("kernel", int(kernel)))
 	}
 
-	if p.Width == 0 {
-		p.Width = roundFloat(p.ScaleX * float64(image.Width()))
-	}
-	if p.Height == 0 {
-		p.Height = roundFloat(p.ScaleY * float64(image.Height()))
-	}
-
-	if p.Width == 0 || p.Height == 0 {
+	if bb.targetHeight == 0 && bb.targetWidth == 0 {
 		return nil
 	}
 
-	shrinkX := scale(image.Width(), p.Width)
-	shrinkY := scale(image.Height(), p.Height)
+	shrinkX := ratio(bb.Width(), bb.targetWidth)
+	shrinkY := ratio(bb.Height(), bb.targetHeight)
 
-	cropMode := p.ResizeStrategy == ResizeStrategyCrop
+	cropMode := bb.ResizeStrategy == ResizeStrategyCrop
 
 	if cropMode {
 		if shrinkX > 0 && shrinkY > 0 {
@@ -350,7 +403,7 @@ func resize(image *ImageRef, p *TransformParams) error {
 	}
 
 	if shrinkX != 1 || shrinkY != 1 {
-		if err := image.Resize(
+		if err := bb.image.Resize(
 			1.0/shrinkX,
 			InputDouble("vscale", 1.0/shrinkY),
 			InputInt("kernel", int(kernel)),
@@ -359,79 +412,68 @@ func resize(image *ImageRef, p *TransformParams) error {
 		}
 
 		// If stretching then we're done.
-		if p.ResizeStrategy == ResizeStrategyStretch {
+		if bb.ResizeStrategy == ResizeStrategyStretch {
 			return nil
 		}
 	}
 
 	// Crop if necessary
 	if cropMode {
-		if err := maybeCrop(image, p); err != nil {
+		if err := maybeCrop(bb); err != nil {
 			return err
 		}
 	}
 
-	// Now we might need to embed to match the target dimensions
-	if p.Width > image.Width() || p.Height > image.Height() {
-		var left, top int
-		width, height := image.Width(), image.Height()
-		if p.Width > image.Width() {
-			width = p.Width
-			left = (p.Width - image.Width()) >> 1
-		}
-		if p.Height > image.Height() {
-			height = p.Height
-			top = (p.Height - image.Height()) >> 1
-		}
-		if err := image.Embed(left, top, width, height, InputInt("extend", int(p.PadStrategy))); err != nil {
-			return err
-		}
+	if err := maybeEmbed(bb); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-func maybeCrop(image *ImageRef, p *TransformParams) error {
-	if p.Width >= image.Width() && p.Height >= image.Height() {
+func maybeCrop(bb *Blackboard) error {
+	imageW, imageH := bb.Width(), bb.Height()
+
+	if bb.targetWidth >= imageW && bb.targetHeight >= imageH {
 		return nil
 	}
-	imageW, imageH := image.Width(), image.Height()
-	width := minInt(p.Width, imageW)
-	height := minInt(p.Height, imageH)
+
+	width := minInt(bb.targetWidth, imageW)
+	height := minInt(bb.targetHeight, imageH)
 	left, top := 0, 0
-	middleX := (imageW - p.Width + 1) >> 1
-	middleY := (imageH - p.Height + 1) >> 1
-	if p.CropOffsetX != 0 || p.CropOffsetY != 0 {
-		if p.CropOffsetX >= 0 {
-			left = middleX + minInt(p.CropOffsetX, middleX)
+	middleX := (imageW - bb.targetWidth + 1) >> 1
+	middleY := (imageH - bb.targetHeight + 1) >> 1
+	if bb.cropOffsetX != 0 || bb.cropOffsetY != 0 {
+		if bb.cropOffsetX >= 0 {
+			left = middleX + minInt(bb.cropOffsetX, middleX)
 		} else {
-			left = middleX - maxInt(p.CropOffsetX, middleX)
+			left = middleX - maxInt(bb.cropOffsetX, middleX)
 		}
-		if p.CropOffsetY >= 0 {
-			top = middleY + minInt(p.CropOffsetY, middleY)
+		if bb.cropOffsetY >= 0 {
+			top = middleY + minInt(bb.cropOffsetY, middleY)
 		} else {
-			top = middleY - maxInt(p.CropOffsetY, middleY)
+			top = middleY - maxInt(bb.cropOffsetY, middleY)
 		}
 	} else {
-		switch p.CropAnchor {
+		switch bb.CropAnchor {
 		case AnchorTop:
 			left = middleX
 		case AnchorBottom:
 			left = middleX
-			top = imageH - p.Height
+			top = imageH - bb.targetHeight
 		case AnchorRight:
-			left = imageW - p.Width
+			left = imageW - bb.targetWidth
 			top = middleY
 		case AnchorLeft:
 			top = middleY
 		case AnchorTopRight:
-			left = imageW - p.Width
+			left = imageW - bb.targetWidth
 		case AnchorTopLeft:
 		case AnchorBottomRight:
-			left = imageW - p.Width
-			top = imageH - p.Height
+			left = imageW - bb.targetWidth
+			top = imageH - bb.targetHeight
 		case AnchorBottomLeft:
-			top = imageH - p.Height
+			top = imageH - bb.targetHeight
 		default:
 			left = middleX
 			top = middleY
@@ -439,29 +481,52 @@ func maybeCrop(image *ImageRef, p *TransformParams) error {
 	}
 	left = maxInt(left, 0)
 	top = maxInt(top, 0)
-	width = minInt(left+width, p.Width)
-	height = minInt(top+height, p.Height)
-	return image.ExtractArea(left, top, width, height)
+	width = minInt(left+width, bb.targetWidth)
+	height = minInt(top+height, bb.targetHeight)
+	return bb.image.ExtractArea(left, top, width, height)
 }
 
-func postProcess(image *ImageRef, p *TransformParams) error {
-	if p.ZoomX > 0 || p.ZoomY > 0 {
-		if err := image.Zoom(p.ZoomX, p.ZoomY); err != nil {
+func maybeEmbed(bb *Blackboard) error {
+	imageW, imageH := bb.Width(), bb.Height()
+
+	// Now we might need to embed to match the target dimensions
+	if bb.targetWidth > imageW || bb.targetHeight > imageH {
+		var left, top int
+		width, height := imageW, imageH
+		if bb.targetWidth > imageW {
+			width = bb.targetWidth
+			left = (bb.targetWidth - imageW) >> 1
+		}
+		if bb.targetHeight > imageH {
+			height = bb.targetHeight
+			top = (bb.targetHeight - imageH) >> 1
+		}
+		if err := bb.image.Embed(left, top, width, height, InputInt("extend", int(bb.PadStrategy))); err != nil {
 			return err
 		}
 	}
 
-	if p.Flip != FlipNone {
+	return nil
+}
+
+func postProcess(bb *Blackboard) error {
+	if bb.ZoomX > 0 || bb.ZoomY > 0 {
+		if err := bb.image.Zoom(bb.ZoomX, bb.ZoomY); err != nil {
+			return err
+		}
+	}
+
+	if bb.Flip != FlipNone {
 		var err error
-		switch p.Flip {
+		switch bb.Flip {
 		case FlipHorizontal:
-			err = image.Flip(DirectionHorizontal)
+			err = bb.image.Flip(DirectionHorizontal)
 		case FlipVertical:
-			err = image.Flip(DirectionVertical)
+			err = bb.image.Flip(DirectionVertical)
 		case FlipBoth:
-			err = image.Flip(DirectionHorizontal)
+			err = bb.image.Flip(DirectionHorizontal)
 			if err == nil {
-				err = image.Flip(DirectionVertical)
+				err = bb.image.Flip(DirectionVertical)
 			}
 		}
 		if err != nil {
@@ -469,14 +534,14 @@ func postProcess(image *ImageRef, p *TransformParams) error {
 		}
 	}
 
-	if p.Invert {
-		if err := image.Invert(); err != nil {
+	if bb.Invert {
+		if err := bb.image.Invert(); err != nil {
 			return err
 		}
 	}
 
-	if p.BlurSigma > 0 {
-		if err := image.Gaussblur(p.BlurSigma); err != nil {
+	if bb.BlurSigma > 0 {
+		if err := bb.image.Gaussblur(bb.BlurSigma); err != nil {
 			return err
 		}
 	}
@@ -492,7 +557,7 @@ func maxInt(a, b int) int {
 	return int(math.Max(float64(a), float64(b)))
 }
 
-func scale(x, y int) float64 {
+func ratio(x, y int) float64 {
 	if x == y {
 		return 1
 	}
@@ -549,4 +614,42 @@ func (r *LazyFile) Write(p []byte) (n int, err error) {
 		r.file = f
 	}
 	return r.file.Write(p)
+}
+
+type Scalar struct {
+	value    float64
+	relative bool
+}
+
+func (s *Scalar) SetInt(value int) {
+	s.Set(float64(value))
+}
+
+func (s *Scalar) Set(value float64) {
+	s.value = value
+	s.relative = false
+}
+
+func (s *Scalar) SetRelative(f float64) {
+	s.value = f
+	s.relative = true
+}
+
+func (s *Scalar) IsRelative() bool {
+	return s.relative
+}
+
+func (s *Scalar) Value() float64 {
+	return s.value
+}
+
+func (s *Scalar) Get(base int) float64 {
+	if s.relative {
+		return s.value * float64(base)
+	}
+	return s.value
+}
+
+func (s *Scalar) GetRounded(base int) int {
+	return roundFloat(s.Get(base))
 }
