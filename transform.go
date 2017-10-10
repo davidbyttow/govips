@@ -484,8 +484,14 @@ func maybeCrop(bb *Blackboard) error {
 	}
 	left = maxInt(left, 0)
 	top = maxInt(top, 0)
-	width = minInt(left+width, bb.targetWidth)
-	height = minInt(top+height, bb.targetHeight)
+	if left+width > imageW {
+		width = imageW - left
+		bb.targetWidth = width
+	}
+	if top+height > imageH {
+		height = imageH - top
+		bb.targetHeight = height
+	}
 	return bb.image.ExtractArea(left, top, width, height)
 }
 
