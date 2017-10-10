@@ -109,17 +109,27 @@ func (t *Transform) Anchor(anchor Anchor) *Transform {
 	return t
 }
 
-// CropOffset sets the target offset from the crop position
-func (t *Transform) CropOffset(x, y int) *Transform {
+// CropOffsetX sets the target offset from the crop position
+func (t *Transform) CropOffsetX(x int) *Transform {
 	t.tx.CropOffsetX.SetInt(x)
+	return t
+}
+
+// CropOffsetY sets the target offset from the crop position
+func (t *Transform) CropOffsetY(y int) *Transform {
 	t.tx.CropOffsetY.SetInt(y)
 	return t
 }
 
-// CropOffsetPercent sets the target offset from the crop position
-func (t *Transform) CropOffsetPercent(x, y float64) *Transform {
-	t.tx.CropOffsetX.SetRelative(x)
-	t.tx.CropOffsetY.SetRelative(y)
+// CropRelativeOffsetX sets the target offset from the crop position
+func (t *Transform) CropRelativeOffsetX(x float64) *Transform {
+	t.tx.CropOffsetX.SetScale(x)
+	return t
+}
+
+// CropRelativeOffsetY sets the target offset from the crop position
+func (t *Transform) CropRelativeOffsetY(y float64) *Transform {
+	t.tx.CropOffsetY.SetScale(y)
 	return t
 }
 
@@ -186,20 +196,20 @@ func (t *Transform) Stretch() *Transform {
 
 // ScaleWidth scales the image by its width proportionally
 func (t *Transform) ScaleWidth(scale float64) *Transform {
-	t.tx.Width.SetRelative(scale)
+	t.tx.Width.SetScale(scale)
 	return t
 }
 
 // ScaleHeight scales the height of the image proportionally
 func (t *Transform) ScaleHeight(scale float64) *Transform {
-	t.tx.Height.SetRelative(scale)
+	t.tx.Height.SetScale(scale)
 	return t
 }
 
 // Scale the image
 func (t *Transform) Scale(scale float64) *Transform {
-	t.tx.Width.SetRelative(scale)
-	t.tx.Height.SetRelative(scale)
+	t.tx.Width.SetScale(scale)
+	t.tx.Height.SetScale(scale)
 	return t
 }
 
@@ -307,7 +317,7 @@ func NewBlackboard(image *ImageRef, p *TransformParams) *Blackboard {
 	bb.cropOffsetX = p.CropOffsetX.GetRounded(imageWidth)
 	bb.cropOffsetY = p.CropOffsetY.GetRounded(imageHeight)
 
-	if p.Width.Value() == 0 && p.Height.Value() == 0 {
+	if p.Width.Value == 0 && p.Height.Value == 0 {
 		return bb
 	}
 
@@ -323,8 +333,8 @@ func NewBlackboard(image *ImageRef, p *TransformParams) *Blackboard {
 		bb.targetWidth = roundFloat(ratio(bb.targetHeight, imageHeight) * float64(imageWidth))
 	}
 
-	if p.Width.IsRelative() && p.Height.IsRelative() {
-		sx, sy := p.Width.Value(), p.Height.Value()
+	if p.Width.Relative && p.Height.Relative {
+		sx, sy := p.Width.Value, p.Height.Value
 		if sx == 0 {
 			sx = sy
 		} else if sy == 0 {
@@ -610,8 +620,8 @@ func (r *LazyFile) Write(p []byte) (n int, err error) {
 }
 
 type Scalar struct {
-	value    float64
-	relative bool
+	Value    float64
+	Relative bool
 }
 
 func (s *Scalar) SetInt(value int) {
@@ -619,28 +629,20 @@ func (s *Scalar) SetInt(value int) {
 }
 
 func (s *Scalar) Set(value float64) {
-	s.value = value
-	s.relative = false
+	s.Value = value
+	s.Relative = false
 }
 
-func (s *Scalar) SetRelative(f float64) {
-	s.value = f
-	s.relative = true
-}
-
-func (s *Scalar) IsRelative() bool {
-	return s.relative
-}
-
-func (s *Scalar) Value() float64 {
-	return s.value
+func (s *Scalar) SetScale(f float64) {
+	s.Value = f
+	s.Relative = true
 }
 
 func (s *Scalar) Get(base int) float64 {
-	if s.relative {
-		return s.value * float64(base)
+	if s.Relative {
+		return s.Value * float64(base)
 	}
-	return s.value
+	return s.Value
 }
 
 func (s *Scalar) GetRounded(base int) int {

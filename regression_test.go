@@ -53,7 +53,7 @@ func TestBottomRightCrop(t *testing.T) {
 func TestOffsetCrop(t *testing.T) {
 	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
 		tx.Resize(500, 720).
-			CropOffset(120, 0).
+			CropOffsetX(120).
 			ResizeStrategy(vips.ResizeStrategyCrop)
 	})
 }
@@ -61,7 +61,7 @@ func TestOffsetCrop(t *testing.T) {
 func TestRelativeOffsetCrop(t *testing.T) {
 	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
 		tx.Resize(500, 720).
-			CropOffsetPercent(0.1066, 0).
+			CropRelativeOffsetX(0.1066).
 			ResizeStrategy(vips.ResizeStrategyCrop)
 	})
 }
