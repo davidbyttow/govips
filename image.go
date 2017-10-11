@@ -41,7 +41,6 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
-	defer runtime.KeepAlive(buf)
 	startupIfNeeded()
 
 	image, format, err := vipsLoadFromBuffer(buf)
@@ -49,7 +48,9 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 		return nil, err
 	}
 
-	return newImageRef(image, format), nil
+	ref, err := newImageRef(image, format), nil
+	runtime.KeepAlive(buf)
+	return ref, err
 }
 
 func newImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {

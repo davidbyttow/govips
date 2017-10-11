@@ -61,7 +61,7 @@ func TestOffsetCrop(t *testing.T) {
 func TestOffsetCropBounds(t *testing.T) {
 	goldenTest(t, "fixtures/bag.jpg", func(tx *vips.Transform) {
 		tx.Resize(100, 100).
-			CropOffset(120, 0).
+			CropOffsetX(120).
 			ResizeStrategy(vips.ResizeStrategyCrop)
 	})
 }

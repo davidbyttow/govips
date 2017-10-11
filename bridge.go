@@ -6,6 +6,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"runtime"
 	dbg "runtime/debug"
 	"unsafe"
 )
@@ -17,60 +18,6 @@ const (
 
 var stringBuffer4096 = fixedString(4096)
 
-func vipsForeignFindLoad(filename string) (string, error) {
-	cFilename := C.CString(filename)
-	defer freeCString(cFilename)
-
-	cOperationName := C.vips_foreign_find_load(cFilename)
-	if cOperationName == nil {
-		return "", ErrUnsupportedImageFormat
-	}
-	return C.GoString(cOperationName), nil
-}
-
-func vipsForeignFindLoadBuffer(bytes []byte) (string, error) {
-	cOperationName := C.vips_foreign_find_load_buffer(
-		byteArrayPointer(bytes),
-		C.size_t(len(bytes)))
-	if cOperationName == nil {
-		return "", ErrUnsupportedImageFormat
-	}
-	return C.GoString(cOperationName), nil
-}
-
-func vipsForeignFindSave(filename string) (string, error) {
-	cFilename := C.CString(filename)
-	defer freeCString(cFilename)
-
-	cOperationName := C.vips_foreign_find_save(cFilename)
-	if cOperationName == nil {
-		return "", ErrUnsupportedImageFormat
-	}
-	return C.GoString(cOperationName), nil
-}
-
-func vipsForeignFindSaveBuffer(filename string) (string, error) {
-	cFilename := C.CString(filename)
-	defer freeCString(cFilename)
-
-	cOperationName := C.vips_foreign_find_save_buffer(cFilename)
-	if cOperationName == nil {
-		return "", ErrUnsupportedImageFormat
-	}
-	return C.GoString(cOperationName), nil
-}
-
-func vipsInterpolateNew(name string) (*C.VipsInterpolate, error) {
-	cName := C.CString(name)
-	defer freeCString(cName)
-
-	interp := C.vips_interpolate_new(cName)
-	if interp == nil {
-		return nil, fmt.Errorf("Invalid interpolator: %s", name)
-	}
-	return interp, nil
-}
-
 func vipsOperationNew(name string) *C.VipsOperation {
 	cName := C.CString(name)
 	defer freeCString(cName)
@@ -80,12 +27,6 @@ func vipsOperationNew(name string) *C.VipsOperation {
 func vipsCall(name string, options []*Option) error {
 	operation := vipsOperationNew(name)
 	return vipsCallOperation(operation, options)
-}
-
-func closeOptions(options []*Option) {
-	for _, o := range options {
-		o.Close()
-	}
 }
 
 func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
@@ -174,6 +115,8 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		return nil, ImageTypeUnknown, handleVipsError()
 	}
 
+	runtime.KeepAlive(buf)
+
 	return image, imageType, nil
 }
 
@@ -216,6 +159,8 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	}
 
 	buf := C.GoBytes(ptr, C.int(cLen))
+
+	runtime.KeepAlive(ptr)
 
 	C.g_free(C.gpointer(ptr))
 	C.vips_error_clear()
