@@ -100,6 +100,9 @@ func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImag
 }
 
 func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+	// Reference buf here so it's not garbage collected during image initialization.
+	defer runtime.KeepAlive(buf)
+
 	var image *C.VipsImage
 	imageType := vipsDetermineImageType(buf)
 
@@ -109,19 +112,22 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 
 	len := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
+	defer runtime.KeepAlive(imageBuf)
 
 	err := C.init_image(imageBuf, len, C.int(imageType), &image)
 	if err != 0 {
 		return nil, ImageTypeUnknown, handleVipsError()
 	}
 
-	runtime.KeepAlive(buf)
-
 	return image, imageType, nil
 }
 
 func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) {
+	defer runtime.KeepAlive(image)
+
 	tmpImage, err := vipsPrepareForExport(image, params)
+	defer runtime.KeepAlive(tmpImage)
+
 	if err != nil {
 		return nil, err
 	}
@@ -143,6 +149,8 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	}
 
 	var ptr unsafe.Pointer
+	defer runtime.KeepAlive(ptr)
+
 	switch params.Format {
 	case ImageTypeWEBP:
 		cErr = C.save_webp_buffer(tmpImage, &ptr, &cLen, stripMetadata, quality)
@@ -159,12 +167,7 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	}
 
 	buf := C.GoBytes(ptr, C.int(cLen))
-
-	runtime.KeepAlive(ptr)
-
 	C.g_free(C.gpointer(ptr))
-	C.vips_error_clear()
-
 	return buf, nil
 }
 
@@ -177,7 +180,7 @@ func isColorspaceIsSupportedBuffer(buf []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	C.g_object_unref(C.gpointer(image))
+	defer C.g_object_unref(C.gpointer(image))
 	return int(C.is_colorspace_supported(image)) == 1, nil
 }
 
@@ -210,31 +213,6 @@ func vipsDetermineImageType(buf []byte) ImageType {
 		return ImageTypeWEBP
 	}
 	return ImageTypeUnknown
-}
-
-func vipsShrinkJPEG(buf []byte, input *C.VipsImage, shrink int) (*C.VipsImage, error) {
-	var image *C.VipsImage
-	var ptr = unsafe.Pointer(&buf[0])
-	defer C.g_object_unref(C.gpointer(input))
-
-	err := C.load_jpeg_buffer(ptr, C.size_t(len(buf)), &image, C.int(shrink))
-	if err != 0 {
-		return nil, handleVipsError()
-	}
-
-	return image, nil
-}
-
-func vipsShrink(input *C.VipsImage, shrink int) (*C.VipsImage, error) {
-	var image *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
-
-	err := C.shrink_image(input, &image, C.double(float64(shrink)), C.double(float64(shrink)))
-	if err != 0 {
-		return nil, handleVipsError()
-	}
-
-	return image, nil
 }
 
 func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error) {

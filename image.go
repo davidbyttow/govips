@@ -21,6 +21,8 @@ type ImageRef struct {
 
 // LoadImage loads an ImageRef from the given reader
 func LoadImage(r io.Reader) (*ImageRef, error) {
+	startupIfNeeded()
+
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
@@ -49,7 +51,6 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 	}
 
 	ref, err := newImageRef(image, format), nil
-	runtime.KeepAlive(buf)
 	return ref, err
 }
 

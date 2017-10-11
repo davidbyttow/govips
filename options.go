@@ -4,12 +4,14 @@ package vips
 // #include "vips/vips.h"
 import "C"
 import (
+	"runtime"
 	"unsafe"
 )
 
 // Option is a type that is passed to internal libvips functions
 type Option struct {
 	Name   string
+	ref    interface{}
 	gvalue C.GValue
 	closer func(gv *C.GValue)
 	output bool
@@ -37,6 +39,7 @@ func (v *Option) Close() {
 		v.closer(&v.gvalue)
 	}
 	C.g_value_unset(&v.gvalue)
+	runtime.KeepAlive(v.ref)
 }
 
 // GValue returns the internal gvalue type
@@ -111,6 +114,7 @@ func OutputString(name string, v *string) *Option {
 func InputImage(name string, v *C.VipsImage) *Option {
 	o := NewOption(name, C.vips_image_get_type(), false, nil)
 	C.g_value_set_object(&o.gvalue, C.gpointer(v))
+	o.ref = v
 	return o
 }
 
@@ -132,5 +136,6 @@ func InputInterpolator(name string, interp Interpolator) *Option {
 		defer C.g_object_unref(C.gpointer(interpolator))
 	})
 	C.g_value_set_object(&o.gvalue, C.gpointer(interpolator))
+	o.ref = interpolator
 	return o
 }
