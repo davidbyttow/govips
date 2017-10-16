@@ -17,6 +17,11 @@ import (
 type ImageRef struct {
 	image  *C.VipsImage
 	format ImageType
+
+	// NOTE(d): We keep a reference to this so that the input buffer is
+	// never garbage collected during processing. Some image loaders use random
+	// access transcoding and therefore need the original buffer to be in memory.
+	buf []byte
 }
 
 // LoadImage loads an ImageRef from the given reader
@@ -51,6 +56,7 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 	}
 
 	ref, err := newImageRef(image, format), nil
+	ref.buf = buf
 	return ref, err
 }
 
@@ -59,11 +65,11 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
 		image:  vipsImage,
 		format: format,
 	}
-	runtime.SetFinalizer(stream, finalizeStream)
+	runtime.SetFinalizer(stream, finalizeImage)
 	return stream
 }
 
-func finalizeStream(ref *ImageRef) {
+func finalizeImage(ref *ImageRef) {
 	ref.Close()
 }
 

@@ -112,7 +112,6 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 
 	len := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
-	defer runtime.KeepAlive(imageBuf)
 
 	err := C.init_image(imageBuf, len, C.int(imageType), &image)
 	if err != 0 {
@@ -123,10 +122,7 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 }
 
 func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) {
-	defer runtime.KeepAlive(image)
-
 	tmpImage, err := vipsPrepareForExport(image, params)
-	defer runtime.KeepAlive(tmpImage)
 
 	if err != nil {
 		return nil, err
@@ -149,7 +145,6 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	}
 
 	var ptr unsafe.Pointer
-	defer runtime.KeepAlive(ptr)
 
 	switch params.Format {
 	case ImageTypeWEBP:

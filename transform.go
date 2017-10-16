@@ -5,7 +5,6 @@ import (
 	"io"
 	"math"
 	"os"
-	"runtime"
 )
 
 // InputParams are options when importing an image from file or buffer
@@ -281,7 +280,9 @@ func (t *Transform) importImage() (*ImageRef, error) {
 }
 
 func (t *Transform) exportImage(image *ImageRef) ([]byte, error) {
-	defer runtime.KeepAlive(image)
+	if t.export.Format == ImageTypeUnknown {
+		t.export.Format = image.Format()
+	}
 
 	buf, err := vipsExportBuffer(image.Image(), t.export)
 	if err != nil {

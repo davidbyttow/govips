@@ -4,7 +4,6 @@ package vips
 // #include "vips/vips.h"
 import "C"
 import (
-	"runtime"
 	"unsafe"
 )
 
@@ -39,7 +38,6 @@ func (v *Option) Close() {
 		v.closer(&v.gvalue)
 	}
 	C.g_value_unset(&v.gvalue)
-	runtime.KeepAlive(v.ref)
 }
 
 // GValue returns the internal gvalue type

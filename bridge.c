@@ -181,7 +181,7 @@ void gobject_set_property(VipsObject *object, const char *name, const GValue *va
 
   if( vips_object_get_argument( object, name,
     &pspec, &argument_class, &argument_instance ) ) {
-    vips_warn( NULL, "%s", vips_error_buffer() );
+    vips_warn( NULL, "gobject warning: %s", vips_error_buffer() );
     vips_error_clear();
     return;
   }
@@ -195,7 +195,7 @@ void gobject_set_property(VipsObject *object, const char *name, const GValue *va
 
     if( (enum_value = vips_enum_from_nick( object_class->nickname,
       pspec_type, g_value_get_string( value ) )) < 0 ) {
-      vips_warn( NULL, "%s", vips_error_buffer() );
+      vips_warn( NULL, "gobject warning: %s", vips_error_buffer() );
       vips_error_clear();
       return;
     }
