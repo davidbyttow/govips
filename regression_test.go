@@ -59,7 +59,7 @@ func TestOffsetCrop(t *testing.T) {
 }
 
 func TestOffsetCropBounds(t *testing.T) {
-	goldenTest(t, "fixtures/bag.jpg", func(tx *vips.Transform) {
+	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
 		tx.Resize(100, 100).
 			CropOffsetX(120).
 			ResizeStrategy(vips.ResizeStrategyCrop)
@@ -95,7 +95,10 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte) {
 	if golden != nil {
 		if !assert.Equal(t, golden, buf) {
 			failed := file[:i] + "." + t.Name() + ".failed" + file[i:]
-			ioutil.WriteFile(failed, buf, 0644)
+			err := ioutil.WriteFile(failed, buf, 0666)
+			if err != nil {
+				panic(err)
+			}
 		}
 		return
 	}
