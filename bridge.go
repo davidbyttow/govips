@@ -144,8 +144,7 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 		return nil, fmt.Errorf("cannot save to %#v", imageTypes[params.Format])
 	}
 
-	// Only PNG images are supported for now
-	if params.Format != ImageTypePNG || params.BackgroundColor != nil {
+	if params.BackgroundColor != nil {
 		tmpImage, err = vipsFlattenBackground(tmpImage, *params.BackgroundColor)
 		if err != nil {
 			return nil, err
