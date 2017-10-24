@@ -251,6 +251,13 @@ func (t *Transform) StripMetadata() *Transform {
 	return t
 }
 
+// BackgroundColor sets the background color of the image when a transparent
+// image is flattened
+func (t *Transform) BackgroundColor(color Color) *Transform {
+	t.export.BackgroundColor = &color
+	return t
+}
+
 // Apply loads the image, applies the transform, and exports it according
 // to the parameters specified
 func (t *Transform) Apply() ([]byte, error) {
@@ -368,8 +375,6 @@ func (t *Transform) transform(image *ImageRef) error {
 	if err := postProcess(bb); err != nil {
 		return err
 	}
-
-	// TODO(d): Flatten image backgrounds (e.g., PNG)
 
 	return nil
 }

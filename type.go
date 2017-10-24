@@ -31,7 +31,7 @@ type ExportParams struct {
 	StripProfile    bool
 	StripMetadata   bool
 	Interpretation  Interpretation
-	BackgroundColor Color
+	BackgroundColor *Color
 }
 
 // Color represents an RGB

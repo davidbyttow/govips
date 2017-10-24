@@ -144,6 +144,14 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 		return nil, fmt.Errorf("cannot save to %#v", imageTypes[params.Format])
 	}
 
+	// Only PNG images are supported for now
+	if params.Format != ImageTypePNG || params.BackgroundColor != nil {
+		tmpImage, err = vipsFlattenBackground(tmpImage, *params.BackgroundColor)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var ptr unsafe.Pointer
 
 	switch params.Format {
@@ -211,8 +219,7 @@ func vipsDetermineImageType(buf []byte) ImageType {
 }
 
 func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error) {
-	var image *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+	var output *C.VipsImage
 
 	bg := [3]C.double{
 		C.double(color.R),
@@ -221,13 +228,15 @@ func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error
 	}
 
 	if int(C.has_alpha_channel(input)) > 0 {
-		err := C.flatten_image_background(input, &image, bg[0], bg[1], bg[2])
+		err := C.flatten_image_background(input, &output, bg[0], bg[1], bg[2])
 		if int(err) != 0 {
 			return nil, handleVipsError()
 		}
+		C.g_object_unref(C.gpointer(input))
+		input = output
 	}
 
-	return image, nil
+	return input, nil
 }
 
 func handleVipsError() error {
