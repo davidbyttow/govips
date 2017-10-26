@@ -3,7 +3,7 @@
 # A libvips library for Go
 This package wraps the core functionality of [libvips](https://github.com/jcupitt/libvips) image processing library by exposing all image operations on first-class types in Go. Additionally, it exposes raw access to call operations directly, for forward compatibility.
 
-How fast is libvips? See this: [Speed and Memory Use](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use)
+How fast is libvips? See this: [Speed and Memory Use](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use)
 
 This library was inspired primarily based on the C++ wrapper in libvips.
 
@@ -13,9 +13,9 @@ Libvips is generally 4-8x faster than other graphics processors such as Graphics
 
 # Supported image operations
 This library supports all known operations available to libvips found here:
-- [VIPS function list](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)
-- [VipsImage](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/VipsImage.html)
-- [VipsOperation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/VipsOperation.html)
+- [VIPS function list](http://jcupitt.github.io/libvips/API/current/VipsImage.html)
+- [VipsImage](http://jcupitt.github.io/libvips/API/current/VipsImage.html)
+- [VipsOperation](http://jcupitt.github.io/libvips/API/current/VipsOperation.html)
 
 # Requirements
 - [libvips](https://github.com/jcupitt/libvips) 8+ (8.5.8+ recommended for GIF, PDF, SVG support)
