@@ -18,7 +18,7 @@ var (
 	batchFlag       = flag.Int("batch", 5, "Transforms per batch")
 	varianceFlag    = flag.Int("variance", 0, "Target height and width variance")
 	delayFlag       = flag.Int("delay", 50, "Delay in milliseconds between batches")
-	limitFlag       = flag.Int("limit", 0, "Total number of images to process. 0 = infinite")
+	limitFlag       = flag.Int("limit", 100, "Total number of images to process. 0 = infinite")
 	widthFlag       = flag.Int("width", 300, "Target width of each image")
 	heightFlag      = flag.Int("height", 300, "Target height of each image")
 	cacheFlag       = flag.Bool("cache", true, "Cache remote images")
@@ -45,7 +45,6 @@ func main() {
 }
 
 func soak() {
-
 	batch := *batchFlag
 	delay := time.Millisecond * time.Duration(*delayFlag)
 	width := *widthFlag
