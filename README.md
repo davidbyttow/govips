@@ -3,7 +3,7 @@
 # A libvips library for Go
 This package wraps the core functionality of [libvips](https://github.com/jcupitt/libvips) image processing library by exposing all image operations on first-class types in Go. Additionally, it exposes raw access to call operations directly, for forward compatibility.
 
-How fast is libvips? See this: [Speed and Memory Use](http://www.vips.ecs.soton.ac.uk/index.php?title=Speed_and_Memory_Use)
+How fast is libvips? See this: [Speed and Memory Use](https://github.com/jcupitt/libvips/wiki/Speed-and-memory-use)
 
 This library was inspired primarily based on the C++ wrapper in libvips.
 
