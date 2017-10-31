@@ -8,7 +8,10 @@ import (
 	"github.com/davidbyttow/govips"
 )
 
-var flagFile = flag.String("file", "", "file to compute average for")
+var (
+	flagFile        = flag.String("file", "", "file to compute average for")
+	reportLeaksFlag = flag.Bool("leaks", false, "Outputs vips memory")
+)
 
 func main() {
 	flag.Usage = func() {
@@ -21,7 +24,9 @@ func main() {
 	vips.ShutdownThread()
 	vips.Shutdown()
 
-	vips.PrintObjectReport("avg")
+	if *reportLeaksFlag {
+		vips.PrintObjectReport("avg")
+	}
 }
 
 func avg(file string) error {

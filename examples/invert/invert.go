@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	flagIn  = flag.String("in", "", "file to load")
-	flagOut = flag.String("out", "", "file to write out")
+	flagIn          = flag.String("in", "", "file to load")
+	flagOut         = flag.String("out", "", "file to write out")
+	reportLeaksFlag = flag.Bool("leaks", false, "Outputs vips memory")
 )
 
 func main() {
@@ -23,7 +24,9 @@ func main() {
 	invert(*flagIn, *flagOut)
 	vips.Shutdown()
 
-	vips.PrintObjectReport("invert")
+	if *reportLeaksFlag {
+		vips.PrintObjectReport("invert")
+	}
 }
 
 func invert(inputFile, outputFile string) error {

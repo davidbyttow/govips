@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	flagIn  = flag.String("in", "", "file to load")
-	flagOut = flag.String("out", "", "file to write out")
+	flagIn          = flag.String("in", "", "file to load")
+	flagOut         = flag.String("out", "", "file to write out")
+	reportLeaksFlag = flag.Bool("leaks", false, "Outputs vips memory")
 )
 
 func main() {
@@ -22,6 +23,10 @@ func main() {
 	vips.Startup(nil)
 	embed(*flagIn, *flagOut)
 	vips.Shutdown()
+
+	if *reportLeaksFlag {
+		vips.PrintObjectReport("invert")
+	}
 
 	vips.PrintObjectReport("embed")
 }

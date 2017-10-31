@@ -9,8 +9,9 @@ import (
 )
 
 var (
-	flagIn  = flag.String("in", "", "file to load")
-	flagOut = flag.String("out", "", "file to write out")
+	flagIn          = flag.String("in", "", "file to load")
+	flagOut         = flag.String("out", "", "file to write out")
+	reportLeaksFlag = flag.Bool("leaks", false, "Outputs vips memory")
 )
 
 func main() {
@@ -23,7 +24,9 @@ func main() {
 	resize(*flagIn, *flagOut)
 	vips.Shutdown()
 
-	vips.PrintObjectReport("resize")
+	if *reportLeaksFlag {
+		vips.PrintObjectReport("resize")
+	}
 }
 
 func resize(inputFile, outputFile string) error {
