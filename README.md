@@ -13,9 +13,9 @@ Libvips is generally 4-8x faster than other graphics processors such as Graphics
 
 # Supported image operations
 This library supports all known operations available to libvips found here:
-- [VIPS function list](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/func-list.html)
-- [VipsImage](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/VipsImage.html)
-- [VipsOperation](http://www.vips.ecs.soton.ac.uk/supported/current/doc/html/libvips/VipsOperation.html)
+- [VIPS function list](http://jcupitt.github.io/libvips/API/current/VipsImage.html)
+- [VipsImage](http://jcupitt.github.io/libvips/API/current/VipsImage.html)
+- [VipsOperation](http://jcupitt.github.io/libvips/API/current/VipsOperation.html)
 
 # Requirements
 - [libvips](https://github.com/jcupitt/libvips) 8+ (8.5.8+ recommended for GIF, PDF, SVG support)
