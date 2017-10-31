@@ -29,8 +29,8 @@ func main() {
 func embed(inputFile, outputFile string) error {
 	_, err := vips.NewTransform().
 		LoadFile(inputFile).
-		PadStrategy(vips.ExtendBlack).
 		Resize(1200, 1200).
+		Embed(vips.ExtendBlack).
 		OutputFile(outputFile).
 		Apply()
 	return err
