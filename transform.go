@@ -11,6 +11,7 @@ import (
 type InputParams struct {
 	InputFile string
 	Reader    io.Reader
+	Image     *ImageRef
 }
 
 // TransformParams are parameters for the transformation
@@ -58,6 +59,12 @@ func NewTransform() *Transform {
 			Interpretation: InterpretationSRGB,
 		},
 	}
+}
+
+// Image sets the image to operate on
+func (t *Transform) Image(image *ImageRef) *Transform {
+	t.input.Image = image
+	return t
 }
 
 // LoadFile loads a file into the transform
@@ -280,6 +287,9 @@ func (t *Transform) Apply() ([]byte, error) {
 }
 
 func (t *Transform) importImage() (*ImageRef, error) {
+	if t.input.Image != nil {
+		return t.input.Image, nil
+	}
 	if t.input.Reader == nil {
 		panic("no input source specified")
 	}

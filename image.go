@@ -55,12 +55,12 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 		return nil, err
 	}
 
-	ref, err := newImageRef(image, format), nil
+	ref, err := NewImageRef(image, format), nil
 	ref.buf = buf
 	return ref, err
 }
 
-func newImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
+func NewImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
 	stream := &ImageRef{
 		image:  vipsImage,
 		format: format,
