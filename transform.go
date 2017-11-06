@@ -251,6 +251,18 @@ func (t *Transform) Quality(quality int) *Transform {
 	return t
 }
 
+// Compression sets the compression value for image formats that support it
+func (t *Transform) Compression(compression int) *Transform {
+	t.export.Compression = compression
+	return t
+}
+
+// Lossless uses lossless compression for image formats that support both lossy and lossless e.g. webp
+func (t *Transform) Lossless() *Transform {
+	t.export.Lossless = true
+	return t
+}
+
 // StripMetadata strips ICC profile and metadata from the image
 func (t *Transform) StripMetadata() *Transform {
 	t.export.StripProfile = true

@@ -28,6 +28,7 @@ type ExportParams struct {
 	Quality         int
 	Compression     int
 	Interlaced      bool
+	Lossless        bool
 	StripProfile    bool
 	StripMetadata   bool
 	Interpretation  Interpretation

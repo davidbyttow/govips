@@ -32,16 +32,17 @@ var (
 )
 
 type transform struct {
-	Resize  vips.ResizeStrategy
-	Width   int
-	Height  int
-	Flip    vips.FlipDirection
-	Format  vips.ImageType
-	Zoom    int
-	Blur    float64
-	Kernel  vips.Kernel
-	Interp  vips.Interpolator
-	Quality int
+	Resize      vips.ResizeStrategy
+	Width       int
+	Height      int
+	Flip        vips.FlipDirection
+	Format      vips.ImageType
+	Zoom        int
+	Blur        float64
+	Kernel      vips.Kernel
+	Interp      vips.Interpolator
+	Quality     int
+	Compression int
 }
 
 func TestCleanup(t *testing.T) {
@@ -54,16 +55,17 @@ func TestCleanup(t *testing.T) {
 		for _, size := range sizes {
 			for _, format := range formats {
 				t := transform{
-					Resize:  resize,
-					Width:   size.w,
-					Height:  size.h,
-					Flip:    vips.FlipBoth,
-					Kernel:  vips.KernelLanczos3,
-					Format:  format,
-					Blur:    4,
-					Interp:  vips.InterpolateBicubic,
-					Zoom:    3,
-					Quality: 80,
+					Resize:      resize,
+					Width:       size.w,
+					Height:      size.h,
+					Flip:        vips.FlipBoth,
+					Kernel:      vips.KernelLanczos3,
+					Format:      format,
+					Blur:        4,
+					Interp:      vips.InterpolateBicubic,
+					Zoom:        3,
+					Quality:     80,
+					Compression: 5,
 				}
 				transforms = append(transforms, t)
 			}
@@ -88,6 +90,7 @@ func TestCleanup(t *testing.T) {
 					Interpolator(transform.Interp).
 					Zoom(transform.Zoom, transform.Zoom).
 					Quality(transform.Quality).
+					Compression(transform.Compression).
 					OutputBytes().
 					Apply()
 				require.NoError(t, err)

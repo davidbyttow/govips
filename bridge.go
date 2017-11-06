@@ -138,6 +138,7 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	var cErr C.int
 	interlaced := C.int(boolToInt(params.Interlaced))
 	quality := C.int(params.Quality)
+	lossless := C.int(boolToInt(params.Lossless))
 	stripMetadata := C.int(boolToInt(params.StripMetadata))
 
 	if params.Format != ImageTypeUnknown && !IsTypeSupported(params.Format) {
@@ -155,7 +156,7 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 
 	switch params.Format {
 	case ImageTypeWEBP:
-		cErr = C.save_webp_buffer(tmpImage, &ptr, &cLen, stripMetadata, quality)
+		cErr = C.save_webp_buffer(tmpImage, &ptr, &cLen, stripMetadata, quality, lossless)
 	case ImageTypePNG:
 		cErr = C.save_png_buffer(tmpImage, &ptr, &cLen, stripMetadata, C.int(params.Compression), quality, interlaced)
 	case ImageTypeTIFF:
