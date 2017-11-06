@@ -140,3 +140,7 @@ func ReadVipsMemStats(stats *VipsMemoryStats) {
 	stats.MemHigh = int64(C.vips_tracked_get_mem_highwater())
 	stats.Allocs = int64(C.vips_tracked_get_allocs())
 }
+
+func VipsClearCache() {
+	C.vips_cache_drop_all()
+}
