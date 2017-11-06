@@ -14,13 +14,10 @@ import (
 	"sync"
 )
 
-// TODO(d): Tune these. Concurrency is set to a safe level but assumes
-// openslide is not enabled.
 const (
-	defaultConcurrencyLevel = 10
-	defaultMaxCacheFiles    = 500
+	defaultConcurrencyLevel = 1
 	defaultMaxCacheMem      = 100 * 1024 * 1024
-	defaultMaxCacheSize     = 1000
+	defaultMaxCacheSize     = 500
 )
 
 // VipsVersion if the primary version of libvips
@@ -76,7 +73,6 @@ func Startup(config *Config) {
 	C.vips_concurrency_set(defaultConcurrencyLevel)
 	C.vips_cache_set_max(defaultMaxCacheSize)
 	C.vips_cache_set_max_mem(defaultMaxCacheMem)
-	C.vips_cache_set_max_files(defaultMaxCacheFiles)
 
 	if config != nil {
 		C.vips_leak_set(toGboolean(config.ReportLeaks))
@@ -131,4 +127,16 @@ func Shutdown() {
 // ShutdownThread clears the cache for for the given thread
 func ShutdownThread() {
 	C.vips_thread_shutdown()
+}
+
+type VipsMemoryStats struct {
+	Mem     int64
+	MemHigh int64
+	Allocs  int64
+}
+
+func ReadVipsMemStats(stats *VipsMemoryStats) {
+	stats.Mem = int64(C.vips_tracked_get_mem())
+	stats.MemHigh = int64(C.vips_tracked_get_mem_highwater())
+	stats.Allocs = int64(C.vips_tracked_get_allocs())
 }
