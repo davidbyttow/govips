@@ -1,8 +1,14 @@
 package vips
 
+// #cgo pkg-config: vips
+// #include "bridge.h"
+import "C"
+
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"io/ioutil"
 	"math"
 	"os"
 )
@@ -283,37 +289,42 @@ func (t *Transform) Apply() ([]byte, error) {
 	defer ShutdownThread()
 	startupIfNeeded()
 
-	image, err := t.importImage()
+	input, imageType, err := t.importImage()
 	if err != nil {
 		return nil, err
 	}
 
-	defer image.Close()
+	transformed, err := t.transform(input, imageType)
 
-	err = t.transform(image)
 	if err != nil {
 		return nil, err
 	}
 
-	return t.exportImage(image)
+	return t.exportImage(transformed, imageType)
 }
 
-func (t *Transform) importImage() (*ImageRef, error) {
+func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
 	if t.input.Image != nil {
-		return t.input.Image, nil
+		return t.input.Image.image, t.input.Image.Format(), nil
 	}
 	if t.input.Reader == nil {
 		panic("no input source specified")
 	}
-	return LoadImage(t.input.Reader)
+	buf, err := ioutil.ReadAll(t.input.Reader)
+	if err != nil {
+		return nil, ImageTypeUnknown, nil
+	}
+	return vipsLoadFromBuffer(buf)
 }
 
-func (t *Transform) exportImage(image *ImageRef) ([]byte, error) {
+func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte, error) {
 	if t.export.Format == ImageTypeUnknown {
-		t.export.Format = image.Format()
+		t.export.Format = imageType
 	}
 
-	buf, err := vipsExportBuffer(image.Image(), t.export)
+	defer C.g_object_unref(C.gpointer(image))
+
+	buf, err := vipsExportBuffer(image, t.export)
 	if err != nil {
 		return nil, err
 	}
@@ -330,7 +341,8 @@ func (t *Transform) exportImage(image *ImageRef) ([]byte, error) {
 
 type Blackboard struct {
 	*TransformParams
-	image        *ImageRef
+	image        *C.VipsImage
+	imageType    ImageType
 	aspectRatio  float64
 	targetWidth  int
 	targetHeight int
@@ -339,13 +351,14 @@ type Blackboard struct {
 	cropOffsetY  int
 }
 
-func NewBlackboard(image *ImageRef, p *TransformParams) *Blackboard {
+func NewBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) *Blackboard {
 	bb := &Blackboard{
 		TransformParams: p,
 		image:           image,
+		imageType:       imageType,
 	}
-	imageWidth := image.Width()
-	imageHeight := image.Height()
+	imageWidth := int(image.Xsize)
+	imageHeight := int(image.Ysize)
 	bb.aspectRatio = ratio(imageWidth, imageHeight)
 	bb.cropOffsetX = p.CropOffsetX.GetRounded(imageWidth)
 	bb.cropOffsetY = p.CropOffsetY.GetRounded(imageHeight)
@@ -381,32 +394,37 @@ func NewBlackboard(image *ImageRef, p *TransformParams) *Blackboard {
 }
 
 func (bb *Blackboard) Width() int {
-	return bb.image.Width()
+	return int(bb.image.Xsize)
 }
 
 func (bb *Blackboard) Height() int {
-	return bb.image.Height()
+	return int(bb.image.Ysize)
 }
 
-func (t *Transform) transform(image *ImageRef) error {
-	bb := NewBlackboard(image, t.tx)
+func (t *Transform) transform(image *C.VipsImage, imageType ImageType) (*C.VipsImage, error) {
+	bb := NewBlackboard(image, imageType, t.tx)
 	if err := resize(bb); err != nil {
-		return err
+		return image, err
 	}
 
 	if err := postProcess(bb); err != nil {
-		return err
+		return image, err
 	}
 
-	return nil
+	return bb.image, nil
 }
 
 func resize(bb *Blackboard) error {
+	var err error
 	kernel := bb.ReductionSampler
 
 	// Check for the simple scale down cases
 	if bb.targetScale != 0 {
-		return bb.image.Resize(bb.targetScale, InputInt("kernel", int(kernel)))
+		bb.image, err = vipsResize(bb.image, bb.targetScale, bb.targetScale, kernel)
+		fmt.Printf("scaled: %d %d", bb.image.Xsize, bb.image.Ysize)
+		if err != nil {
+			return err
+		}
 	}
 
 	if bb.targetHeight == 0 && bb.targetWidth == 0 {
@@ -437,11 +455,8 @@ func resize(bb *Blackboard) error {
 	}
 
 	if shrinkX != 1 || shrinkY != 1 {
-		if err := bb.image.Resize(
-			1.0/shrinkX,
-			InputDouble("vscale", 1.0/shrinkY),
-			InputInt("kernel", int(kernel)),
-		); err != nil {
+		bb.image, err = vipsResize(bb.image, 1.0/shrinkX, 1.0/shrinkY, kernel)
+		if err != nil {
 			return err
 		}
 
@@ -466,6 +481,7 @@ func resize(bb *Blackboard) error {
 }
 
 func maybeCrop(bb *Blackboard) error {
+	var err error
 	imageW, imageH := bb.Width(), bb.Height()
 
 	if bb.targetWidth >= imageW && bb.targetHeight >= imageH {
@@ -523,10 +539,12 @@ func maybeCrop(bb *Blackboard) error {
 		height = imageH - top
 		bb.targetHeight = height
 	}
-	return bb.image.ExtractArea(left, top, width, height)
+	bb.image, err = vipsExtractArea(bb.image, left, top, width, height)
+	return err
 }
 
 func maybeEmbed(bb *Blackboard) error {
+	var err error
 	imageW, imageH := bb.Width(), bb.Height()
 
 	// Now we might need to embed to match the target dimensions
@@ -541,7 +559,8 @@ func maybeEmbed(bb *Blackboard) error {
 			height = bb.targetHeight
 			top = (bb.targetHeight - imageH) >> 1
 		}
-		if err := bb.image.Embed(left, top, width, height, InputInt("extend", int(bb.PadStrategy))); err != nil {
+		bb.image, err = vipsEmbed(bb.image, left, top, width, height, bb.PadStrategy)
+		if err != nil {
 			return err
 		}
 	}
@@ -550,8 +569,10 @@ func maybeEmbed(bb *Blackboard) error {
 }
 
 func postProcess(bb *Blackboard) error {
+	var err error
 	if bb.ZoomX > 0 || bb.ZoomY > 0 {
-		if err := bb.image.Zoom(bb.ZoomX, bb.ZoomY); err != nil {
+		bb.image, err = vipsZoom(bb.image, bb.ZoomX, bb.ZoomY)
+		if err != nil {
 			return err
 		}
 	}
@@ -560,13 +581,13 @@ func postProcess(bb *Blackboard) error {
 		var err error
 		switch bb.Flip {
 		case FlipHorizontal:
-			err = bb.image.Flip(DirectionHorizontal)
+			bb.image, err = vipsFlip(bb.image, DirectionHorizontal)
 		case FlipVertical:
-			err = bb.image.Flip(DirectionVertical)
+			bb.image, err = vipsFlip(bb.image, DirectionVertical)
 		case FlipBoth:
-			err = bb.image.Flip(DirectionHorizontal)
+			bb.image, err = vipsFlip(bb.image, DirectionHorizontal)
 			if err == nil {
-				err = bb.image.Flip(DirectionVertical)
+				bb.image, err = vipsFlip(bb.image, DirectionVertical)
 			}
 		}
 		if err != nil {
@@ -575,13 +596,15 @@ func postProcess(bb *Blackboard) error {
 	}
 
 	if bb.Invert {
-		if err := bb.image.Invert(); err != nil {
+		bb.image, err = vipsInvert(bb.image)
+		if err != nil {
 			return err
 		}
 	}
 
 	if bb.BlurSigma > 0 {
-		if err := bb.image.Gaussblur(bb.BlurSigma); err != nil {
+		bb.image, err = vipsGaussianBlur(bb.image, bb.BlurSigma)
+		if err != nil {
 			return err
 		}
 	}
@@ -684,4 +707,8 @@ func (s *Scalar) Get(base int) float64 {
 
 func (s *Scalar) GetRounded(base int) int {
 	return roundFloat(s.Get(base))
+}
+
+func fastResize() {
+
 }
