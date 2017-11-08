@@ -706,7 +706,3 @@ func (s *Scalar) Get(base int) float64 {
 func (s *Scalar) GetRounded(base int) int {
 	return roundFloat(s.Get(base))
 }
-
-func fastResize() {
-
-}
