@@ -6,7 +6,6 @@ import "C"
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"math"
@@ -421,7 +420,6 @@ func resize(bb *Blackboard) error {
 	// Check for the simple scale down cases
 	if bb.targetScale != 0 {
 		bb.image, err = vipsResize(bb.image, bb.targetScale, bb.targetScale, kernel)
-		fmt.Printf("scaled: %d %d", bb.image.Xsize, bb.image.Ysize)
 		if err != nil {
 			return err
 		}
