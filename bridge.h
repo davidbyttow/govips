@@ -35,6 +35,7 @@ int is_colorspace_supported(VipsImage *in);
 int remove_icc_profile(VipsImage *in);
 
 // Operations
+int resize_image(VipsImage *in, VipsImage **out, double scale, double vscale, int kernel);
 int flip_image(VipsImage *in, VipsImage **out, int direction);
 int shrink_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink);
 int reduce_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink);
@@ -43,6 +44,8 @@ int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, in
 int extract_image_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height);
 int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g, double b);
 int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c, double d, VipsInterpolate *interpolator);
+int gaussian_blur(VipsImage *in, VipsImage **out, double sigma);
+int invert_image(VipsImage *in, VipsImage **out);
 
 void gobject_set_property(VipsObject* object, const char* name, const GValue* value);
 

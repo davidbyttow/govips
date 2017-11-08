@@ -239,6 +239,69 @@ func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error
 	return input, nil
 }
 
+func vipsResize(input *C.VipsImage, scale, vscale float64, kernel Kernel) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.resize_image(input, &output, C.double(scale), C.double(vscale), C.int(kernel)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsExtractArea(input *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.extract_image_area(input, &output, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsEmbed(input *C.VipsImage, left, top, width, height int, extend Extend) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.embed_image(input, &output, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend), 0, 0, 0); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsFlip(input *C.VipsImage, dir Direction) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.flip_image(input, &output, C.int(dir)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsInvert(input *C.VipsImage) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.invert_image(input, &output); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsGaussianBlur(input *C.VipsImage, sigma float64) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.gaussian_blur(input, &output, C.double(sigma)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsZoom(input *C.VipsImage, xFactor, yFactor int) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.zoom_image(input, &output, C.int(xFactor), C.int(yFactor)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
 func handleVipsError() error {
 	defer C.vips_thread_shutdown()
 	defer C.vips_error_clear()

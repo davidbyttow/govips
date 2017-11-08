@@ -86,6 +86,13 @@ int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space) {
 	return vips_colourspace(in, out, space, NULL);
 }
 
+int resize_image(VipsImage *in, VipsImage **out, double scale, double vscale, int kernel) {
+	if (vscale > 0) {
+		return vips_resize(in, out, scale, "vscale", vscale, "kernel", kernel, NULL);
+	}
+	return vips_resize(in, out, scale, "kernel", kernel, NULL);
+}
+
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
 	return vips_flip(in, out, direction, NULL);
 }
@@ -101,6 +108,15 @@ int reduce_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink)
 int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac) {
 	return vips_zoom(in, out, xfac, yfac, NULL);
 }
+
+int gaussian_blur(VipsImage *in, VipsImage **out, double sigma) {
+	return vips_gaussblur(in, out, sigma, NULL);
+}
+
+int invert_image(VipsImage *in, VipsImage **out) {
+	return vips_invert(in, out, NULL);
+}
+
 
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, int height, int extend, double r, double g, double b) {
 	if (extend == VIPS_EXTEND_BACKGROUND) {
