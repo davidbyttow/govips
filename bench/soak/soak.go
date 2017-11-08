@@ -6,7 +6,9 @@ import (
 	"io/ioutil"
 	"log"
 	"math/rand"
+	"os"
 	"runtime"
+	"runtime/pprof"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -24,10 +26,23 @@ var (
 	cacheFlag       = flag.Bool("cache", true, "Cache remote images")
 	concurrencyFlag = flag.Int("concurrency", 1, "Concurrency level")
 	imageFlag       = flag.String("image", "bench/soak/dwi.jpg", "Image file to load")
+	cpuProfileFlag  = flag.String("cpuprofile", "", "write cpu profile `file`")
+	memProfileFlag  = flag.String("memprofile", "", "write memory profile to `file`")
 )
 
 func main() {
 	flag.Parse()
+
+	if *cpuProfileFlag != "" {
+		f, err := os.Create(*cpuProfileFlag)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
 
 	cfg := &vips.Config{
 		ConcurrencyLevel: *concurrencyFlag,
@@ -42,6 +57,18 @@ func main() {
 	vips.ShutdownThread()
 	vips.Shutdown()
 	vips.PrintObjectReport("Soak test")
+
+	if *memProfileFlag != "" {
+		f, err := os.Create(*memProfileFlag)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+		f.Close()
+	}
 }
 
 func soak() {

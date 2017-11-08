@@ -55,9 +55,9 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 		return nil, err
 	}
 
-	ref, err := NewImageRef(image, format), nil
+	ref := NewImageRef(image, format)
 	ref.buf = buf
-	return ref, err
+	return ref, nil
 }
 
 func NewImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
@@ -76,7 +76,7 @@ func finalizeImage(ref *ImageRef) {
 // SetImage resets the image for this image and frees the previous one
 func (ref *ImageRef) SetImage(image *C.VipsImage) {
 	if ref.image != nil {
-		C.g_object_unref(C.gpointer(ref.image))
+		defer C.g_object_unref(C.gpointer(ref.image))
 	}
 	ref.image = image
 }
@@ -89,6 +89,7 @@ func (ref *ImageRef) Format() ImageType {
 // Close closes an image and frees internal memory associated with it
 func (ref *ImageRef) Close() {
 	ref.SetImage(nil)
+	ref.buf = nil
 }
 
 // Image returns a handle to the internal vips image, just in case
