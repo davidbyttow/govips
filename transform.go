@@ -46,6 +46,7 @@ type Transform struct {
 	targetHeight int
 	cropOffsetX  int
 	cropOffsetY  int
+	source       []byte
 }
 
 // NewTransform constructs a new transform for execution
@@ -286,6 +287,9 @@ func (t *Transform) BackgroundColor(color Color) *Transform {
 // to the parameters specified
 func (t *Transform) Apply() ([]byte, error) {
 	defer ShutdownThread()
+	defer func() {
+		t.source = nil
+	}()
 	startupIfNeeded()
 
 	input, imageType, err := t.importImage()
@@ -309,11 +313,12 @@ func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
 	if t.input.Reader == nil {
 		panic("no input source specified")
 	}
-	buf, err := ioutil.ReadAll(t.input.Reader)
+	var err error
+	t.source, err = ioutil.ReadAll(t.input.Reader)
 	if err != nil {
 		return nil, ImageTypeUnknown, nil
 	}
-	return vipsLoadFromBuffer(buf)
+	return vipsLoadFromBuffer(t.source)
 }
 
 func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte, error) {
