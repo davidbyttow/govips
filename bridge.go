@@ -4,8 +4,8 @@ package vips
 // #include "bridge.h"
 import "C"
 import (
-	"errors"
 	"fmt"
+	"log"
 	"runtime"
 	dbg "runtime/debug"
 	"unsafe"
@@ -107,7 +107,12 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	imageType := vipsDetermineImageType(buf)
 
 	if imageType == ImageTypeUnknown {
-		return nil, ImageTypeUnknown, errors.New("Unsupported image format")
+		if len(buf) > 2 {
+			log.Printf("Failed to understand image format size=%d %x %x %x", len(buf), buf[0], buf[1], buf[2])
+		} else {
+			log.Printf("Failed to understand image format size=%d", len(buf))
+		}
+		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
 	len := C.size_t(len(buf))
@@ -192,6 +197,9 @@ func isColorspaceIsSupported(image *C.VipsImage) bool {
 }
 
 func vipsDetermineImageType(buf []byte) ImageType {
+	if len(buf) < 12 {
+		return ImageTypeUnknown
+	}
 	if buf[0] == 0xFF && buf[1] == 0xD8 && buf[2] == 0xFF {
 		return ImageTypeJPEG
 	}

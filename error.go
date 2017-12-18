@@ -8,5 +8,5 @@ import "errors"
 
 var (
 	// ErrUnsupportedImageFormat when image type is unsupported
-	ErrUnsupportedImageFormat = errors.New("UnsupportedImageFormat")
+	ErrUnsupportedImageFormat = errors.New("Unsupported image format")
 )
