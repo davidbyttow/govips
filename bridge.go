@@ -192,9 +192,6 @@ func isColorspaceIsSupported(image *C.VipsImage) bool {
 }
 
 func vipsDetermineImageType(buf []byte) ImageType {
-	if len(buf) < 12 {
-		return ImageTypeUnknown
-	}
 	if buf[0] == 0xFF && buf[1] == 0xD8 && buf[2] == 0xFF {
 		return ImageTypeJPEG
 	}
