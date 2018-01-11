@@ -5,6 +5,7 @@ package vips
 import "C"
 
 import (
+	"log"
 	"unsafe"
 )
 
@@ -45,12 +46,10 @@ func fixedString(size int) string {
 	return string(b)
 }
 
-var debugFn = go_debug.Debug("govips")
-
 func debug(fmt string, values ...interface{}) {
 	if len(values) > 0 {
-		debugFn(fmt, values...)
+		log.Printf(fmt, values...)
 	} else {
-		debugFn(fmt)
+		log.Print(fmt)
 	}
 }
