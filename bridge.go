@@ -30,8 +30,6 @@ func vipsCall(name string, options []*Option) error {
 }
 
 func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
-	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
-
 	// Set the inputs
 	for _, option := range options {
 		if option.Output() {
@@ -48,6 +46,8 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	if ret := C.vips_cache_operation_buildp(&operation); ret != 0 {
 		return handleVipsError()
 	}
+  
+  defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
 
 	// Write back the outputs
 	for _, option := range options {
