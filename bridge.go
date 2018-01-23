@@ -46,8 +46,8 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	if ret := C.vips_cache_operation_buildp(&operation); ret != 0 {
 		return handleVipsError()
 	}
-  
-  defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
+
+	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
 
 	// Write back the outputs
 	for _, option := range options {
