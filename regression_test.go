@@ -80,6 +80,12 @@ func TestRelativeOffsetCrop(t *testing.T) {
 	})
 }
 
+func TestRotate(t *testing.T) {
+	goldenTest(t, "fixtures/canyon.jpg", func(tx *vips.Transform) {
+		tx.Rotate(vips.Angle90)
+	})
+}
+
 func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) {
 	if testing.Short() {
 		return
