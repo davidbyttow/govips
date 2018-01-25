@@ -20,7 +20,16 @@ enum types {
 	MAGICK
 };
 
-int init_image(void *buf, size_t len, int imageType, VipsImage **out);
+typedef struct {
+	int		 Page;
+	int		 N;
+	int 	 Shrink;
+	double DPI;
+	double Scale;
+	int	 	 Autorotate;
+} ImageLoadOptions;
+
+int init_image(void *buf, size_t len, int imageType, VipsImage **out, ImageLoadOptions *o);
 int find_image_type_loader(int t);
 int find_image_type_saver(int t);
 

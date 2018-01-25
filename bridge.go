@@ -14,9 +14,23 @@ import (
 const (
 	defaultQuality     = 90
 	defaultCompression = 6
+	defaultN           = 1
+	defaultDPI         = 72
+	defaultScale       = 1
+	defaultShrink      = 1
 )
 
 var stringBuffer4096 = fixedString(4096)
+
+// vipsImageLoadOptions represents the image load options used to talk with libvips.
+type vipsImageLoadOptions struct {
+	Page       C.int
+	N          C.int
+	Shrink     C.int
+	DPI        C.double
+	Scale      C.double
+	Autorotate C.int
+}
 
 func vipsOperationNew(name string) *C.VipsOperation {
 	cName := C.CString(name)
@@ -65,6 +79,24 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	return nil
 }
 
+func vipsPrepareForImport(params *InputParams) {
+	if params.N == 0 {
+		params.N = defaultN
+	}
+
+	if params.DPI == 0 {
+		params.DPI = defaultDPI
+	}
+
+	if params.Scale == 0 {
+		params.Scale = defaultScale
+	}
+
+	if params.Shrink == 0 {
+		params.Shrink = defaultShrink
+	}
+}
+
 func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
 	if params.StripProfile {
 		C.remove_icc_profile(input)
@@ -99,10 +131,11 @@ func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImag
 	return input, nil
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, params *InputParams) (*C.VipsImage, ImageType, error) {
 	// Reference buf here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(buf)
 
+	vipsPrepareForImport(params)
 	var image *C.VipsImage
 	imageType := vipsDetermineImageType(buf)
 
@@ -117,8 +150,16 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 
 	len := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
+	opts := (*C.ImageLoadOptions)(unsafe.Pointer(&vipsImageLoadOptions{
+		C.int(params.Page),
+		C.int(params.N),
+		C.int(params.Shrink),
+		C.double(params.DPI),
+		C.double(params.Scale),
+		C.int(boolToInt(params.Autorotate)),
+	}))
 
-	err := C.init_image(imageBuf, len, C.int(imageType), &image)
+	err := C.init_image(imageBuf, len, C.int(imageType), &image, opts)
 	if err != 0 {
 		return nil, ImageTypeUnknown, handleVipsError()
 	}
@@ -184,7 +225,7 @@ func isTypeSupported(imageType ImageType) bool {
 }
 
 func isColorspaceIsSupportedBuffer(buf []byte) (bool, error) {
-	image, _, err := vipsLoadFromBuffer(buf)
+	image, _, err := vipsLoadFromBuffer(buf, nil)
 	if err != nil {
 		return false, err
 	}

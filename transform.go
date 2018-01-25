@@ -14,9 +14,15 @@ import (
 
 // InputParams are options when importing an image from file or buffer
 type InputParams struct {
-	InputFile string
-	Reader    io.Reader
-	Image     *ImageRef
+	InputFile  string
+	Reader     io.Reader
+	Image      *ImageRef
+	Page       int
+	N          int
+	Shrink     int
+	DPI        float64
+	Scale      float64
+	Autorotate bool
 }
 
 // TransformParams are parameters for the transformation
@@ -88,6 +94,49 @@ func (t *Transform) LoadBuffer(buf []byte) *Transform {
 // Load loads a buffer into the transform
 func (t *Transform) Load(reader io.Reader) *Transform {
 	t.input.Reader = reader
+	return t
+}
+
+// Page sets the page number to load, starting from 0. Defaults to 0
+// Works for TIFF, GIF, MAGICK, and PDF input files
+func (t *Transform) Page(page int) *Transform {
+	t.input.Page = page
+	return t
+}
+
+// NumberOfPages tells libvips to load this many pages. Defaults to 1
+// Works for TIFF, GIF, MAGICK, and PDF input files
+func (t *Transform) NumberOfPages(n int) *Transform {
+	t.input.N = n
+	return t
+}
+
+// DPI tells libvips to render at this DPI. Defaults to 72
+// Works for SVG and PDF input files
+func (t *Transform) DPI(dpi float64) *Transform {
+	t.input.DPI = dpi
+	return t
+}
+
+// LoadScale tells libvips to scale render by this factor. Defaults to 1
+// Works for SVG and PDF input files
+func (t *Transform) LoadScale(scale float64) *Transform {
+	t.input.Scale = scale
+	return t
+}
+
+// Shrink tells libvips to shrink by this much on load. Defaults to 1
+// Possible values are 1, 2, 4 and 8
+// Works for JPEG, WEBP, and TIFF input files
+func (t *Transform) Shrink(shrink int) *Transform {
+	t.input.Shrink = shrink
+	return t
+}
+
+// Autorotate uses exif Orientation tag to rotate the image during load. Defaults to false
+// Works for JPEG input files
+func (t *Transform) Autorotate(autorotate bool) *Transform {
+	t.input.Autorotate = autorotate
 	return t
 }
 
@@ -318,7 +367,7 @@ func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
 	if err != nil {
 		return nil, ImageTypeUnknown, nil
 	}
-	return vipsLoadFromBuffer(t.source)
+	return vipsLoadFromBuffer(t.source, t.input)
 }
 
 func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte, error) {

@@ -5,28 +5,68 @@ int is_16bit(VipsInterpretation interpretation) {
 	return interpretation == VIPS_INTERPRETATION_RGB16 || interpretation == VIPS_INTERPRETATION_GREY16;
 }
 
-int init_image(void *buf, size_t len, int imageType, VipsImage **out) {
+int init_image(void *buf, size_t len, int imageType, VipsImage **out, ImageLoadOptions *o) {
 	int code = 1;
 
 	if (imageType == JPEG) {
-		code = vips_jpegload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_jpegload_buffer(buf, len, out,
+			"access", VIPS_ACCESS_RANDOM,
+ 			"shrink", o->Shrink,
+ 			"autorotate", o->Autorotate,
+			NULL
+		);
 	} else if (imageType == PNG) {
-		code = vips_pngload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_pngload_buffer(buf, len, out,
+			"access", VIPS_ACCESS_RANDOM,
+			NULL
+		);
 	} else if (imageType == WEBP) {
-		code = vips_webpload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_webpload_buffer(buf, len, out,
+			"access", VIPS_ACCESS_RANDOM,
+ 			"shrink", o->Shrink,
+			NULL
+		);
 	} else if (imageType == TIFF) {
-		code = vips_tiffload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_tiffload_buffer(buf, len, out,
+			"access", VIPS_ACCESS_RANDOM,
+ 			"page", o->Page,
+ 			"n", o->N,
+ 			"shrink", o->Shrink,
+			NULL
+		);
 #if (VIPS_MAJOR_VERSION >= 8)
 #if (VIPS_MINOR_VERSION >= 3)
 	} else if (imageType == GIF) {
-		code = vips_gifload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_gifload_buffer(buf, len, out,
+			"access", VIPS_ACCESS_RANDOM,
+ 			"page", o->Page,
+ 			"n", o->N,
+			NULL
+		);
 	} else if (imageType == PDF) {
-		code = vips_pdfload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_pdfload_buffer(buf, len, out,
+ 			"access", VIPS_ACCESS_RANDOM,
+ 			"page", o->Page,
+ 			"n", o->N,
+ 			"dpi", o->DPI,
+ 			"scale", o->Scale,
+ 			NULL
+		);
 	} else if (imageType == SVG) {
-		code = vips_svgload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_svgload_buffer(buf, len, out,
+			"access", VIPS_ACCESS_RANDOM,
+ 			"dpi", o->DPI,
+ 			"scale", o->Scale,
+			NULL
+		);
 #endif
 	} else if (imageType == MAGICK) {
-		code = vips_magickload_buffer(buf, len, out, "access", VIPS_ACCESS_RANDOM, NULL);
+		code = vips_magickload_buffer(buf, len, out,
+			"access", VIPS_ACCESS_RANDOM,
+ 			"page", o->Page,
+ 			"n", o->N,
+			NULL
+		);
 #endif
 	}
 

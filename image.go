@@ -50,7 +50,7 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	image, format, err := vipsLoadFromBuffer(buf, nil)
 	if err != nil {
 		return nil, err
 	}
