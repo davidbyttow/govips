@@ -195,24 +195,6 @@ func (t *Transform) Rotate(angle Angle) *Transform {
 	return t
 }
 
-// Rotate90 rotates image by 90 degress clockwise
-func (t *Transform) Rotate90() *Transform {
-	t.tx.Rotate = Angle90
-	return t
-}
-
-// Rotate180 rotates image by 180 degress clockwise
-func (t *Transform) Rotate180(angle Angle) *Transform {
-	t.tx.Rotate = Angle180
-	return t
-}
-
-// Rotate270 rotates image by 270 degress clockwise
-func (t *Transform) Rotate270(angle Angle) *Transform {
-	t.tx.Rotate = Angle270
-	return t
-}
-
 // Embed this image appropriately if resized according to a new aspect ratio
 func (t *Transform) Embed(extend Extend) *Transform {
 	t.tx.ResizeStrategy = ResizeStrategyEmbed

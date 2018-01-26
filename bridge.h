@@ -37,9 +37,6 @@ int remove_icc_profile(VipsImage *in);
 // Operations
 int resize_image(VipsImage *in, VipsImage **out, double scale, double vscale, int kernel);
 int rot_image(VipsImage *in, VipsImage **out, VipsAngle angle);
-int rot_image90(VipsImage *in, VipsImage **out);
-int rot_image180(VipsImage *in, VipsImage **out);
-int rot_image270(VipsImage *in, VipsImage **out);
 int flip_image(VipsImage *in, VipsImage **out, int direction);
 int shrink_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink);
 int reduce_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink);

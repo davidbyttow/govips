@@ -97,18 +97,6 @@ int rot_image(VipsImage *in, VipsImage **out, VipsAngle angle) {
   return vips_rot(in, out, angle, NULL);
 }
 
-int rot_image90(VipsImage *in, VipsImage **out) {
-  return vips_rot(in, out, VIPS_ANGLE_D90, NULL);
-}
-
-int rot_image180(VipsImage *in, VipsImage **out) {
-  return vips_rot(in, out, VIPS_ANGLE_D180, NULL);
-}
-
-int rot_image270(VipsImage *in, VipsImage **out) {
-  return vips_rot(in, out, VIPS_ANGLE_D270, NULL);
-}
-
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
 	return vips_flip(in, out, direction, NULL);
 }
