@@ -225,7 +225,7 @@ func isTypeSupported(imageType ImageType) bool {
 }
 
 func isColorspaceIsSupportedBuffer(buf []byte) (bool, error) {
-	image, _, err := vipsLoadFromBuffer(buf, nil)
+	image, _, err := vipsLoadFromBuffer(buf, &InputParams{})
 	if err != nil {
 		return false, err
 	}
