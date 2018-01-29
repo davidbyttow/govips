@@ -9,6 +9,7 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -17,17 +18,19 @@ import (
 )
 
 var (
-	batchFlag       = flag.Int("batch", 5, "Transforms per batch")
-	varianceFlag    = flag.Int("variance", 0, "Target height and width variance")
-	delayFlag       = flag.Int("delay", 50, "Delay in milliseconds between batches")
-	limitFlag       = flag.Int("limit", 100, "Total number of images to process. 0 = infinite")
-	widthFlag       = flag.Int("width", 300, "Target width of each image")
-	heightFlag      = flag.Int("height", 300, "Target height of each image")
-	cacheFlag       = flag.Bool("cache", true, "Cache remote images")
-	concurrencyFlag = flag.Int("concurrency", 1, "Concurrency level")
-	imageFlag       = flag.String("image", "bench/soak/dwi.jpg", "Image file to load")
-	cpuProfileFlag  = flag.String("cpuprofile", "", "write cpu profile `file`")
-	memProfileFlag  = flag.String("memprofile", "", "write memory profile to `file`")
+	batchFlag        = flag.Int("batch", 5, "Transforms per batch")
+	varianceFlag     = flag.Int("variance", 10, "Target height and width variance")
+	delayFlag        = flag.Int("delay", 10, "Delay in milliseconds between batches")
+	limitFlag        = flag.Int("limit", 100, "Total number of images to process. 0 = infinite")
+	widthFlag        = flag.Int("width", 300, "Target width of each image")
+	heightFlag       = flag.Int("height", 300, "Target height of each image")
+	cacheFlag        = flag.Bool("cache", true, "Cache remote images")
+	concurrencyFlag  = flag.Int("concurrency", 1, "Concurrency level")
+	maxCacheMemFlag  = flag.Int("maxCacheMem", 0, "Max cache memory")
+	maxCacheSizeFlag = flag.Int("maxCacheSize", 0, "Max cache size")
+	imageFlag        = flag.String("image", "bench/soak/dwi.jpg", "Image file to load")
+	cpuProfileFlag   = flag.String("cpuprofile", "", "write cpu profile `file`")
+	memProfileFlag   = flag.String("memprofile", "", "write memory profile to `file`")
 )
 
 func main() {
@@ -46,17 +49,23 @@ func main() {
 
 	cfg := &vips.Config{
 		ConcurrencyLevel: *concurrencyFlag,
+		MaxCacheMem:      *maxCacheMemFlag,
+		MaxCacheSize:     *maxCacheSizeFlag,
 	}
 	vips.Startup(cfg)
 
 	numCPUs := runtime.NumCPU()
 	runtime.GOMAXPROCS(numCPUs + 1)
 
+	outputStats()
+
 	soak()
 
 	vips.ShutdownThread()
 	vips.Shutdown()
+	runtime.GC()
 	vips.PrintObjectReport("Soak test")
+	outputStats()
 
 	if *memProfileFlag != "" {
 		f, err := os.Create(*memProfileFlag)
@@ -135,4 +144,17 @@ func loadFile(file string) []byte {
 		cachedImages[file] = buf
 	}
 	return buf
+}
+
+func outputStats() {
+	var mem runtime.MemStats
+	runtime.ReadMemStats(&mem)
+	var vipsMem vips.VipsMemoryStats
+	vips.ReadVipsMemStats(&vipsMem)
+
+	lines := []string{
+		fmt.Sprintf("alloc=%d\ntotal=%d\nsys=%d\ninuse=%d", mem.Alloc, mem.TotalAlloc, mem.Sys, mem.HeapInuse),
+		fmt.Sprintf("vips mem=%d high=%d allocs=%d", vipsMem.Mem, vipsMem.MemHigh, vipsMem.Allocs),
+	}
+	fmt.Println(strings.Join(lines, "\n"))
 }
