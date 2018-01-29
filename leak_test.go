@@ -74,23 +74,23 @@ func TestCleanup(t *testing.T) {
 
 	LeakTest(func() {
 		var wg sync.WaitGroup
-		for i, transform := range transforms {
+		for i, tr := range transforms {
 			wg.Add(1)
-			go func(i int) {
+			go func(i int, tr transform) {
 				defer wg.Done()
 
 				buf, err := vips.NewTransform().
 					LoadFile("fixtures/canyon.jpg").
-					ResizeStrategy(transform.Resize).
-					Resize(transform.Width, transform.Height).
-					Flip(transform.Flip).
-					Kernel(transform.Kernel).
-					Format(transform.Format).
-					GaussBlur(transform.Blur).
-					Interpolator(transform.Interp).
-					Zoom(transform.Zoom, transform.Zoom).
-					Quality(transform.Quality).
-					Compression(transform.Compression).
+					ResizeStrategy(tr.Resize).
+					Resize(tr.Width, tr.Height).
+					Flip(tr.Flip).
+					Kernel(tr.Kernel).
+					Format(tr.Format).
+					GaussBlur(tr.Blur).
+					Interpolator(tr.Interp).
+					Zoom(tr.Zoom, tr.Zoom).
+					Quality(tr.Quality).
+					Compression(tr.Compression).
 					OutputBytes().
 					Apply()
 				require.NoError(t, err)
@@ -99,8 +99,8 @@ func TestCleanup(t *testing.T) {
 				require.NoError(t, err)
 				defer image.Close()
 
-				assert.Equal(t, transform.Format, image.Format())
-			}(i)
+				assert.Equal(t, tr.Format, image.Format())
+			}(i, tr)
 		}
 		wg.Wait()
 	})

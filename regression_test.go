@@ -18,7 +18,7 @@ func TestEmbed(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
-		tx.BackgroundColor(vips.Color{255, 192, 203})
+		tx.BackgroundColor(vips.Color{R: 255, G: 192, B: 203})
 	})
 }
 
