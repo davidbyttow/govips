@@ -142,6 +142,7 @@ func ShutdownThread() {
 type VipsMemoryStats struct {
 	Mem     int64
 	MemHigh int64
+	Files   int64
 	Allocs  int64
 }
 
@@ -149,6 +150,7 @@ func ReadVipsMemStats(stats *VipsMemoryStats) {
 	stats.Mem = int64(C.vips_tracked_get_mem())
 	stats.MemHigh = int64(C.vips_tracked_get_mem_highwater())
 	stats.Allocs = int64(C.vips_tracked_get_allocs())
+	stats.Files = int64(C.vips_tracked_get_files())
 }
 
 func VipsClearCache() {
