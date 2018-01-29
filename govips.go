@@ -41,6 +41,7 @@ type Config struct {
 	MaxCacheMem      int
 	MaxCacheSize     int
 	ReportLeaks      bool
+	CacheTrace       bool
 }
 
 // Startup sets up the libvips support and ensures the versions are correct. Pass in nil for
@@ -89,7 +90,16 @@ func Startup(config *Config) {
 		if config.MaxCacheSize > 0 {
 			C.vips_cache_set_max(C.int(config.MaxCacheSize))
 		}
+		if config.CacheTrace {
+			C.vips_cache_set_trace(toGboolean(true))
+		}
 	}
+
+	debug("Vips started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
+		int(C.vips_concurrency_get()),
+		int(C.vips_cache_get_max_files()),
+		int(C.vips_cache_get_max_mem()),
+		int(C.vips_cache_get_max()))
 
 	initTypes()
 }
@@ -143,4 +153,8 @@ func ReadVipsMemStats(stats *VipsMemoryStats) {
 
 func VipsClearCache() {
 	C.vips_cache_drop_all()
+}
+
+func VipsPrintCache() {
+	C.vips_cache_print()
 }
