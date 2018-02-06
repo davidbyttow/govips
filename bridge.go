@@ -220,6 +220,9 @@ func vipsDetermineImageType(buf []byte) ImageType {
 	if IsTypeSupported(ImageTypeWEBP) && buf[8] == 0x57 && buf[9] == 0x45 && buf[10] == 0x42 && buf[11] == 0x50 {
 		return ImageTypeWEBP
 	}
+	if IsTypeSupported(ImageTypeSVG) && buf[0] == 0x3c && buf[1] == 0x3f && buf[2] == 0x78 && buf[3] == 0x6d {
+		return ImageTypeSVG
+	}
 	return ImageTypeUnknown
 }
 
