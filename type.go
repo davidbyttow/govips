@@ -346,7 +346,7 @@ const (
 	MorphologyDilate OperationMorphology = C.VIPS_OPERATION_MORPHOLOGY_DILATE
 )
 
-var imageTypes = map[ImageType]string{
+var ImageTypes = map[ImageType]string{
 	ImageTypeGIF:    "gif",
 	ImageTypeJPEG:   "jpeg",
 	ImageTypeMagick: "magick",
@@ -355,10 +355,6 @@ var imageTypes = map[ImageType]string{
 	ImageTypeSVG:    "svg",
 	ImageTypeTIFF:   "tiff",
 	ImageTypeWEBP:   "webp",
-}
-
-func ImageTypeName(typ ImageType) string {
-	return imageTypes[typ]
 }
 
 var (
@@ -382,7 +378,7 @@ func initTypes() {
 		cType := C.CString("VipsOperation")
 		defer freeCString(cType)
 
-		for k, v := range imageTypes {
+		for k, v := range ImageTypes {
 			name := strings.ToLower("VipsForeignLoad" + v)
 			typeLoaders[name] = k
 			typeLoaders[name+"buffer"] = k

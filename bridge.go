@@ -147,7 +147,7 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	stripMetadata := C.int(boolToInt(params.StripMetadata))
 
 	if params.Format != ImageTypeUnknown && !IsTypeSupported(params.Format) {
-		return nil, fmt.Errorf("cannot save to %#v", imageTypes[params.Format])
+		return nil, fmt.Errorf("cannot save to %#v", ImageTypes[params.Format])
 	}
 
 	if params.BackgroundColor != nil {
