@@ -357,6 +357,10 @@ var imageTypes = map[ImageType]string{
 	ImageTypeWEBP:   "webp",
 }
 
+func ImageTypeName(typ ImageType) string {
+	return imageTypes[typ]
+}
+
 var (
 	once                sync.Once
 	typeLoaders         = make(map[string]ImageType)
