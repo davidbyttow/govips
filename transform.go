@@ -29,6 +29,7 @@ type TransformParams struct {
 	ZoomX                   int
 	ZoomY                   int
 	Invert                  bool
+	Rotate                  Angle
 	BlurSigma               float64
 	Flip                    FlipDirection
 	Width                   Scalar
@@ -185,6 +186,12 @@ func (t *Transform) Flip(flip FlipDirection) *Transform {
 // GaussBlur applies a gaussian blur to the image
 func (t *Transform) GaussBlur(sigma float64) *Transform {
 	t.tx.BlurSigma = sigma
+	return t
+}
+
+// Rotate rotates image by a multiple of 90 degrees
+func (t *Transform) Rotate(angle Angle) *Transform {
+	t.tx.Rotate = angle
 	return t
 }
 
@@ -607,6 +614,13 @@ func postProcess(bb *Blackboard) error {
 
 	if bb.BlurSigma > 0 {
 		bb.image, err = vipsGaussianBlur(bb.image, bb.BlurSigma)
+		if err != nil {
+			return err
+		}
+	}
+
+	if bb.Rotate > 0 {
+		bb.image, err = vipsRotate(bb.image, bb.Rotate)
 		if err != nil {
 			return err
 		}

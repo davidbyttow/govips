@@ -256,6 +256,15 @@ func vipsResize(input *C.VipsImage, scale, vscale float64, kernel Kernel) (*C.Vi
 	return output, nil
 }
 
+func vipsRotate(input *C.VipsImage, angle Angle) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	defer C.g_object_unref(C.gpointer(input))
+	if err := C.rot_image(input, &output, C.VipsAngle(angle)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
 func vipsExtractArea(input *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
 	var output *C.VipsImage
 	defer C.g_object_unref(C.gpointer(input))
