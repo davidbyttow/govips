@@ -3,14 +3,14 @@ package vips_test
 import (
 	"testing"
 
-	"github.com/davidbyttow/govips"
+	"github.com/davidbyttow/govips/pkg/vips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestTransform(t *testing.T) {
 	buf, err := vips.NewTransform().
-		LoadFile("fixtures/canyon.jpg").
+		LoadFile("../../assets/fixtures/canyon.jpg").
 		Scale(0.25).
 		Apply()
 

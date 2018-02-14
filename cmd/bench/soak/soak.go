@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	vips "github.com/davidbyttow/govips"
+	"github.com/davidbyttow/govips/pkg/vips"
 )
 
 var (
@@ -28,7 +28,7 @@ var (
 	concurrencyFlag  = flag.Int("concurrency", 1, "Concurrency level")
 	maxCacheMemFlag  = flag.Int("maxCacheMem", 0, "Max cache memory")
 	maxCacheSizeFlag = flag.Int("maxCacheSize", 0, "Max cache size")
-	imageFlag        = flag.String("image", "bench/soak/dwi.jpg", "Image file to load")
+	imageFlag        = flag.String("image", "cmd/bench/soak/dwi.jpg", "Image file to load")
 	cpuProfileFlag   = flag.String("cpuprofile", "", "write cpu profile `file`")
 	memProfileFlag   = flag.String("memprofile", "", "write memory profile to `file`")
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/davidbyttow/govips"
+	"github.com/davidbyttow/govips/pkg/vips"
 )
 
 var (
@@ -16,23 +16,26 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "resize -in input_file -out output_file")
+		fmt.Fprintf(os.Stderr, "embed -in input_file -out output_file")
 	}
 	flag.Parse()
 
 	vips.Startup(nil)
-	resize(*flagIn, *flagOut)
+	embed(*flagIn, *flagOut)
 	vips.Shutdown()
 
 	if *reportLeaksFlag {
-		vips.PrintObjectReport("resize")
+		vips.PrintObjectReport("invert")
 	}
+
+	vips.PrintObjectReport("embed")
 }
 
-func resize(inputFile, outputFile string) error {
+func embed(inputFile, outputFile string) error {
 	_, err := vips.NewTransform().
 		LoadFile(inputFile).
-		Scale(0.2).
+		Resize(1200, 1200).
+		Embed(vips.ExtendBlack).
 		OutputFile(outputFile).
 		Apply()
 	return err

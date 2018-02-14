@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/davidbyttow/govips"
+	"github.com/davidbyttow/govips/pkg/vips"
 )
 
 var (
@@ -16,26 +16,23 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "embed -in input_file -out output_file")
+		fmt.Fprintf(os.Stderr, "invert -in input_file -out output_file")
 	}
 	flag.Parse()
 
 	vips.Startup(nil)
-	embed(*flagIn, *flagOut)
+	invert(*flagIn, *flagOut)
 	vips.Shutdown()
 
 	if *reportLeaksFlag {
 		vips.PrintObjectReport("invert")
 	}
-
-	vips.PrintObjectReport("embed")
 }
 
-func embed(inputFile, outputFile string) error {
+func invert(inputFile, outputFile string) error {
 	_, err := vips.NewTransform().
 		LoadFile(inputFile).
-		Resize(1200, 1200).
-		Embed(vips.ExtendBlack).
+		Invert().
 		OutputFile(outputFile).
 		Apply()
 	return err

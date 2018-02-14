@@ -2,5 +2,5 @@
 
 set -e
 
-go generate
-go build
+go generate ./pkg/vips
+go build ./pkg/vips

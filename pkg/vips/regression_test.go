@@ -5,51 +5,51 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/davidbyttow/govips"
+	"github.com/davidbyttow/govips/pkg/vips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEmbed(t *testing.T) {
-	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/shapes.png", func(tx *vips.Transform) {
 		tx.Resize(512, 256)
 	})
 }
 
 func TestFlatten(t *testing.T) {
-	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/shapes.png", func(tx *vips.Transform) {
 		tx.BackgroundColor(vips.Color{R: 255, G: 192, B: 203})
 	})
 }
 
 func TestResizeCrop(t *testing.T) {
-	goldenTest(t, "fixtures/colors.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/colors.png", func(tx *vips.Transform) {
 		tx.Resize(100, 300).
 			ResizeStrategy(vips.ResizeStrategyCrop)
 	})
 }
 
 func TestResizeShapes(t *testing.T) {
-	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/shapes.png", func(tx *vips.Transform) {
 		tx.Resize(341, 256)
 	})
 }
 
 func TestRelativeResizeShapes(t *testing.T) {
-	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/shapes.png", func(tx *vips.Transform) {
 		tx.ScaleHeight(0.5)
 	})
 }
 
 func TestCenterCrop(t *testing.T) {
-	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/shapes.png", func(tx *vips.Transform) {
 		tx.Resize(341, 256).
 			ResizeStrategy(vips.ResizeStrategyCrop)
 	})
 }
 
 func TestBottomRightCrop(t *testing.T) {
-	goldenTest(t, "fixtures/shapes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/shapes.png", func(tx *vips.Transform) {
 		tx.Resize(341, 256).
 			ResizeStrategy(vips.ResizeStrategyCrop).
 			Anchor(vips.AnchorBottomRight)
@@ -57,7 +57,7 @@ func TestBottomRightCrop(t *testing.T) {
 }
 
 func TestOffsetCrop(t *testing.T) {
-	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
 		tx.Resize(500, 720).
 			CropOffsetX(120).
 			ResizeStrategy(vips.ResizeStrategyCrop)
@@ -65,7 +65,7 @@ func TestOffsetCrop(t *testing.T) {
 }
 
 func TestOffsetCropBounds(t *testing.T) {
-	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
 		tx.Resize(100, 100).
 			CropOffsetX(120).
 			ResizeStrategy(vips.ResizeStrategyCrop)
@@ -73,7 +73,7 @@ func TestOffsetCropBounds(t *testing.T) {
 }
 
 func TestRelativeOffsetCrop(t *testing.T) {
-	goldenTest(t, "fixtures/tomatoes.png", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
 		tx.Resize(500, 720).
 			CropRelativeOffsetX(0.1066).
 			ResizeStrategy(vips.ResizeStrategyCrop)
@@ -81,7 +81,7 @@ func TestRelativeOffsetCrop(t *testing.T) {
 }
 
 func TestRotate(t *testing.T) {
-	goldenTest(t, "fixtures/canyon.jpg", func(tx *vips.Transform) {
+	goldenTest(t, "../../assets/fixtures/canyon.jpg", func(tx *vips.Transform) {
 		tx.Rotate(vips.Angle90)
 	})
 }
