@@ -26,12 +26,13 @@ const VipsVersion = string(C.VIPS_VERSION)
 // VipsMajorVersion is the major version of libvips
 const VipsMajorVersion = int(C.VIPS_MAJOR_VERSION)
 
-// VipsMinorVersion if the minor vesrion of libvips
+// VipsMinorVersion if the minor version of libvips
 const VipsMinorVersion = int(C.VIPS_MINOR_VERSION)
 
 var (
-	running  = false
-	initLock sync.Mutex
+	running           = false
+	initLock          sync.Mutex
+	statCollectorDone chan struct{}
 )
 
 // Config allows fine-tuning of libvips library
@@ -42,6 +43,7 @@ type Config struct {
 	MaxCacheSize     int
 	ReportLeaks      bool
 	CacheTrace       bool
+	CollectStats     bool
 }
 
 // Startup sets up the libvips support and ensures the versions are correct. Pass in nil for
@@ -76,6 +78,10 @@ func Startup(config *Config) {
 	C.vips_cache_set_max_mem(defaultMaxCacheMem)
 
 	if config != nil {
+		if config.CollectStats {
+			statCollectorDone = collectStats()
+		}
+
 		C.vips_leak_set(toGboolean(config.ReportLeaks))
 
 		if config.ConcurrencyLevel > 0 {
@@ -120,6 +126,9 @@ func startupIfNeeded() {
 
 // Shutdown libvips
 func Shutdown() {
+	if statCollectorDone != nil {
+		statCollectorDone <- struct{}{}
+	}
 	initLock.Lock()
 	runtime.LockOSThread()
 	defer initLock.Unlock()

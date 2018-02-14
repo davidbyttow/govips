@@ -51,6 +51,7 @@ func main() {
 		ConcurrencyLevel: *concurrencyFlag,
 		MaxCacheMem:      *maxCacheMemFlag,
 		MaxCacheSize:     *maxCacheSizeFlag,
+		CollectStats:     true,
 	}
 	vips.Startup(cfg)
 
@@ -151,6 +152,11 @@ func outputStats() {
 	runtime.ReadMemStats(&mem)
 	var vipsMem vips.VipsMemoryStats
 	vips.ReadVipsMemStats(&vipsMem)
+
+	var stats vips.RuntimeStats
+	vips.ReadRuntimeStats(&stats)
+
+	fmt.Println(stats)
 
 	lines := []string{
 		fmt.Sprintf("alloc=%d\ntotal=%d\nsys=%d\ninuse=%d", mem.Alloc, mem.TotalAlloc, mem.Sys, mem.HeapInuse),

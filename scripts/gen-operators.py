@@ -156,6 +156,7 @@ func $func_name($args) ($return_types) {
     $input_options
     $output_options
   )
+  incOpCounter("$op_name")
   err = vipsCall("$op_name", options)
   return $return_values
 }
