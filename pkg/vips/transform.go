@@ -6,6 +6,7 @@ import "C"
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"io/ioutil"
 	"math"
@@ -292,7 +293,7 @@ func (t *Transform) BackgroundColor(color Color) *Transform {
 
 // Apply loads the image, applies the transform, and exports it according
 // to the parameters specified
-func (t *Transform) Apply() ([]byte, error) {
+func (t *Transform) Apply() ([]byte, ImageType, error) {
 	defer ShutdownThread()
 	defer func() {
 		t.source = nil
@@ -301,13 +302,16 @@ func (t *Transform) Apply() ([]byte, error) {
 
 	input, imageType, err := t.importImage()
 	if err != nil {
-		return nil, err
+		return nil, ImageTypeUnknown, err
+	}
+	if input == nil {
+		return nil, ImageTypeUnknown, errors.New("vips: image not found")
 	}
 
 	transformed, err := t.transform(input, imageType)
 
 	if err != nil {
-		return nil, err
+		return nil, ImageTypeUnknown, err
 	}
 
 	return t.exportImage(transformed, imageType)
@@ -328,26 +332,26 @@ func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
 	return vipsLoadFromBuffer(t.source)
 }
 
-func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte, error) {
+func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte, ImageType, error) {
 	if t.export.Format == ImageTypeUnknown {
 		t.export.Format = imageType
 	}
 
 	defer C.g_object_unref(C.gpointer(image))
 
-	buf, err := vipsExportBuffer(image, t.export)
+	buf, format, err := vipsExportBuffer(image, t.export)
 	if err != nil {
-		return nil, err
+		return nil, ImageTypeUnknown, err
 	}
 
 	if t.export.Writer != nil {
 		_, err = t.export.Writer.Write(buf)
 		if err != nil {
-			return buf, err
+			return buf, format, err
 		}
 	}
 
-	return buf, err
+	return buf, format, err
 }
 
 type Blackboard struct {

@@ -32,7 +32,7 @@ func main() {
 }
 
 func embed(inputFile, outputFile string) error {
-	_, err := vips.NewTransform().
+	_, _, err := vips.NewTransform().
 		LoadFile(inputFile).
 		Resize(1200, 1200).
 		Embed(vips.ExtendBlack).

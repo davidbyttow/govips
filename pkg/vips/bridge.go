@@ -126,11 +126,11 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	return image, imageType, nil
 }
 
-func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) {
+func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageType, error) {
 	tmpImage, err := vipsPrepareForExport(image, params)
 
 	if err != nil {
-		return nil, err
+		return nil, ImageTypeUnknown, err
 	}
 
 	// If these are equal, then we don't want to deref the original image as
@@ -145,21 +145,22 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 	quality := C.int(params.Quality)
 	lossless := C.int(boolToInt(params.Lossless))
 	stripMetadata := C.int(boolToInt(params.StripMetadata))
+	format := params.Format
 
-	if params.Format != ImageTypeUnknown && !IsTypeSupported(params.Format) {
-		return nil, fmt.Errorf("cannot save to %#v", ImageTypes[params.Format])
+	if format != ImageTypeUnknown && !IsTypeSupported(format) {
+		return nil, ImageTypeUnknown, fmt.Errorf("cannot save to %#v", ImageTypes[format])
 	}
 
 	if params.BackgroundColor != nil {
 		tmpImage, err = vipsFlattenBackground(tmpImage, *params.BackgroundColor)
 		if err != nil {
-			return nil, err
+			return nil, ImageTypeUnknown, err
 		}
 	}
 
 	var ptr unsafe.Pointer
 
-	switch params.Format {
+	switch format {
 	case ImageTypeWEBP:
 		incOpCounter("save_webp_buffer")
 		cErr = C.save_webp_buffer(tmpImage, &ptr, &cLen, stripMetadata, quality, lossless)
@@ -171,16 +172,17 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, error) 
 		cErr = C.save_tiff_buffer(tmpImage, &ptr, &cLen)
 	default:
 		incOpCounter("save_jpeg_buffer")
+		format = ImageTypeJPEG
 		cErr = C.save_jpeg_buffer(tmpImage, &ptr, &cLen, stripMetadata, quality, interlaced)
 	}
 
 	if int(cErr) != 0 {
-		return nil, handleVipsError()
+		return nil, ImageTypeUnknown, handleVipsError()
 	}
 
 	buf := C.GoBytes(ptr, C.int(cLen))
 	C.g_free(C.gpointer(ptr))
-	return buf, nil
+	return buf, format, nil
 }
 
 func isTypeSupported(imageType ImageType) bool {

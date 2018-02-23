@@ -30,7 +30,7 @@ func main() {
 }
 
 func resize(inputFile, outputFile string) error {
-	_, err := vips.NewTransform().
+	_, _, err := vips.NewTransform().
 		LoadFile(inputFile).
 		Scale(0.2).
 		OutputFile(outputFile).

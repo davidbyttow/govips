@@ -92,7 +92,7 @@ func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) {
 	}
 	tx := vips.NewTransform().LoadFile(file)
 	fn(tx)
-	buf, err := tx.Apply()
+	buf, _, err := tx.Apply()
 	require.NoError(t, err)
 	assertGoldenMatch(t, file, buf)
 }
