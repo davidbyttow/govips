@@ -30,7 +30,7 @@ func main() {
 }
 
 func invert(inputFile, outputFile string) error {
-	_, err := vips.NewTransform().
+	_, _, err := vips.NewTransform().
 		LoadFile(inputFile).
 		Invert().
 		OutputFile(outputFile).

@@ -111,7 +111,7 @@ func soak() {
 					h += rand.Intn(variance)
 				}
 				buf := loadFile(*imageFlag)
-				_, err := vips.NewTransform().
+				_, _, err := vips.NewTransform().
 					LoadBuffer(buf).
 					Resize(w, h).
 					OutputBytes().

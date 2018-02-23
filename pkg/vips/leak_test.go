@@ -79,8 +79,8 @@ func TestCleanup(t *testing.T) {
 			go func(i int, tr transform) {
 				defer wg.Done()
 
-				buf, err := vips.NewTransform().
-					LoadFile("fixtures/canyon.jpg").
+				buf, _, err := vips.NewTransform().
+					LoadFile("../../assets/fixtures/canyon.jpg").
 					ResizeStrategy(tr.Resize).
 					Resize(tr.Width, tr.Height).
 					Flip(tr.Flip).
