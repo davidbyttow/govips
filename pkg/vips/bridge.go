@@ -136,7 +136,9 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageTy
 	// If these are equal, then we don't want to deref the original image as
 	// the original will be returned if the target colorspace is not supported
 	if tmpImage != image {
-		defer C.g_object_unref(C.gpointer(tmpImage))
+		defer func() {
+			C.g_object_unref(C.gpointer(tmpImage))
+		}()
 	}
 
 	cLen := C.size_t(0)
