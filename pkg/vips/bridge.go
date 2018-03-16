@@ -274,6 +274,66 @@ func vipsRotate(input *C.VipsImage, angle Angle) (*C.VipsImage, error) {
 	return output, nil
 }
 
+func vipsComposite(inputs []*C.VipsImage, mode BlendMode) (*C.VipsImage, error) {
+	incOpCounter("composite")
+	for _, i := range inputs {
+		defer func(input *C.VipsImage) {
+			C.g_object_unref(C.gpointer(input))
+		}(i)
+	}
+	var output *C.VipsImage
+	if err := C.composite(&inputs[0], &output, C.int(len(inputs)), C.int(mode)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsHasAlpha(image *C.VipsImage) bool {
+	return int(C.has_alpha_channel(image)) > 0
+}
+
+func vipsAdd(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("add")
+	defer C.g_object_unref(C.gpointer(left))
+	defer C.g_object_unref(C.gpointer(right))
+	var output *C.VipsImage
+	if err := C.add(left, right, &output); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsMultiply(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("multiply")
+	defer C.g_object_unref(C.gpointer(left))
+	defer C.g_object_unref(C.gpointer(right))
+	var output *C.VipsImage
+	if err := C.multiply(left, right, &output); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsExtractBand(image *C.VipsImage, band, num int) (*C.VipsImage, error) {
+	incOpCounter("extract")
+	defer C.g_object_unref(C.gpointer(image))
+	var output *C.VipsImage
+	if err := C.extract_band(image, &output, C.int(band), C.int(num)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsLinear1(image *C.VipsImage, a, b float64) (*C.VipsImage, error) {
+	incOpCounter("linear1")
+	defer C.g_object_unref(C.gpointer(image))
+	var output *C.VipsImage
+	if err := C.linear1(image, &output, C.double(a), C.double(b)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
 func vipsExtractArea(input *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
 	incOpCounter("extract")
 	var output *C.VipsImage
