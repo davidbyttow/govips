@@ -121,6 +121,16 @@ int invert_image(VipsImage *in, VipsImage **out) {
 	return vips_invert(in, out, NULL);
 }
 
+int extract_band(VipsImage *in, VipsImage **out, int band, int num) {
+	if (num > 0) {
+		return vips_extract_band(in, out, band, "n", num, NULL);
+	}
+	return vips_extract_band(in, out, band, NULL);
+}
+
+int linear1(VipsImage *in, VipsImage **out, double a, double b) {
+	return vips_linear1(in, out, a, b, NULL);
+}
 
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, int height, int extend, double r, double g, double b) {
 	if (extend == VIPS_EXTEND_BACKGROUND) {
@@ -129,6 +139,18 @@ int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, in
 		return vips_embed(in, out, left, top, width, height, "extend", extend, "background", vipsBackground, NULL);
 	}
 	return vips_embed(in, out, left, top, width, height, "extend", extend, NULL);
+}
+
+int composite(VipsImage **in, VipsImage **out, int n, int mode) {
+	return vips_composite(in, out, n, &mode, NULL);
+}
+
+int add(VipsImage *left, VipsImage *right, VipsImage **out) {
+	return vips_add(left, right, out, NULL);
+}
+
+int multiply(VipsImage *left, VipsImage *right, VipsImage **out) {
+	return vips_multiply(left, right, out, NULL);
 }
 
 int extract_image_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height) {

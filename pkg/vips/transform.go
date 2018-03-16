@@ -20,6 +20,10 @@ type InputParams struct {
 	Image     *ImageRef
 }
 
+type CompositeParams struct {
+	Image *ImageRef
+}
+
 // TransformParams are parameters for the transformation
 type TransformParams struct {
 	PadStrategy             Extend
@@ -37,6 +41,7 @@ type TransformParams struct {
 	Height                  Scalar
 	CropOffsetX             Scalar
 	CropOffsetY             Scalar
+	Composite               Composite
 }
 
 // Transform handles single image transformations
@@ -253,6 +258,13 @@ func (t *Transform) Resize(width, height int) *Transform {
 	return t
 }
 
+// Overlay overlays an image on top of this one.
+func (t *Transform) Overlay(image *ImageRef, mode BlendMode) *Transform {
+	t.tx.Composite.Image = image
+	t.tx.Composite.BlendMode = mode
+	return t
+}
+
 // Format sets the image format of the input image when exporting. Defaults to JPEG
 func (t *Transform) Format(format ImageType) *Transform {
 	t.export.Format = format
@@ -354,6 +366,7 @@ func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte
 	return buf, format, err
 }
 
+// Blackboard is an object that tracks transient data during a transformation
 type Blackboard struct {
 	*TransformParams
 	image        *C.VipsImage
@@ -366,6 +379,7 @@ type Blackboard struct {
 	cropOffsetY  int
 }
 
+// NewBlackboard creates a new blackboard object meant for transformation data
 func NewBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) *Blackboard {
 	bb := &Blackboard{
 		TransformParams: p,
@@ -408,10 +422,12 @@ func NewBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) 
 	return bb
 }
 
+// Width returns the width of the in-flight image
 func (bb *Blackboard) Width() int {
 	return int(bb.image.Xsize)
 }
 
+// Height returns the height of the in-flight image
 func (bb *Blackboard) Height() int {
 	return int(bb.image.Ysize)
 }
@@ -627,6 +643,14 @@ func postProcess(bb *Blackboard) error {
 		bb.image, err = vipsRotate(bb.image, bb.Rotate)
 		if err != nil {
 			return err
+		}
+	}
+
+	if bb.Composite.Image != nil {
+		defer bb.Composite.Image.Close()
+		bb.image, err = vipsComposite([]*C.VipsImage{bb.image, bb.Composite.Image.image}, bb.Composite.BlendMode)
+		if err != nil {
+			return nil
 		}
 	}
 

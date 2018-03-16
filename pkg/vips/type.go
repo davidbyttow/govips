@@ -357,6 +357,41 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeWEBP:   "webp",
 }
 
+type Composite struct {
+	Image     *ImageRef
+	BlendMode BlendMode
+}
+
+type BlendMode int
+
+const (
+	BlendModeClear      BlendMode = C.VIPS_BLEND_MODE_CLEAR
+	BlendModeSource     BlendMode = C.VIPS_BLEND_MODE_SOURCE
+	BlendModeOver       BlendMode = C.VIPS_BLEND_MODE_OVER
+	BlendModeIn         BlendMode = C.VIPS_BLEND_MODE_IN
+	BlendModeOut        BlendMode = C.VIPS_BLEND_MODE_OUT
+	BlendModeAtop       BlendMode = C.VIPS_BLEND_MODE_ATOP
+	BlendModeDest       BlendMode = C.VIPS_BLEND_MODE_DEST
+	BlendModeDestOver   BlendMode = C.VIPS_BLEND_MODE_DEST_OVER
+	BlendModeDestIn     BlendMode = C.VIPS_BLEND_MODE_DEST_IN
+	BlendModeDestOut    BlendMode = C.VIPS_BLEND_MODE_DEST_OUT
+	BlendModeDestAtop   BlendMode = C.VIPS_BLEND_MODE_DEST_ATOP
+	BlendModeModeXOR    BlendMode = C.VIPS_BLEND_MODE_XOR
+	BlendModeModeAdd    BlendMode = C.VIPS_BLEND_MODE_ADD
+	BlendModeSaturate   BlendMode = C.VIPS_BLEND_MODE_SATURATE
+	BlendModeMultiply   BlendMode = C.VIPS_BLEND_MODE_MULTIPLY
+	BlendModeScreen     BlendMode = C.VIPS_BLEND_MODE_SCREEN
+	BlendModeOverlay    BlendMode = C.VIPS_BLEND_MODE_OVERLAY
+	BlendModeDarken     BlendMode = C.VIPS_BLEND_MODE_DARKEN
+	BlendModeLighten    BlendMode = C.VIPS_BLEND_MODE_LIGHTEN
+	BlendModeColorDodge BlendMode = C.VIPS_BLEND_MODE_COLOUR_DODGE
+	BlendModeColorBurn  BlendMode = C.VIPS_BLEND_MODE_COLOUR_BURN
+	BlendModeHardLight  BlendMode = C.VIPS_BLEND_MODE_HARD_LIGHT
+	BlendModeSoftLight  BlendMode = C.VIPS_BLEND_MODE_SOFT_LIGHT
+	BlendModeDifference BlendMode = C.VIPS_BLEND_MODE_DIFFERENCE
+	BlendModeExclusion  BlendMode = C.VIPS_BLEND_MODE_EXCLUSION
+)
+
 var (
 	once                sync.Once
 	typeLoaders         = make(map[string]ImageType)

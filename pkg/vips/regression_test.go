@@ -86,6 +86,23 @@ func TestRotate(t *testing.T) {
 	})
 }
 
+func TestOverlay(t *testing.T) {
+	goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
+		tx.ResizeWidth(320)
+		overlayData, _, err := vips.NewTransform().LoadFile("../../assets/fixtures/clover.png").
+			ResizeWidth(64).
+			Apply()
+		if err != nil {
+			panic(err)
+		}
+		overlay, err := vips.NewImageFromBuffer(overlayData)
+		if err != nil {
+			panic(err)
+		}
+		tx.Overlay(overlay, vips.BlendModeOver)
+	})
+}
+
 func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) {
 	if testing.Short() {
 		return
