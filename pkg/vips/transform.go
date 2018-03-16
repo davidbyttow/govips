@@ -20,10 +20,6 @@ type InputParams struct {
 	Image     *ImageRef
 }
 
-type CompositeParams struct {
-	Image *ImageRef
-}
-
 // TransformParams are parameters for the transformation
 type TransformParams struct {
 	PadStrategy             Extend
@@ -41,7 +37,6 @@ type TransformParams struct {
 	Height                  Scalar
 	CropOffsetX             Scalar
 	CropOffsetY             Scalar
-	Composite               Composite
 }
 
 // Transform handles single image transformations
@@ -255,13 +250,6 @@ func (t *Transform) ResizeHeight(height int) *Transform {
 func (t *Transform) Resize(width, height int) *Transform {
 	t.tx.Width.SetInt(width)
 	t.tx.Height.SetInt(height)
-	return t
-}
-
-// Overlay overlays an image on top of this one.
-func (t *Transform) Overlay(image *ImageRef, mode BlendMode) *Transform {
-	t.tx.Composite.Image = image
-	t.tx.Composite.BlendMode = mode
 	return t
 }
 
@@ -644,15 +632,6 @@ func postProcess(bb *Blackboard) error {
 		if err != nil {
 			return err
 		}
-	}
-
-	if bb.Composite.Image != nil {
-		bb.image, err = vipsComposite([]*C.VipsImage{bb.image, bb.Composite.Image.image}, bb.Composite.BlendMode)
-		if err != nil {
-			return nil
-		}
-		// Because the composite method closes it for us
-		bb.Composite.Image.image = nil
 	}
 
 	return nil

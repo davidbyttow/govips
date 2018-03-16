@@ -29,6 +29,7 @@ var (
 	maxCacheMemFlag  = flag.Int("maxCacheMem", 0, "Max cache memory")
 	maxCacheSizeFlag = flag.Int("maxCacheSize", 0, "Max cache size")
 	imageFlag        = flag.String("image", "cmd/bench/soak/dwi.jpg", "Image file to load")
+	overlayFlag      = flag.String("overlay", "cmd/bench/soak/clover.png", "Overlay image to use")
 	cpuProfileFlag   = flag.String("cpuprofile", "", "write cpu profile `file`")
 	memProfileFlag   = flag.String("memprofile", "", "write memory profile to `file`")
 )
@@ -116,9 +117,28 @@ func soak() {
 					Resize(w, h).
 					OutputBytes().
 					Apply()
+
 				if err != nil {
 					log.Print(err)
 				}
+
+				if *overlayFlag != "" {
+					bg, err := vips.NewImageFromBuffer(buf)
+					if err != nil {
+						panic(err)
+					}
+					defer bg.Close()
+					overlay, err := vips.NewImageFromFile(*overlayFlag)
+					if err != nil {
+						panic(err)
+					}
+					defer overlay.Close()
+					err = bg.Composite(overlay, vips.BlendModeOver)
+					if err != nil {
+						panic(err)
+					}
+				}
+
 				if count%batch == 0 {
 					log.Printf("Processed %d...\n", count)
 				}

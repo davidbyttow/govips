@@ -87,31 +87,42 @@ func TestRotate(t *testing.T) {
 }
 
 func TestOverlay(t *testing.T) {
-	goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
-		tx.ResizeWidth(320)
-		overlayData, _, err := vips.NewTransform().LoadFile("../../assets/fixtures/clover.png").
-			ResizeWidth(64).
-			Apply()
-		if err != nil {
-			panic(err)
-		}
-		overlay, err := vips.NewImageFromBuffer(overlayData)
-		if err != nil {
-			panic(err)
-		}
-		tx.Overlay(overlay, vips.BlendModeOver)
-	})
-}
-
-func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) {
 	if testing.Short() {
 		return
+	}
+	var tomatoesData, cloverData []byte
+	t.Run("tomatoes", func(t *testing.T) {
+		tomatoesData = goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
+			tx.ResizeWidth(320)
+		})
+	})
+	t.Run("clover", func(t *testing.T) {
+		cloverData = goldenTest(t, "../../assets/fixtures/clover.png", func(tx *vips.Transform) {
+			tx.ResizeWidth(64)
+		})
+	})
+	tomatoes, err := vips.NewImageFromBuffer(tomatoesData)
+	require.NoError(t, err)
+	clover, err := vips.NewImageFromBuffer(cloverData)
+	require.NoError(t, err)
+
+	err = tomatoes.Composite(clover, vips.BlendModeOver)
+	require.NoError(t, err)
+	buf, _, err := vips.NewTransform().Image(tomatoes).Apply()
+	require.NoError(t, err)
+	assertGoldenMatch(t, "../../assets/fixtures/tomatoes.png", buf)
+}
+
+func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) []byte {
+	if testing.Short() {
+		return nil
 	}
 	tx := vips.NewTransform().LoadFile(file)
 	fn(tx)
 	buf, _, err := tx.Apply()
 	require.NoError(t, err)
 	assertGoldenMatch(t, file, buf)
+	return buf
 }
 
 func assertGoldenMatch(t *testing.T, file string, buf []byte) {
@@ -119,11 +130,12 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte) {
 	if i < 0 {
 		panic("bad filename")
 	}
-	goldenFile := file[:i] + "." + t.Name() + ".golden" + file[i:]
+	name := strings.Replace(t.Name(), "/", "_", -1)
+	goldenFile := file[:i] + "." + name + ".golden" + file[i:]
 	golden, _ := ioutil.ReadFile(goldenFile)
 	if golden != nil {
 		if !assert.Equal(t, golden, buf) {
-			failed := file[:i] + "." + t.Name() + ".failed" + file[i:]
+			failed := file[:i] + "." + name + ".failed" + file[i:]
 			err := ioutil.WriteFile(failed, buf, 0666)
 			if err != nil {
 				panic(err)

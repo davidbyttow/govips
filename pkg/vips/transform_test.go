@@ -9,6 +9,9 @@ import (
 )
 
 func TestTransform(t *testing.T) {
+	if testing.Short() {
+		return
+	}
 	buf, format, err := vips.NewTransform().
 		LoadFile("../../assets/fixtures/canyon.jpg").
 		Scale(0.25).

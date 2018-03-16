@@ -147,6 +147,16 @@ func (ref *ImageRef) Interpretation() Interpretation {
 	return Interpretation(int(ref.image.Type))
 }
 
+// Composite overlays the given image over this one
+func (ref *ImageRef) Composite(overlay *ImageRef, mode BlendMode) error {
+	out, err := vipsComposite([]*C.VipsImage{ref.image, overlay.image}, mode)
+	if err != nil {
+		return err
+	}
+	ref.SetImage(out)
+	return nil
+}
+
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (ref *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t
