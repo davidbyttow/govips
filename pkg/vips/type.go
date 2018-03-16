@@ -376,8 +376,8 @@ const (
 	BlendModeDestIn     BlendMode = C.VIPS_BLEND_MODE_DEST_IN
 	BlendModeDestOut    BlendMode = C.VIPS_BLEND_MODE_DEST_OUT
 	BlendModeDestAtop   BlendMode = C.VIPS_BLEND_MODE_DEST_ATOP
-	BlendModeModeXOR    BlendMode = C.VIPS_BLEND_MODE_XOR
-	BlendModeModeAdd    BlendMode = C.VIPS_BLEND_MODE_ADD
+	BlendModeXOR        BlendMode = C.VIPS_BLEND_MODE_XOR
+	BlendModeAdd        BlendMode = C.VIPS_BLEND_MODE_ADD
 	BlendModeSaturate   BlendMode = C.VIPS_BLEND_MODE_SATURATE
 	BlendModeMultiply   BlendMode = C.VIPS_BLEND_MODE_MULTIPLY
 	BlendModeScreen     BlendMode = C.VIPS_BLEND_MODE_SCREEN

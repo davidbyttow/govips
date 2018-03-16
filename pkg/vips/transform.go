@@ -647,11 +647,12 @@ func postProcess(bb *Blackboard) error {
 	}
 
 	if bb.Composite.Image != nil {
-		defer bb.Composite.Image.Close()
 		bb.image, err = vipsComposite([]*C.VipsImage{bb.image, bb.Composite.Image.image}, bb.Composite.BlendMode)
 		if err != nil {
 			return nil
 		}
+		// Because the composite method closes it for us
+		bb.Composite.Image.image = nil
 	}
 
 	return nil
