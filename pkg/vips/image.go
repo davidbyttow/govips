@@ -157,6 +157,14 @@ func (ref *ImageRef) Composite(overlay *ImageRef, mode BlendMode) error {
 	return nil
 }
 
+// Export exports the image
+func (ref *ImageRef) Export(params ExportParams) ([]byte, ImageType, error) {
+	if params.Format == ImageTypeUnknown {
+		params.Format = ref.format
+	}
+	return vipsExportBuffer(ref.image, &params)
+}
+
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (ref *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t

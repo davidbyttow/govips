@@ -137,6 +137,10 @@ func soak() {
 					if err != nil {
 						panic(err)
 					}
+					_, _, err = bg.Export(vips.ExportParams{})
+					if err != nil {
+						panic(err)
+					}
 				}
 
 				if count%batch == 0 {
