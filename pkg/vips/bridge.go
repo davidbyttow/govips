@@ -6,6 +6,7 @@ import "C"
 import (
 	"fmt"
 	"log"
+	"math"
 	"runtime"
 	dbg "runtime/debug"
 	"unsafe"
@@ -14,6 +15,7 @@ import (
 const (
 	defaultQuality     = 90
 	defaultCompression = 6
+	maxScaleFactor     = 10
 )
 
 var stringBuffer4096 = fixedString(4096)
@@ -257,6 +259,11 @@ func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error
 func vipsResize(input *C.VipsImage, scale, vscale float64, kernel Kernel) (*C.VipsImage, error) {
 	incOpCounter("resize")
 	var output *C.VipsImage
+
+	// Let's not be insane
+	scale = math.Min(scale, maxScaleFactor)
+	vscale = math.Min(vscale, maxScaleFactor)
+
 	defer C.g_object_unref(C.gpointer(input))
 	if err := C.resize_image(input, &output, C.double(scale), C.double(vscale), C.int(kernel)); err != 0 {
 		return nil, handleVipsError()

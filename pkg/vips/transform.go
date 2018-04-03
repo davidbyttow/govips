@@ -37,6 +37,7 @@ type TransformParams struct {
 	Height                  Scalar
 	CropOffsetX             Scalar
 	CropOffsetY             Scalar
+	MaxScale                float64
 }
 
 // Transform handles single image transformations
@@ -234,6 +235,12 @@ func (t *Transform) Scale(scale float64) *Transform {
 	return t
 }
 
+// MaxScale sets the max scale factor that this image can be enlarged or reduced by
+func (t *Transform) MaxScale(max float64) *Transform {
+	t.tx.MaxScale = max
+	return t
+}
+
 // ResizeWidth resizes the image to the given width, maintaining aspect ratio
 func (t *Transform) ResizeWidth(width int) *Transform {
 	t.tx.Width.SetInt(width)
@@ -387,6 +394,15 @@ func NewBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) 
 	bb.targetWidth = p.Width.GetRounded(imageWidth)
 	bb.targetHeight = p.Height.GetRounded(imageHeight)
 
+	if bb.MaxScale > 0 {
+		if bb.targetWidth > 0 && ratio(bb.targetWidth, imageWidth) > bb.MaxScale {
+			bb.targetWidth = int(float64(imageWidth) * bb.MaxScale)
+		}
+		if bb.targetHeight > 0 && ratio(bb.targetHeight, imageHeight) > bb.MaxScale {
+			bb.targetHeight = int(float64(imageHeight) * bb.MaxScale)
+		}
+	}
+
 	switch {
 	case bb.targetWidth > 0 && bb.targetHeight > 0:
 		// Nothing to do
@@ -407,6 +423,11 @@ func NewBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) 
 			bb.targetScale = sx
 		}
 	}
+
+	if bb.MaxScale != 0 && bb.targetScale > bb.MaxScale {
+		bb.targetScale = bb.MaxScale
+	}
+
 	return bb
 }
 
@@ -707,6 +728,10 @@ func (r *LazyFile) Write(p []byte) (n int, err error) {
 type Scalar struct {
 	Value    float64
 	Relative bool
+}
+
+func (s *Scalar) IsZero() bool {
+	return s.Value == 0 && !s.Relative
 }
 
 func (s *Scalar) SetInt(value int) {

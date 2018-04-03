@@ -86,6 +86,18 @@ func TestRotate(t *testing.T) {
 	})
 }
 
+func TestScale3x(t *testing.T) {
+	goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
+		tx.Scale(3.0)
+	})
+}
+
+func TestMaxScale(t *testing.T) {
+	goldenTest(t, "../../assets/fixtures/tomatoes.png", func(tx *vips.Transform) {
+		tx.MaxScale(1.0).ResizeWidth(100000)
+	})
+}
+
 func TestOverlay(t *testing.T) {
 	if testing.Short() {
 		return
@@ -131,11 +143,13 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte) {
 		panic("bad filename")
 	}
 	name := strings.Replace(t.Name(), "/", "_", -1)
-	goldenFile := file[:i] + "." + name + ".golden" + file[i:]
+	prefix := file[:i] + "." + name
+	ext := file[i:]
+	goldenFile := prefix + ".golden" + ext
 	golden, _ := ioutil.ReadFile(goldenFile)
 	if golden != nil {
 		if !assert.Equal(t, golden, buf) {
-			failed := file[:i] + "." + name + ".failed" + file[i:]
+			failed := prefix + ".failed" + ext
 			err := ioutil.WriteFile(failed, buf, 0666)
 			if err != nil {
 				panic(err)
