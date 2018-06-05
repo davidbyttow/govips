@@ -41,8 +41,23 @@ type Color struct {
 	R, G, B uint8
 }
 
+const DefaultFont = "sans 10"
+
 // ColorBlack is shorthand for black RGB
 var ColorBlack = Color{0, 0, 0}
+
+// LabelParams represents a text-based label
+type LabelParams struct {
+	Text      string
+	Font      string
+	Width     Scalar
+	Height    Scalar
+	OffsetX   Scalar
+	OffsetY   Scalar
+	Opacity   float32
+	Color     Color
+	Alignment Align
+}
 
 // Anchor represents the an anchor for cropping and other image operations
 type Anchor int
@@ -234,6 +249,16 @@ const (
 	ExtendMirror     Extend = C.VIPS_EXTEND_MIRROR
 	ExtendWhite      Extend = C.VIPS_EXTEND_WHITE
 	ExtendBackground Extend = C.VIPS_EXTEND_BACKGROUND
+)
+
+// Align represents VIPS_ALIGN
+type Align int
+
+// Direction enum
+const (
+	AlignLow    Align = C.VIPS_ALIGN_LOW
+	AlignCenter Align = C.VIPS_ALIGN_CENTRE
+	AlignHigh   Align = C.VIPS_ALIGN_HIGH
 )
 
 // Direction represents VIPS_DIRECTION type

@@ -18,6 +18,20 @@ const (
 	maxScaleFactor     = 10
 )
 
+type vipsLabelOptions struct {
+	Text      *C.char
+	Font      *C.char
+	Width     C.int
+	Height    C.int
+	OffsetX   C.int
+	OffsetY   C.int
+	Alignment C.VipsAlign
+	DPI       C.int
+	Margin    C.int
+	Opacity   C.float
+	Color     [3]C.double
+}
+
 var stringBuffer4096 = fixedString(4096)
 
 func vipsOperationNew(name string) *C.VipsOperation {
@@ -393,6 +407,42 @@ func vipsZoom(input *C.VipsImage, xFactor, yFactor int) (*C.VipsImage, error) {
 	if err := C.zoom_image(input, &output, C.int(xFactor), C.int(yFactor)); err != 0 {
 		return nil, handleVipsError()
 	}
+	return output, nil
+}
+
+func vipsLabel(input *C.VipsImage, lp LabelParams) (*C.VipsImage, error) {
+	incOpCounter("label")
+
+	var output *C.VipsImage
+
+	text := C.CString(lp.Text)
+	font := C.CString(lp.Font)
+	color := [3]C.double{C.double(lp.Color.R), C.double(lp.Color.G), C.double(lp.Color.B)}
+	w := lp.Width.GetRounded(int(input.Xsize))
+	h := lp.Height.GetRounded(int(input.Ysize))
+	offsetX := lp.OffsetX.GetRounded(int(input.Xsize))
+	offsetY := lp.OffsetY.GetRounded(int(input.Ysize))
+
+	opts := vipsLabelOptions{
+		Text:      text,
+		Font:      font,
+		Width:     C.int(w),
+		Height:    C.int(h),
+		OffsetX:   C.int(offsetX),
+		OffsetY:   C.int(offsetY),
+		Alignment: C.VipsAlign(lp.Alignment),
+		Opacity:   C.float(lp.Opacity),
+		Color:     color,
+	}
+
+	defer C.free(unsafe.Pointer(text))
+	defer C.free(unsafe.Pointer(font))
+
+	err := C.label(input, &output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
+	if err != 0 {
+		return nil, handleVipsError()
+	}
+
 	return output, nil
 }
 

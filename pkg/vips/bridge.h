@@ -19,6 +19,19 @@ enum types {
 	SVG,
 	MAGICK
 };
+typedef struct {
+  const char *Text;
+	const char *Font;
+	int Width;
+  int Height;
+  int OffsetX;
+  int OffsetY;
+  VipsAlign Align;
+	int DPI;
+  int Margin;
+	float Opacity;
+  double Color[3];
+} LabelOptions;
 
 int init_image(void *buf, size_t len, int imageType, VipsImage **out);
 int find_image_type_loader(int t);
@@ -52,6 +65,7 @@ int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c
 int gaussian_blur(VipsImage *in, VipsImage **out, double sigma);
 int invert_image(VipsImage *in, VipsImage **out);
 int composite(VipsImage **in, VipsImage **out, int n, int mode);
+int label(VipsImage *in, VipsImage **out, LabelOptions *o);
 
 void gobject_set_property(VipsObject* object, const char* name, const GValue* value);
 

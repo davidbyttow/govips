@@ -38,6 +38,7 @@ type TransformParams struct {
 	CropOffsetX             Scalar
 	CropOffsetY             Scalar
 	MaxScale                float64
+	Label                   *LabelParams
 }
 
 // Transform handles single image transformations
@@ -257,6 +258,31 @@ func (t *Transform) ResizeHeight(height int) *Transform {
 func (t *Transform) Resize(width, height int) *Transform {
 	t.tx.Width.SetInt(width)
 	t.tx.Height.SetInt(height)
+	return t
+}
+
+func (t *Transform) Label(lp *LabelParams) *Transform {
+	if lp.Text == "" {
+		t.tx.Label = nil
+		return t
+	}
+
+	label := *lp
+
+	// Defaults
+	if label.Width.IsZero() {
+		label.Width.SetScale(1)
+	}
+	if label.Height.IsZero() {
+		label.Height.SetScale(1)
+	}
+	if label.Font == "" {
+		label.Font = DefaultFont
+	}
+	if label.Opacity == 0 {
+		label.Opacity = 1
+	}
+	t.tx.Label = &label
 	return t
 }
 
@@ -655,6 +681,13 @@ func postProcess(bb *Blackboard) error {
 		}
 	}
 
+	if bb.Label != nil {
+		bb.image, err = vipsLabel(bb.image, *bb.Label)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -728,6 +761,14 @@ func (r *LazyFile) Write(p []byte) (n int, err error) {
 type Scalar struct {
 	Value    float64
 	Relative bool
+}
+
+func ValueOf(value float64) Scalar {
+	return Scalar{value, false}
+}
+
+func ScaleOf(value float64) Scalar {
+	return Scalar{value, true}
 }
 
 func (s *Scalar) IsZero() bool {
