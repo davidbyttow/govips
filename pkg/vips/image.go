@@ -137,6 +137,11 @@ func (ref *ImageRef) BandFormat() BandFormat {
 	return BandFormat(int(ref.image.BandFmt))
 }
 
+// HasAlpha returns true if the image has alpha channel, otherwise false
+func (ref *ImageRef) HasAlpha() bool {
+	return vipsHasAlpha(ref.image)
+}
+
 // Coding returns the image coding
 func (ref *ImageRef) Coding() Coding {
 	return Coding(int(ref.image.Coding))
