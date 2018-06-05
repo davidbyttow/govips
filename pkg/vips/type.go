@@ -321,6 +321,7 @@ const (
 	InterpretationMatrix    Interpretation = C.VIPS_INTERPRETATION_MATRIX
 	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
 	InterpretationHSV       Interpretation = C.VIPS_INTERPRETATION_HSV
+	InterpretationLast      Interpretation = C.VIPS_INTERPRETATION_LAST
 )
 
 // BandFormat represents VIPS_FORMAT type
