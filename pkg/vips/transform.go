@@ -15,9 +15,8 @@ import (
 
 // InputParams are options when importing an image from file or buffer
 type InputParams struct {
-	InputFile string
-	Reader    io.Reader
-	Image     *ImageRef
+	Reader io.Reader
+	Image  *ImageRef
 }
 
 // TransformParams are parameters for the transformation
@@ -347,6 +346,11 @@ func (t *Transform) Apply() ([]byte, ImageType, error) {
 		return nil, ImageTypeUnknown, err
 	}
 
+	// If we're using a source image, then it owns the buffer
+	if t.input.Image == nil {
+		defer C.g_object_unref(C.gpointer(transformed))
+	}
+
 	return t.exportImage(transformed, imageType)
 }
 
@@ -369,8 +373,6 @@ func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte
 	if t.export.Format == ImageTypeUnknown {
 		t.export.Format = imageType
 	}
-
-	defer C.g_object_unref(C.gpointer(image))
 
 	buf, format, err := vipsExportBuffer(image, t.export)
 	if err != nil {
