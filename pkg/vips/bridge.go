@@ -104,7 +104,6 @@ func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImag
 	// Apply the proper colour space
 	if int(C.is_colorspace_supported(input)) == 1 && interpretation != input.Type {
 		var out *C.VipsImage
-		defer C.g_object_unref(C.gpointer(input))
 		err := C.to_colorspace(input, &out, interpretation)
 		if int(err) != 0 {
 			return nil, handleVipsError()
