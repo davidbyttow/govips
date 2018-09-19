@@ -33,6 +33,10 @@ int init_image(void *buf, size_t len, int imageType, VipsImage **out) {
 	return code;
 }
 
+unsigned long has_profile_embed(VipsImage *in) {
+	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
+}
+
 int remove_icc_profile(VipsImage *in) {
   return vips_image_remove(in, VIPS_META_ICC_NAME);
 }

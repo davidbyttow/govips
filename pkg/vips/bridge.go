@@ -81,8 +81,12 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	return nil
 }
 
+func vipsHasProfile(input *C.VipsImage) bool {
+	return int(C.has_profile_embed(input)) > 0
+}
+
 func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
-	if params.StripProfile {
+	if params.StripProfile && vipsHasProfile(input) {
 		C.remove_icc_profile(input)
 	}
 

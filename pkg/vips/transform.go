@@ -309,10 +309,15 @@ func (t *Transform) Lossless() *Transform {
 	return t
 }
 
-// StripMetadata strips ICC profile and metadata from the image
+// StripMetadata strips metadata from the image
 func (t *Transform) StripMetadata() *Transform {
-	t.export.StripProfile = true
 	t.export.StripMetadata = true
+	return t
+}
+
+// StripProfile strips ICC profile from the image
+func (t *Transform) StripProfile() *Transform {
+	t.export.StripProfile = true
 	return t
 }
 
