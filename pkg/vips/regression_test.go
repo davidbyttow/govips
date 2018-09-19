@@ -18,7 +18,20 @@ func TestEmbed(t *testing.T) {
 
 func TestFlatten(t *testing.T) {
 	goldenTest(t, "../../assets/fixtures/shapes.png", func(tx *vips.Transform) {
-		tx.BackgroundColor(vips.Color{R: 255, G: 192, B: 203})
+		tx.BackgroundColor(vips.Color{R: 255, G: 192, B: 203}).StripProfile()
+	})
+}
+
+func TestResizeWithICC(t *testing.T) {
+	goldenTest(t, "../../assets/fixtures/icc.jpg", func(tx *vips.Transform) {
+		tx.StripMetadata()
+		tx.ResizeWidth(300)
+	})
+}
+
+func TestResizeAndStripICC(t *testing.T) {
+	goldenTest(t, "../../assets/fixtures/icc.jpg", func(tx *vips.Transform) {
+		tx.StripMetadata().ResizeWidth(300).StripProfile()
 	})
 }
 
