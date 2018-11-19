@@ -33,7 +33,11 @@ typedef struct {
   double Color[3];
 } LabelOptions;
 
-int init_image(void *buf, size_t len, int imageType, VipsImage **out);
+typedef struct {
+	int access;
+} ImageLoadOptions;
+
+int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsImage **out);
 int find_image_type_loader(int t);
 int find_image_type_saver(int t);
 

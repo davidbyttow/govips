@@ -126,9 +126,9 @@ func TestOverlay(t *testing.T) {
 			tx.ResizeWidth(64)
 		})
 	})
-	tomatoes, err := vips.NewImageFromBuffer(tomatoesData)
+	tomatoes, err := vips.NewImageFromBuffer(tomatoesData, nil)
 	require.NoError(t, err)
-	clover, err := vips.NewImageFromBuffer(cloverData)
+	clover, err := vips.NewImageFromBuffer(cloverData, nil)
 	require.NoError(t, err)
 
 	err = tomatoes.Composite(clover, vips.BlendModeOver)

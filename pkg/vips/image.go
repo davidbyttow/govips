@@ -24,33 +24,38 @@ type ImageRef struct {
 	buf []byte
 }
 
+// LoadOptions contains optional configuration for the image loading.
+type LoadOptions struct {
+	Access Access
+}
+
 // LoadImage loads an ImageRef from the given reader
-func LoadImage(r io.Reader) (*ImageRef, error) {
+func LoadImage(r io.Reader, opts *LoadOptions) (*ImageRef, error) {
 	startupIfNeeded()
 
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
-	return NewImageFromBuffer(buf)
+	return NewImageFromBuffer(buf, opts)
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
-func NewImageFromFile(file string) (*ImageRef, error) {
+func NewImageFromFile(file string, opts *LoadOptions) (*ImageRef, error) {
 	startupIfNeeded()
 
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
-	return NewImageFromBuffer(buf)
+	return NewImageFromBuffer(buf, opts)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+func NewImageFromBuffer(buf []byte, opts *LoadOptions) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	image, format, err := vipsLoadFromBuffer(buf, opts)
 	if err != nil {
 		return nil, err
 	}

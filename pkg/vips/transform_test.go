@@ -21,7 +21,7 @@ func TestTransform(t *testing.T) {
 	require.True(t, len(buf) > 0)
 	assert.Equal(t, format, vips.ImageTypeJPEG)
 
-	image, err := vips.NewImageFromBuffer(buf)
+	image, err := vips.NewImageFromBuffer(buf, nil)
 	require.NoError(t, err)
 
 	assert.Equal(t, 640, image.Width())

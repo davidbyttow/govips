@@ -371,7 +371,7 @@ func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
 	if err != nil {
 		return nil, ImageTypeUnknown, nil
 	}
-	return vipsLoadFromBuffer(t.source)
+	return vipsLoadFromBuffer(t.source, nil)
 }
 
 func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte, ImageType, error) {

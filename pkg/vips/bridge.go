@@ -118,7 +118,7 @@ func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImag
 	return input, nil
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, opts *LoadOptions) (*C.VipsImage, ImageType, error) {
 	// Reference buf here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(buf)
 
@@ -137,12 +137,31 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	len := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
 
-	err := C.init_image(imageBuf, len, C.int(imageType), &image)
+	err := C.init_image(imageBuf, len, C.int(imageType), cLoadOptions(opts), &image)
 	if err != 0 {
 		return nil, ImageTypeUnknown, handleVipsError()
 	}
 
 	return image, imageType, nil
+}
+
+func cLoadOptions(opts *LoadOptions) *C.ImageLoadOptions {
+	var cOpts C.ImageLoadOptions
+	if opts != nil {
+		switch opts.Access {
+		case AccessRandom:
+			cOpts.access = C.VIPS_ACCESS_RANDOM
+		case AccessSequential:
+			cOpts.access = C.VIPS_ACCESS_SEQUENTIAL
+		case AccessSequentialUnbuffered:
+			cOpts.access = C.VIPS_ACCESS_SEQUENTIAL_UNBUFFERED
+		default:
+			cOpts.access = C.VIPS_ACCESS_RANDOM
+		}
+	} else {
+		cOpts.access = C.VIPS_ACCESS_RANDOM
+	}
+	return &cOpts
 }
 
 func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageType, error) {
@@ -209,7 +228,7 @@ func isTypeSupported(imageType ImageType) bool {
 }
 
 func isColorspaceIsSupportedBuffer(buf []byte) (bool, error) {
-	image, _, err := vipsLoadFromBuffer(buf)
+	image, _, err := vipsLoadFromBuffer(buf, nil)
 	if err != nil {
 		return false, err
 	}
