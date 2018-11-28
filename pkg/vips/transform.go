@@ -569,12 +569,12 @@ func maybeCrop(bb *Blackboard) error {
 		if bb.cropOffsetX >= 0 {
 			left = middleX + minInt(bb.cropOffsetX, middleX)
 		} else {
-			left = middleX - maxInt(bb.cropOffsetX, middleX)
+			left = middleX + maxInt(bb.cropOffsetX, -middleX)
 		}
 		if bb.cropOffsetY >= 0 {
 			top = middleY + minInt(bb.cropOffsetY, middleY)
 		} else {
-			top = middleY - maxInt(bb.cropOffsetY, middleY)
+			top = middleY + maxInt(bb.cropOffsetY, -middleY)
 		}
 	} else {
 		switch bb.CropAnchor {
