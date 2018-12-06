@@ -30,7 +30,7 @@ func main() {
 }
 
 func avg(file string) error {
-	image, err := vips.NewImageFromFile(file)
+	image, err := vips.NewImageFromFile(file, nil)
 	if err != nil {
 		return err
 	}
