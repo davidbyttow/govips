@@ -58,10 +58,20 @@ before_script:
 #  - go get -u github.com/golang/lint/golint
 
 script:
-  - diff -u <(echo -n) <(gofmt -s -d ./)
-  - diff -u <(echo -n) <(go vet ./)
+  - |
+    set -e
+    diff -u <(echo -n) <(gofmt -s -d ./)
+  - |
+    set -e
+    diff -u <(echo -n) <(go vet ./pkg/vips)
 #  - diff -u <(echo -n) <(golint ./)
-  - go test -short -v -race -covermode=atomic -coverprofile=coverage.out
+  - |
+    set -e
+    for test in ./pkg/vips/*_test.go
+    do
+      echo $test
+      go test $test -short -v -race -covermode=atomic -coverprofile=coverage.out
+    done
 
 after_success:
   - goveralls -coverprofile=coverage.out -service=travis-ci
