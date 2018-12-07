@@ -72,6 +72,3 @@ script:
       echo $test
       go test $test -short -v -race -covermode=atomic -coverprofile=coverage.out
     done
-
-after_success:
-  - goveralls -coverprofile=coverage.out -service=travis-ci
