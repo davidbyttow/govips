@@ -55,7 +55,7 @@ before_install:
     cd ../..
 
 before_script:
-#  - go get -u github.com/golang/lint/golint
+  - go get -u github.com/golang/lint/golint
 
 script:
   - |
@@ -64,7 +64,9 @@ script:
   - |
     set -e
     diff -u <(echo -n) <(go vet ./pkg/vips)
-#  - diff -u <(echo -n) <(golint ./)
+  - |
+    set -e
+    diff -u <(echo -n) <(golint ./)
   - |
     set -e
     for test in ./pkg/vips/*_test.go
