@@ -95,7 +95,7 @@ func TestCleanup(t *testing.T) {
 					Apply()
 				require.NoError(t, err)
 
-				image, err := vips.NewImageFromBuffer(buf, nil)
+				image, err := vips.NewImageFromBuffer(buf)
 				require.NoError(t, err)
 				defer image.Close()
 

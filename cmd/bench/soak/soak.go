@@ -123,12 +123,12 @@ func soak() {
 				}
 
 				if *overlayFlag != "" {
-					bg, err := vips.NewImageFromBuffer(buf, nil)
+					bg, err := vips.NewImageFromBuffer(buf)
 					if err != nil {
 						panic(err)
 					}
 					defer bg.Close()
-					overlay, err := vips.NewImageFromFile(*overlayFlag, nil)
+					overlay, err := vips.NewImageFromFile(*overlayFlag)
 					if err != nil {
 						panic(err)
 					}

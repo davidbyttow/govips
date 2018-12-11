@@ -14,10 +14,24 @@ func TestLoadImage_AccessMode(t *testing.T) {
 	srcBytes, err := ioutil.ReadFile("testdata/test.png")
 	require.NoError(t, err)
 
+	// defaults to random access
+	{
+		src := bytes.NewReader(srcBytes)
+		img, err := vips.LoadImage(src)
+		if assert.NoError(t, err) {
+			assert.NotNil(t, img)
+			// check random access by encoding twice
+			_, _, err = img.Export(vips.ExportParams{})
+			assert.NoError(t, err)
+			_, _, err = img.Export(vips.ExportParams{})
+			assert.NoError(t, err)
+		}
+	}
+
 	// random access
 	{
 		src := bytes.NewReader(srcBytes)
-		img, err := vips.LoadImage(src, &vips.LoadOptions{Access: vips.AccessRandom})
+		img, err := vips.LoadImage(src, vips.WithAccessMode(vips.AccessRandom))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check random access by encoding twice
@@ -31,7 +45,7 @@ func TestLoadImage_AccessMode(t *testing.T) {
 	// sequential access
 	{
 		src := bytes.NewReader(srcBytes)
-		img, err := vips.LoadImage(src, &vips.LoadOptions{Access: vips.AccessSequential})
+		img, err := vips.LoadImage(src, vips.WithAccessMode(vips.AccessSequential))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check sequential access by encoding twice where the second fails
@@ -45,9 +59,22 @@ func TestLoadImage_AccessMode(t *testing.T) {
 }
 
 func TestNewImageFromFile_AccessMode(t *testing.T) {
+	// defaults to random access
+	{
+		img, err := vips.NewImageFromFile("testdata/test.png")
+		if assert.NoError(t, err) {
+			assert.NotNil(t, img)
+			// check random access by encoding twice
+			_, _, err = img.Export(vips.ExportParams{})
+			assert.NoError(t, err)
+			_, _, err = img.Export(vips.ExportParams{})
+			assert.NoError(t, err)
+		}
+	}
+
 	// random access
 	{
-		img, err := vips.NewImageFromFile("testdata/test.png", &vips.LoadOptions{Access: vips.AccessRandom})
+		img, err := vips.NewImageFromFile("testdata/test.png", vips.WithAccessMode(vips.AccessRandom))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check random access by encoding twice
@@ -60,7 +87,7 @@ func TestNewImageFromFile_AccessMode(t *testing.T) {
 
 	// sequential access
 	{
-		img, err := vips.NewImageFromFile("testdata/test.png", &vips.LoadOptions{Access: vips.AccessSequential})
+		img, err := vips.NewImageFromFile("testdata/test.png", vips.WithAccessMode(vips.AccessSequential))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check sequential access by encoding twice where the second fails
@@ -77,9 +104,22 @@ func TestNewImageFromBuffer_AccessMode(t *testing.T) {
 	src, err := ioutil.ReadFile("testdata/test.png")
 	require.NoError(t, err)
 
+	// defaults to random access
+	{
+		img, err := vips.NewImageFromBuffer(src)
+		if assert.NoError(t, err) {
+			assert.NotNil(t, img)
+			// check random access by encoding twice
+			_, _, err = img.Export(vips.ExportParams{})
+			assert.NoError(t, err)
+			_, _, err = img.Export(vips.ExportParams{})
+			assert.NoError(t, err)
+		}
+	}
+
 	// random access
 	{
-		img, err := vips.NewImageFromBuffer(src, &vips.LoadOptions{Access: vips.AccessRandom})
+		img, err := vips.NewImageFromBuffer(src, vips.WithAccessMode(vips.AccessRandom))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check random access by encoding twice
@@ -92,7 +132,7 @@ func TestNewImageFromBuffer_AccessMode(t *testing.T) {
 
 	// sequential access
 	{
-		img, err := vips.NewImageFromBuffer(src, &vips.LoadOptions{Access: vips.AccessSequential})
+		img, err := vips.NewImageFromBuffer(src, vips.WithAccessMode(vips.AccessSequential))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check sequential access by encoding twice where the second fails
