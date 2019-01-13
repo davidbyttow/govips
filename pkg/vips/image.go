@@ -182,6 +182,11 @@ func (ref *ImageRef) Export(params ExportParams) ([]byte, ImageType, error) {
 	return vipsExportBuffer(ref.image, &params)
 }
 
+// HasProfile returns if the image has an ICC profile embedded.
+func (ref *ImageRef) HasProfile() bool {
+	return vipsHasProfile(ref.image)
+}
+
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (ref *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t
