@@ -32,6 +32,10 @@ type vipsLabelOptions struct {
 	Color     [3]C.double
 }
 
+type vipsLoadOptions struct {
+	cOpts C.ImageLoadOptions
+}
+
 var stringBuffer4096 = fixedString(4096)
 
 func vipsOperationNew(name string) *C.VipsOperation {
@@ -118,7 +122,7 @@ func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImag
 	return input, nil
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, opts ...LoadOption) (*C.VipsImage, ImageType, error) {
 	// Reference buf here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(buf)
 
@@ -136,8 +140,12 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 
 	len := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
+	var loadOpts vipsLoadOptions
+	for _, opt := range opts {
+		opt(&loadOpts)
+	}
 
-	err := C.init_image(imageBuf, len, C.int(imageType), &image)
+	err := C.init_image(imageBuf, len, C.int(imageType), &loadOpts.cOpts, &image)
 	if err != 0 {
 		return nil, ImageTypeUnknown, handleVipsError()
 	}

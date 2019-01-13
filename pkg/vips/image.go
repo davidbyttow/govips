@@ -24,33 +24,50 @@ type ImageRef struct {
 	buf []byte
 }
 
+type LoadOption func(o *vipsLoadOptions)
+
+func WithAccessMode(a Access) LoadOption {
+	return func(o *vipsLoadOptions) {
+		switch a {
+		case AccessRandom:
+			o.cOpts.access = C.VIPS_ACCESS_RANDOM
+		case AccessSequential:
+			o.cOpts.access = C.VIPS_ACCESS_SEQUENTIAL
+		case AccessSequentialUnbuffered:
+			o.cOpts.access = C.VIPS_ACCESS_SEQUENTIAL_UNBUFFERED
+		default:
+			o.cOpts.access = C.VIPS_ACCESS_RANDOM
+		}
+	}
+}
+
 // LoadImage loads an ImageRef from the given reader
-func LoadImage(r io.Reader) (*ImageRef, error) {
+func LoadImage(r io.Reader, opts ...LoadOption) (*ImageRef, error) {
 	startupIfNeeded()
 
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
-	return NewImageFromBuffer(buf)
+	return NewImageFromBuffer(buf, opts...)
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
-func NewImageFromFile(file string) (*ImageRef, error) {
+func NewImageFromFile(file string, opts ...LoadOption) (*ImageRef, error) {
 	startupIfNeeded()
 
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
-	return NewImageFromBuffer(buf)
+	return NewImageFromBuffer(buf, opts...)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+func NewImageFromBuffer(buf []byte, opts ...LoadOption) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	image, format, err := vipsLoadFromBuffer(buf, opts...)
 	if err != nil {
 		return nil, err
 	}
