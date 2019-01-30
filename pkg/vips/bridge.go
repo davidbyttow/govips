@@ -4,6 +4,7 @@ package vips
 // #include "bridge.h"
 import "C"
 import (
+	"errors"
 	"fmt"
 	"log"
 	"math"
@@ -456,4 +457,62 @@ func handleVipsError() error {
 	s := C.GoString(C.vips_error_buffer())
 	stack := string(dbg.Stack())
 	return fmt.Errorf("%s\nStack:\n%s", s, stack)
+}
+
+//////////////////////////////
+type WatermarkImage struct {
+	Left      int
+	Top       int
+	Watermark *ImageRef
+	Opacity   float32
+}
+
+type vipsWatermarkImageOptions struct {
+	Left    C.int
+	Top     C.int
+	Opacity C.float
+}
+
+func catchVipsError() error {
+	s := C.GoString(C.vips_error_buffer())
+	C.vips_error_clear()
+	C.vips_thread_shutdown()
+	return errors.New(s)
+}
+
+func VipsDrawWatermark(image *C.VipsImage, o WatermarkImage) (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	//	watermark, _, e := vipsRead(o.Buf)
+	//	if e != nil {
+	//		return nil, e
+	//	}
+
+	opts := vipsWatermarkImageOptions{C.int(o.Left), C.int(o.Top), C.float(o.Opacity)}
+
+	err := C.vips_watermark_image(image, o.Watermark.image, &out, (*C.WatermarkImageOptions)(unsafe.Pointer(&opts)))
+
+	if err != 0 {
+		return nil, catchVipsError()
+	}
+
+	return out, nil
+}
+
+func (in *ImageRef) VipsDrawWatermark(o WatermarkImage) error {
+	out, err := VipsDrawWatermark(in.image, o)
+	if err != nil {
+		return err
+	}
+	in.SetImage(out)
+	return nil
+}
+
+func (in *ImageRef) VipsLabel(lp LabelParams) error {
+	out, err := vipsLabel(in.image, lp)
+	if err != nil {
+		return err
+	}
+	in.SetImage(out)
+	return nil
 }

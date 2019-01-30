@@ -77,3 +77,12 @@ static int has_alpha_channel(VipsImage *image) {
 		(image->Bands == 5 && image->Type == VIPS_INTERPRETATION_CMYK)
 	) ? 1 : 0;
 }
+
+typedef struct {
+	int    Left;
+	int    Top;
+	float    Opacity;
+} WatermarkImageOptions;
+
+int vips_add_band(VipsImage *in, VipsImage **out, double c);
+int vips_watermark_image(VipsImage *in, VipsImage *sub, VipsImage **out, WatermarkImageOptions *o);

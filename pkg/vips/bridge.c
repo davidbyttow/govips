@@ -296,3 +296,82 @@ int label(VipsImage *in, VipsImage **out, LabelOptions *o) {
 	g_object_unref(base);
 	return 0;
 }
+
+/////////////////////////////////////////////////
+int vips_add_band(VipsImage *in, VipsImage **out, double c) {
+#if (VIPS_MAJOR_VERSION > 8 || (VIPS_MAJOR_VERSION >= 8 && VIPS_MINOR_VERSION >= 2))
+	return vips_bandjoin_const1(in, out, c, NULL);
+#else
+	VipsImage *base = vips_image_new();
+	if (
+		vips_black(&base, in->Xsize, in->Ysize, NULL) ||
+		vips_linear1(base, &base, 1, c, NULL)) {
+			g_object_unref(base);
+			return 1;
+		}
+	g_object_unref(base);
+	return vips_bandjoin2(in, base, out, c, NULL);
+#endif
+}
+
+int vips_watermark_image(VipsImage *in, VipsImage *sub, VipsImage **out, WatermarkImageOptions *o) {
+	VipsImage *base = vips_image_new();
+	VipsImage **t = (VipsImage **) vips_object_local_array(VIPS_OBJECT(base), 10);
+
+	// add in and sub for unreffing and later use
+	t[0] = in;
+	t[1] = sub;
+
+	if (has_alpha_channel(in) == 0) {
+		vips_add_band(in, &t[0], 255.0);
+		// in is no longer in the array and won't be unreffed, so add it at the end
+		t[8] = in;
+	}
+
+	if (has_alpha_channel(sub) == 0) {
+		vips_add_band(sub, &t[1], 255.0);
+		// sub is no longer in the array and won't be unreffed, so add it at the end
+		t[9] = sub;
+	}
+
+	// Place watermark image in the right place and size it to the size of the
+	// image that should be watermarked
+	if (
+		vips_embed(t[1], &t[2], o->Left, o->Top, t[0]->Xsize, t[0]->Ysize, NULL)) {
+			g_object_unref(base);
+		return 1;
+	}
+
+	// Create a mask image based on the alpha band from the watermark image
+	// and place it in the right position
+	if (
+		vips_extract_band(t[1], &t[3], t[1]->Bands - 1, "n", 1, NULL) ||
+		vips_linear1(t[3], &t[4], o->Opacity, 0.0, NULL) ||
+		vips_cast(t[4], &t[5], VIPS_FORMAT_UCHAR, NULL) ||
+		vips_copy(t[5], &t[6], "interpretation", t[0]->Type, NULL) ||
+		vips_embed(t[6], &t[7], o->Left, o->Top, t[0]->Xsize, t[0]->Ysize, NULL))	{
+			g_object_unref(base);
+		return 1;
+	}
+
+	// Blend the mask and watermark image and write to output.
+	if (vips_ifthenelse(t[7], t[2], t[0], out, "blend", TRUE, NULL)) {
+		g_object_unref(base);
+		return 1;
+	}
+
+	if (!t[8]) {
+		t[0] = NULL;
+	} else {
+		t[8] = NULL;
+	}
+
+	if (!t[9]) {
+		t[1] = NULL;
+	} else {
+		t[9] = NULL;
+	}
+
+	g_object_unref(base);
+	return 0;
+}
