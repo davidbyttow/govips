@@ -328,6 +328,18 @@ func (t *Transform) BackgroundColor(color Color) *Transform {
 	return t
 }
 
+// Interpretation sets interpretation for image
+func (t *Transform) Interpretation(interpretation Interpretation) *Transform {
+	t.export.Interpretation = interpretation
+	return t
+}
+
+// Interlaced uses interlaced for image that support it
+func (t *Transform) Interlaced() *Transform {
+	t.export.Interlaced = true
+	return t
+}
+
 // Apply loads the image, applies the transform, and exports it according
 // to the parameters specified
 func (t *Transform) Apply() ([]byte, ImageType, error) {
