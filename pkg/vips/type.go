@@ -417,6 +417,18 @@ const (
 	BlendModeExclusion  BlendMode = C.VIPS_BLEND_MODE_EXCLUSION
 )
 
+// Size represents VIPS_SIZE type
+type Size int
+
+// Size enum
+const (
+	SizeBoth  Size = C.VIPS_SIZE_BOTH
+	SizeUp    Size = C.VIPS_SIZE_UP
+	SizeDown  Size = C.VIPS_SIZE_DOWN
+	SizeForce Size = C.VIPS_SIZE_FORCE
+	SizeLast  Size = C.VIPS_SIZE_LAST
+)
+
 var (
 	once                sync.Once
 	typeLoaders         = make(map[string]ImageType)
