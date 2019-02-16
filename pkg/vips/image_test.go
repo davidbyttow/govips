@@ -144,3 +144,30 @@ func TestNewImageFromBuffer_AccessMode(t *testing.T) {
 		}
 	}
 }
+
+func TestImageRef_HasProfile(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{
+			"image with profile",
+			"testdata/with_icc_profile.jpg",
+			true,
+		},
+		{
+			"image without profile",
+			"testdata/without_icc_profile.jpg",
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ref, err := vips.NewImageFromFile(tt.path)
+			require.NoError(t, err)
+			got := ref.HasProfile()
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
