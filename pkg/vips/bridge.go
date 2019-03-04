@@ -153,6 +153,15 @@ func vipsLoadFromBuffer(buf []byte, opts ...LoadOption) (*C.VipsImage, ImageType
 	return image, imageType, nil
 }
 
+func vipsCopyImage(input *C.VipsImage) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	cErr := C.copy_image(input, &output)
+	if int(cErr) != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
 func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageType, error) {
 	tmpImage, err := vipsPrepareForExport(image, params)
 
