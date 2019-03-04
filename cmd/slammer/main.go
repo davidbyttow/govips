@@ -71,7 +71,6 @@ func run(dir string) (int, error) {
 		}
 		tx := vips.NewTransform().
 			Image(imageRef).
-			// LoadBuffer(data).
 			ResizeStrategy(vips.ResizeStrategyCrop).
 			ScaleWidth(x).
 			ScaleHeight(y).
