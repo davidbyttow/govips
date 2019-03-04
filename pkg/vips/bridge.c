@@ -49,6 +49,10 @@ int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
   }
 }
 
+int copy_image(VipsImage *in, VipsImage **out) {
+	return vips_copy(in, out, NULL);
+}
+
 int save_jpeg_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int interlace) {
 	return vips_jpegsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),

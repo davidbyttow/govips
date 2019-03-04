@@ -363,17 +363,15 @@ func (t *Transform) Apply() ([]byte, ImageType, error) {
 		return nil, ImageTypeUnknown, err
 	}
 
-	// If we're using a source image, then it owns the buffer
-	if t.input.Image == nil {
-		defer C.g_object_unref(C.gpointer(transformed))
-	}
+	defer C.g_object_unref(C.gpointer(transformed))
 
 	return t.exportImage(transformed, imageType)
 }
 
 func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
 	if t.input.Image != nil {
-		return t.input.Image.image, t.input.Image.Format(), nil
+		copy, err := vipsCopyImage(t.input.Image.image)
+		return copy, t.input.Image.Format(), err
 	}
 	if t.input.Reader == nil {
 		panic("no input source specified")
