@@ -86,3 +86,6 @@ typedef struct {
 
 int vips_add_band(VipsImage *in, VipsImage **out, double c);
 int vips_watermark_image(VipsImage *in, VipsImage *sub, VipsImage **out, WatermarkImageOptions *o);
+int get_text(VipsImage **t, LabelOptions *o);
+int watermarkText(VipsImage *in,VipsImage *ti, VipsImage **out, LabelOptions *o);
+int get_text1(VipsImage *in, VipsImage **out, LabelOptions *o);

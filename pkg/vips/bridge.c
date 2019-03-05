@@ -375,3 +375,70 @@ int vips_watermark_image(VipsImage *in, VipsImage *sub, VipsImage **out, Waterma
 	g_object_unref(base);
 	return 0;
 }
+
+
+int get_text(VipsImage **text, LabelOptions *o) {
+	VipsImage *base = vips_image_new();
+	VipsImage **t = (VipsImage **) vips_object_local_array(VIPS_OBJECT(base), 1);
+
+	int ret = vips_text(&t[0], o->Text,
+		"font", o->Font,
+		"dpi", o->DPI,
+		"width", o->Width,
+		"align", o->Align,
+		NULL);
+	
+	if (ret){
+		return 1;
+	}
+	
+	*text = t[0];
+	g_object_unref(base);
+	return 0;
+}
+
+int get_text1(VipsImage *in, VipsImage **out, LabelOptions *o) {
+	VipsImage *base = vips_image_new();
+	VipsImage **t = (VipsImage **) vips_object_local_array(VIPS_OBJECT(base), 5);
+
+	t[1] = in;
+	if (
+		vips_linear1(t[1], &t[2], o->Opacity, 0.0, NULL) ||
+		vips_cast(t[2], &t[3], VIPS_FORMAT_UCHAR, NULL) ||
+		vips_embed(t[3], &t[4], o->OffsetX, o->OffsetY, t[3]->Xsize + o->OffsetX, t[3]->Ysize + o->OffsetY, NULL)
+		) {
+		g_object_unref(base);
+		return 1;
+	}
+	
+	*out = t[4],
+	g_object_unref(base);
+	return 0;
+}
+
+int watermarkText(VipsImage *in, VipsImage *ti, VipsImage **out, LabelOptions *o){
+	double ones[3] = { 1, 1, 1 };
+	VipsImage *base = vips_image_new();
+	VipsImage **t = (VipsImage **) vips_object_local_array(VIPS_OBJECT(base), 10);
+	t[0] = in;
+	t[4] = ti;
+
+	if (
+		vips_black(&t[5], 1, 1, NULL) ||
+		vips_linear(t[5], &t[6], ones, o->Color, 3, NULL) ||
+		vips_cast(t[6], &t[7], VIPS_FORMAT_UCHAR, NULL) ||
+		vips_copy(t[7], &t[8], "interpretation", t[0]->Type, NULL) ||
+		vips_embed(t[8], &t[9], 0, 0, t[0]->Xsize, t[0]->Ysize, "extend", VIPS_EXTEND_COPY, NULL)
+		) {
+		g_object_unref(base);
+		return 1;
+	}
+
+	if (vips_ifthenelse(t[4], t[9], t[0], out, "blend", TRUE, NULL)) {
+		g_object_unref(base);
+		return 1;
+	}
+	
+	g_object_unref(base);
+	return 0;
+}

@@ -508,11 +508,67 @@ func (in *ImageRef) VipsDrawWatermark(o WatermarkImage) error {
 	return nil
 }
 
-func (in *ImageRef) VipsLabel(lp LabelParams) error {
-	out, err := vipsLabel(in.image, lp)
+func GetText(lp LabelParams) (*ImageRef, error) {
+	var output *C.VipsImage
+	text := C.CString(lp.Text)
+	font := C.CString(lp.Font)
+
+	defer C.free(unsafe.Pointer(text))
+	defer C.free(unsafe.Pointer(font))
+	opts := vipsLabelOptions{
+		Text:      text,
+		Font:      font,
+		Width:     C.int(1600),
+		Alignment: C.VipsAlign(lp.Alignment),
+		DPI:       C.int(72),
+	}
+
+	err := C.get_text(&output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
+	if err != 0 {
+		return nil, handleVipsError()
+	}
+	textRef := NewImageRef(output, ImageTypeJPEG)
+	return textRef, nil
+}
+
+func (ti *ImageRef) GetText1(in *ImageRef, lp LabelParams) (*ImageRef, error) {
+	var output *C.VipsImage
+
+	opts := vipsLabelOptions{
+		OffsetX: C.int(200),
+		OffsetY: C.int(200),
+		Opacity: C.float(0.5),
+	}
+
+	err := C.get_text1(ti.image, &output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
+	if err != 0 {
+		return nil, handleVipsError()
+	}
+	textRef := NewImageRef(output, ImageTypeJPEG)
+	return textRef, nil
+
+}
+
+func watermarkText(input *C.VipsImage, t *C.VipsImage, lp LabelParams) (*C.VipsImage, error) {
+	var output *C.VipsImage
+	color := [3]C.double{C.double(lp.Color.R), C.double(lp.Color.G), C.double(lp.Color.B)}
+	opts := vipsLabelOptions{
+		Color: color,
+	}
+
+	err := C.watermarkText(input, t, &output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
+	if err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func (in *ImageRef) WatermarkText(text *ImageRef, lp LabelParams) error {
+	out, err := watermarkText(in.image, text.image, lp)
 	if err != nil {
 		return err
 	}
 	in.SetImage(out)
+
 	return nil
 }
