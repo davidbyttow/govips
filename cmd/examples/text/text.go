@@ -17,7 +17,7 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "text -in input_file -message message -out output_file")
+		fmt.Fprintf(os.Stderr, "text -in input_file -message message -out output_file\n")
 	}
 	flag.Parse()
 

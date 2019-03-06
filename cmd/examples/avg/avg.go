@@ -15,7 +15,7 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "avg -file input_file")
+		fmt.Fprintf(os.Stderr, "avg -file input_file\n")
 	}
 	flag.Parse()
 
