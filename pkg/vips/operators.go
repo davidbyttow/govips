@@ -3516,6 +3516,18 @@ func Thumbnail(filename string, width int, options ...*Option) (*C.VipsImage, er
 	return out, err
 }
 
+// ThumbnailWithSize executes the 'thumbnail' operation with specified size
+func ThumbnailWithSize(filename string, width, height int, options ...*Option) (*C.VipsImage, error) {
+	if height > 0 {
+		options = append(options,
+			InputInt("height", height),
+			InputString("size", "force"),
+		)
+	}
+
+	return Thumbnail(filename, width, options...)
+}
+
 // ThumbnailImage executes the 'thumbnail_image' operation
 func ThumbnailImage(in *C.VipsImage, width int, options ...*Option) (*C.VipsImage, error) {
 	var out *C.VipsImage
@@ -3528,6 +3540,18 @@ func ThumbnailImage(in *C.VipsImage, width int, options ...*Option) (*C.VipsImag
 	incOpCounter("thumbnail_image")
 	err = vipsCall("thumbnail_image", options)
 	return out, err
+}
+
+// ThumbnailImageWithSize executes the 'thumbnail_image' operation with specified size
+func ThumbnailImageWithSize(in *C.VipsImage, width, height int, options ...*Option) (*C.VipsImage, error) {
+	if height > 0 {
+		options = append(options,
+			InputInt("height", height),
+			InputString("size", "force"),
+		)
+	}
+
+	return ThumbnailImage(in, width, options...)
 }
 
 // ThumbnailImage executes the 'thumbnail_image' operation
