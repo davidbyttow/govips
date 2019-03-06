@@ -393,6 +393,7 @@ int get_text(VipsImage **text, LabelOptions *o) {
 	}
 	
 	*text = t[0];
+	t[0] = NULL;
 	g_object_unref(base);
 	return 0;
 }
@@ -407,11 +408,14 @@ int get_text1(VipsImage *in, VipsImage **out, LabelOptions *o) {
 		vips_cast(t[2], &t[3], VIPS_FORMAT_UCHAR, NULL) ||
 		vips_embed(t[3], &t[4], o->OffsetX, o->OffsetY, t[3]->Xsize + o->OffsetX, t[3]->Ysize + o->OffsetY, NULL)
 		) {
+		t[1]= NULL;
 		g_object_unref(base);
 		return 1;
 	}
 	
-	*out = t[4],
+	*out = t[4];
+	t[1] = NULL;
+	t[4] = NULL;
 	g_object_unref(base);
 	return 0;
 }
@@ -430,15 +434,21 @@ int watermarkText(VipsImage *in, VipsImage *ti, VipsImage **out, LabelOptions *o
 		vips_copy(t[7], &t[8], "interpretation", t[0]->Type, NULL) ||
 		vips_embed(t[8], &t[9], 0, 0, t[0]->Xsize, t[0]->Ysize, "extend", VIPS_EXTEND_COPY, NULL)
 		) {
+		t[0] = NULL;
+		t[4] = NULL;
 		g_object_unref(base);
 		return 1;
 	}
 
 	if (vips_ifthenelse(t[4], t[9], t[0], out, "blend", TRUE, NULL)) {
+		t[0] = NULL;
+		t[4] = NULL;
 		g_object_unref(base);
 		return 1;
 	}
 	
+	t[0] = NULL;
+	t[4] = NULL;
 	g_object_unref(base);
 	return 0;
 }

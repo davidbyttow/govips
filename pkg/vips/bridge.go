@@ -17,6 +17,7 @@ const (
 	defaultQuality     = 90
 	defaultCompression = 6
 	maxScaleFactor     = 10
+	DefaultDPI         = 72
 )
 
 type vipsLabelOptions struct {
@@ -508,19 +509,20 @@ func (in *ImageRef) VipsDrawWatermark(o WatermarkImage) error {
 	return nil
 }
 
-func GetText(lp LabelParams) (*ImageRef, error) {
+func GetText(input *ImageRef, lp LabelParams) (*ImageRef, error) {
 	var output *C.VipsImage
 	text := C.CString(lp.Text)
 	font := C.CString(lp.Font)
+	w := lp.Width.GetRounded(int(input.image.Xsize))
 
 	defer C.free(unsafe.Pointer(text))
 	defer C.free(unsafe.Pointer(font))
 	opts := vipsLabelOptions{
 		Text:      text,
 		Font:      font,
-		Width:     C.int(1600),
+		Width:     C.int(w),
 		Alignment: C.VipsAlign(lp.Alignment),
-		DPI:       C.int(72),
+		DPI:       C.int(DefaultDPI),
 	}
 
 	err := C.get_text(&output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
@@ -531,13 +533,15 @@ func GetText(lp LabelParams) (*ImageRef, error) {
 	return textRef, nil
 }
 
-func (ti *ImageRef) GetText1(in *ImageRef, lp LabelParams) (*ImageRef, error) {
+func GetText1(input *ImageRef, ti *ImageRef, lp LabelParams) (*ImageRef, error) {
 	var output *C.VipsImage
+	offsetX := lp.OffsetX.GetRounded(int(input.image.Xsize))
+	offsetY := lp.OffsetY.GetRounded(int(input.image.Ysize))
 
 	opts := vipsLabelOptions{
-		OffsetX: C.int(200),
-		OffsetY: C.int(200),
-		Opacity: C.float(0.5),
+		OffsetX: C.int(offsetX),
+		OffsetY: C.int(offsetY),
+		Opacity: C.float(lp.Opacity),
 	}
 
 	err := C.get_text1(ti.image, &output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
