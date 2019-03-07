@@ -10,6 +10,7 @@ import (
 	"math"
 	"runtime"
 	dbg "runtime/debug"
+	"strings"
 	"unsafe"
 )
 
@@ -29,7 +30,7 @@ type vipsLabelOptions struct {
 	OffsetY   C.int
 	Alignment C.VipsAlign
 	DPI       C.int
-	Margin    C.int
+	margin    C.int
 	Opacity   C.float
 	Color     [3]C.double
 }
@@ -460,7 +461,7 @@ func handleVipsError() error {
 	return fmt.Errorf("%s\nStack:\n%s", s, stack)
 }
 
-//////////////////////////////
+//add new feature about watermarkImage and watermarkText
 type WatermarkImage struct {
 	Left      int
 	Top       int
@@ -473,6 +474,47 @@ type vipsWatermarkImageOptions struct {
 	Top     C.int
 	Opacity C.float
 }
+
+type WatermarkText struct {
+	Text      string
+	Font      string
+	Opacity   float32
+	Color     Color
+	Alignment string
+	Margin    int
+	TextInfo  TextInfo
+}
+
+type TextInfo struct {
+	ImageWidth  int
+	ImageHeight int
+	TextWidth   int
+	TextHeight  int
+	OffsetX     int
+	OffsetY     int
+	Crop        bool
+	CropX       int
+	CropY       int
+}
+
+type AlignPosition int
+
+type AlignMode struct {
+	Horizon  AlignPosition
+	Vertical AlignPosition
+}
+
+const (
+	HorizonLeft AlignPosition = iota
+	HorizonCenter
+	HorizonRight
+)
+
+const (
+	VerticalTop AlignPosition = iota
+	VerticalMiddle
+	VerticalBottom
+)
 
 func catchVipsError() error {
 	s := C.GoString(C.vips_error_buffer())
@@ -509,20 +551,20 @@ func (in *ImageRef) VipsDrawWatermark(o WatermarkImage) error {
 	return nil
 }
 
-func GetText(input *ImageRef, lp LabelParams) (*ImageRef, error) {
+func GetText(input *ImageRef, wt WatermarkText) (*ImageRef, error) {
 	var output *C.VipsImage
-	text := C.CString(lp.Text)
-	font := C.CString(lp.Font)
-	w := lp.Width.GetRounded(int(input.image.Xsize))
+	text := C.CString(wt.Text)
+	font := C.CString(wt.Font)
+	w := wt.TextInfo.ImageWidth
 
 	defer C.free(unsafe.Pointer(text))
 	defer C.free(unsafe.Pointer(font))
 	opts := vipsLabelOptions{
-		Text:      text,
-		Font:      font,
-		Width:     C.int(w),
-		Alignment: C.VipsAlign(lp.Alignment),
-		DPI:       C.int(DefaultDPI),
+		Text:  text,
+		Font:  font,
+		Width: C.int(w),
+		//		Alignment: C.VipsAlign(wt.Alignment),
+		DPI: C.int(DefaultDPI),
 	}
 
 	err := C.get_text(&output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
@@ -533,15 +575,13 @@ func GetText(input *ImageRef, lp LabelParams) (*ImageRef, error) {
 	return textRef, nil
 }
 
-func GetText1(input *ImageRef, ti *ImageRef, lp LabelParams) (*ImageRef, error) {
+func GetText1(input *ImageRef, ti *ImageRef, wt WatermarkText) (*ImageRef, error) {
 	var output *C.VipsImage
-	offsetX := lp.OffsetX.GetRounded(int(input.image.Xsize))
-	offsetY := lp.OffsetY.GetRounded(int(input.image.Ysize))
 
 	opts := vipsLabelOptions{
-		OffsetX: C.int(offsetX),
-		OffsetY: C.int(offsetY),
-		Opacity: C.float(lp.Opacity),
+		OffsetX: C.int(wt.TextInfo.OffsetX),
+		OffsetY: C.int(wt.TextInfo.OffsetY),
+		Opacity: C.float(wt.Opacity),
 	}
 
 	err := C.get_text1(ti.image, &output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
@@ -553,9 +593,9 @@ func GetText1(input *ImageRef, ti *ImageRef, lp LabelParams) (*ImageRef, error) 
 
 }
 
-func watermarkText(input *C.VipsImage, t *C.VipsImage, lp LabelParams) (*C.VipsImage, error) {
+func watermarkText(input *C.VipsImage, t *C.VipsImage, wt WatermarkText) (*C.VipsImage, error) {
 	var output *C.VipsImage
-	color := [3]C.double{C.double(lp.Color.R), C.double(lp.Color.G), C.double(lp.Color.B)}
+	color := [3]C.double{C.double(wt.Color.R), C.double(wt.Color.G), C.double(wt.Color.B)}
 	opts := vipsLabelOptions{
 		Color: color,
 	}
@@ -567,8 +607,133 @@ func watermarkText(input *C.VipsImage, t *C.VipsImage, lp LabelParams) (*C.VipsI
 	return output, nil
 }
 
-func (in *ImageRef) WatermarkText(text *ImageRef, lp LabelParams) error {
-	out, err := watermarkText(in.image, text.image, lp)
+func (ti *TextInfo) getTextInfo(in *ImageRef, text *ImageRef) {
+	ti.ImageWidth = in.Width()
+	ti.ImageHeight = in.Height()
+	ti.TextWidth = text.Width()
+	ti.TextHeight = text.Height()
+	ti.Crop = false
+}
+
+func (textRef *ImageRef) TextCrop(ti TextInfo, margin int) error {
+	var extractWidth, extractHeight int
+	if ti.CropX != 0 {
+		extractWidth = ti.ImageWidth - margin
+	} else {
+		extractWidth = ti.TextWidth + ti.OffsetX
+	}
+
+	if ti.CropY != 0 {
+		extractHeight = ti.ImageHeight - margin
+	} else {
+		extractHeight = ti.TextHeight + ti.OffsetY
+	}
+
+	return textRef.ExtractArea(0, 0, extractWidth, extractHeight)
+}
+
+func parseAlign(align string) AlignMode {
+	position := AlignMode{
+		Horizon:  HorizonRight,
+		Vertical: VerticalBottom,
+	}
+
+	if align == "" {
+		return position
+	}
+	pos := strings.Split(align, ",")
+	for _, p := range pos {
+		switch p {
+		case "top":
+			position.Vertical = VerticalTop
+		case "middle":
+			position.Vertical = VerticalMiddle
+		case "bottom":
+			position.Vertical = VerticalBottom
+		case "left":
+			position.Horizon = HorizonLeft
+		case "center":
+			position.Horizon = HorizonCenter
+		case "right":
+			position.Horizon = HorizonRight
+		default:
+			continue
+		}
+	}
+
+	return position
+}
+
+func (ti *TextInfo) setTextInfo(margin int, align string) {
+	if ti.ImageWidth <= ti.TextWidth+2*margin {
+		ti.OffsetX = margin
+		ti.CropX = ti.TextWidth + 2*margin - ti.ImageWidth
+		ti.Crop = true
+	}
+
+	if ti.ImageHeight <= ti.TextHeight+2*margin {
+		ti.OffsetY = margin
+		ti.CropY = ti.TextHeight + 2*margin - ti.ImageHeight
+		ti.Crop = true
+	}
+
+	pos := parseAlign(align)
+
+	if ti.CropX == 0 {
+		switch pos.Horizon {
+		case HorizonLeft:
+			ti.OffsetX = margin
+		case HorizonCenter:
+			ti.OffsetX = (ti.ImageWidth - ti.TextWidth) / 2
+
+		case HorizonRight:
+			ti.OffsetX = ti.ImageWidth - ti.TextWidth - margin
+		default:
+			ti.OffsetX = ti.ImageWidth - ti.TextWidth - margin
+		}
+	}
+
+	if ti.CropY == 0 {
+		switch pos.Vertical {
+		case VerticalTop:
+			ti.OffsetY = margin
+		case VerticalMiddle:
+			ti.OffsetY = (ti.ImageHeight - ti.TextHeight) / 2
+		case VerticalBottom:
+			ti.OffsetY = ti.ImageHeight - ti.TextHeight - margin
+		default:
+			ti.OffsetY = ti.ImageHeight - ti.TextHeight - margin
+		}
+	}
+}
+
+func (wt *WatermarkText) setWatermarkTextParameter(in *ImageRef, text *ImageRef) {
+	var ti = &TextInfo{}
+	ti.getTextInfo(in, text)
+	ti.setTextInfo(wt.Margin, wt.Alignment)
+	wt.TextInfo = *ti
+}
+
+func (in *ImageRef) WatermarkText(wt WatermarkText) error {
+	text, err := GetText(in, wt)
+	if err != nil {
+		return err
+	}
+
+	wt.setWatermarkTextParameter(in, text)
+
+	textRef, err := GetText1(in, text, wt)
+	if err != nil {
+		return err
+	}
+
+	if wt.TextInfo.Crop {
+		if err = textRef.TextCrop(wt.TextInfo, wt.Margin); err != nil {
+			return err
+		}
+	}
+
+	out, err := watermarkText(in.image, textRef.image, wt)
 	if err != nil {
 		return err
 	}
