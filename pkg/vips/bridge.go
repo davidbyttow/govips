@@ -30,7 +30,7 @@ type vipsLabelOptions struct {
 	OffsetY   C.int
 	Alignment C.VipsAlign
 	DPI       C.int
-	margin    C.int
+	Margin    C.int
 	Opacity   C.float
 	Color     [3]C.double
 }
@@ -508,10 +508,7 @@ const (
 	HorizonLeft AlignPosition = iota
 	HorizonCenter
 	HorizonRight
-)
-
-const (
-	VerticalTop AlignPosition = iota
+	VerticalTop
 	VerticalMiddle
 	VerticalBottom
 )
@@ -563,8 +560,7 @@ func GetText(input *ImageRef, wt WatermarkText) (*ImageRef, error) {
 		Text:  text,
 		Font:  font,
 		Width: C.int(w),
-		//		Alignment: C.VipsAlign(wt.Alignment),
-		DPI: C.int(DefaultDPI),
+		DPI:   C.int(DefaultDPI),
 	}
 
 	err := C.get_text(&output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
@@ -664,7 +660,7 @@ func parseAlign(align string) AlignMode {
 	return position
 }
 
-func (ti *TextInfo) setTextInfo(margin int, align string) {
+func (ti *TextInfo) updateTextInfo(margin int, align string) {
 	if ti.ImageWidth <= ti.TextWidth+2*margin {
 		ti.OffsetX = margin
 		ti.CropX = ti.TextWidth + 2*margin - ti.ImageWidth
@@ -707,10 +703,10 @@ func (ti *TextInfo) setTextInfo(margin int, align string) {
 	}
 }
 
-func (wt *WatermarkText) setWatermarkTextParameter(in *ImageRef, text *ImageRef) {
+func (wt *WatermarkText) updateWatermarkTextParameter(in *ImageRef, text *ImageRef) {
 	var ti = &TextInfo{}
 	ti.getTextInfo(in, text)
-	ti.setTextInfo(wt.Margin, wt.Alignment)
+	ti.updateTextInfo(wt.Margin, wt.Alignment)
 	wt.TextInfo = *ti
 }
 
@@ -720,7 +716,7 @@ func (in *ImageRef) WatermarkText(wt WatermarkText) error {
 		return err
 	}
 
-	wt.setWatermarkTextParameter(in, text)
+	wt.updateWatermarkTextParameter(in, text)
 
 	textRef, err := GetText1(in, text, wt)
 	if err != nil {
