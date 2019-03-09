@@ -82,6 +82,10 @@ func NewImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
 		image:  vipsImage,
 		format: format,
 	}
+
+	// Increment Ref as now that we have a new object pointing to the same VipsImage
+	C.g_object_ref(C.gpointer(stream.image))
+
 	runtime.SetFinalizer(stream, finalizeImage)
 	return stream
 }
