@@ -187,6 +187,11 @@ func (ref *ImageRef) HasProfile() bool {
 	return vipsHasProfile(ref.image)
 }
 
+// HasAlpha returns if the image has an alpha layer.
+func (ref *ImageRef) HasAlpha() bool {
+	return vipsHasAlpha(ref.image)
+}
+
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (ref *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t
