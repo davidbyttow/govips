@@ -85,6 +85,10 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 	return nil
 }
 
+func vipsAutorotGetAngle(image *C.VipsImage) Angle {
+	return Angle(C.autorot_get_angle(image))
+}
+
 func vipsHasProfile(input *C.VipsImage) bool {
 	return int(C.has_profile_embed(input)) > 0
 }
