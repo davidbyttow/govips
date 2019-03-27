@@ -17,7 +17,8 @@ enum types {
 	GIF,
 	PDF,
 	SVG,
-	MAGICK
+	MAGICK,
+    OPENSLIDE
 };
 typedef struct {
   const char *Text;
@@ -38,6 +39,8 @@ typedef struct {
 } ImageLoadOptions;
 
 int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsImage **out);
+int init_open_slide(const char *filename, VipsImage **out);
+VipsImage* init_from_file(const char *filename, ImageLoadOptions *o);
 int find_image_type_loader(int t);
 int find_image_type_saver(int t);
 

@@ -92,15 +92,16 @@ type ImageType int
 
 // ImageType enum
 const (
-	ImageTypeUnknown ImageType = C.UNKNOWN
-	ImageTypeGIF     ImageType = C.GIF
-	ImageTypeJPEG    ImageType = C.JPEG
-	ImageTypeMagick  ImageType = C.MAGICK
-	ImageTypePDF     ImageType = C.PDF
-	ImageTypePNG     ImageType = C.PNG
-	ImageTypeSVG     ImageType = C.SVG
-	ImageTypeTIFF    ImageType = C.TIFF
-	ImageTypeWEBP    ImageType = C.WEBP
+	ImageTypeUnknown   ImageType = C.UNKNOWN
+	ImageTypeGIF       ImageType = C.GIF
+	ImageTypeJPEG      ImageType = C.JPEG
+	ImageTypeMagick    ImageType = C.MAGICK
+	ImageTypePDF       ImageType = C.PDF
+	ImageTypePNG       ImageType = C.PNG
+	ImageTypeSVG       ImageType = C.SVG
+	ImageTypeTIFF      ImageType = C.TIFF
+	ImageTypeWEBP      ImageType = C.WEBP
+	ImageTypeOpenSlide ImageType = C.OPENSLIDE
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -372,14 +373,15 @@ const (
 )
 
 var ImageTypes = map[ImageType]string{
-	ImageTypeGIF:    "gif",
-	ImageTypeJPEG:   "jpeg",
-	ImageTypeMagick: "magick",
-	ImageTypePDF:    "pdf",
-	ImageTypePNG:    "png",
-	ImageTypeSVG:    "svg",
-	ImageTypeTIFF:   "tiff",
-	ImageTypeWEBP:   "webp",
+	ImageTypeGIF:       "gif",
+	ImageTypeJPEG:      "jpeg",
+	ImageTypeMagick:    "magick",
+	ImageTypePDF:       "pdf",
+	ImageTypePNG:       "png",
+	ImageTypeSVG:       "svg",
+	ImageTypeTIFF:      "tiff",
+	ImageTypeWEBP:      "webp",
+	ImageTypeOpenSlide: "openslide",
 }
 
 type Composite struct {

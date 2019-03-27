@@ -33,6 +33,16 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 	return code;
 }
 
+int init_open_slide(const char *filename, VipsImage **out) {
+    int code = 1;
+    code = vips_openslideload(filename, out, NULL);
+    return code;
+}
+
+VipsImage* init_from_file(const char *filename, ImageLoadOptions *o) {
+    return vips_image_new_from_file(filename, "access", o->access, NULL);
+}
+
 unsigned long has_profile_embed(VipsImage *in) {
 	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
 }

@@ -153,6 +153,35 @@ func vipsLoadFromBuffer(buf []byte, opts ...LoadOption) (*C.VipsImage, ImageType
 	return image, imageType, nil
 }
 
+func vipsLoadFromOpenSlide(filename string) (*C.VipsImage, error) {
+	var image *C.VipsImage
+	cFileName := C.CString(filename)
+	defer freeCString(cFileName)
+
+	if err := C.init_open_slide(cFileName, &image); err != 0 {
+		return nil, handleVipsError()
+	}
+
+	return image, nil
+}
+
+func vipsLoadFromFile(filename string, opts ...LoadOption) (*C.VipsImage, error) {
+	cFileName := C.CString(filename)
+	defer freeCString(cFileName)
+
+	var loadOpts vipsLoadOptions
+	for _, opt := range opts {
+		opt(&loadOpts)
+	}
+
+	image := C.init_from_file(cFileName, &loadOpts.cOpts)
+	if image == nil {
+		return nil, handleVipsError()
+	}
+
+	return image, nil
+}
+
 func vipsCopyImage(input *C.VipsImage) (*C.VipsImage, error) {
 	var output *C.VipsImage
 	cErr := C.copy_image(input, &output)
@@ -265,6 +294,7 @@ func vipsDetermineImageType(buf []byte) ImageType {
 	if IsTypeSupported(ImageTypeSVG) && buf[0] == 0x3c && buf[1] == 0x3f && buf[2] == 0x78 && buf[3] == 0x6d {
 		return ImageTypeSVG
 	}
+
 	return ImageTypeUnknown
 }
 

@@ -77,6 +77,33 @@ func NewImageFromBuffer(buf []byte, opts ...LoadOption) (*ImageRef, error) {
 	return ref, nil
 }
 
+// NewImageFromOpenSlide loads an OpenSlide file and creates a new Image
+func NewImageFromOpenSlide(file string) (*ImageRef, error) {
+	startupIfNeeded()
+
+	image, err := vipsLoadFromOpenSlide(file)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := NewImageRef(image, ImageTypeOpenSlide)
+	return ref, nil
+}
+
+// NewImageFromFileExtra loads an image with any other format (if supported) from file
+// It detects the type and seletc a loader automatically
+func NewImageFromFileExtra(file string, opts ...LoadOption) (*ImageRef, error) {
+	startupIfNeeded()
+
+	image, err := vipsLoadFromFile(file, opts...)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := NewImageRef(image, ImageTypeUnknown)
+	return ref, nil
+}
+
 func NewImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
 	stream := &ImageRef{
 		image:  vipsImage,
