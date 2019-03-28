@@ -440,13 +440,23 @@ int watermarkText(VipsImage *in, VipsImage *ti, VipsImage **out, LabelOptions *o
 		return 1;
 	}
 
-	if (vips_ifthenelse(t[4], t[9], t[0], out, "blend", TRUE, NULL)) {
+	if (t[0]->Bands != t[9]->Bands) {
+		vips_add_band(t[9], &t[1], 255.0);
+	} else {
+		t[1] = t[9];
+	}
+
+	if (vips_ifthenelse(t[4], t[1], t[0], out, "blend", TRUE, NULL)) {
 		t[0] = NULL;
 		t[4] = NULL;
+		if(t[1] == t[9])
+			t[1] = NULL;
 		g_object_unref(base);
 		return 1;
 	}
 	
+	if(t[1] == t[9])
+		t[1] = NULL;
 	t[0] = NULL;
 	t[4] = NULL;
 	g_object_unref(base);
