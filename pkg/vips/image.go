@@ -6,6 +6,7 @@ import "C"
 
 import (
 	"errors"
+	nativeimage "image"
 	"io"
 	"io/ioutil"
 	"runtime"
@@ -75,6 +76,60 @@ func NewImageFromBuffer(buf []byte, opts ...LoadOption) (*ImageRef, error) {
 	ref := NewImageRef(image, format)
 	ref.buf = buf
 	return ref, nil
+}
+
+// Create a new VIPS Image from a native image.Image
+func NewImageFromNativeImage(image nativeimage.Image) (*ImageRef, error) {
+	var vipsimg *C.VipsImage
+	var buf []byte
+	var bands int
+	var vipstype C.VipsInterpretation
+	var vipsformat C.VipsBandFormat
+	var bounds nativeimage.Rectangle
+	switch img := image.(type) {
+	case *nativeimage.Gray:
+		buf = img.Pix
+		bands = 1
+		vipstype = C.VIPS_INTERPRETATION_B_W
+		vipsformat = C.VIPS_FORMAT_UCHAR
+		bounds = img.Bounds()
+	case *nativeimage.RGBA:
+		buf = img.Pix
+		bands = 4
+		vipstype = C.VIPS_INTERPRETATION_RGB
+		vipsformat = C.VIPS_FORMAT_UCHAR
+		bounds = img.Bounds()
+	case *nativeimage.Gray16:
+		buf = img.Pix
+		bands = 1
+		vipstype = C.VIPS_INTERPRETATION_GREY16
+		vipsformat = C.VIPS_FORMAT_UCHAR
+		bounds = img.Bounds()
+	case *nativeimage.RGBA64:
+		buf = img.Pix
+		bands = 4
+		vipstype = C.VIPS_INTERPRETATION_RGB16
+		vipsformat = C.VIPS_FORMAT_USHORT
+		bounds = img.Bounds()
+	default:
+		return nil, errors.New("Unsupported image type")
+	}
+	vipsimg = C.vips_image_new_from_memory(
+		unsafe.Pointer(&buf[0]),
+		C.size_t(len(buf)),
+		C.int(bounds.Dx()),
+		C.int(bounds.Dy()),
+		C.int(bands),
+		vipsformat,
+	)
+	vipsimg.Type = vipstype
+	stream := &ImageRef{
+		image:  vipsimg,
+		format: ImageTypeUnknown,
+		buf:    buf,
+	}
+	runtime.SetFinalizer(stream, finalizeImage)
+	return stream, nil
 }
 
 func NewImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {

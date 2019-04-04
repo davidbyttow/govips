@@ -3,7 +3,7 @@ package vips_test
 import (
 	"testing"
 
-	"github.com/davidbyttow/govips/pkg/vips"
+	"../vips"
 )
 
 func TestOptionPrimitives(t *testing.T) {
