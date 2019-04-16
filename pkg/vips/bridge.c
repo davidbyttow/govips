@@ -35,7 +35,7 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 
 int init_open_slide(const char *filename, VipsImage **out) {
     int code = 1;
-    code = vips_openslideload(filename, out, NULL);
+    code = vips_vipsload(filename, out, NULL);
     return code;
 }
 
