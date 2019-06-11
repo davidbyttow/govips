@@ -474,6 +474,11 @@ func NewBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) 
 	return bb
 }
 
+//Image return Blackboard current image
+func (bb *Blackboard) Image() *C.VipsImage {
+	return bb.image
+}
+
 // Width returns the width of the in-flight image
 func (bb *Blackboard) Width() int {
 	return int(bb.image.Xsize)
