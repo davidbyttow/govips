@@ -497,6 +497,19 @@ func (t *Transform) transform(image *C.VipsImage, imageType ImageType) (*C.VipsI
 	return bb.image, nil
 }
 
+// ProcessBlackboard Apply Blackboard transformations
+func ProcessBlackboard(bb *Blackboard) error {
+	if err := resize(bb); err != nil {
+		return err
+	}
+
+	if err := postProcess(bb); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func resize(bb *Blackboard) error {
 	var err error
 	kernel := bb.ReductionSampler
