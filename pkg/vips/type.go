@@ -74,6 +74,8 @@ const (
 	AnchorBottomLeft
 	AnchorBottomRight
 	AnchorLeft
+	AnchorFace
+	AnchorEntropy
 )
 
 // FlipDirection represents the direction to flip
@@ -294,6 +296,18 @@ const (
 	Angle45_225 Angle45 = C.VIPS_ANGLE45_D225
 	Angle45_270 Angle45 = C.VIPS_ANGLE45_D270
 	Angle45_315 Angle45 = C.VIPS_ANGLE45_D315
+)
+
+// Interesting represents VIPS_INTERESTING type
+type Interesting int
+
+// Interesting enum
+const (
+	InterestingNone      Interesting = C.VIPS_INTERESTING_NONE
+	InterestingCenter    Interesting = C.VIPS_INTERESTING_CENTRE
+	InterestingEntropy   Interesting = C.VIPS_INTERESTING_ENTROPY
+	InterestingAttention Interesting = C.VIPS_INTERESTING_ATTENTION
+	InterestingLast      Interesting = C.VIPS_INTERESTING_LAST
 )
 
 // Interpretation represents VIPS_INTERPRETATION type
