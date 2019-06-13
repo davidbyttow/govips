@@ -555,7 +555,19 @@ func resize(bb *Blackboard) error {
 	}
 
 	if shrinkX != 1 || shrinkY != 1 {
-		bb.image, err = vipsResize(bb.image, 1.0/shrinkX, 1.0/shrinkY, kernel)
+
+		if cropMode && shrinkX > 1 && shrinkY > 1 && (bb.CropAnchor == AnchorFace || bb.CropAnchor == AnchorEntropy) {
+			var interesting int
+			if bb.CropAnchor == AnchorFace {
+				interesting = int(InterestingAttention)
+			} else if bb.CropAnchor == AnchorEntropy {
+				interesting = int(InterestingEntropy)
+			}
+			bb.image, err = ThumbnailImage(bb.image, bb.targetWidth, InputInt("height", bb.targetHeight), InputInt("crop", interesting))
+		} else {
+			bb.image, err = vipsResize(bb.image, 1.0/shrinkX, 1.0/shrinkY, kernel)
+		}
+
 		if err != nil {
 			return err
 		}
