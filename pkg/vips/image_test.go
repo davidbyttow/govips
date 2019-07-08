@@ -145,6 +145,33 @@ func TestNewImageFromBuffer_AccessMode(t *testing.T) {
 	}
 }
 
+func TestImageRef_HasAlpha(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{
+			"image without alpha layer",
+			"testdata/test.png",
+			false,
+		},
+		{
+			"image with alpha layer",
+			"testdata/with_alpha.png",
+			true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ref, err := vips.NewImageFromFile(tt.path)
+			require.NoError(t, err)
+			got := ref.HasAlpha()
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestImageRef_HasProfile(t *testing.T) {
 	tests := []struct {
 		name string
