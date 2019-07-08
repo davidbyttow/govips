@@ -3,4 +3,4 @@
 set -e
 
 go generate ./pkg/vips
-go build ./pkg/vips
+CGO_CFLAGS_ALLOW=-Xpreprocessor go build ./pkg/vips
