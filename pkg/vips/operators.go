@@ -64,12 +64,12 @@ func Abs(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Abs executes the 'abs' operation
-func (in *ImageRef) Abs(options ...*Option) error {
-	out, err := Abs(in.image, options...)
+func (r *ImageRef) Abs(options ...*Option) error {
+	out, err := Abs(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -114,12 +114,12 @@ func Autorot(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Autorot executes the 'autorot' operation
-func (in *ImageRef) Autorot(options ...*Option) error {
-	out, err := Autorot(in.image, options...)
+func (r *ImageRef) Autorot(options ...*Option) error {
+	out, err := Autorot(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -151,12 +151,12 @@ func Bandbool(in *C.VipsImage, boolean OperationBoolean, options ...*Option) (*C
 }
 
 // Bandbool executes the 'bandbool' operation
-func (in *ImageRef) Bandbool(boolean OperationBoolean, options ...*Option) error {
-	out, err := Bandbool(in.image, boolean, options...)
+func (r *ImageRef) Bandbool(boolean OperationBoolean, options ...*Option) error {
+	out, err := Bandbool(r.image, boolean, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -174,12 +174,12 @@ func Bandfold(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Bandfold executes the 'bandfold' operation
-func (in *ImageRef) Bandfold(options ...*Option) error {
-	out, err := Bandfold(in.image, options...)
+func (r *ImageRef) Bandfold(options ...*Option) error {
+	out, err := Bandfold(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -197,12 +197,12 @@ func Bandmean(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Bandmean executes the 'bandmean' operation
-func (in *ImageRef) Bandmean(options ...*Option) error {
-	out, err := Bandmean(in.image, options...)
+func (r *ImageRef) Bandmean(options ...*Option) error {
+	out, err := Bandmean(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -220,12 +220,12 @@ func Bandunfold(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Bandunfold executes the 'bandunfold' operation
-func (in *ImageRef) Bandunfold(options ...*Option) error {
-	out, err := Bandunfold(in.image, options...)
+func (r *ImageRef) Bandunfold(options ...*Option) error {
+	out, err := Bandunfold(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -272,12 +272,12 @@ func Buildlut(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Buildlut executes the 'buildlut' operation
-func (in *ImageRef) Buildlut(options ...*Option) error {
-	out, err := Buildlut(in.image, options...)
+func (r *ImageRef) Buildlut(options ...*Option) error {
+	out, err := Buildlut(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -295,12 +295,12 @@ func Byteswap(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Byteswap executes the 'byteswap' operation
-func (in *ImageRef) Byteswap(options ...*Option) error {
-	out, err := Byteswap(in.image, options...)
+func (r *ImageRef) Byteswap(options ...*Option) error {
+	out, err := Byteswap(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -318,12 +318,12 @@ func Cache(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Cache executes the 'cache' operation
-func (in *ImageRef) Cache(options ...*Option) error {
-	out, err := Cache(in.image, options...)
+func (r *ImageRef) Cache(options ...*Option) error {
+	out, err := Cache(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -342,12 +342,12 @@ func Cast(in *C.VipsImage, format BandFormat, options ...*Option) (*C.VipsImage,
 }
 
 // Cast executes the 'cast' operation
-func (in *ImageRef) Cast(format BandFormat, options ...*Option) error {
-	out, err := Cast(in.image, format, options...)
+func (r *ImageRef) Cast(format BandFormat, options ...*Option) error {
+	out, err := Cast(r.image, format, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -365,12 +365,12 @@ func Cmc2Lch(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Cmc2Lch executes the 'CMC2LCh' operation
-func (in *ImageRef) Cmc2Lch(options ...*Option) error {
-	out, err := Cmc2Lch(in.image, options...)
+func (r *ImageRef) Cmc2Lch(options ...*Option) error {
+	out, err := Cmc2Lch(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -389,12 +389,12 @@ func Colourspace(in *C.VipsImage, space Interpretation, options ...*Option) (*C.
 }
 
 // Colourspace executes the 'colourspace' operation
-func (in *ImageRef) Colourspace(space Interpretation, options ...*Option) error {
-	out, err := Colourspace(in.image, space, options...)
+func (r *ImageRef) Colourspace(space Interpretation, options ...*Option) error {
+	out, err := Colourspace(r.image, space, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -427,12 +427,12 @@ func Complex(in *C.VipsImage, cmplx OperationComplex, options ...*Option) (*C.Vi
 }
 
 // Complex executes the 'complex' operation
-func (in *ImageRef) Complex(cmplx OperationComplex, options ...*Option) error {
-	out, err := Complex(in.image, cmplx, options...)
+func (r *ImageRef) Complex(cmplx OperationComplex, options ...*Option) error {
+	out, err := Complex(r.image, cmplx, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -480,12 +480,12 @@ func Complexget(in *C.VipsImage, get OperationComplexGet, options ...*Option) (*
 }
 
 // Complexget executes the 'complexget' operation
-func (in *ImageRef) Complexget(get OperationComplexGet, options ...*Option) error {
-	out, err := Complexget(in.image, get, options...)
+func (r *ImageRef) Complexget(get OperationComplexGet, options ...*Option) error {
+	out, err := Complexget(r.image, get, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -587,12 +587,12 @@ func Copy(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Copy executes the 'copy' operation
-func (in *ImageRef) Copy(options ...*Option) error {
-	out, err := Copy(in.image, options...)
+func (r *ImageRef) Copy(options ...*Option) error {
+	out, err := Copy(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -763,12 +763,12 @@ func Embed(in *C.VipsImage, x int, y int, width int, height int, options ...*Opt
 }
 
 // Embed executes the 'embed' operation
-func (in *ImageRef) Embed(x int, y int, width int, height int, options ...*Option) error {
-	out, err := Embed(in.image, x, y, width, height, options...)
+func (r *ImageRef) Embed(x int, y int, width int, height int, options ...*Option) error {
+	out, err := Embed(r.image, x, y, width, height, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -790,12 +790,12 @@ func ExtractArea(input *C.VipsImage, left int, top int, width int, height int, o
 }
 
 // ExtractArea executes the 'extract_area' operation
-func (in *ImageRef) ExtractArea(left int, top int, width int, height int, options ...*Option) error {
-	out, err := ExtractArea(in.image, left, top, width, height, options...)
+func (r *ImageRef) ExtractArea(left int, top int, width int, height int, options ...*Option) error {
+	out, err := ExtractArea(r.image, left, top, width, height, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -814,12 +814,12 @@ func ExtractBand(in *C.VipsImage, band int, options ...*Option) (*C.VipsImage, e
 }
 
 // ExtractBand executes the 'extract_band' operation
-func (in *ImageRef) ExtractBand(band int, options ...*Option) error {
-	out, err := ExtractBand(in.image, band, options...)
+func (r *ImageRef) ExtractBand(band int, options ...*Option) error {
+	out, err := ExtractBand(r.image, band, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -851,12 +851,12 @@ func Falsecolour(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Falsecolour executes the 'falsecolour' operation
-func (in *ImageRef) Falsecolour(options ...*Option) error {
-	out, err := Falsecolour(in.image, options...)
+func (r *ImageRef) Falsecolour(options ...*Option) error {
+	out, err := Falsecolour(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -888,12 +888,12 @@ func FillNearest(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // FillNearest executes the 'fill_nearest' operation
-func (in *ImageRef) FillNearest(options ...*Option) error {
-	out, err := FillNearest(in.image, options...)
+func (r *ImageRef) FillNearest(options ...*Option) error {
+	out, err := FillNearest(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -930,12 +930,12 @@ func Flatten(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Flatten executes the 'flatten' operation
-func (in *ImageRef) Flatten(options ...*Option) error {
-	out, err := Flatten(in.image, options...)
+func (r *ImageRef) Flatten(options ...*Option) error {
+	out, err := Flatten(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -954,12 +954,12 @@ func Flip(in *C.VipsImage, direction Direction, options ...*Option) (*C.VipsImag
 }
 
 // Flip executes the 'flip' operation
-func (in *ImageRef) Flip(direction Direction, options ...*Option) error {
-	out, err := Flip(in.image, direction, options...)
+func (r *ImageRef) Flip(direction Direction, options ...*Option) error {
+	out, err := Flip(r.image, direction, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -977,12 +977,12 @@ func Float2Rad(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Float2Rad executes the 'float2rad' operation
-func (in *ImageRef) Float2Rad(options ...*Option) error {
-	out, err := Float2Rad(in.image, options...)
+func (r *ImageRef) Float2Rad(options ...*Option) error {
+	out, err := Float2Rad(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1029,12 +1029,12 @@ func Fwfft(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Fwfft executes the 'fwfft' operation
-func (in *ImageRef) Fwfft(options ...*Option) error {
-	out, err := Fwfft(in.image, options...)
+func (r *ImageRef) Fwfft(options ...*Option) error {
+	out, err := Fwfft(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1052,12 +1052,12 @@ func Gamma(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Gamma executes the 'gamma' operation
-func (in *ImageRef) Gamma(options ...*Option) error {
-	out, err := Gamma(in.image, options...)
+func (r *ImageRef) Gamma(options ...*Option) error {
+	out, err := Gamma(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1076,12 +1076,12 @@ func Gaussblur(in *C.VipsImage, sigma float64, options ...*Option) (*C.VipsImage
 }
 
 // Gaussblur executes the 'gaussblur' operation
-func (in *ImageRef) Gaussblur(sigma float64, options ...*Option) error {
-	out, err := Gaussblur(in.image, sigma, options...)
+func (r *ImageRef) Gaussblur(sigma float64, options ...*Option) error {
+	out, err := Gaussblur(r.image, sigma, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1140,12 +1140,12 @@ func Globalbalance(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Globalbalance executes the 'globalbalance' operation
-func (in *ImageRef) Globalbalance(options ...*Option) error {
-	out, err := Globalbalance(in.image, options...)
+func (r *ImageRef) Globalbalance(options ...*Option) error {
+	out, err := Globalbalance(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1180,12 +1180,12 @@ func Grid(in *C.VipsImage, tileHeight int, across int, down int, options ...*Opt
 }
 
 // Grid executes the 'grid' operation
-func (in *ImageRef) Grid(tileHeight int, across int, down int, options ...*Option) error {
-	out, err := Grid(in.image, tileHeight, across, down, options...)
+func (r *ImageRef) Grid(tileHeight int, across int, down int, options ...*Option) error {
+	out, err := Grid(r.image, tileHeight, across, down, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1203,12 +1203,12 @@ func HistCum(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HistCum executes the 'hist_cum' operation
-func (in *ImageRef) HistCum(options ...*Option) error {
-	out, err := HistCum(in.image, options...)
+func (r *ImageRef) HistCum(options ...*Option) error {
+	out, err := HistCum(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1239,12 +1239,12 @@ func HistEqual(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HistEqual executes the 'hist_equal' operation
-func (in *ImageRef) HistEqual(options ...*Option) error {
-	out, err := HistEqual(in.image, options...)
+func (r *ImageRef) HistEqual(options ...*Option) error {
+	out, err := HistEqual(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1262,12 +1262,12 @@ func HistFind(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HistFind executes the 'hist_find' operation
-func (in *ImageRef) HistFind(options ...*Option) error {
-	out, err := HistFind(in.image, options...)
+func (r *ImageRef) HistFind(options ...*Option) error {
+	out, err := HistFind(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1299,12 +1299,12 @@ func HistFindNdim(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HistFindNdim executes the 'hist_find_ndim' operation
-func (in *ImageRef) HistFindNdim(options ...*Option) error {
-	out, err := HistFindNdim(in.image, options...)
+func (r *ImageRef) HistFindNdim(options ...*Option) error {
+	out, err := HistFindNdim(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1337,12 +1337,12 @@ func HistLocal(in *C.VipsImage, width int, height int, options ...*Option) (*C.V
 }
 
 // HistLocal executes the 'hist_local' operation
-func (in *ImageRef) HistLocal(width int, height int, options ...*Option) error {
-	out, err := HistLocal(in.image, width, height, options...)
+func (r *ImageRef) HistLocal(width int, height int, options ...*Option) error {
+	out, err := HistLocal(r.image, width, height, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1374,12 +1374,12 @@ func HistNorm(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HistNorm executes the 'hist_norm' operation
-func (in *ImageRef) HistNorm(options ...*Option) error {
-	out, err := HistNorm(in.image, options...)
+func (r *ImageRef) HistNorm(options ...*Option) error {
+	out, err := HistNorm(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1397,12 +1397,12 @@ func HistPlot(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HistPlot executes the 'hist_plot' operation
-func (in *ImageRef) HistPlot(options ...*Option) error {
-	out, err := HistPlot(in.image, options...)
+func (r *ImageRef) HistPlot(options ...*Option) error {
+	out, err := HistPlot(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1420,12 +1420,12 @@ func HoughCircle(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HoughCircle executes the 'hough_circle' operation
-func (in *ImageRef) HoughCircle(options ...*Option) error {
-	out, err := HoughCircle(in.image, options...)
+func (r *ImageRef) HoughCircle(options ...*Option) error {
+	out, err := HoughCircle(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1443,12 +1443,12 @@ func HoughLine(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // HoughLine executes the 'hough_line' operation
-func (in *ImageRef) HoughLine(options ...*Option) error {
-	out, err := HoughLine(in.image, options...)
+func (r *ImageRef) HoughLine(options ...*Option) error {
+	out, err := HoughLine(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1466,12 +1466,12 @@ func Hsv2Srgb(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Hsv2Srgb executes the 'HSV2sRGB' operation
-func (in *ImageRef) Hsv2Srgb(options ...*Option) error {
-	out, err := Hsv2Srgb(in.image, options...)
+func (r *ImageRef) Hsv2Srgb(options ...*Option) error {
+	out, err := Hsv2Srgb(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1489,12 +1489,12 @@ func IccExport(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // IccExport executes the 'icc_export' operation
-func (in *ImageRef) IccExport(options ...*Option) error {
-	out, err := IccExport(in.image, options...)
+func (r *ImageRef) IccExport(options ...*Option) error {
+	out, err := IccExport(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1512,12 +1512,12 @@ func IccImport(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // IccImport executes the 'icc_import' operation
-func (in *ImageRef) IccImport(options ...*Option) error {
-	out, err := IccImport(in.image, options...)
+func (r *ImageRef) IccImport(options ...*Option) error {
+	out, err := IccImport(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1536,12 +1536,12 @@ func IccTransform(in *C.VipsImage, outputProfile string, options ...*Option) (*C
 }
 
 // IccTransform executes the 'icc_transform' operation
-func (in *ImageRef) IccTransform(outputProfile string, options ...*Option) error {
-	out, err := IccTransform(in.image, outputProfile, options...)
+func (r *ImageRef) IccTransform(outputProfile string, options ...*Option) error {
+	out, err := IccTransform(r.image, outputProfile, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1603,12 +1603,12 @@ func Invert(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Invert executes the 'invert' operation
-func (in *ImageRef) Invert(options ...*Option) error {
-	out, err := Invert(in.image, options...)
+func (r *ImageRef) Invert(options ...*Option) error {
+	out, err := Invert(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1626,12 +1626,12 @@ func Invertlut(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Invertlut executes the 'invertlut' operation
-func (in *ImageRef) Invertlut(options ...*Option) error {
-	out, err := Invertlut(in.image, options...)
+func (r *ImageRef) Invertlut(options ...*Option) error {
+	out, err := Invertlut(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1649,12 +1649,12 @@ func Invfft(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Invfft executes the 'invfft' operation
-func (in *ImageRef) Invfft(options ...*Option) error {
-	out, err := Invfft(in.image, options...)
+func (r *ImageRef) Invfft(options ...*Option) error {
+	out, err := Invfft(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1723,12 +1723,12 @@ func Lab2Labq(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Lab2Labq executes the 'Lab2LabQ' operation
-func (in *ImageRef) Lab2Labq(options ...*Option) error {
-	out, err := Lab2Labq(in.image, options...)
+func (r *ImageRef) Lab2Labq(options ...*Option) error {
+	out, err := Lab2Labq(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1746,12 +1746,12 @@ func Lab2Labs(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Lab2Labs executes the 'Lab2LabS' operation
-func (in *ImageRef) Lab2Labs(options ...*Option) error {
-	out, err := Lab2Labs(in.image, options...)
+func (r *ImageRef) Lab2Labs(options ...*Option) error {
+	out, err := Lab2Labs(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1769,12 +1769,12 @@ func Lab2Lch(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Lab2Lch executes the 'Lab2LCh' operation
-func (in *ImageRef) Lab2Lch(options ...*Option) error {
-	out, err := Lab2Lch(in.image, options...)
+func (r *ImageRef) Lab2Lch(options ...*Option) error {
+	out, err := Lab2Lch(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1792,12 +1792,12 @@ func Lab2Xyz(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Lab2Xyz executes the 'Lab2XYZ' operation
-func (in *ImageRef) Lab2Xyz(options ...*Option) error {
-	out, err := Lab2Xyz(in.image, options...)
+func (r *ImageRef) Lab2Xyz(options ...*Option) error {
+	out, err := Lab2Xyz(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1815,12 +1815,12 @@ func Labelregions(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Labelregions executes the 'labelregions' operation
-func (in *ImageRef) Labelregions(options ...*Option) error {
-	out, err := Labelregions(in.image, options...)
+func (r *ImageRef) Labelregions(options ...*Option) error {
+	out, err := Labelregions(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1838,12 +1838,12 @@ func Labq2Lab(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Labq2Lab executes the 'LabQ2Lab' operation
-func (in *ImageRef) Labq2Lab(options ...*Option) error {
-	out, err := Labq2Lab(in.image, options...)
+func (r *ImageRef) Labq2Lab(options ...*Option) error {
+	out, err := Labq2Lab(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1861,12 +1861,12 @@ func Labq2Labs(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Labq2Labs executes the 'LabQ2LabS' operation
-func (in *ImageRef) Labq2Labs(options ...*Option) error {
-	out, err := Labq2Labs(in.image, options...)
+func (r *ImageRef) Labq2Labs(options ...*Option) error {
+	out, err := Labq2Labs(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1884,12 +1884,12 @@ func Labq2Srgb(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Labq2Srgb executes the 'LabQ2sRGB' operation
-func (in *ImageRef) Labq2Srgb(options ...*Option) error {
-	out, err := Labq2Srgb(in.image, options...)
+func (r *ImageRef) Labq2Srgb(options ...*Option) error {
+	out, err := Labq2Srgb(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1907,12 +1907,12 @@ func Labs2Lab(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Labs2Lab executes the 'LabS2Lab' operation
-func (in *ImageRef) Labs2Lab(options ...*Option) error {
-	out, err := Labs2Lab(in.image, options...)
+func (r *ImageRef) Labs2Lab(options ...*Option) error {
+	out, err := Labs2Lab(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1930,12 +1930,12 @@ func Labs2Labq(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Labs2Labq executes the 'LabS2LabQ' operation
-func (in *ImageRef) Labs2Labq(options ...*Option) error {
-	out, err := Labs2Labq(in.image, options...)
+func (r *ImageRef) Labs2Labq(options ...*Option) error {
+	out, err := Labs2Labq(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1953,12 +1953,12 @@ func Lch2Cmc(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Lch2Cmc executes the 'LCh2CMC' operation
-func (in *ImageRef) Lch2Cmc(options ...*Option) error {
-	out, err := Lch2Cmc(in.image, options...)
+func (r *ImageRef) Lch2Cmc(options ...*Option) error {
+	out, err := Lch2Cmc(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1976,12 +1976,12 @@ func Lch2Lab(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Lch2Lab executes the 'LCh2Lab' operation
-func (in *ImageRef) Lch2Lab(options ...*Option) error {
-	out, err := Lch2Lab(in.image, options...)
+func (r *ImageRef) Lch2Lab(options ...*Option) error {
+	out, err := Lch2Lab(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -1999,12 +1999,12 @@ func Linecache(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Linecache executes the 'linecache' operation
-func (in *ImageRef) Linecache(options ...*Option) error {
-	out, err := Linecache(in.image, options...)
+func (r *ImageRef) Linecache(options ...*Option) error {
+	out, err := Linecache(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2255,12 +2255,12 @@ func Math(in *C.VipsImage, math OperationMath, options ...*Option) (*C.VipsImage
 }
 
 // Math executes the 'math' operation
-func (in *ImageRef) Math(math OperationMath, options ...*Option) error {
-	out, err := Math(in.image, math, options...)
+func (r *ImageRef) Math(math OperationMath, options ...*Option) error {
+	out, err := Math(r.image, math, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2344,12 +2344,12 @@ func Measure(in *C.VipsImage, h int, v int, options ...*Option) (*C.VipsImage, e
 }
 
 // Measure executes the 'measure' operation
-func (in *ImageRef) Measure(h int, v int, options ...*Option) error {
-	out, err := Measure(in.image, h, v, options...)
+func (r *ImageRef) Measure(h int, v int, options ...*Option) error {
+	out, err := Measure(r.image, h, v, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2454,12 +2454,12 @@ func Msb(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Msb executes the 'msb' operation
-func (in *ImageRef) Msb(options ...*Option) error {
-	out, err := Msb(in.image, options...)
+func (r *ImageRef) Msb(options ...*Option) error {
+	out, err := Msb(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2596,12 +2596,12 @@ func Premultiply(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Premultiply executes the 'premultiply' operation
-func (in *ImageRef) Premultiply(options ...*Option) error {
-	out, err := Premultiply(in.image, options...)
+func (r *ImageRef) Premultiply(options ...*Option) error {
+	out, err := Premultiply(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2663,12 +2663,12 @@ func Rad2Float(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Rad2Float executes the 'rad2float' operation
-func (in *ImageRef) Rad2Float(options ...*Option) error {
-	out, err := Rad2Float(in.image, options...)
+func (r *ImageRef) Rad2Float(options ...*Option) error {
+	out, err := Rad2Float(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2714,12 +2714,12 @@ func Rank(in *C.VipsImage, width int, height int, index int, options ...*Option)
 }
 
 // Rank executes the 'rank' operation
-func (in *ImageRef) Rank(width int, height int, index int, options ...*Option) error {
-	out, err := Rank(in.image, width, height, index, options...)
+func (r *ImageRef) Rank(width int, height int, index int, options ...*Option) error {
+	out, err := Rank(r.image, width, height, index, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2793,12 +2793,12 @@ func Reduce(in *C.VipsImage, hshrink float64, vshrink float64, options ...*Optio
 }
 
 // Reduce executes the 'reduce' operation
-func (in *ImageRef) Reduce(hshrink float64, vshrink float64, options ...*Option) error {
-	out, err := Reduce(in.image, hshrink, vshrink, options...)
+func (r *ImageRef) Reduce(hshrink float64, vshrink float64, options ...*Option) error {
+	out, err := Reduce(r.image, hshrink, vshrink, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2817,12 +2817,12 @@ func Reduceh(in *C.VipsImage, hshrink float64, options ...*Option) (*C.VipsImage
 }
 
 // Reduceh executes the 'reduceh' operation
-func (in *ImageRef) Reduceh(hshrink float64, options ...*Option) error {
-	out, err := Reduceh(in.image, hshrink, options...)
+func (r *ImageRef) Reduceh(hshrink float64, options ...*Option) error {
+	out, err := Reduceh(r.image, hshrink, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2841,12 +2841,12 @@ func Reducev(in *C.VipsImage, vshrink float64, options ...*Option) (*C.VipsImage
 }
 
 // Reducev executes the 'reducev' operation
-func (in *ImageRef) Reducev(vshrink float64, options ...*Option) error {
-	out, err := Reducev(in.image, vshrink, options...)
+func (r *ImageRef) Reducev(vshrink float64, options ...*Option) error {
+	out, err := Reducev(r.image, vshrink, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2895,12 +2895,12 @@ func Replicate(in *C.VipsImage, across int, down int, options ...*Option) (*C.Vi
 }
 
 // Replicate executes the 'replicate' operation
-func (in *ImageRef) Replicate(across int, down int, options ...*Option) error {
-	out, err := Replicate(in.image, across, down, options...)
+func (r *ImageRef) Replicate(across int, down int, options ...*Option) error {
+	out, err := Replicate(r.image, across, down, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2919,12 +2919,12 @@ func Resize(in *C.VipsImage, scale float64, options ...*Option) (*C.VipsImage, e
 }
 
 // Resize executes the 'resize' operation
-func (in *ImageRef) Resize(scale float64, options ...*Option) error {
-	out, err := Resize(in.image, scale, options...)
+func (r *ImageRef) Resize(scale float64, options ...*Option) error {
+	out, err := Resize(r.image, scale, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2943,12 +2943,12 @@ func Rot(in *C.VipsImage, angle Angle, options ...*Option) (*C.VipsImage, error)
 }
 
 // Rot executes the 'rot' operation
-func (in *ImageRef) Rot(angle Angle, options ...*Option) error {
-	out, err := Rot(in.image, angle, options...)
+func (r *ImageRef) Rot(angle Angle, options ...*Option) error {
+	out, err := Rot(r.image, angle, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2966,12 +2966,12 @@ func Rot45(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Rot45 executes the 'rot45' operation
-func (in *ImageRef) Rot45(options ...*Option) error {
-	out, err := Rot45(in.image, options...)
+func (r *ImageRef) Rot45(options ...*Option) error {
+	out, err := Rot45(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -2990,12 +2990,12 @@ func Round(in *C.VipsImage, round OperationRound, options ...*Option) (*C.VipsIm
 }
 
 // Round executes the 'round' operation
-func (in *ImageRef) Round(round OperationRound, options ...*Option) error {
-	out, err := Round(in.image, round, options...)
+func (r *ImageRef) Round(round OperationRound, options ...*Option) error {
+	out, err := Round(r.image, round, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3013,12 +3013,12 @@ func Scale(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Scale executes the 'scale' operation
-func (in *ImageRef) Scale(options ...*Option) error {
-	out, err := Scale(in.image, options...)
+func (r *ImageRef) Scale(options ...*Option) error {
+	out, err := Scale(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3036,12 +3036,12 @@ func Scrgb2Bw(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Scrgb2Bw executes the 'scRGB2BW' operation
-func (in *ImageRef) Scrgb2Bw(options ...*Option) error {
-	out, err := Scrgb2Bw(in.image, options...)
+func (r *ImageRef) Scrgb2Bw(options ...*Option) error {
+	out, err := Scrgb2Bw(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3059,12 +3059,12 @@ func Scrgb2Srgb(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Scrgb2Srgb executes the 'scRGB2sRGB' operation
-func (in *ImageRef) Scrgb2Srgb(options ...*Option) error {
-	out, err := Scrgb2Srgb(in.image, options...)
+func (r *ImageRef) Scrgb2Srgb(options ...*Option) error {
+	out, err := Scrgb2Srgb(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3082,12 +3082,12 @@ func Scrgb2Xyz(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Scrgb2Xyz executes the 'scRGB2XYZ' operation
-func (in *ImageRef) Scrgb2Xyz(options ...*Option) error {
-	out, err := Scrgb2Xyz(in.image, options...)
+func (r *ImageRef) Scrgb2Xyz(options ...*Option) error {
+	out, err := Scrgb2Xyz(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3105,12 +3105,12 @@ func Sequential(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Sequential executes the 'sequential' operation
-func (in *ImageRef) Sequential(options ...*Option) error {
-	out, err := Sequential(in.image, options...)
+func (r *ImageRef) Sequential(options ...*Option) error {
+	out, err := Sequential(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3128,12 +3128,12 @@ func Sharpen(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Sharpen executes the 'sharpen' operation
-func (in *ImageRef) Sharpen(options ...*Option) error {
-	out, err := Sharpen(in.image, options...)
+func (r *ImageRef) Sharpen(options ...*Option) error {
+	out, err := Sharpen(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3153,12 +3153,12 @@ func Shrink(in *C.VipsImage, hshrink float64, vshrink float64, options ...*Optio
 }
 
 // Shrink executes the 'shrink' operation
-func (in *ImageRef) Shrink(hshrink float64, vshrink float64, options ...*Option) error {
-	out, err := Shrink(in.image, hshrink, vshrink, options...)
+func (r *ImageRef) Shrink(hshrink float64, vshrink float64, options ...*Option) error {
+	out, err := Shrink(r.image, hshrink, vshrink, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3177,12 +3177,12 @@ func Shrinkh(in *C.VipsImage, hshrink int, options ...*Option) (*C.VipsImage, er
 }
 
 // Shrinkh executes the 'shrinkh' operation
-func (in *ImageRef) Shrinkh(hshrink int, options ...*Option) error {
-	out, err := Shrinkh(in.image, hshrink, options...)
+func (r *ImageRef) Shrinkh(hshrink int, options ...*Option) error {
+	out, err := Shrinkh(r.image, hshrink, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3201,12 +3201,12 @@ func Shrinkv(in *C.VipsImage, vshrink int, options ...*Option) (*C.VipsImage, er
 }
 
 // Shrinkv executes the 'shrinkv' operation
-func (in *ImageRef) Shrinkv(vshrink int, options ...*Option) error {
-	out, err := Shrinkv(in.image, vshrink, options...)
+func (r *ImageRef) Shrinkv(vshrink int, options ...*Option) error {
+	out, err := Shrinkv(r.image, vshrink, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3224,12 +3224,12 @@ func Sign(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Sign executes the 'sign' operation
-func (in *ImageRef) Sign(options ...*Option) error {
-	out, err := Sign(in.image, options...)
+func (r *ImageRef) Sign(options ...*Option) error {
+	out, err := Sign(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3247,12 +3247,12 @@ func Similarity(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Similarity executes the 'similarity' operation
-func (in *ImageRef) Similarity(options ...*Option) error {
-	out, err := Similarity(in.image, options...)
+func (r *ImageRef) Similarity(options ...*Option) error {
+	out, err := Similarity(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3286,12 +3286,12 @@ func Smartcrop(input *C.VipsImage, width int, height int, options ...*Option) (*
 }
 
 // Smartcrop executes the 'smartcrop' operation
-func (in *ImageRef) Smartcrop(width int, height int, options ...*Option) error {
-	out, err := Smartcrop(in.image, width, height, options...)
+func (r *ImageRef) Smartcrop(width int, height int, options ...*Option) error {
+	out, err := Smartcrop(r.image, width, height, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3323,12 +3323,12 @@ func Spectrum(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Spectrum executes the 'spectrum' operation
-func (in *ImageRef) Spectrum(options ...*Option) error {
-	out, err := Spectrum(in.image, options...)
+func (r *ImageRef) Spectrum(options ...*Option) error {
+	out, err := Spectrum(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3346,12 +3346,12 @@ func Srgb2Hsv(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Srgb2Hsv executes the 'sRGB2HSV' operation
-func (in *ImageRef) Srgb2Hsv(options ...*Option) error {
-	out, err := Srgb2Hsv(in.image, options...)
+func (r *ImageRef) Srgb2Hsv(options ...*Option) error {
+	out, err := Srgb2Hsv(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3369,12 +3369,12 @@ func Srgb2Scrgb(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Srgb2Scrgb executes the 'sRGB2scRGB' operation
-func (in *ImageRef) Srgb2Scrgb(options ...*Option) error {
-	out, err := Srgb2Scrgb(in.image, options...)
+func (r *ImageRef) Srgb2Scrgb(options ...*Option) error {
+	out, err := Srgb2Scrgb(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3392,12 +3392,12 @@ func Stats(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Stats executes the 'stats' operation
-func (in *ImageRef) Stats(options ...*Option) error {
-	out, err := Stats(in.image, options...)
+func (r *ImageRef) Stats(options ...*Option) error {
+	out, err := Stats(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3417,12 +3417,12 @@ func Stdif(in *C.VipsImage, width int, height int, options ...*Option) (*C.VipsI
 }
 
 // Stdif executes the 'stdif' operation
-func (in *ImageRef) Stdif(width int, height int, options ...*Option) error {
-	out, err := Stdif(in.image, width, height, options...)
+func (r *ImageRef) Stdif(width int, height int, options ...*Option) error {
+	out, err := Stdif(r.image, width, height, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3442,12 +3442,12 @@ func Subsample(input *C.VipsImage, xfac int, yfac int, options ...*Option) (*C.V
 }
 
 // Subsample executes the 'subsample' operation
-func (in *ImageRef) Subsample(xfac int, yfac int, options ...*Option) error {
-	out, err := Subsample(in.image, xfac, yfac, options...)
+func (r *ImageRef) Subsample(xfac int, yfac int, options ...*Option) error {
+	out, err := Subsample(r.image, xfac, yfac, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3531,12 +3531,12 @@ func ThumbnailImage(in *C.VipsImage, width int, options ...*Option) (*C.VipsImag
 }
 
 // ThumbnailImage executes the 'thumbnail_image' operation
-func (in *ImageRef) ThumbnailImage(width int, options ...*Option) error {
-	out, err := ThumbnailImage(in.image, width, options...)
+func (r *ImageRef) ThumbnailImage(width int, options ...*Option) error {
+	out, err := ThumbnailImage(r.image, width, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3579,12 +3579,12 @@ func Tilecache(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Tilecache executes the 'tilecache' operation
-func (in *ImageRef) Tilecache(options ...*Option) error {
-	out, err := Tilecache(in.image, options...)
+func (r *ImageRef) Tilecache(options ...*Option) error {
+	out, err := Tilecache(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3615,12 +3615,12 @@ func Unpremultiply(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Unpremultiply executes the 'unpremultiply' operation
-func (in *ImageRef) Unpremultiply(options ...*Option) error {
-	out, err := Unpremultiply(in.image, options...)
+func (r *ImageRef) Unpremultiply(options ...*Option) error {
+	out, err := Unpremultiply(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3702,12 +3702,12 @@ func Wrap(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Wrap executes the 'wrap' operation
-func (in *ImageRef) Wrap(options ...*Option) error {
-	out, err := Wrap(in.image, options...)
+func (r *ImageRef) Wrap(options ...*Option) error {
+	out, err := Wrap(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3739,12 +3739,12 @@ func Xyz2Lab(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Xyz2Lab executes the 'XYZ2Lab' operation
-func (in *ImageRef) Xyz2Lab(options ...*Option) error {
-	out, err := Xyz2Lab(in.image, options...)
+func (r *ImageRef) Xyz2Lab(options ...*Option) error {
+	out, err := Xyz2Lab(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3762,12 +3762,12 @@ func Xyz2Scrgb(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Xyz2Scrgb executes the 'XYZ2scRGB' operation
-func (in *ImageRef) Xyz2Scrgb(options ...*Option) error {
-	out, err := Xyz2Scrgb(in.image, options...)
+func (r *ImageRef) Xyz2Scrgb(options ...*Option) error {
+	out, err := Xyz2Scrgb(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3785,12 +3785,12 @@ func Xyz2Yxy(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Xyz2Yxy executes the 'XYZ2Yxy' operation
-func (in *ImageRef) Xyz2Yxy(options ...*Option) error {
-	out, err := Xyz2Yxy(in.image, options...)
+func (r *ImageRef) Xyz2Yxy(options ...*Option) error {
+	out, err := Xyz2Yxy(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3808,12 +3808,12 @@ func Yxy2Xyz(in *C.VipsImage, options ...*Option) (*C.VipsImage, error) {
 }
 
 // Yxy2Xyz executes the 'Yxy2XYZ' operation
-func (in *ImageRef) Yxy2Xyz(options ...*Option) error {
-	out, err := Yxy2Xyz(in.image, options...)
+func (r *ImageRef) Yxy2Xyz(options ...*Option) error {
+	out, err := Yxy2Xyz(r.image, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
@@ -3847,11 +3847,11 @@ func Zoom(input *C.VipsImage, xfac int, yfac int, options ...*Option) (*C.VipsIm
 }
 
 // Zoom executes the 'zoom' operation
-func (in *ImageRef) Zoom(xfac int, yfac int, options ...*Option) error {
-	out, err := Zoom(in.image, xfac, yfac, options...)
+func (r *ImageRef) Zoom(xfac int, yfac int, options ...*Option) error {
+	out, err := Zoom(r.image, xfac, yfac, options...)
 	if err != nil {
 		return err
 	}
-	in.SetImage(out)
+	r.SetImage(out)
 	return nil
 }

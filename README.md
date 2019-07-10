@@ -20,7 +20,7 @@ This library supports all known operations available to libvips found here:
 # Requirements
 - [libvips](https://github.com/libvips/libvips) 8+ (8.5.8+ recommended for GIF, PDF, SVG support)
 - C compatible compiler such as gcc 4.6+ or clang 3.0+
-- Go 1.9+
+- Go 1.11+
 
 # Installation
 ```bash

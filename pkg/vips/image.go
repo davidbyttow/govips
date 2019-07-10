@@ -91,113 +91,113 @@ func finalizeImage(ref *ImageRef) {
 }
 
 // SetImage resets the image for this image and frees the previous one
-func (ref *ImageRef) SetImage(image *C.VipsImage) {
-	if ref.image != nil {
-		defer C.g_object_unref(C.gpointer(ref.image))
+func (r *ImageRef) SetImage(image *C.VipsImage) {
+	if r.image != nil {
+		defer C.g_object_unref(C.gpointer(r.image))
 	}
-	ref.image = image
+	r.image = image
 }
 
 // Format returns the initial format of the vips image when loaded
-func (ref *ImageRef) Format() ImageType {
-	return ref.format
+func (r *ImageRef) Format() ImageType {
+	return r.format
 }
 
 // Close closes an image and frees internal memory associated with it
-func (ref *ImageRef) Close() {
-	ref.SetImage(nil)
-	ref.buf = nil
+func (r *ImageRef) Close() {
+	r.SetImage(nil)
+	r.buf = nil
 }
 
 // Image returns a handle to the internal vips image, just in case
-func (ref *ImageRef) Image() *C.VipsImage {
-	return ref.image
+func (r *ImageRef) Image() *C.VipsImage {
+	return r.image
 }
 
 // Width returns the width of this image
-func (ref *ImageRef) Width() int {
-	return int(ref.image.Xsize)
+func (r *ImageRef) Width() int {
+	return int(r.image.Xsize)
 }
 
 // Height returns the height of this iamge
-func (ref *ImageRef) Height() int {
-	return int(ref.image.Ysize)
+func (r *ImageRef) Height() int {
+	return int(r.image.Ysize)
 }
 
 // Bands returns the number of bands for this image
-func (ref *ImageRef) Bands() int {
-	return int(ref.image.Bands)
+func (r *ImageRef) Bands() int {
+	return int(r.image.Bands)
 }
 
 // ResX returns the X resolution
-func (ref *ImageRef) ResX() float64 {
-	return float64(ref.image.Xres)
+func (r *ImageRef) ResX() float64 {
+	return float64(r.image.Xres)
 }
 
 // ResY returns the Y resolution
-func (ref *ImageRef) ResY() float64 {
-	return float64(ref.image.Yres)
+func (r *ImageRef) ResY() float64 {
+	return float64(r.image.Yres)
 }
 
 // OffsetX returns the X offset
-func (ref *ImageRef) OffsetX() int {
-	return int(ref.image.Xoffset)
+func (r *ImageRef) OffsetX() int {
+	return int(r.image.Xoffset)
 }
 
 // OffsetY returns the Y offset
-func (ref *ImageRef) OffsetY() int {
-	return int(ref.image.Yoffset)
+func (r *ImageRef) OffsetY() int {
+	return int(r.image.Yoffset)
 }
 
 // BandFormat returns the current band format
-func (ref *ImageRef) BandFormat() BandFormat {
-	return BandFormat(int(ref.image.BandFmt))
+func (r *ImageRef) BandFormat() BandFormat {
+	return BandFormat(int(r.image.BandFmt))
 }
 
 // Coding returns the image coding
-func (ref *ImageRef) Coding() Coding {
-	return Coding(int(ref.image.Coding))
+func (r *ImageRef) Coding() Coding {
+	return Coding(int(r.image.Coding))
 }
 
 // Interpretation returns the current interpretation
-func (ref *ImageRef) Interpretation() Interpretation {
-	return Interpretation(int(ref.image.Type))
+func (r *ImageRef) Interpretation() Interpretation {
+	return Interpretation(int(r.image.Type))
 }
 
 // Composite overlays the given image over this one
-func (ref *ImageRef) Composite(overlay *ImageRef, mode BlendMode) error {
-	out, err := vipsComposite([]*C.VipsImage{ref.image, overlay.image}, mode)
+func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode) error {
+	out, err := vipsComposite([]*C.VipsImage{r.image, overlay.image}, mode)
 	if err != nil {
 		return err
 	}
-	ref.SetImage(out)
+	r.SetImage(out)
 	return nil
 }
 
 // Export exports the image
-func (ref *ImageRef) Export(params ExportParams) ([]byte, ImageType, error) {
+func (r *ImageRef) Export(params ExportParams) ([]byte, ImageType, error) {
 	if params.Format == ImageTypeUnknown {
-		params.Format = ref.format
+		params.Format = r.format
 	}
-	return vipsExportBuffer(ref.image, &params)
+	return vipsExportBuffer(r.image, &params)
 }
 
 // HasProfile returns if the image has an ICC profile embedded.
-func (ref *ImageRef) HasProfile() bool {
-	return vipsHasProfile(ref.image)
+func (r *ImageRef) HasProfile() bool {
+	return vipsHasProfile(r.image)
 }
 
 // HasAlpha returns if the image has an alpha layer.
-func (ref *ImageRef) HasAlpha() bool {
-	return vipsHasAlpha(ref.image)
+func (r *ImageRef) HasAlpha() bool {
+	return vipsHasAlpha(r.image)
 }
 
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
-func (ref *ImageRef) ToBytes() ([]byte, error) {
+func (r *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t
-	cData := C.vips_image_write_to_memory(ref.image, &cSize)
+	cData := C.vips_image_write_to_memory(r.image, &cSize)
 	if cData == nil {
-		return nil, errors.New("Failed to write image to memory")
+		return nil, errors.New("failed to write image to memory")
 	}
 	defer C.free(cData)
 

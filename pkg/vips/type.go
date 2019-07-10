@@ -456,6 +456,7 @@ func initTypes() {
 			typeLoaders[name+"buffer"] = k
 
 			cFunc := C.CString(v + "load")
+			//noinspection GoDeferInLoop
 			defer freeCString(cFunc)
 
 			ret := C.vips_type_find(

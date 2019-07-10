@@ -370,8 +370,8 @@ func (t *Transform) Apply() ([]byte, ImageType, error) {
 
 func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
 	if t.input.Image != nil {
-		copy, err := vipsCopyImage(t.input.Image.image)
-		return copy, t.input.Image.Format(), err
+		cpy, err := vipsCopyImage(t.input.Image.image)
+		return cpy, t.input.Image.Format(), err
 	}
 	if t.input.Reader == nil {
 		panic("no input source specified")
@@ -758,7 +758,7 @@ func (r *LazyFile) Read(p []byte) (n int, err error) {
 
 func (r *LazyFile) Close() error {
 	if r.file != nil {
-		r.file.Close()
+		_ = r.file.Close()
 		r.file = nil
 	}
 	return nil

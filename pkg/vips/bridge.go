@@ -138,14 +138,14 @@ func vipsLoadFromBuffer(buf []byte, opts ...LoadOption) (*C.VipsImage, ImageType
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	len := C.size_t(len(buf))
+	bufLength := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
 	var loadOpts vipsLoadOptions
 	for _, opt := range opts {
 		opt(&loadOpts)
 	}
 
-	err := C.init_image(imageBuf, len, C.int(imageType), &loadOpts.cOpts, &image)
+	err := C.init_image(imageBuf, bufLength, C.int(imageType), &loadOpts.cOpts, &image)
 	if err != 0 {
 		return nil, ImageTypeUnknown, handleVipsError()
 	}
@@ -472,5 +472,5 @@ func handleVipsError() error {
 
 	s := C.GoString(C.vips_error_buffer())
 	stack := string(dbg.Stack())
-	return fmt.Errorf("%s\nStack:\n%s", s, stack)
+	return fmt.Errorf("%v\nStack:\n%s", s, stack)
 }
