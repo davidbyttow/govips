@@ -3,4 +3,3 @@ build/
 *.failed.*
 .vscode
 .idea
-go.sum
