@@ -1,0 +1,51 @@
+dist: xenial
+
+language: go
+
+go:
+	- 1.11.x
+	- 1.12.x
+
+env:
+	- GO111MODULE=on
+	- GOFLAGS='-mod vendor'
+	- VIPS_VERSION=8.8.1
+
+addons:
+	apt:
+		update: true
+		packages:
+			- gobject-introspection
+			- gtk-doc-tools
+			- libcfitsio3-dev
+			- libfftw3-dev
+			- libgif-dev
+			- libgs-dev
+			- libgsf-1-dev
+			- libmatio-dev
+			- libopenslide-dev
+			- liborc-0.4-dev
+			- libpango1.0-dev
+			- libpoppler-glib-dev
+			- libwebp-dev
+			- curl
+
+cache:
+	directories:
+		- libvips
+
+before_install:
+	- |
+		cd libvips
+		test -d libvips-${VIPS_VERSION} && {
+		  cd libvips-${VIPS_VERSION}
+		} || {
+		  curl -fsSLO https://github.com/libvips/libvips/releases/download/v${LIBVIPS_VERSION}/vips-${LIBVIPS_VERSION}.tar.gz
+		  tar zvxf vips-${LIBVIPS_VERSION}.tar.gz
+		  cd libvips-${VIPS_VERSION}
+		  CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -g -O3" CFLAGS="-g -O3" ./configure --disable-debug --disable-dependency-tracking --disable-introspection --disable-static --enable-gtk-doc-html=no --enable-gtk-doc=no --enable-pyvips8=no $1
+		  make
+		}
+		sudo make install
+		sudo ldconfig
+		cd ../..
