@@ -12,10 +12,18 @@ I'd love it for you to take initiative and submit pull requests. It's extra awes
 ## Strict linting
 The Travis build currently checks strict format and linting, so be sure to add comments!
 
+## Prerequisites
+
+### On Mac
+```bash
+brew install pkg-config vips
+```
+
 ## Run the tests
 
-```sh
-go test
+```bash
+cd pkg/vips
+./tests.sh
 ```
 
 ## Get in touch
