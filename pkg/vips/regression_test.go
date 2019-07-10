@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/davidbyttow/govips/pkg/vips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wix-playground/govips/pkg/vips"
 )
 
 func TestEmbed(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/davidbyttow/govips/pkg/vips"
+	"github.com/wix-playground/govips/pkg/vips"
 )
 
 var (
@@ -16,12 +16,12 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "embed -in input_file -out output_file")
+		_, _ = fmt.Fprintf(os.Stderr, "embed -in input_file -out output_file")
 	}
 	flag.Parse()
 
 	vips.Startup(nil)
-	embed(*flagIn, *flagOut)
+	_ = embed(*flagIn, *flagOut)
 	vips.Shutdown()
 
 	if *reportLeaksFlag {

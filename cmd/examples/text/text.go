@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/davidbyttow/govips/pkg/vips"
+	"github.com/wix-playground/govips/pkg/vips"
 )
 
 var (
@@ -17,7 +17,7 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "text -in input_file -message message -out output_file")
+		_, _ = fmt.Fprintf(os.Stderr, "text -in input_file -message message -out output_file")
 	}
 	flag.Parse()
 

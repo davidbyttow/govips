@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/davidbyttow/govips/pkg/vips"
+	"github.com/wix-playground/govips/pkg/vips"
 )
 
 var (
@@ -15,12 +15,12 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "avg -file input_file")
+		_, _ = fmt.Fprintf(os.Stderr, "avg -file input_file")
 	}
 	flag.Parse()
 
 	vips.Startup(nil)
-	avg(*flagFile)
+	_ = avg(*flagFile)
 	vips.ShutdownThread()
 	vips.Shutdown()
 

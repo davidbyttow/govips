@@ -49,7 +49,7 @@ func main() {
 	fmt.Printf("Total bytes processed: %d\n", totalBytes)
 	fmt.Println("Press enter to continue...")
 	reader := bufio.NewReader(os.Stdin)
-	reader.ReadString('\n')
+	_, _ = reader.ReadString('\n')
 }
 
 func run(dir string) (int, error) {

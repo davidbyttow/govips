@@ -3,9 +3,9 @@ package vips_test
 import (
 	"testing"
 
-	"github.com/davidbyttow/govips/pkg/vips"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wix-playground/govips/pkg/vips"
 )
 
 func TestTransform(t *testing.T) {

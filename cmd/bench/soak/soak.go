@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/davidbyttow/govips/pkg/vips"
+	"github.com/wix-playground/govips/pkg/vips"
 )
 
 var (
@@ -77,7 +77,7 @@ func main() {
 		if err := pprof.WriteHeapProfile(f); err != nil {
 			log.Fatal("could not write memory profile: ", err)
 		}
-		f.Close()
+		_ = f.Close()
 	}
 }
 
