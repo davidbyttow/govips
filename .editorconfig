@@ -3,7 +3,7 @@ root = true
 [*]
 charset = utf-8
 end_of_line = lf
-indent_style = tabs
+indent_style = tab
 indent_size = 2
 insert_final_newline = true
 trim_trailing_whitespace = true
@@ -12,5 +12,5 @@ trim_trailing_whitespace = true
 trim_trailing_whitespace = false
 
 [*.py]
-indent_style = tabs
+indent_style = tab
 indent_size = 2

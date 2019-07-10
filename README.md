@@ -30,7 +30,7 @@ go get -u github.com/davidbyttow/govips/pkg/vips
 # Example usage
 ```go
 // Resize an image with padding
-return vips.NewPipeline().
+return vips.Transform().
 	LoadFile(inputFile).
 	PadStrategy(vips.ExtendBlack).
 	Resize(1200, 1200).
