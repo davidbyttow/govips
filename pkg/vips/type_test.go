@@ -15,3 +15,13 @@ func TestJPEG(t *testing.T) {
 	imageType := vips.DetermineImageType(buf)
 	assert.Equal(t, vips.ImageTypeJPEG, imageType)
 }
+
+func TestHEIF(t *testing.T) {
+	vips.Startup(&vips.Config{})
+
+	buf, _ := ioutil.ReadFile("../../assets/fixtures/citron.heic")
+	assert.NotNil(t, buf)
+
+	imageType := vips.DetermineImageType(buf)
+	assert.Equal(t, vips.ImageTypeHEIF, imageType)
+}
