@@ -28,6 +28,7 @@ addons:
 			- libpango1.0-dev
 			- libpoppler-glib-dev
 			- libwebp-dev
+			- libheif-dev
 			- curl
 
 cache:

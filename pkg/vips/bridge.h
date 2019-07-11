@@ -42,18 +42,22 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 int find_image_type_loader(int t);
 int find_image_type_saver(int t);
 
+int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink);
+
 int save_jpeg_buffer(VipsImage* image, void **buf, size_t *len, int strip, int quality, int interlace);
 int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int quality, int interlace);
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless);
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len);
-int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink);
+
 int copy_image(VipsImage *in, VipsImage **out);
 
 int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space);
 int is_colorspace_supported(VipsImage *in);
 unsigned long has_profile_embed(VipsImage *in);
 int remove_icc_profile(VipsImage *in);
+
 int extract_band(VipsImage *in, VipsImage **out, int band, int num);
+
 int linear1(VipsImage *in, VipsImage **out, double a, double b);
 
 // Operations

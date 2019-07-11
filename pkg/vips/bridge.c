@@ -25,20 +25,16 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 	} else if (imageType == SVG) {
 		code = vips_svgload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
+#if (VIPS_MINOR_VERSION >= 8)
+	} else if (imageType == HEIF) {
+		code = vips_heifload_buffer(buf, len, out, "access", o->access, NULL);
+#endif
 	} else if (imageType == MAGICK) {
 		code = vips_magickload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
 	}
 
 	return code;
-}
-
-unsigned long has_profile_embed(VipsImage *in) {
-	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
-}
-
-int remove_icc_profile(VipsImage *in) {
-  return vips_image_remove(in, VIPS_META_ICC_NAME);
 }
 
 int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
@@ -206,6 +202,8 @@ int find_image_loader(int t) {
       return vips_type_find("VipsOperation", "pngload");
     case JPEG:
       return vips_type_find("VipsOperation", "jpegload");
+		case HEIF:
+			return vips_type_find("VipsOperation", "heifload");
     case MAGICK:
       return vips_type_find("VipsOperation", "magickload");
   }
@@ -307,4 +305,12 @@ int has_alpha_channel(VipsImage *image) {
 
 int add_alpha(VipsImage *in, VipsImage **out) {
 	return vips_addalpha(in, out, NULL);
+}
+
+unsigned long has_profile_embed(VipsImage *in) {
+	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
+}
+
+int remove_icc_profile(VipsImage *in) {
+  return vips_image_remove(in, VIPS_META_ICC_NAME);
 }
