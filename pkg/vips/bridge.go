@@ -206,6 +206,9 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageTy
 	case ImageTypeTIFF:
 		incOpCounter("save_tiff_buffer")
 		cErr = C.save_tiff_buffer(tmpImage, &ptr, &cLen)
+	case ImageTypeHEIF:
+		incOpCounter("save_heif_buffer")
+		cErr = C.save_heif_buffer(tmpImage, &ptr, &cLen, quality, lossless)
 	default:
 		incOpCounter("save_jpeg_buffer")
 		format = ImageTypeJPEG
@@ -262,8 +265,13 @@ func vipsDetermineImageType(buf []byte) ImageType {
 	if IsTypeSupported(ImageTypeWEBP) && buf[8] == 0x57 && buf[9] == 0x45 && buf[10] == 0x42 && buf[11] == 0x50 {
 		return ImageTypeWEBP
 	}
-	if IsTypeSupported(ImageTypeSVG) && buf[0] == 0x3c && buf[1] == 0x3f && buf[2] == 0x78 && buf[3] == 0x6d {
+	if IsTypeSupported(ImageTypeSVG) && buf[0] == 0x3C && buf[1] == 0x3F && buf[2] == 0x78 && buf[3] == 0x6D {
 		return ImageTypeSVG
+	}
+	// https://github.com/strukturag/libheif/blob/master/libheif/heif.cc
+	if IsTypeSupported(ImageTypeHEIF) && (buf[4] == 'f' && buf[5] == 't' && buf[6] == 'y' && buf[7] == 'p') &&
+		(buf[8] == 'h' && buf[9] == 'e' && buf[10] == 'i' && buf[11] == 'c') {
+		return ImageTypeHEIF
 	}
 	return ImageTypeUnknown
 }

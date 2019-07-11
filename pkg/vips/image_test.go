@@ -10,8 +10,25 @@ import (
 	"github.com/wix-playground/govips/pkg/vips"
 )
 
+func TestImageTypeSupport_HEIF(t *testing.T) {
+	vips.Startup(&vips.Config{})
+	defer vips.Shutdown()
+
+	raw, err := ioutil.ReadFile("../../assets/fixtures/citron.heic")
+	require.NoError(t, err)
+
+	img, err := vips.NewImageFromBuffer(raw)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, img)
+	}
+
+	_, imageType, err := img.Export(vips.ExportParams{})
+	assert.NoError(t, err)
+	assert.Equal(t, vips.ImageTypeHEIF, imageType)
+}
+
 func TestLoadImage_AccessMode(t *testing.T) {
-	srcBytes, err := ioutil.ReadFile("testdata/test.png")
+	srcBytes, err := ioutil.ReadFile("../../assets/fixtures/test.png")
 	require.NoError(t, err)
 
 	// defaults to random access
@@ -61,7 +78,7 @@ func TestLoadImage_AccessMode(t *testing.T) {
 func TestNewImageFromFile_AccessMode(t *testing.T) {
 	// defaults to random access
 	{
-		img, err := vips.NewImageFromFile("testdata/test.png")
+		img, err := vips.NewImageFromFile("../../assets/fixtures/test.png")
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check random access by encoding twice
@@ -74,7 +91,7 @@ func TestNewImageFromFile_AccessMode(t *testing.T) {
 
 	// random access
 	{
-		img, err := vips.NewImageFromFile("testdata/test.png", vips.WithAccessMode(vips.AccessRandom))
+		img, err := vips.NewImageFromFile("../../assets/fixtures/test.png", vips.WithAccessMode(vips.AccessRandom))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check random access by encoding twice
@@ -87,7 +104,7 @@ func TestNewImageFromFile_AccessMode(t *testing.T) {
 
 	// sequential access
 	{
-		img, err := vips.NewImageFromFile("testdata/test.png", vips.WithAccessMode(vips.AccessSequential))
+		img, err := vips.NewImageFromFile("../../assets/fixtures/test.png", vips.WithAccessMode(vips.AccessSequential))
 		if assert.NoError(t, err) {
 			assert.NotNil(t, img)
 			// check sequential access by encoding twice where the second fails
@@ -101,7 +118,7 @@ func TestNewImageFromFile_AccessMode(t *testing.T) {
 }
 
 func TestNewImageFromBuffer_AccessMode(t *testing.T) {
-	src, err := ioutil.ReadFile("testdata/test.png")
+	src, err := ioutil.ReadFile("../../assets/fixtures/test.png")
 	require.NoError(t, err)
 
 	// defaults to random access
@@ -153,12 +170,12 @@ func TestImageRef_HasAlpha(t *testing.T) {
 	}{
 		{
 			"image without alpha layer",
-			"testdata/test.png",
+			"../../assets/fixtures/test.png",
 			false,
 		},
 		{
 			"image with alpha layer",
-			"testdata/with_alpha.png",
+			"../../assets/fixtures/with_alpha.png",
 			true,
 		},
 	}
@@ -173,7 +190,7 @@ func TestImageRef_HasAlpha(t *testing.T) {
 }
 
 func TestImageRef_AddAlpha(t *testing.T) {
-	image, err := vips.NewImageFromFile("testdata/test.png")
+	image, err := vips.NewImageFromFile("../../assets/fixtures/test.png")
 	require.NoError(t, err)
 	withAlpha, err := image.AddAlpha()
 	require.NoError(t, err)
@@ -184,7 +201,7 @@ func TestImageRef_AddAlpha(t *testing.T) {
 }
 
 func TestImageRef_AddAlpha__AlreadyHasAlpha__Idempotent(t *testing.T) {
-	image, err := vips.NewImageFromFile("testdata/with_alpha.png")
+	image, err := vips.NewImageFromFile("../../assets/fixtures/with_alpha.png")
 	require.NoError(t, err)
 	withAlpha, err := image.AddAlpha()
 	require.NoError(t, err)
@@ -202,12 +219,12 @@ func TestImageRef_HasProfile(t *testing.T) {
 	}{
 		{
 			"image with profile",
-			"testdata/with_icc_profile.jpg",
+			"../../assets/fixtures/with_icc_profile.jpg",
 			true,
 		},
 		{
 			"image without profile",
-			"testdata/without_icc_profile.jpg",
+			"../../assets/fixtures/without_icc_profile.jpg",
 			false,
 		},
 	}

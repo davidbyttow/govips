@@ -1,10 +1,6 @@
 
 #include "bridge.h"
 
-int is_16bit(VipsInterpretation interpretation) {
-	return interpretation == VIPS_INTERPRETATION_RGB16 || interpretation == VIPS_INTERPRETATION_GREY16;
-}
-
 int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsImage **out) {
 	int code = 1;
 
@@ -25,20 +21,16 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 	} else if (imageType == SVG) {
 		code = vips_svgload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
+#if (VIPS_MINOR_VERSION >= 8)
+	} else if (imageType == HEIF) {
+		code = vips_heifload_buffer(buf, len, out, "access", o->access, NULL);
+#endif
 	} else if (imageType == MAGICK) {
 		code = vips_magickload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
 	}
 
 	return code;
-}
-
-unsigned long has_profile_embed(VipsImage *in) {
-	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
-}
-
-int remove_icc_profile(VipsImage *in) {
-  return vips_image_remove(in, VIPS_META_ICC_NAME);
 }
 
 int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
@@ -73,6 +65,8 @@ int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compr
 	);
 }
 
+// todo: support additional params
+// https://github.com/libvips/libvips/blob/master/libvips/foreign/webpsave.c#L524
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless) {
 	return vips_webpsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),
@@ -82,8 +76,22 @@ int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int qual
 	);
 }
 
+// todo: support additional params
+// https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
+int save_heif_buffer(VipsImage *in, void **buf, size_t *len, int quality, int lossless) {
+	return vips_heifsave_buffer(in, buf, len,
+		"Q", quality,
+		"lossless", INT_TO_GBOOLEAN(lossless),
+		NULL
+	);
+}
+
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len) {
 	return vips_tiffsave_buffer(in, buf, len, NULL);
+}
+
+int is_16bit(VipsInterpretation interpretation) {
+	return interpretation == VIPS_INTERPRETATION_RGB16 || interpretation == VIPS_INTERPRETATION_GREY16;
 }
 
 int is_colorspace_supported(VipsImage *in) {
@@ -211,6 +219,8 @@ int find_image_loader(int t) {
       return vips_type_find("VipsOperation", "pngload");
     case JPEG:
       return vips_type_find("VipsOperation", "jpegload");
+		case HEIF:
+			return vips_type_find("VipsOperation", "heifload");
     case MAGICK:
       return vips_type_find("VipsOperation", "magickload");
   }
@@ -227,6 +237,8 @@ int find_image_type_saver(int t) {
       return vips_type_find("VipsOperation", "pngsave_buffer");
     case JPEG:
       return vips_type_find("VipsOperation", "jpegsave_buffer");
+		case HEIF:
+			return vips_type_find("VipsOperation", "heifsave_buffer");
   }
 	return 0;
 }
@@ -312,4 +324,12 @@ int has_alpha_channel(VipsImage *image) {
 
 int add_alpha(VipsImage *in, VipsImage **out) {
 	return vips_addalpha(in, out, NULL);
+}
+
+unsigned long has_profile_embed(VipsImage *in) {
+	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
+}
+
+int remove_icc_profile(VipsImage *in) {
+  return vips_image_remove(in, VIPS_META_ICC_NAME);
 }
