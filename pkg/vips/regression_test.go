@@ -138,7 +138,22 @@ func TestOverlay(t *testing.T) {
 	assertGoldenMatch(t, "../../assets/fixtures/tomatoes.png", buf)
 }
 
+func TestBandjoin(t *testing.T) {
+	image1, err := vips.NewImageFromFile("../../assets/fixtures/tomatoes.png")
+	require.NoError(t, err)
+	image2, err := vips.NewImageFromFile("../../assets/fixtures/clover.png")
+	require.NoError(t, err)
+	joined, err := image1.BandJoin(image2)
+	require.NoError(t, err)
+
+	buf, _, err := vips.NewTransform().Image(joined).Apply()
+	require.NoError(t, err)
+	assertGoldenMatch(t, "../../assets/fixtures/tomatoes.png", buf)
+}
+
 func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) []byte {
+	//vips.Startup(nil)
+	//defer vips.Shutdown()
 	if testing.Short() {
 		return nil
 	}
