@@ -59,6 +59,7 @@ int remove_icc_profile(VipsImage *in);
 
 int extract_band(VipsImage *in, VipsImage **out, int band, int num);
 int bandjoin(VipsImage **in, VipsImage **out, int n);
+
 int linear1(VipsImage *in, VipsImage **out, double a, double b);
 
 // Operations
