@@ -9,6 +9,8 @@ import (
 )
 
 func TestJPEG(t *testing.T) {
+	vips.Startup(&vips.Config{})
+
 	buf, _ := ioutil.ReadFile("../../assets/fixtures/canyon.jpg")
 	assert.NotNil(t, buf)
 
