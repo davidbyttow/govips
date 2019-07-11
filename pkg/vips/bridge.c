@@ -148,6 +148,11 @@ int extract_band(VipsImage *in, VipsImage **out, int band, int num) {
 	return vips_extract_band(in, out, band, NULL);
 }
 
+int bandjoin(VipsImage **in, VipsImage **out, int n) {
+	return vips_bandjoin(in, out, n, NULL);
+}
+
+
 int linear1(VipsImage *in, VipsImage **out, double a, double b) {
 	return vips_linear1(in, out, a, b, NULL);
 }

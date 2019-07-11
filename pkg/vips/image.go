@@ -206,6 +206,21 @@ func (r *ImageRef) AddAlpha() (*ImageRef, error) {
 	return ref, nil
 }
 
+func (r *ImageRef) BandJoin(images ...*ImageRef) (*ImageRef, error) {
+	vipsImages := []*C.VipsImage{r.image}
+	for _, image := range images {
+		vipsImages = append(vipsImages, image.image)
+	}
+
+	joined, err := vipsBandJoin(vipsImages)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := NewImageRef(joined, r.format)
+	return ref, nil
+}
+
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (r *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t

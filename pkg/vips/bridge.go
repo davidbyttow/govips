@@ -369,10 +369,25 @@ func vipsMultiply(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 }
 
 func vipsExtractBand(image *C.VipsImage, band, num int) (*C.VipsImage, error) {
-	incOpCounter("extract")
+	incOpCounter("extractBand")
 	defer C.g_object_unref(C.gpointer(image))
 	var output *C.VipsImage
 	if err := C.extract_band(image, &output, C.int(band), C.int(num)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
+func vipsBandJoin(images []*C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("bandJoin")
+	defer func() {
+		for _, image := range images {
+			C.g_object_unref(C.gpointer(image))
+		}
+	}()
+
+	var output *C.VipsImage
+	if err := C.bandjoin(&images[0], &output, C.int(len(images))); err != 0 {
 		return nil, handleVipsError()
 	}
 	return output, nil
@@ -389,7 +404,7 @@ func vipsLinear1(image *C.VipsImage, a, b float64) (*C.VipsImage, error) {
 }
 
 func vipsExtractArea(input *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
-	incOpCounter("extract")
+	incOpCounter("extractArea")
 	var output *C.VipsImage
 	defer C.g_object_unref(C.gpointer(input))
 	if err := C.extract_image_area(input, &output, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
