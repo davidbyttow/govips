@@ -10,6 +10,7 @@ import (
 
 func TestJPEG(t *testing.T) {
 	vips.Startup(&vips.Config{})
+	defer vips.Shutdown()
 
 	buf, _ := ioutil.ReadFile("../../assets/fixtures/canyon.jpg")
 	assert.NotNil(t, buf)
@@ -20,6 +21,7 @@ func TestJPEG(t *testing.T) {
 
 func TestHEIF(t *testing.T) {
 	vips.Startup(&vips.Config{})
+	defer vips.Shutdown()
 
 	buf, _ := ioutil.ReadFile("../../assets/fixtures/citron.heic")
 	assert.NotNil(t, buf)

@@ -12,6 +12,7 @@ import (
 
 func TestImageTypeSupport_HEIF(t *testing.T) {
 	vips.Startup(&vips.Config{})
+	defer vips.Shutdown()
 
 	raw, err := ioutil.ReadFile("../../assets/fixtures/citron.heic")
 	require.NoError(t, err)
