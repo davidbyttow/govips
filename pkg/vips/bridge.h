@@ -76,10 +76,5 @@ int label(VipsImage *in, VipsImage **out, LabelOptions *o);
 
 void gobject_set_property(VipsObject* object, const char* name, const GValue* value);
 
-static int has_alpha_channel(VipsImage *image) {
-	return (
-		(image->Bands == 2 && image->Type == VIPS_INTERPRETATION_B_W) ||
-		(image->Bands == 4 && image->Type != VIPS_INTERPRETATION_CMYK) ||
-		(image->Bands == 5 && image->Type == VIPS_INTERPRETATION_CMYK)
-	) ? 1 : 0;
-}
+int has_alpha_channel(VipsImage *image);
+int add_alpha(VipsImage *in, VipsImage **out);

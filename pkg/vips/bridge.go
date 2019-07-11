@@ -333,6 +333,16 @@ func vipsHasAlpha(image *C.VipsImage) bool {
 	return int(C.has_alpha_channel(image)) > 0
 }
 
+func vipsAddAlpha(input *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("addAlpha")
+	defer C.g_object_unref(C.gpointer(input))
+	var output *C.VipsImage
+	if err := C.add_alpha(input, &output); err != 0 {
+		return nil, handleVipsError()
+	}
+	return output, nil
+}
+
 func vipsAdd(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 	incOpCounter("add")
 	defer C.g_object_unref(C.gpointer(left))

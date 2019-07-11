@@ -192,6 +192,20 @@ func (r *ImageRef) HasAlpha() bool {
 	return vipsHasAlpha(r.image)
 }
 
+func (r *ImageRef) AddAlpha() (*ImageRef, error) {
+	if vipsHasAlpha(r.image) {
+		return r, nil
+	}
+
+	withAlpha, err := vipsAddAlpha(r.image)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := NewImageRef(withAlpha, r.format)
+	return ref, nil
+}
+
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (r *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t
