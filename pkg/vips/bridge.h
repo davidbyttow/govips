@@ -47,6 +47,7 @@ int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink);
 int save_jpeg_buffer(VipsImage* image, void **buf, size_t *len, int strip, int quality, int interlace);
 int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int quality, int interlace);
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless);
+int save_heif_buffer(VipsImage *in, void **buf, size_t *len, int quality, int lossless);
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len);
 
 int copy_image(VipsImage *in, VipsImage **out);

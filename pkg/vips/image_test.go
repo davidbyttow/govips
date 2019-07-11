@@ -10,7 +10,7 @@ import (
 	"github.com/wix-playground/govips/pkg/vips"
 )
 
-func TestLoadImage_HEIF(t *testing.T) {
+func TestImageTypeSupport_HEIF(t *testing.T) {
 	vips.Startup(&vips.Config{})
 
 	raw, err := ioutil.ReadFile("../../assets/fixtures/citron.heic")
@@ -20,6 +20,10 @@ func TestLoadImage_HEIF(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.NotNil(t, img)
 	}
+
+	_, imageType, err := img.Export(vips.ExportParams{})
+	assert.NoError(t, err)
+	assert.Equal(t, vips.ImageTypeHEIF, imageType)
 }
 
 func TestLoadImage_AccessMode(t *testing.T) {

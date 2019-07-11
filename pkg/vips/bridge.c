@@ -1,10 +1,6 @@
 
 #include "bridge.h"
 
-int is_16bit(VipsInterpretation interpretation) {
-	return interpretation == VIPS_INTERPRETATION_RGB16 || interpretation == VIPS_INTERPRETATION_GREY16;
-}
-
 int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsImage **out) {
 	int code = 1;
 
@@ -69,6 +65,8 @@ int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compr
 	);
 }
 
+// todo: support additional params
+// https://github.com/libvips/libvips/blob/master/libvips/foreign/webpsave.c#L524
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless) {
 	return vips_webpsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),
@@ -78,8 +76,22 @@ int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int qual
 	);
 }
 
+// todo: support additional params
+// https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
+int save_heif_buffer(VipsImage *in, void **buf, size_t *len, int quality, int lossless) {
+	return vips_heifsave_buffer(in, buf, len,
+		"Q", quality,
+		"lossless", INT_TO_GBOOLEAN(lossless),
+		NULL
+	);
+}
+
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len) {
 	return vips_tiffsave_buffer(in, buf, len, NULL);
+}
+
+int is_16bit(VipsInterpretation interpretation) {
+	return interpretation == VIPS_INTERPRETATION_RGB16 || interpretation == VIPS_INTERPRETATION_GREY16;
 }
 
 int is_colorspace_supported(VipsImage *in) {
@@ -220,6 +232,8 @@ int find_image_type_saver(int t) {
       return vips_type_find("VipsOperation", "pngsave_buffer");
     case JPEG:
       return vips_type_find("VipsOperation", "jpegsave_buffer");
+		case HEIF:
+			return vips_type_find("VipsOperation", "heifsave_buffer");
   }
 	return 0;
 }
