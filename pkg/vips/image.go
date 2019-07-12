@@ -221,6 +221,17 @@ func (r *ImageRef) BandJoin(images ...*ImageRef) (*ImageRef, error) {
 	return ref, nil
 }
 
+//https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear1
+func (r *ImageRef) Linear1(a, b float64) (*ImageRef, error) {
+	linear, err := vipsLinear1(r.image, a, b)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := NewImageRef(linear, r.format)
+	return ref, nil
+}
+
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (r *ImageRef) ToBytes() ([]byte, error) {
 	var cSize C.size_t

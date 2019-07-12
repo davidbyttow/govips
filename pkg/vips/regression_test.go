@@ -151,6 +151,18 @@ func TestBandjoin(t *testing.T) {
 	assertGoldenMatch(t, "../../assets/fixtures/tomatoes.png", buf)
 }
 
+func TestLinear1(t *testing.T) {
+	image, err := vips.NewImageFromFile("../../assets/fixtures/tomatoes.png")
+	require.NoError(t, err)
+	linear, err := image.Linear1(3, 4)
+	require.NoError(t, err)
+
+	buf, _, err := vips.NewTransform().Image(linear).Apply()
+	require.NoError(t, err)
+	assertGoldenMatch(t, "../../assets/fixtures/tomatoes.png", buf)
+
+}
+
 func goldenTest(t *testing.T, file string, fn func(t *vips.Transform)) []byte {
 	//vips.Startup(nil)
 	//defer vips.Shutdown()
