@@ -1221,11 +1221,9 @@ func finalizeImage(ref *ImageRef) {
 
 // setImage resets the image for this image and frees the previous one
 func (r *ImageRef) setImage(image *C.VipsImage) {
-	prev := r.image
+	if r.image != nil {
+		defer freeImage(r.image)
+	}
 
 	r.image = image
-
-	if prev != nil {
-		unrefImage(prev)()
-	}
 }

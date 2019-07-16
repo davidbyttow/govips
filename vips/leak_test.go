@@ -110,5 +110,7 @@ func LeakTest(fn func()) {
 
 	fn()
 
+	//Shutdown()
+
 	PrintObjectReport("Finished")
 }
