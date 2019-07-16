@@ -12,7 +12,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/wix-playground/govips/pkg/vips"
+	"github.com/wix-playground/govips/vips"
 )
 
 var (

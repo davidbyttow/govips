@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/wix-playground/govips/pkg/vips"
+	"github.com/wix-playground/govips/vips"
 )
 
 var (
@@ -36,7 +36,12 @@ func avg(file string) error {
 	}
 	defer image.Close()
 
-	avg, _ := vips.Avg(image.Image())
+	avg, err := image.Avg()
+	if err != nil {
+		return err
+	}
+
 	fmt.Printf("avg=%0.2f\n", avg)
+
 	return nil
 }

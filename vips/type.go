@@ -41,10 +41,11 @@ type Color struct {
 	R, G, B uint8
 }
 
-const DefaultFont = "sans 10"
-
 // ColorBlack is shorthand for black RGB
+//noinspection GoUnusedGlobalVariable
 var ColorBlack = Color{0, 0, 0}
+
+const DefaultFont = "sans 10"
 
 // LabelParams represents a text-based label
 type LabelParams struct {

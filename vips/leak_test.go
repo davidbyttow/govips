@@ -1,4 +1,4 @@
-package vips_test
+package vips
 
 import (
 	"sync"
@@ -6,7 +6,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wix-playground/govips/pkg/vips"
 )
 
 type size struct {
@@ -14,10 +13,10 @@ type size struct {
 }
 
 var (
-	resizeStrategies = []vips.ResizeStrategy{
-		vips.ResizeStrategyCrop,
-		vips.ResizeStrategyStretch,
-		vips.ResizeStrategyEmbed,
+	resizeStrategies = []ResizeStrategy{
+		ResizeStrategyCrop,
+		ResizeStrategyStretch,
+		ResizeStrategyEmbed,
 	}
 	sizes = []size{
 		{100, 100},
@@ -25,22 +24,22 @@ var (
 		{0, 500},
 		{1000, 1000},
 	}
-	formats = []vips.ImageType{
-		vips.ImageTypeJPEG,
-		vips.ImageTypePNG,
+	formats = []ImageType{
+		ImageTypeJPEG,
+		ImageTypePNG,
 	}
 )
 
 type transform struct {
-	Resize      vips.ResizeStrategy
+	Resize      ResizeStrategy
 	Width       int
 	Height      int
-	Flip        vips.FlipDirection
-	Format      vips.ImageType
+	Flip        FlipDirection
+	Format      ImageType
 	Zoom        int
 	Blur        float64
-	Kernel      vips.Kernel
-	Interp      vips.Interpolator
+	Kernel      Kernel
+	Interp      Interpolator
 	Quality     int
 	Compression int
 }
@@ -58,11 +57,11 @@ func TestCleanup(t *testing.T) {
 					Resize:      resize,
 					Width:       size.w,
 					Height:      size.h,
-					Flip:        vips.FlipBoth,
-					Kernel:      vips.KernelLanczos3,
+					Flip:        FlipBoth,
+					Kernel:      KernelLanczos3,
 					Format:      format,
 					Blur:        4,
-					Interp:      vips.InterpolateBicubic,
+					Interp:      InterpolateBicubic,
 					Zoom:        3,
 					Quality:     80,
 					Compression: 5,
@@ -79,8 +78,8 @@ func TestCleanup(t *testing.T) {
 			go func(i int, tr transform) {
 				defer wg.Done()
 
-				buf, _, err := vips.NewTransform().
-					LoadFile("../../assets/fixtures/canyon.jpg").
+				buf, _, err := NewTransform().
+					LoadFile(assets+"canyon.jpg").
 					ResizeStrategy(tr.Resize).
 					Resize(tr.Width, tr.Height).
 					Flip(tr.Flip).
@@ -95,7 +94,7 @@ func TestCleanup(t *testing.T) {
 					Apply()
 				require.NoError(t, err)
 
-				image, err := vips.NewImageFromBuffer(buf)
+				image, err := NewImageFromBuffer(buf)
 				require.NoError(t, err)
 				defer image.Close()
 
@@ -107,10 +106,9 @@ func TestCleanup(t *testing.T) {
 }
 
 func LeakTest(fn func()) {
-	vips.Startup(&vips.Config{
-		ConcurrencyLevel: 1,
-	})
+	Startup(nil)
+
 	fn()
-	vips.Shutdown()
-	vips.PrintObjectReport("Finished")
+
+	PrintObjectReport("Finished")
 }

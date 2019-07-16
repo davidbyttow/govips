@@ -1,9 +1,4 @@
-// Package vips provides a library for transforming images that is built on lipvips. Libvips
-// is an extremely fast C-library. Therefore, govips requires that libvips 8+ be installed
-// and available on the target environment.
 package vips
-
-//go:generate scripts/codegen.sh
 
 // #cgo pkg-config: vips
 // #include "vips/vips.h"
@@ -14,20 +9,23 @@ import (
 	"sync"
 )
 
+//noinspection GoUnusedConst
+const Version = string(C.VIPS_VERSION)
+
+//noinspection GoUnusedConst
+const MajorVersion = int(C.VIPS_MAJOR_VERSION)
+
+//noinspection GoUnusedConst
+const MinorVersion = int(C.VIPS_MINOR_VERSION)
+
+//noinspection GoUnusedConst
+const MicroVersion = int(C.VIPS_MICRO_VERSION) // A.K.A patch version
+
 const (
 	defaultConcurrencyLevel = 1
 	defaultMaxCacheMem      = 100 * 1024 * 1024
 	defaultMaxCacheSize     = 500
 )
-
-// VipsVersion if the primary version of libvips
-const VipsVersion = string(C.VIPS_VERSION)
-
-// VipsMajorVersion is the major version of libvips
-const VipsMajorVersion = int(C.VIPS_MAJOR_VERSION)
-
-// VipsMinorVersion if the minor version of libvips
-const VipsMinorVersion = int(C.VIPS_MINOR_VERSION)
 
 var (
 	running           = false
@@ -68,7 +66,7 @@ func Startup(config *Config) {
 
 	err := C.vips_init(cName)
 	if err != 0 {
-		panic(fmt.Sprintf("Failed to start vips code=%d", err))
+		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
 	running = true
@@ -110,25 +108,12 @@ func Startup(config *Config) {
 	initTypes()
 }
 
-// PrintObjectReport outputs all of the current internal objects in libvips
-func PrintObjectReport(label string) {
-	fmt.Printf("\n=======================================\nMemory leaks: %s...\n", label)
-	C.vips_object_print_all()
-	fmt.Printf("=======================================\n\n")
-}
-
-func startupIfNeeded() {
-	if !running {
-		debug("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
-		Startup(nil)
-	}
-}
-
 // Shutdown libvips
 func Shutdown() {
 	if statCollectorDone != nil {
 		statCollectorDone <- struct{}{}
 	}
+
 	initLock.Lock()
 	runtime.LockOSThread()
 	defer initLock.Unlock()
@@ -148,24 +133,40 @@ func ShutdownThread() {
 	C.vips_thread_shutdown()
 }
 
-type VipsMemoryStats struct {
+//noinspection GoUnusedExportedFunction
+func ClearCache() {
+	C.vips_cache_drop_all()
+}
+
+//noinspection GoUnusedExportedFunction
+func PrintCache() {
+	C.vips_cache_print()
+}
+
+// PrintObjectReport outputs all of the current internal objects in libvips
+func PrintObjectReport(label string) {
+	fmt.Printf("\n=======================================\nMemory leaks: %s...\n", label)
+	C.vips_object_print_all()
+	fmt.Printf("=======================================\n\n")
+}
+
+type MemoryStats struct {
 	Mem     int64
 	MemHigh int64
 	Files   int64
 	Allocs  int64
 }
 
-func ReadVipsMemStats(stats *VipsMemoryStats) {
+func ReadVipsMemStats(stats *MemoryStats) {
 	stats.Mem = int64(C.vips_tracked_get_mem())
 	stats.MemHigh = int64(C.vips_tracked_get_mem_highwater())
 	stats.Allocs = int64(C.vips_tracked_get_allocs())
 	stats.Files = int64(C.vips_tracked_get_files())
 }
 
-func VipsClearCache() {
-	C.vips_cache_drop_all()
-}
-
-func VipsPrintCache() {
-	C.vips_cache_print()
+func startupIfNeeded() {
+	if !running {
+		debug("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
+		Startup(nil)
+	}
 }

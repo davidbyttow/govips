@@ -14,7 +14,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/wix-playground/govips/pkg/vips"
+	"github.com/wix-playground/govips/vips"
 )
 
 var (
@@ -47,13 +47,12 @@ func main() {
 		defer pprof.StopCPUProfile()
 	}
 
-	cfg := &vips.Config{
+	vips.Startup(&vips.Config{
 		ConcurrencyLevel: *concurrencyFlag,
 		MaxCacheMem:      *maxCacheMemFlag,
 		MaxCacheSize:     *maxCacheSizeFlag,
 		CollectStats:     true,
-	}
-	vips.Startup(cfg)
+	})
 
 	numCPUs := runtime.NumCPU()
 	runtime.GOMAXPROCS(numCPUs + 1)
@@ -152,7 +151,7 @@ func loadFile(file string) []byte {
 func outputStats() {
 	var mem runtime.MemStats
 	runtime.ReadMemStats(&mem)
-	var vipsMem vips.VipsMemoryStats
+	var vipsMem vips.MemoryStats
 	vips.ReadVipsMemStats(&vipsMem)
 
 	var stats vips.RuntimeStats

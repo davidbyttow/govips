@@ -36,16 +36,16 @@ type vipsLoadOptions struct {
 	cOpts C.ImageLoadOptions
 }
 
-var stringBuffer4096 = fixedString(4096)
-
 func vipsOperationNew(name string) *C.VipsOperation {
 	cName := C.CString(name)
 	defer freeCString(cName)
+
 	return C.vips_operation_new(cName)
 }
 
 func vipsCall(name string, options []*Option) error {
 	operation := vipsOperationNew(name)
+
 	return vipsCallOperation(operation, options)
 }
 
@@ -59,15 +59,15 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 
 		cName := C.CString(option.Name)
 		defer freeCString(cName)
-		C.gobject_set_property(
-			(*C.VipsObject)(unsafe.Pointer(operation)), cName, option.GValue())
+
+		C.gobject_set_property((*C.VipsObject)(unsafe.Pointer(operation)), cName, option.GValue())
 	}
 
 	if ret := C.vips_cache_operation_buildp(&operation); ret != 0 {
 		return handleVipsError()
 	}
 
-	defer C.g_object_unref(C.gpointer(unsafe.Pointer(operation)))
+	defer unrefPointer(unsafe.Pointer(operation))
 
 	// Write back the outputs
 	for _, option := range options {
@@ -75,11 +75,11 @@ func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
 			continue
 		}
 		defer option.Close()
+
 		cName := C.CString(option.Name)
 		defer freeCString(cName)
 
-		C.g_object_get_property(
-			(*C.GObject)(unsafe.Pointer(operation)), (*C.gchar)(cName), option.GValue())
+		C.g_object_get_property((*C.GObject)(unsafe.Pointer(operation)), (*C.gchar)(cName), option.GValue())
 	}
 
 	return nil
@@ -112,10 +112,12 @@ func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImag
 	// Apply the proper colour space
 	if int(C.is_colorspace_supported(input)) == 1 && interpretation != input.Type {
 		var out *C.VipsImage
+
 		err := C.to_colorspace(input, &out, interpretation)
 		if int(err) != 0 {
 			return nil, handleVipsError()
 		}
+
 		input = out
 	}
 
@@ -155,16 +157,17 @@ func vipsLoadFromBuffer(buf []byte, opts ...LoadOption) (*C.VipsImage, ImageType
 
 func vipsCopyImage(input *C.VipsImage) (*C.VipsImage, error) {
 	var output *C.VipsImage
-	cErr := C.copy_image(input, &output)
-	if int(cErr) != 0 {
+
+	err := C.copy_image(input, &output)
+	if int(err) != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageType, error) {
 	tmpImage, err := vipsPrepareForExport(image, params)
-
 	if err != nil {
 		return nil, ImageTypeUnknown, err
 	}
@@ -172,7 +175,7 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageTy
 	// If these are equal, then we don't want to deref the original image as
 	// the original will be returned if the target colorspace is not supported
 	if tmpImage != image {
-		defer C.g_object_unref(C.gpointer(tmpImage))
+		defer unrefImage(tmpImage)()
 	}
 
 	cLen := C.size_t(0)
@@ -221,24 +224,8 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageTy
 
 	buf := C.GoBytes(ptr, C.int(cLen))
 	C.g_free(C.gpointer(ptr))
+
 	return buf, format, nil
-}
-
-func isTypeSupported(imageType ImageType) bool {
-	return supportedImageTypes[imageType]
-}
-
-func isColorspaceIsSupportedBuffer(buf []byte) (bool, error) {
-	image, _, err := vipsLoadFromBuffer(buf)
-	if err != nil {
-		return false, err
-	}
-	defer C.g_object_unref(C.gpointer(image))
-	return int(C.is_colorspace_supported(image)) == 1, nil
-}
-
-func isColorspaceIsSupported(image *C.VipsImage) bool {
-	return int(C.is_colorspace_supported(image)) == 1
 }
 
 func vipsDetermineImageType(buf []byte) ImageType {
@@ -291,7 +278,8 @@ func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error
 		if int(err) != 0 {
 			return nil, handleVipsError()
 		}
-		C.g_object_unref(C.gpointer(input))
+		unrefImage(input)()
+
 		input = output
 	}
 
@@ -306,170 +294,211 @@ func vipsResize(input *C.VipsImage, scale, vscale float64, kernel Kernel) (*C.Vi
 	scale = math.Min(scale, maxScaleFactor)
 	vscale = math.Min(vscale, maxScaleFactor)
 
-	defer C.g_object_unref(C.gpointer(input))
+	defer unrefImage(input)()
+
 	if err := C.resize_image(input, &output, C.double(scale), C.double(vscale), C.int(kernel)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsRotate(input *C.VipsImage, angle Angle) (*C.VipsImage, error) {
 	incOpCounter("rot")
 	var output *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+
+	defer unrefImage(input)()
+
 	if err := C.rot_image(input, &output, C.VipsAngle(angle)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsComposite(inputs []*C.VipsImage, mode BlendMode) (*C.VipsImage, error) {
 	incOpCounter("composite")
 	var output *C.VipsImage
+
 	if err := C.composite(&inputs[0], &output, C.int(len(inputs)), C.int(mode)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
-func vipsHasAlpha(image *C.VipsImage) bool {
-	return int(C.has_alpha_channel(image)) > 0
+func vipsBandJoin(inputs []*C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("bandJoin")
+	var output *C.VipsImage
+
+	if err := C.bandjoin(&inputs[0], &output, C.int(len(inputs))); err != 0 {
+		return nil, handleVipsError()
+	}
+
+	return output, nil
+}
+
+func vipsHasAlpha(input *C.VipsImage) bool {
+	return int(C.has_alpha_channel(input)) > 0
 }
 
 func vipsAddAlpha(input *C.VipsImage) (*C.VipsImage, error) {
 	incOpCounter("addAlpha")
-	defer C.g_object_unref(C.gpointer(input))
 	var output *C.VipsImage
+
+	defer unrefImage(input)()
+
 	if err := C.add_alpha(input, &output); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsAdd(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 	incOpCounter("add")
-	defer C.g_object_unref(C.gpointer(left))
-	defer C.g_object_unref(C.gpointer(right))
 	var output *C.VipsImage
+
+	defer unrefImage(left)()
+	defer unrefImage(right)()
+
 	if err := C.add(left, right, &output); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsMultiply(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 	incOpCounter("multiply")
-	defer C.g_object_unref(C.gpointer(left))
-	defer C.g_object_unref(C.gpointer(right))
 	var output *C.VipsImage
+
+	defer unrefImage(left)()
+	defer unrefImage(right)()
+
 	if err := C.multiply(left, right, &output); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
-func vipsExtractBand(image *C.VipsImage, band, num int) (*C.VipsImage, error) {
+func vipsExtractBand(input *C.VipsImage, band, num int) (*C.VipsImage, error) {
 	incOpCounter("extractBand")
-	defer C.g_object_unref(C.gpointer(image))
 	var output *C.VipsImage
-	if err := C.extract_band(image, &output, C.int(band), C.int(num)); err != 0 {
+
+	defer unrefImage(input)()
+
+	if err := C.extract_band(input, &output, C.int(band), C.int(num)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
-func vipsBandJoin(images []*C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("bandJoin")
-	defer func() {
-		for _, image := range images {
-			C.g_object_unref(C.gpointer(image))
-		}
-	}()
-
-	var output *C.VipsImage
-	if err := C.bandjoin(&images[0], &output, C.int(len(images))); err != 0 {
-		return nil, handleVipsError()
-	}
-	return output, nil
-}
-
-func vipsLinear1(image *C.VipsImage, a, b float64) (*C.VipsImage, error) {
+func vipsLinear1(input *C.VipsImage, a, b float64) (*C.VipsImage, error) {
 	incOpCounter("linear1")
-	defer C.g_object_unref(C.gpointer(image))
 	var output *C.VipsImage
-	if err := C.linear1(image, &output, C.double(a), C.double(b)); err != 0 {
+
+	defer unrefImage(input)()
+
+	if err := C.linear1(input, &output, C.double(a), C.double(b)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsExtractArea(input *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
 	incOpCounter("extractArea")
 	var output *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+
+	defer unrefImage(input)()
+
 	if err := C.extract_image_area(input, &output, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsEmbed(input *C.VipsImage, left, top, width, height int, extend Extend) (*C.VipsImage, error) {
 	incOpCounter("embed")
 	var output *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+
+	defer unrefImage(input)()
+
 	if err := C.embed_image(input, &output, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend), 0, 0, 0); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsFlip(input *C.VipsImage, dir Direction) (*C.VipsImage, error) {
 	incOpCounter("flip")
 	var output *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+
+	defer unrefImage(input)()
+
 	if err := C.flip_image(input, &output, C.int(dir)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsInvert(input *C.VipsImage) (*C.VipsImage, error) {
 	incOpCounter("invert")
 	var output *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+
+	defer unrefImage(input)()
+
 	if err := C.invert_image(input, &output); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsGaussianBlur(input *C.VipsImage, sigma float64) (*C.VipsImage, error) {
 	incOpCounter("gaussblur")
 	var output *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+
+	defer unrefImage(input)()
+
 	if err := C.gaussian_blur(input, &output, C.double(sigma)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsZoom(input *C.VipsImage, xFactor, yFactor int) (*C.VipsImage, error) {
 	incOpCounter("zoom")
 	var output *C.VipsImage
-	defer C.g_object_unref(C.gpointer(input))
+
+	defer unrefImage(input)()
+
 	if err := C.zoom_image(input, &output, C.int(xFactor), C.int(yFactor)); err != 0 {
 		return nil, handleVipsError()
 	}
+
 	return output, nil
 }
 
 func vipsLabel(input *C.VipsImage, lp LabelParams) (*C.VipsImage, error) {
 	incOpCounter("label")
-
 	var output *C.VipsImage
 
+	defer unrefImage(input)()
+
 	text := C.CString(lp.Text)
+	defer C.free(unsafe.Pointer(text))
+
 	font := C.CString(lp.Font)
+	defer C.free(unsafe.Pointer(font))
+
 	color := [3]C.double{C.double(lp.Color.R), C.double(lp.Color.G), C.double(lp.Color.B)}
 	w := lp.Width.GetRounded(int(input.Xsize))
 	h := lp.Height.GetRounded(int(input.Ysize))
@@ -488,9 +517,6 @@ func vipsLabel(input *C.VipsImage, lp LabelParams) (*C.VipsImage, error) {
 		Color:     color,
 	}
 
-	defer C.free(unsafe.Pointer(text))
-	defer C.free(unsafe.Pointer(font))
-
 	err := C.label(input, &output, (*C.LabelOptions)(unsafe.Pointer(&opts)))
 	if err != 0 {
 		return nil, handleVipsError()
@@ -505,5 +531,26 @@ func handleVipsError() error {
 
 	s := C.GoString(C.vips_error_buffer())
 	stack := string(dbg.Stack())
+
 	return fmt.Errorf("%v\nStack:\n%s", s, stack)
+}
+
+func unrefImage(ref *C.VipsImage) func() {
+	if ref == nil {
+		panic("nil ref")
+	}
+
+	return func() {
+		C.g_object_unref(C.gpointer(ref))
+	}
+}
+
+func unrefPointer(ref unsafe.Pointer) func() {
+	if ref == nil {
+		panic("nil ref")
+	}
+
+	return func() {
+		C.g_object_unref(C.gpointer(ref))
+	}
 }
