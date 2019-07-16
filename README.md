@@ -1,4 +1,4 @@
-[![Go Report Card](http://goreportcard.com/badge/wix-playboard/govips)](http://goreportcard.com/report/wix-playboard/govips)
+[![Go Report Card](http://goreportcard.com/badge/wix-playground/govips)](http://goreportcard.com/report/wix-playground/govips)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 # govips
