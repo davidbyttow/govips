@@ -23,8 +23,8 @@ const MicroVersion = int(C.VIPS_MICRO_VERSION) // A.K.A patch version
 
 const (
 	defaultConcurrencyLevel = 1
-	defaultMaxCacheMem      = 100 * 1024 * 1024
-	defaultMaxCacheSize     = 500
+	defaultMaxCacheMem      = 50 * 1024 * 1024
+	defaultMaxCacheSize     = 100
 )
 
 var (
@@ -71,10 +71,6 @@ func Startup(config *Config) {
 
 	running = true
 
-	C.vips_concurrency_set(defaultConcurrencyLevel)
-	C.vips_cache_set_max(defaultMaxCacheSize)
-	C.vips_cache_set_max_mem(defaultMaxCacheMem)
-
 	if config != nil {
 		if config.CollectStats {
 			statCollectorDone = collectStats()
@@ -82,24 +78,37 @@ func Startup(config *Config) {
 
 		C.vips_leak_set(toGboolean(config.ReportLeaks))
 
-		if config.ConcurrencyLevel > 0 {
+		if config.ConcurrencyLevel >= 0 {
 			C.vips_concurrency_set(C.int(config.ConcurrencyLevel))
+		} else {
+			C.vips_concurrency_set(defaultConcurrencyLevel)
 		}
-		if config.MaxCacheFiles > 0 {
+
+		if config.MaxCacheFiles >= 0 {
 			C.vips_cache_set_max_files(C.int(config.MaxCacheFiles))
 		}
-		if config.MaxCacheMem > 0 {
+		if config.MaxCacheMem >= 0 {
 			C.vips_cache_set_max_mem(C.size_t(config.MaxCacheMem))
+		} else {
+			C.vips_cache_set_max_mem(defaultMaxCacheMem)
 		}
-		if config.MaxCacheSize > 0 {
+
+		if config.MaxCacheSize >= 0 {
 			C.vips_cache_set_max(C.int(config.MaxCacheSize))
+		} else {
+			C.vips_cache_set_max(defaultMaxCacheSize)
 		}
+
 		if config.CacheTrace {
 			C.vips_cache_set_trace(toGboolean(true))
 		}
+	} else {
+		C.vips_concurrency_set(defaultConcurrencyLevel)
+		C.vips_cache_set_max(defaultMaxCacheSize)
+		C.vips_cache_set_max_mem(defaultMaxCacheMem)
 	}
 
-	info("Vips started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
+	info("vips started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
 		int(C.vips_concurrency_get()),
 		int(C.vips_cache_get_max_files()),
 		int(C.vips_cache_get_max_mem()),

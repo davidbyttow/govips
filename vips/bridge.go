@@ -50,6 +50,8 @@ func vipsOperationNew(name string) *C.VipsOperation {
 }
 
 func vipsCallOperation(operation *C.VipsOperation, options []*Option) error {
+	// todo: replace with https://jcupitt.github.io/libvips/API/current/VipsOperation.html#vips-cache-operation-build
+
 	// Set the inputs
 	for _, option := range options {
 		if option.Output() {
