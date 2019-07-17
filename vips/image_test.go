@@ -169,3 +169,18 @@ func TestImageRef_HasProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestImageRef_Close(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(assets + "test.png")
+	assert.NoError(t, err)
+
+	image.Close()
+
+	assert.Nil(t, image.image)
+
+	// todo: how do I check that vips GC it as well?
+
+	PrintObjectReport("Final")
+}
