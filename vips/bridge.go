@@ -142,6 +142,7 @@ func vipsLoadFromBuffer(buf []byte, opts ...LoadOption) (*C.VipsImage, ImageType
 
 	bufLength := C.size_t(len(buf))
 	imageBuf := unsafe.Pointer(&buf[0])
+
 	var loadOpts vipsLoadOptions
 	for _, opt := range opts {
 		opt(&loadOpts)
@@ -267,13 +268,14 @@ func vipsFlattenBackground(input *C.VipsImage, color Color) (*C.VipsImage, error
 	incOpCounter("flatten")
 	var output *C.VipsImage
 
-	bg := [3]C.double{
-		C.double(color.R),
-		C.double(color.G),
-		C.double(color.B),
-	}
-
 	if int(C.has_alpha_channel(input)) > 0 {
+
+		bg := [3]C.double{
+			C.double(color.R),
+			C.double(color.G),
+			C.double(color.B),
+		}
+
 		err := C.flatten_image_background(input, &output, bg[0], bg[1], bg[2])
 		if int(err) != 0 {
 			return nil, handleVipsError()
