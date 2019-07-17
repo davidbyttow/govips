@@ -98,15 +98,19 @@ func NewImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
 	return image
 }
 
-// Format returns the initial format of the vips image when loaded
-func (r *ImageRef) Format() ImageType {
-	return r.format
+func finalizeImage(ref *ImageRef) {
+	ref.Close()
 }
 
 // Close closes an image and frees internal memory associated with it
 func (r *ImageRef) Close() {
 	r.setImage(nil)
 	r.buf = nil
+}
+
+// Format returns the initial format of the vips image when loaded
+func (r *ImageRef) Format() ImageType {
+	return r.format
 }
 
 // Width returns the width of this image
@@ -203,7 +207,6 @@ func (r *ImageRef) ExtractBand(band int, options ...*Option) error {
 	return nil
 }
 
-// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear1
 func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	vipsImages := []*C.VipsImage{r.image}
 	for _, image := range images {
@@ -1213,10 +1216,6 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
-}
-
-func finalizeImage(ref *ImageRef) {
-	ref.Close()
 }
 
 // setImage resets the image for this image and frees the previous one
