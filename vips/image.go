@@ -70,8 +70,7 @@ func NewImageFromBuffer(buf []byte, opts ...LoadOption) (*ImageRef, error) {
 		return nil, err
 	}
 
-	ref := NewImageRef(image, format)
-	ref.buf = buf
+	ref := newImageRef(image, format, buf)
 
 	return ref, nil
 }
@@ -84,14 +83,20 @@ func (r *ImageRef) Copy(options ...*Option) (*ImageRef, error) {
 		return nil, err
 	}
 
-	return NewImageRef(out, r.format), nil
+	var buf []byte
+	if r.buf != nil {
+		buf = make([]byte, len(r.buf))
+		copy(buf, r.buf)
+	}
+
+	return newImageRef(out, r.format, buf), nil
 }
 
-// todo: this should be private
-func NewImageRef(vipsImage *C.VipsImage, format ImageType) *ImageRef {
+func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
 	image := &ImageRef{
 		image:  vipsImage,
 		format: format,
+		buf:    buf,
 	}
 	runtime.SetFinalizer(image, finalizeImage)
 
