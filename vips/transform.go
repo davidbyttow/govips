@@ -418,8 +418,8 @@ type Blackboard struct {
 	cropOffsetY  int
 }
 
-// NewBlackboard creates a new blackboard object meant for transformation data
-func NewBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) *Blackboard {
+// newBlackboard creates a new blackboard object meant for transformation data
+func newBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) *Blackboard {
 	bb := &Blackboard{
 		TransformParams: p,
 		image:           image,
@@ -486,7 +486,7 @@ func (bb *Blackboard) Height() int {
 }
 
 func (t *Transform) transform(image *C.VipsImage, imageType ImageType) (*C.VipsImage, error) {
-	bb := NewBlackboard(image, imageType, t.tx)
+	bb := newBlackboard(image, imageType, t.tx)
 	if err := resize(bb); err != nil {
 		return image, err
 	}

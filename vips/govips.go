@@ -25,6 +25,7 @@ const (
 	defaultConcurrencyLevel = 1
 	defaultMaxCacheMem      = 50 * 1024 * 1024
 	defaultMaxCacheSize     = 100
+	defaultMaxCacheFiles    = 0
 )
 
 var (
@@ -86,7 +87,10 @@ func Startup(config *Config) {
 
 		if config.MaxCacheFiles >= 0 {
 			C.vips_cache_set_max_files(C.int(config.MaxCacheFiles))
+		} else {
+			C.vips_cache_set_max_files(defaultMaxCacheFiles)
 		}
+
 		if config.MaxCacheMem >= 0 {
 			C.vips_cache_set_max_mem(C.size_t(config.MaxCacheMem))
 		} else {
@@ -106,6 +110,7 @@ func Startup(config *Config) {
 		C.vips_concurrency_set(defaultConcurrencyLevel)
 		C.vips_cache_set_max(defaultMaxCacheSize)
 		C.vips_cache_set_max_mem(defaultMaxCacheMem)
+		C.vips_cache_set_max_files(defaultMaxCacheFiles)
 	}
 
 	info("vips started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
