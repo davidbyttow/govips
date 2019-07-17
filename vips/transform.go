@@ -361,7 +361,7 @@ func (t *Transform) Apply() ([]byte, ImageType, error) {
 	if err != nil {
 		return nil, ImageTypeUnknown, err
 	}
-	defer freeImage(transformed)
+	defer unrefImage(transformed)
 
 	return t.exportImage(transformed, imageType)
 }

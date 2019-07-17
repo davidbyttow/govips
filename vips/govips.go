@@ -53,7 +53,7 @@ func Startup(config *Config) {
 	defer runtime.UnlockOSThread()
 
 	if running {
-		debug("warning libvips already started")
+		info("warning libvips already started")
 		return
 	}
 
@@ -99,7 +99,7 @@ func Startup(config *Config) {
 		}
 	}
 
-	debug("Vips started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
+	info("Vips started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
 		int(C.vips_concurrency_get()),
 		int(C.vips_cache_get_max_files()),
 		int(C.vips_cache_get_max_mem()),
@@ -120,7 +120,7 @@ func Shutdown() {
 	defer runtime.UnlockOSThread()
 
 	if !running {
-		debug("warning libvips not started")
+		info("warning libvips not started")
 		return
 	}
 
@@ -145,9 +145,9 @@ func PrintCache() {
 
 // PrintObjectReport outputs all of the current internal objects in libvips
 func PrintObjectReport(label string) {
-	fmt.Printf("\n=======================================\nMemory leaks: %s...\n", label)
+	info("\n=======================================\nvips live objects: %s...\n", label)
 	C.vips_object_print_all()
-	fmt.Printf("=======================================\n\n")
+	info("=======================================\n\n")
 }
 
 type MemoryStats struct {
@@ -166,7 +166,7 @@ func ReadVipsMemStats(stats *MemoryStats) {
 
 func startupIfNeeded() {
 	if !running {
-		debug("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
+		info("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
 		Startup(nil)
 	}
 }

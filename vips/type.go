@@ -5,7 +5,6 @@ package vips
 import "C"
 import (
 	"io"
-	"log"
 	"strings"
 	"sync"
 )
@@ -439,15 +438,6 @@ var (
 	supportedImageTypes = make(map[ImageType]bool)
 )
 
-// DetermineImageType attempts to determine the image type of the given buffer
-func DetermineImageType(buf []byte) ImageType {
-	return vipsDetermineImageType(buf)
-}
-
-func IsTypeSupported(imageType ImageType) bool {
-	return supportedImageTypes[imageType]
-}
-
 // InitTypes initializes caches and figures out which image types are supported
 func initTypes() {
 	once.Do(func() {
@@ -463,11 +453,20 @@ func initTypes() {
 			//noinspection GoDeferInLoop
 			defer freeCString(cFunc)
 
-			ret := C.vips_type_find(
-				cType,
-				cFunc)
-			log.Printf("Registered image type loader type=%s", v)
+			ret := C.vips_type_find(cType, cFunc)
+
 			supportedImageTypes[k] = int(ret) != 0
+
+			info("Registered image type loader type=%s", v)
 		}
 	})
+}
+
+// DetermineImageType attempts to determine the image type of the given buffer
+func DetermineImageType(buf []byte) ImageType {
+	return vipsDetermineImageType(buf)
+}
+
+func IsTypeSupported(imageType ImageType) bool {
+	return supportedImageTypes[imageType]
 }

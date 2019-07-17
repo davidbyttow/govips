@@ -5,16 +5,27 @@ package vips
 import "C"
 
 import (
-	"log"
 	"unsafe"
 )
 
-func byteArrayPointer(b []byte) unsafe.Pointer {
-	return unsafe.Pointer(&b[0])
-}
-
 func freeCString(s *C.char) {
 	C.free(unsafe.Pointer(s))
+}
+
+func gFreePointer(ref unsafe.Pointer) {
+	C.g_free(C.gpointer(ref))
+}
+
+func unrefImage(ref *C.VipsImage) {
+	C.g_object_unref(C.gpointer(ref))
+}
+
+func unrefPointer(ref unsafe.Pointer) {
+	C.g_object_unref(C.gpointer(ref))
+}
+
+func byteArrayPointer(b []byte) unsafe.Pointer {
+	return unsafe.Pointer(&b[0])
 }
 
 func boolToInt(b bool) int {
@@ -44,12 +55,4 @@ func fixedString(size int) string {
 		b[i] = '0'
 	}
 	return string(b)
-}
-
-func debug(fmt string, values ...interface{}) {
-	if len(values) > 0 {
-		log.Printf(fmt, values...)
-	} else {
-		log.Print(fmt)
-	}
 }

@@ -128,6 +128,7 @@ func OutputImage(name string, v **C.VipsImage) *Option {
 func InputInterpolator(name string, interp Interpolator) *Option {
 	cStr := C.CString(interp.String())
 	defer freeCString(cStr)
+
 	interpolator := C.vips_interpolate_new(cStr)
 
 	o := NewOption(name, C.vips_interpolate_get_type(), false, func(gv *C.GValue) {
