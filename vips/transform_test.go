@@ -161,6 +161,8 @@ func TestOverlay(t *testing.T) {
 	buf, _, err := NewTransform().Image(tomatoes).Apply()
 	require.NoError(t, err)
 	assertGoldenMatch(t, assets+"tomatoes.png", buf)
+
+	PrintObjectReport("Final")
 }
 
 func TestBandJoin(t *testing.T) {
@@ -168,12 +170,18 @@ func TestBandJoin(t *testing.T) {
 	require.NoError(t, err)
 	image2, err := NewImageFromFile(assets + "clover.png")
 	require.NoError(t, err)
+
 	err = image1.BandJoin(image2)
 	require.NoError(t, err)
 
 	buf, _, err := NewTransform().Image(image1).Apply()
 	require.NoError(t, err)
 	assertGoldenMatch(t, assets+"tomatoes.png", buf)
+
+	image1.Close()
+	image1.Close()
+
+	PrintObjectReport("Final")
 }
 
 func TestLinear1(t *testing.T) {
