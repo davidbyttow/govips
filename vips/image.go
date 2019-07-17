@@ -83,11 +83,9 @@ func (r *ImageRef) Copy(options ...*Option) (*ImageRef, error) {
 		return nil, err
 	}
 
-	var buf []byte
-	if r.buf != nil {
-		buf = make([]byte, len(r.buf))
-		copy(buf, r.buf)
-	}
+	// https://github.com/golang/go/wiki/SliceTricks#copy
+	buf := make([]byte, len(r.buf))
+	buf = append(r.buf[:0:0], r.buf...)
 
 	return newImageRef(out, r.format, buf), nil
 }
