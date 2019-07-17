@@ -27,6 +27,7 @@ var (
 	formats = []ImageType{
 		ImageTypeJPEG,
 		ImageTypePNG,
+		ImageTypeWEBP,
 	}
 )
 
@@ -110,6 +111,7 @@ func LeakTest(fn func()) {
 
 	fn()
 
+	ShutdownThread()
 	//Shutdown()
 
 	PrintObjectReport("Finished")
