@@ -33,13 +33,13 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 	return code;
 }
 
-int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
-  if (shrink > 0) {
-    return vips_jpegload_buffer(buf, len, out, "shrink", shrink, NULL);
-  } else {
-    return vips_jpegload_buffer(buf, len, out, NULL);
-  }
-}
+//int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
+//  if (shrink > 0) {
+//    return vips_jpegload_buffer(buf, len, out, "shrink", shrink, NULL);
+//  } else {
+//    return vips_jpegload_buffer(buf, len, out, NULL);
+//  }
+//}
 
 int copy_image(VipsImage *in, VipsImage **out) {
 	return vips_copy(in, out, NULL);
@@ -109,8 +109,16 @@ int resize_image(VipsImage *in, VipsImage **out, double scale, double vscale, in
 	return vips_resize(in, out, scale, "kernel", kernel, NULL);
 }
 
+int autorot_image(VipsImage *in, VipsImage **out) {
+  return vips_autorot(in, out, NULL);
+}
+
 int rot_image(VipsImage *in, VipsImage **out, VipsAngle angle) {
   return vips_rot(in, out, angle, NULL);
+}
+
+int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac) {
+	return vips_zoom(in, out, xfac, yfac, NULL);
 }
 
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
@@ -125,16 +133,16 @@ int reduce_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink)
 	return vips_reduce(in, out, xshrink, yshrink, NULL);
 }
 
-int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac) {
-	return vips_zoom(in, out, xfac, yfac, NULL);
-}
-
 int text(VipsImage **out, const char *text, const char *font, int width, int height, VipsAlign align, int dpi) {
 	return vips_text(out, text, "font", font, "width", width, "height", height, "align", align, "dpi", dpi, NULL);
 }
 
 int gaussian_blur(VipsImage *in, VipsImage **out, double sigma) {
 	return vips_gaussblur(in, out, sigma, NULL);
+}
+
+int sharpen(VipsImage *in, VipsImage **out, double sigma, double x1, double m2) {
+	return vips_sharpen(in, out, "sigma", sigma, "x1", x1, "m2", m2, NULL);
 }
 
 int invert_image(VipsImage *in, VipsImage **out) {
@@ -151,7 +159,6 @@ int extract_band(VipsImage *in, VipsImage **out, int band, int num) {
 int bandjoin(VipsImage **in, VipsImage **out, int n) {
 	return vips_bandjoin(in, out, n, NULL);
 }
-
 
 int linear1(VipsImage *in, VipsImage **out, double a, double b) {
 	return vips_linear1(in, out, a, b, NULL);

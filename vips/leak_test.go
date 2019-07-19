@@ -1,6 +1,7 @@
 package vips
 
 import (
+	"runtime"
 	"sync"
 	"testing"
 
@@ -72,47 +73,50 @@ func TestCleanup(t *testing.T) {
 		}
 	}
 
-	LeakTest(func() {
+	run(func() {
 		var wg sync.WaitGroup
 		for i, tr := range transforms {
 			wg.Add(1)
 			go func(i int, tr transform) {
 				defer wg.Done()
 
+				in, err := NewImageFromFile(resources + "canyon.jpg")
+				require.NoError(t, err)
+				defer in.Close()
+
 				buf, _, err := NewTransform().
-					LoadFile(assets+"canyon.jpg").
 					ResizeStrategy(tr.Resize).
 					Resize(tr.Width, tr.Height).
 					Flip(tr.Flip).
 					Kernel(tr.Kernel).
 					Format(tr.Format).
-					GaussBlur(tr.Blur).
+					GaussianBlur(tr.Blur).
 					Interpolator(tr.Interp).
 					Zoom(tr.Zoom, tr.Zoom).
 					Quality(tr.Quality).
 					Compression(tr.Compression).
-					OutputBytes().
-					Apply()
+					ApplyAndExport(in)
 				require.NoError(t, err)
 
-				image, err := NewImageFromBuffer(buf)
+				out, err := NewImageFromBuffer(buf)
 				require.NoError(t, err)
-				defer image.Close()
+				defer out.Close()
 
-				assert.Equal(t, tr.Format, image.Format())
+				assert.Equal(t, tr.Format, out.Format())
 			}(i, tr)
 		}
 		wg.Wait()
 	})
 }
 
-func LeakTest(fn func()) {
+func run(fn func()) {
 	Startup(nil)
 
 	fn()
 
-	ShutdownThread()
+	//ShutdownThread()
 	//Shutdown()
+	runtime.GC()
 
 	PrintObjectReport("Finished")
 }

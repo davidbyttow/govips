@@ -10,7 +10,7 @@ import (
 func TestJPEG(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(assets + "canyon.jpg")
+	buf, err := ioutil.ReadFile(resources + "canyon.jpg")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -21,7 +21,7 @@ func TestJPEG(t *testing.T) {
 func TestHEIF(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(assets + "citron.heic")
+	buf, err := ioutil.ReadFile(resources + "citron.heic")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 

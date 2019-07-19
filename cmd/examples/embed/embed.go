@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/wix-playground/govips/vips"
@@ -32,11 +33,16 @@ func main() {
 }
 
 func embed(inputFile, outputFile string) error {
-	_, _, err := vips.NewTransform().
-		LoadFile(inputFile).
-		Resize(1200, 1200).
-		Embed(vips.ExtendBlack).
-		OutputFile(outputFile).
-		Apply()
-	return err
+	img, err := vips.NewImageFromFile(inputFile)
+	if err != nil {
+		return err
+	}
+	defer img.Close()
+
+	b, _, err := vips.NewTransform().Resize(1200, 1200).Embed(vips.ExtendBlack).ApplyAndExport(img)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(outputFile, b, os.ModeAppend)
 }

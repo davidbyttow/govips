@@ -110,15 +110,16 @@ func soak() {
 					h += rand.Intn(variance)
 				}
 				buf := loadFile(*imageFlag)
-				_, _, err := vips.NewTransform().
-					LoadBuffer(buf).
-					Resize(w, h).
-					OutputBytes().
-					Apply()
 
+				img, err := vips.NewImageFromBuffer(buf)
 				if err != nil {
 					log.Print(err)
+					return
 				}
+				defer img.Close()
+
+				_ = img.ExtractArea(0, 0, 100, 100)
+				_, _, err = vips.NewTransform().Resize(w, h).AutoRotate().Format(vips.ImageTypeWEBP).ApplyAndExport(img)
 
 				if count%batch == 0 {
 					log.Printf("Processed %d...\n", count)

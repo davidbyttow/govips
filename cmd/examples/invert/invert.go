@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/wix-playground/govips/vips"
@@ -30,10 +31,16 @@ func main() {
 }
 
 func invert(inputFile, outputFile string) error {
-	_, _, err := vips.NewTransform().
-		LoadFile(inputFile).
-		Invert().
-		OutputFile(outputFile).
-		Apply()
-	return err
+	img, err := vips.NewImageFromFile(inputFile)
+	if err != nil {
+		return err
+	}
+	defer img.Close()
+
+	b, _, err := vips.NewTransform().Invert().ApplyAndExport(img)
+	if err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(outputFile, b, os.ModeAppend)
 }

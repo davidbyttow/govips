@@ -24,10 +24,6 @@ func unrefPointer(ref unsafe.Pointer) {
 	C.g_object_unref(C.gpointer(ref))
 }
 
-func byteArrayPointer(b []byte) unsafe.Pointer {
-	return unsafe.Pointer(&b[0])
-}
-
 func boolToInt(b bool) int {
 	if b {
 		return 1
@@ -47,12 +43,4 @@ func fromGboolean(b C.gboolean) bool {
 		return true
 	}
 	return false
-}
-
-func fixedString(size int) string {
-	b := make([]byte, size)
-	for i := range b {
-		b[i] = '0'
-	}
-	return string(b)
 }

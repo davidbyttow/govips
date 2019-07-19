@@ -33,11 +33,13 @@ func (v *Option) Output() bool {
 }
 
 // Close releases memory associated with this option
-func (v *Option) Close() {
+func (v *Option) Close() error {
 	if v.closer != nil {
 		v.closer(&v.gvalue)
 	}
 	C.g_value_unset(&v.gvalue)
+
+	return nil
 }
 
 // GValue returns the internal gvalue type

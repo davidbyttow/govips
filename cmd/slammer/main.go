@@ -65,24 +65,26 @@ func run(dir string) (int, error) {
 		if err != nil {
 			return 0, err
 		}
-		imageRef, err := vips.NewImageFromBuffer(data)
+		img, err := vips.NewImageFromBuffer(data)
 		if err != nil {
 			return 0, err
 		}
-		tx := vips.NewTransform().
-			Image(imageRef).
+
+		b, _, err := vips.NewTransform().
 			ResizeStrategy(vips.ResizeStrategyCrop).
 			ScaleWidth(x).
 			ScaleHeight(y).
 			Format(vips.ImageTypeJPEG).
-			OutputBytes()
-		b, _, err := tx.Apply()
+			ApplyAndExport(img)
+
 		if err != nil {
+			img.Close()
 			return 0, err
 		}
+
+		img.Close()
 		total += len(b)
 		fmt.Printf("Processed file=%s w=%v h=%v bytes=%d\n", f, x, y, len(b))
-		imageRef.Close()
 	}
 
 	return total, err

@@ -4,7 +4,6 @@ package vips
 // #include "bridge.h"
 import "C"
 import (
-	"io"
 	"strings"
 	"sync"
 )
@@ -22,8 +21,6 @@ const (
 
 // ExportParams are options when exporting an image to file or buffer
 type ExportParams struct {
-	OutputFile      string
-	Writer          io.Writer
 	Format          ImageType
 	Quality         int
 	Compression     int
@@ -240,17 +237,17 @@ const (
 	OperationComplexImag OperationComplexGet = C.VIPS_OPERATION_COMPLEXGET_IMAG
 )
 
-// Extend represents VIPS_EXTEND type
-type Extend int
+// ExtendStrategy represents VIPS_EXTEND type
+type ExtendStrategy int
 
-// Extend enum
+// ExtendStrategy enum
 const (
-	ExtendBlack      Extend = C.VIPS_EXTEND_BLACK
-	ExtendCopy       Extend = C.VIPS_EXTEND_COPY
-	ExtendRepeat     Extend = C.VIPS_EXTEND_REPEAT
-	ExtendMirror     Extend = C.VIPS_EXTEND_MIRROR
-	ExtendWhite      Extend = C.VIPS_EXTEND_WHITE
-	ExtendBackground Extend = C.VIPS_EXTEND_BACKGROUND
+	ExtendBlack      ExtendStrategy = C.VIPS_EXTEND_BLACK
+	ExtendCopy       ExtendStrategy = C.VIPS_EXTEND_COPY
+	ExtendRepeat     ExtendStrategy = C.VIPS_EXTEND_REPEAT
+	ExtendMirror     ExtendStrategy = C.VIPS_EXTEND_MIRROR
+	ExtendWhite      ExtendStrategy = C.VIPS_EXTEND_WHITE
+	ExtendBackground ExtendStrategy = C.VIPS_EXTEND_BACKGROUND
 )
 
 // Align represents VIPS_ALIGN

@@ -1,27 +1,12 @@
 package vips
 
-// #cgo pkg-config: vips
-// #include "bridge.h"
-import "C"
-
 import (
-	"bytes"
-	"errors"
-	"io"
-	"io/ioutil"
 	"math"
-	"os"
 )
-
-// InputParams are options when importing an image from file or buffer
-type InputParams struct {
-	Reader io.Reader
-	Image  *ImageRef
-}
 
 // TransformParams are parameters for the transformation
 type TransformParams struct {
-	PadStrategy             Extend
+	PadStrategy             ExtendStrategy
 	ResizeStrategy          ResizeStrategy
 	CropAnchor              Anchor
 	ReductionSampler        Kernel
@@ -30,6 +15,7 @@ type TransformParams struct {
 	ZoomY                   int
 	Invert                  bool
 	Rotate                  Angle
+	AutoRotate              bool
 	BlurSigma               float64
 	Flip                    FlipDirection
 	Width                   Scalar
@@ -38,31 +24,27 @@ type TransformParams struct {
 	CropOffsetY             Scalar
 	MaxScale                float64
 	Label                   *LabelParams
+	SharpSigma              float64
+	SharpX1                 float64
+	SharpM2                 float64
 }
 
 // Transform handles single image transformations
 type Transform struct {
-	input        *InputParams
-	tx           *TransformParams
-	export       *ExportParams
-	targetWidth  int
-	targetHeight int
-	cropOffsetX  int
-	cropOffsetY  int
-	source       []byte
+	transformParams *TransformParams
+	exportParams    *ExportParams
 }
 
 // NewTransform constructs a new transform for execution
 func NewTransform() *Transform {
 	return &Transform{
-		input: &InputParams{},
-		tx: &TransformParams{
+		transformParams: &TransformParams{
 			ResizeStrategy:          ResizeStrategyAuto,
 			CropAnchor:              AnchorAuto,
 			ReductionSampler:        KernelLanczos3,
 			EnlargementInterpolator: InterpolateBicubic,
 		},
-		export: &ExportParams{
+		exportParams: &ExportParams{
 			Format:         ImageTypeUnknown,
 			Quality:        90,
 			Interpretation: InterpretationSRGB,
@@ -70,199 +52,171 @@ func NewTransform() *Transform {
 	}
 }
 
-// Image sets the image to operate on
-func (t *Transform) Image(image *ImageRef) *Transform {
-	t.input.Image = image
-	return t
-}
-
-// LoadFile loads a file into the transform
-func (t *Transform) LoadFile(file string) *Transform {
-	t.input.Reader = LazyOpen(file)
-	return t
-}
-
-// LoadBuffer loads a buffer into the transform
-func (t *Transform) LoadBuffer(buf []byte) *Transform {
-	t.input.Reader = bytes.NewBuffer(buf)
-	return t
-}
-
-// Load loads a buffer into the transform
-func (t *Transform) Load(reader io.Reader) *Transform {
-	t.input.Reader = reader
-	return t
-}
-
-// Output outputs the transform to a buffer and closes it
-func (t *Transform) Output(writer io.Writer) *Transform {
-	t.export.Writer = writer
-	return t
-}
-
-// OutputBytes outputs the transform to a buffer and closes it
-func (t *Transform) OutputBytes() *Transform {
-	t.export.Writer = nil
-	return t
-}
-
-// OutputFile outputs the transform to a file and closes it
-func (t *Transform) OutputFile(file string) *Transform {
-	t.export.Writer = LazyCreate(file)
-	return t
-}
-
 // Zoom an image by repeating pixels. This is fast nearest-neighbour zoom.
 func (t *Transform) Zoom(x, y int) *Transform {
-	t.tx.ZoomX = x
-	t.tx.ZoomY = y
+	t.transformParams.ZoomX = x
+	t.transformParams.ZoomY = y
 	return t
 }
 
 // Anchor sets the anchor for cropping
 func (t *Transform) Anchor(anchor Anchor) *Transform {
-	t.tx.CropAnchor = anchor
+	t.transformParams.CropAnchor = anchor
 	return t
 }
 
 // CropOffsetX sets the target offset from the crop position
 func (t *Transform) CropOffsetX(x int) *Transform {
-	t.tx.CropOffsetX.SetInt(x)
+	t.transformParams.CropOffsetX.SetInt(x)
 	return t
 }
 
 // CropOffsetY sets the target offset from the crop position
 func (t *Transform) CropOffsetY(y int) *Transform {
-	t.tx.CropOffsetY.SetInt(y)
+	t.transformParams.CropOffsetY.SetInt(y)
 	return t
 }
 
 // CropRelativeOffsetX sets the target offset from the crop position
 func (t *Transform) CropRelativeOffsetX(x float64) *Transform {
-	t.tx.CropOffsetX.SetScale(x)
+	t.transformParams.CropOffsetX.SetScale(x)
 	return t
 }
 
 // CropRelativeOffsetY sets the target offset from the crop position
 func (t *Transform) CropRelativeOffsetY(y float64) *Transform {
-	t.tx.CropOffsetY.SetScale(y)
+	t.transformParams.CropOffsetY.SetScale(y)
 	return t
 }
 
 // Kernel sets the sampling kernel for the transform when down-scaling. Defaults to lancosz3
 func (t *Transform) Kernel(kernel Kernel) *Transform {
-	t.tx.ReductionSampler = kernel
+	t.transformParams.ReductionSampler = kernel
 	return t
 }
 
 // Interpolator sets the resampling interpolator when upscaling, defaults to bicubic
 func (t *Transform) Interpolator(interp Interpolator) *Transform {
-	t.tx.EnlargementInterpolator = interp
+	t.transformParams.EnlargementInterpolator = interp
 	return t
 }
 
 // ResizeStrategy sets the strategy when resizing an image
 func (t *Transform) ResizeStrategy(strategy ResizeStrategy) *Transform {
-	t.tx.ResizeStrategy = strategy
+	t.transformParams.ResizeStrategy = strategy
 	return t
 }
 
 // PadStrategy sets the strategy when the image must be padded to maintain aspect ratoi
-func (t *Transform) PadStrategy(strategy Extend) *Transform {
-	t.tx.PadStrategy = strategy
+func (t *Transform) PadStrategy(strategy ExtendStrategy) *Transform {
+	t.transformParams.PadStrategy = strategy
 	return t
 }
 
 // Invert inverts the image color
 func (t *Transform) Invert() *Transform {
-	t.tx.Invert = true
+	t.transformParams.Invert = true
 	return t
 }
 
 // Flip flips the image horizontally or vertically
 func (t *Transform) Flip(flip FlipDirection) *Transform {
-	t.tx.Flip = flip
+	t.transformParams.Flip = flip
 	return t
 }
 
-// GaussBlur applies a gaussian blur to the image
-func (t *Transform) GaussBlur(sigma float64) *Transform {
-	t.tx.BlurSigma = sigma
+// GaussianBlur applies a gaussian blur to the image
+func (t *Transform) GaussianBlur(sigma float64) *Transform {
+	t.transformParams.BlurSigma = sigma
+	return t
+}
+
+// Sharpen applies a sharpen to the image
+func (t *Transform) Sharpen(sigma float64, x1 float64, m2 float64) *Transform {
+	t.transformParams.SharpSigma = sigma
+	t.transformParams.SharpX1 = x1
+	t.transformParams.SharpM2 = m2
+	return t
+}
+
+// AutoRotate rotates image by a the embedded metadata (EXIF Orientation, etc.)
+func (t *Transform) AutoRotate() *Transform {
+	t.transformParams.AutoRotate = true
 	return t
 }
 
 // Rotate rotates image by a multiple of 90 degrees
 func (t *Transform) Rotate(angle Angle) *Transform {
-	t.tx.Rotate = angle
+	t.transformParams.Rotate = angle
 	return t
 }
 
 // Embed this image appropriately if resized according to a new aspect ratio
-func (t *Transform) Embed(extend Extend) *Transform {
-	t.tx.ResizeStrategy = ResizeStrategyEmbed
-	t.tx.PadStrategy = extend
+func (t *Transform) Embed(extend ExtendStrategy) *Transform {
+	t.transformParams.ResizeStrategy = ResizeStrategyEmbed
+	t.transformParams.PadStrategy = extend
 	return t
 }
 
 // Crop an image, width and height must be equal to or less than image size
 func (t *Transform) Crop(anchor Anchor) *Transform {
-	t.tx.ResizeStrategy = ResizeStrategyCrop
+	t.transformParams.ResizeStrategy = ResizeStrategyCrop
 	return t
 }
 
 // Stretch an image without maintaining aspect ratio
 func (t *Transform) Stretch() *Transform {
-	t.tx.ResizeStrategy = ResizeStrategyCrop
+	t.transformParams.ResizeStrategy = ResizeStrategyCrop
 	return t
 }
 
 // ScaleWidth scales the image by its width proportionally
 func (t *Transform) ScaleWidth(scale float64) *Transform {
-	t.tx.Width.SetScale(scale)
+	t.transformParams.Width.SetScale(scale)
 	return t
 }
 
 // ScaleHeight scales the height of the image proportionally
 func (t *Transform) ScaleHeight(scale float64) *Transform {
-	t.tx.Height.SetScale(scale)
+	t.transformParams.Height.SetScale(scale)
 	return t
 }
 
 // Scale the image
 func (t *Transform) Scale(scale float64) *Transform {
-	t.tx.Width.SetScale(scale)
-	t.tx.Height.SetScale(scale)
+	t.transformParams.Width.SetScale(scale)
+	t.transformParams.Height.SetScale(scale)
 	return t
 }
 
 // MaxScale sets the max scale factor that this image can be enlarged or reduced by
 func (t *Transform) MaxScale(max float64) *Transform {
-	t.tx.MaxScale = max
+	t.transformParams.MaxScale = max
 	return t
 }
 
 // ResizeWidth resizes the image to the given width, maintaining aspect ratio
 func (t *Transform) ResizeWidth(width int) *Transform {
-	t.tx.Width.SetInt(width)
+	t.transformParams.Width.SetInt(width)
 	return t
 }
 
 // ResizeHeight resizes the image to the given height, maintaining aspect ratio
 func (t *Transform) ResizeHeight(height int) *Transform {
-	t.tx.Height.SetInt(height)
+	t.transformParams.Height.SetInt(height)
 	return t
 }
 
 // Resize resizes the image to the given width and height
 func (t *Transform) Resize(width, height int) *Transform {
-	t.tx.Width.SetInt(width)
-	t.tx.Height.SetInt(height)
+	t.transformParams.Width.SetInt(width)
+	t.transformParams.Height.SetInt(height)
 	return t
 }
 
 func (t *Transform) Label(lp *LabelParams) *Transform {
 	if lp.Text == "" {
-		t.tx.Label = nil
+		t.transformParams.Label = nil
 		return t
 	}
 
@@ -281,135 +235,88 @@ func (t *Transform) Label(lp *LabelParams) *Transform {
 	if label.Opacity == 0 {
 		label.Opacity = 1
 	}
-	t.tx.Label = &label
+	t.transformParams.Label = &label
 	return t
 }
 
 // Format sets the image format of the input image when exporting. Defaults to JPEG
 func (t *Transform) Format(format ImageType) *Transform {
-	t.export.Format = format
+	t.exportParams.Format = format
 	return t
 }
 
 // Quality sets the quality value for image formats that support it
 func (t *Transform) Quality(quality int) *Transform {
-	t.export.Quality = quality
+	t.exportParams.Quality = quality
 	return t
 }
 
 // Compression sets the compression value for image formats that support it
 func (t *Transform) Compression(compression int) *Transform {
-	t.export.Compression = compression
+	t.exportParams.Compression = compression
 	return t
 }
 
 // Lossless uses lossless compression for image formats that support both lossy and lossless e.g. webp
 func (t *Transform) Lossless() *Transform {
-	t.export.Lossless = true
+	t.exportParams.Lossless = true
 	return t
 }
 
 // StripMetadata strips metadata from the image
 func (t *Transform) StripMetadata() *Transform {
-	t.export.StripMetadata = true
+	t.exportParams.StripMetadata = true
 	return t
 }
 
 // StripProfile strips ICC profile from the image
 func (t *Transform) StripProfile() *Transform {
-	t.export.StripProfile = true
+	t.exportParams.StripProfile = true
 	return t
 }
 
 // BackgroundColor sets the background color of the image when a transparent
 // image is flattened
-func (t *Transform) BackgroundColor(color Color) *Transform {
-	t.export.BackgroundColor = &color
+func (t *Transform) BackgroundColor(color *Color) *Transform {
+	t.exportParams.BackgroundColor = color
 	return t
 }
 
 // Interpretation sets interpretation for image
 func (t *Transform) Interpretation(interpretation Interpretation) *Transform {
-	t.export.Interpretation = interpretation
+	t.exportParams.Interpretation = interpretation
 	return t
 }
 
 // Interlaced uses interlaced for image that support it
 func (t *Transform) Interlaced() *Transform {
-	t.export.Interlaced = true
+	t.exportParams.Interlaced = true
 	return t
 }
 
-// Apply loads the image, applies the transform, and exports it according
-// to the parameters specified
-func (t *Transform) Apply() ([]byte, ImageType, error) {
-	defer ShutdownThread()
-	defer func() {
-		t.source = nil
-	}()
+// Apply the transform, returns the modified image
+func (t *Transform) Apply(image *ImageRef) (*ImageRef, error) {
 	startupIfNeeded()
 
-	input, imageType, err := t.importImage()
-	if err != nil {
-		return nil, ImageTypeUnknown, err
-	}
-	if input == nil {
-		return nil, ImageTypeUnknown, errors.New("vips: image not found")
-	}
+	defer ShutdownThread()
 
-	transformed, err := t.transform(input, imageType)
-	if err != nil {
-		return nil, ImageTypeUnknown, err
-	}
-	defer unrefImage(transformed)
-
-	return t.exportImage(transformed, imageType)
+	return newBlackboard(image, t.transformParams).execute()
 }
 
-func (t *Transform) importImage() (*C.VipsImage, ImageType, error) {
-	if t.input.Image != nil {
-		cpy, err := vipsCopyImage(t.input.Image.image)
-		return cpy, t.input.Image.Format(), err
-	}
-
-	if t.input.Reader == nil {
-		panic("no input source specified")
-	}
-
-	var err error
-	t.source, err = ioutil.ReadAll(t.input.Reader)
+// Return the formatted buffer of the transformed image, and its metadata
+func (t *Transform) ApplyAndExport(image *ImageRef) ([]byte, *ImageMetadata, error) {
+	i, err := t.Apply(image)
 	if err != nil {
-		return nil, ImageTypeUnknown, nil
+		return nil, nil, err
 	}
 
-	return vipsLoadFromBuffer(t.source)
+	return i.Export(t.exportParams)
 }
 
-func (t *Transform) exportImage(image *C.VipsImage, imageType ImageType) ([]byte, ImageType, error) {
-	if t.export.Format == ImageTypeUnknown {
-		t.export.Format = imageType
-	}
-
-	buf, format, err := vipsExportBuffer(image, t.export)
-	if err != nil {
-		return nil, ImageTypeUnknown, err
-	}
-
-	if t.export.Writer != nil {
-		_, err = t.export.Writer.Write(buf)
-		if err != nil {
-			return buf, format, err
-		}
-	}
-
-	return buf, format, err
-}
-
-// Blackboard is an object that tracks transient data during a transformation
-type Blackboard struct {
+// blackboard is an object that tracks transient data during a transformation
+type blackboard struct {
 	*TransformParams
-	image        *C.VipsImage
-	imageType    ImageType
+	image        *ImageRef
 	aspectRatio  float64
 	targetWidth  int
 	targetHeight int
@@ -419,24 +326,23 @@ type Blackboard struct {
 }
 
 // newBlackboard creates a new blackboard object meant for transformation data
-func newBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) *Blackboard {
-	bb := &Blackboard{
-		TransformParams: p,
-		image:           image,
-		imageType:       imageType,
+func newBlackboard(imageRef *ImageRef, transformParams *TransformParams) *blackboard {
+	bb := &blackboard{
+		TransformParams: transformParams,
+		image:           imageRef,
 	}
-	imageWidth := int(image.Xsize)
-	imageHeight := int(image.Ysize)
+	imageWidth := imageRef.Width()
+	imageHeight := imageRef.Height()
 	bb.aspectRatio = ratio(imageWidth, imageHeight)
-	bb.cropOffsetX = p.CropOffsetX.GetRounded(imageWidth)
-	bb.cropOffsetY = p.CropOffsetY.GetRounded(imageHeight)
+	bb.cropOffsetX = transformParams.CropOffsetX.GetRounded(imageWidth)
+	bb.cropOffsetY = transformParams.CropOffsetY.GetRounded(imageHeight)
 
-	if p.Width.Value == 0 && p.Height.Value == 0 {
+	if transformParams.Width.Value == 0 && transformParams.Height.Value == 0 {
 		return bb
 	}
 
-	bb.targetWidth = p.Width.GetRounded(imageWidth)
-	bb.targetHeight = p.Height.GetRounded(imageHeight)
+	bb.targetWidth = transformParams.Width.GetRounded(imageWidth)
+	bb.targetHeight = transformParams.Height.GetRounded(imageHeight)
 
 	if bb.MaxScale > 0 {
 		if bb.targetWidth > 0 && ratio(bb.targetWidth, imageWidth) > bb.MaxScale {
@@ -456,8 +362,8 @@ func newBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) 
 		bb.targetWidth = roundFloat(ratio(bb.targetHeight, imageHeight) * float64(imageWidth))
 	}
 
-	if p.Width.Relative && p.Height.Relative {
-		sx, sy := p.Width.Value, p.Height.Value
+	if transformParams.Width.Relative && transformParams.Height.Relative {
+		sx, sy := transformParams.Width.Value, transformParams.Height.Value
 		if sx == 0 {
 			sx = sy
 		} else if sy == 0 {
@@ -475,50 +381,39 @@ func newBlackboard(image *C.VipsImage, imageType ImageType, p *TransformParams) 
 	return bb
 }
 
-// Width returns the width of the in-flight image
-func (bb *Blackboard) Width() int {
-	return int(bb.image.Xsize)
-}
-
-// Height returns the height of the in-flight image
-func (bb *Blackboard) Height() int {
-	return int(bb.image.Ysize)
-}
-
-func (t *Transform) transform(image *C.VipsImage, imageType ImageType) (*C.VipsImage, error) {
-	bb := newBlackboard(image, imageType, t.tx)
-	if err := resize(bb); err != nil {
-		return image, err
+func (b *blackboard) execute() (*ImageRef, error) {
+	if err := b.resize(); err != nil {
+		return nil, err
 	}
 
-	if err := postProcess(bb); err != nil {
-		return image, err
+	if err := b.postProcess(); err != nil {
+		return nil, err
 	}
 
-	return bb.image, nil
+	return b.image, nil
 }
 
-func resize(bb *Blackboard) error {
+func (b *blackboard) resize() error {
 	var err error
-	kernel := bb.ReductionSampler
+	kernel := b.ReductionSampler
 
 	// Check for the simple scale down cases
-	if bb.targetScale != 0 {
-		bb.image, err = vipsResize(bb.image, bb.targetScale, bb.targetScale, kernel)
+	if b.targetScale != 0 {
+		err := b.image.Resize(b.targetScale, b.targetScale, kernel)
 		if err != nil {
 			return err
 		}
 	}
 
-	if bb.targetHeight == 0 && bb.targetWidth == 0 {
+	if b.targetHeight == 0 && b.targetWidth == 0 {
 		return nil
 	}
 
-	shrinkX := ratio(bb.Width(), bb.targetWidth)
-	shrinkY := ratio(bb.Height(), bb.targetHeight)
+	shrinkX := ratio(b.width(), b.targetWidth)
+	shrinkY := ratio(b.height(), b.targetHeight)
 
-	cropMode := bb.ResizeStrategy == ResizeStrategyCrop
-	stretchMode := bb.ResizeStrategy == ResizeStrategyStretch
+	cropMode := b.ResizeStrategy == ResizeStrategyCrop
+	stretchMode := b.ResizeStrategy == ResizeStrategyStretch
 
 	if !stretchMode {
 		if shrinkX > 0 && shrinkY > 0 {
@@ -538,7 +433,7 @@ func resize(bb *Blackboard) error {
 	}
 
 	if shrinkX != 1 || shrinkY != 1 {
-		bb.image, err = vipsResize(bb.image, 1.0/shrinkX, 1.0/shrinkY, kernel)
+		err = b.image.Resize(1.0/shrinkX, 1.0/shrinkY, kernel)
 		if err != nil {
 			return err
 		}
@@ -551,62 +446,62 @@ func resize(bb *Blackboard) error {
 
 	// Crop if necessary
 	if cropMode {
-		if err := maybeCrop(bb); err != nil {
+		if err := b.maybeCrop(); err != nil {
 			return err
 		}
 	}
 
-	if err := maybeEmbed(bb); err != nil {
+	if err := b.maybeEmbed(); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func maybeCrop(bb *Blackboard) error {
+func (b *blackboard) maybeCrop() error {
 	var err error
-	imageW, imageH := bb.Width(), bb.Height()
+	imageW, imageH := b.width(), b.height()
 
-	if bb.targetWidth >= imageW && bb.targetHeight >= imageH {
+	if b.targetWidth >= imageW && b.targetHeight >= imageH {
 		return nil
 	}
 
-	width := minInt(bb.targetWidth, imageW)
-	height := minInt(bb.targetHeight, imageH)
+	width := minInt(b.targetWidth, imageW)
+	height := minInt(b.targetHeight, imageH)
 	left, top := 0, 0
-	middleX := (imageW - bb.targetWidth + 1) >> 1
-	middleY := (imageH - bb.targetHeight + 1) >> 1
-	if bb.cropOffsetX != 0 || bb.cropOffsetY != 0 {
-		if bb.cropOffsetX >= 0 {
-			left = middleX + minInt(bb.cropOffsetX, middleX)
+	middleX := (imageW - b.targetWidth + 1) >> 1
+	middleY := (imageH - b.targetHeight + 1) >> 1
+	if b.cropOffsetX != 0 || b.cropOffsetY != 0 {
+		if b.cropOffsetX >= 0 {
+			left = middleX + minInt(b.cropOffsetX, middleX)
 		} else {
-			left = middleX - maxInt(bb.cropOffsetX, middleX)
+			left = middleX - maxInt(b.cropOffsetX, middleX)
 		}
-		if bb.cropOffsetY >= 0 {
-			top = middleY + minInt(bb.cropOffsetY, middleY)
+		if b.cropOffsetY >= 0 {
+			top = middleY + minInt(b.cropOffsetY, middleY)
 		} else {
-			top = middleY - maxInt(bb.cropOffsetY, middleY)
+			top = middleY - maxInt(b.cropOffsetY, middleY)
 		}
 	} else {
-		switch bb.CropAnchor {
+		switch b.CropAnchor {
 		case AnchorTop:
 			left = middleX
 		case AnchorBottom:
 			left = middleX
-			top = imageH - bb.targetHeight
+			top = imageH - b.targetHeight
 		case AnchorRight:
-			left = imageW - bb.targetWidth
+			left = imageW - b.targetWidth
 			top = middleY
 		case AnchorLeft:
 			top = middleY
 		case AnchorTopRight:
-			left = imageW - bb.targetWidth
+			left = imageW - b.targetWidth
 		case AnchorTopLeft:
 		case AnchorBottomRight:
-			left = imageW - bb.targetWidth
-			top = imageH - bb.targetHeight
+			left = imageW - b.targetWidth
+			top = imageH - b.targetHeight
 		case AnchorBottomLeft:
-			top = imageH - bb.targetHeight
+			top = imageH - b.targetHeight
 		default:
 			left = middleX
 			top = middleY
@@ -616,33 +511,34 @@ func maybeCrop(bb *Blackboard) error {
 	top = maxInt(top, 0)
 	if left+width > imageW {
 		width = imageW - left
-		bb.targetWidth = width
+		b.targetWidth = width
 	}
 	if top+height > imageH {
 		height = imageH - top
-		bb.targetHeight = height
+		b.targetHeight = height
 	}
-	bb.image, err = vipsExtractArea(bb.image, left, top, width, height)
+	err = b.image.ExtractArea(left, top, width, height)
+
 	return err
 }
 
-func maybeEmbed(bb *Blackboard) error {
+func (b *blackboard) maybeEmbed() error {
 	var err error
-	imageW, imageH := bb.Width(), bb.Height()
+	imageW, imageH := b.width(), b.height()
 
 	// Now we might need to embed to match the target dimensions
-	if bb.targetWidth > imageW || bb.targetHeight > imageH {
+	if b.targetWidth > imageW || b.targetHeight > imageH {
 		var left, top int
 		width, height := imageW, imageH
-		if bb.targetWidth > imageW {
-			width = bb.targetWidth
-			left = (bb.targetWidth - imageW) >> 1
+		if b.targetWidth > imageW {
+			width = b.targetWidth
+			left = (b.targetWidth - imageW) >> 1
 		}
-		if bb.targetHeight > imageH {
-			height = bb.targetHeight
-			top = (bb.targetHeight - imageH) >> 1
+		if b.targetHeight > imageH {
+			height = b.targetHeight
+			top = (b.targetHeight - imageH) >> 1
 		}
-		bb.image, err = vipsEmbed(bb.image, left, top, width, height, bb.PadStrategy)
+		err = b.image.Embed(left, top, width, height, b.PadStrategy)
 		if err != nil {
 			return err
 		}
@@ -651,26 +547,26 @@ func maybeEmbed(bb *Blackboard) error {
 	return nil
 }
 
-func postProcess(bb *Blackboard) error {
+func (b *blackboard) postProcess() error {
 	var err error
-	if bb.ZoomX > 0 || bb.ZoomY > 0 {
-		bb.image, err = vipsZoom(bb.image, bb.ZoomX, bb.ZoomY)
+	if b.ZoomX > 0 || b.ZoomY > 0 {
+		err = b.image.Zoom(b.ZoomX, b.ZoomY)
 		if err != nil {
 			return err
 		}
 	}
 
-	if bb.Flip != FlipNone {
+	if b.Flip != FlipNone {
 		var err error
-		switch bb.Flip {
+		switch b.Flip {
 		case FlipHorizontal:
-			bb.image, err = vipsFlip(bb.image, DirectionHorizontal)
+			err = b.image.Flip(DirectionHorizontal)
 		case FlipVertical:
-			bb.image, err = vipsFlip(bb.image, DirectionVertical)
+			err = b.image.Flip(DirectionVertical)
 		case FlipBoth:
-			bb.image, err = vipsFlip(bb.image, DirectionHorizontal)
+			err = b.image.Flip(DirectionHorizontal)
 			if err == nil {
-				bb.image, err = vipsFlip(bb.image, DirectionVertical)
+				err = b.image.Flip(DirectionVertical)
 			}
 		}
 		if err != nil {
@@ -678,29 +574,43 @@ func postProcess(bb *Blackboard) error {
 		}
 	}
 
-	if bb.Invert {
-		bb.image, err = vipsInvert(bb.image)
+	if b.Invert {
+		err = b.image.Invert()
 		if err != nil {
 			return err
 		}
 	}
 
-	if bb.BlurSigma > 0 {
-		bb.image, err = vipsGaussianBlur(bb.image, bb.BlurSigma)
+	if b.BlurSigma > 0 {
+		err = b.image.GaussianBlur(b.BlurSigma)
 		if err != nil {
 			return err
 		}
 	}
 
-	if bb.Rotate > 0 {
-		bb.image, err = vipsRotate(bb.image, bb.Rotate)
+	if b.SharpSigma > 0 {
+		err = b.image.Sharpen(b.SharpSigma, b.SharpX1, b.SharpM2)
 		if err != nil {
 			return err
 		}
 	}
 
-	if bb.Label != nil {
-		bb.image, err = vipsLabel(bb.image, *bb.Label)
+	if b.AutoRotate {
+		err = b.image.AutoRotate()
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.Rotate > 0 {
+		err = b.image.Rotate(b.Rotate)
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.Label != nil {
+		err = b.image.Label(b.Label)
 		if err != nil {
 			return err
 		}
@@ -709,111 +619,12 @@ func postProcess(bb *Blackboard) error {
 	return nil
 }
 
-func minInt(a, b int) int {
-	return int(math.Min(float64(a), float64(b)))
+// width returns the width of the in-flight image
+func (b *blackboard) width() int {
+	return b.image.Width()
 }
 
-func maxInt(a, b int) int {
-	return int(math.Max(float64(a), float64(b)))
-}
-
-func ratio(x, y int) float64 {
-	if x == y {
-		return 1
-	}
-	return float64(x) / float64(y)
-}
-
-func roundFloat(f float64) int {
-	if f < 0 {
-		return int(math.Ceil(f - 0.5))
-	}
-	return int(math.Floor(f + 0.5))
-}
-
-// LazyFile is a lazy reader or writer
-// TODO(d): Move this to AF
-type LazyFile struct {
-	name string
-	file *os.File
-}
-
-func LazyOpen(file string) io.Reader {
-	return &LazyFile{name: file}
-}
-
-func LazyCreate(file string) io.Writer {
-	return &LazyFile{name: file}
-}
-
-func (r *LazyFile) Read(p []byte) (n int, err error) {
-	if r.file == nil {
-		f, err := os.Open(r.name)
-		if err != nil {
-			return 0, err
-		}
-		r.file = f
-	}
-	return r.file.Read(p)
-}
-
-func (r *LazyFile) Close() error {
-	if r.file != nil {
-		_ = r.file.Close()
-		r.file = nil
-	}
-	return nil
-}
-
-func (r *LazyFile) Write(p []byte) (n int, err error) {
-	if r.file == nil {
-		f, err := os.Create(r.name)
-		if err != nil {
-			return 0, err
-		}
-		r.file = f
-	}
-	return r.file.Write(p)
-}
-
-type Scalar struct {
-	Value    float64
-	Relative bool
-}
-
-func ValueOf(value float64) Scalar {
-	return Scalar{value, false}
-}
-
-func ScaleOf(value float64) Scalar {
-	return Scalar{value, true}
-}
-
-func (s *Scalar) IsZero() bool {
-	return s.Value == 0 && !s.Relative
-}
-
-func (s *Scalar) SetInt(value int) {
-	s.Set(float64(value))
-}
-
-func (s *Scalar) Set(value float64) {
-	s.Value = value
-	s.Relative = false
-}
-
-func (s *Scalar) SetScale(f float64) {
-	s.Value = f
-	s.Relative = true
-}
-
-func (s *Scalar) Get(base int) float64 {
-	if s.Relative {
-		return s.Value * float64(base)
-	}
-	return s.Value
-}
-
-func (s *Scalar) GetRounded(base int) int {
-	return roundFloat(s.Get(base))
+// height returns the height of the in-flight image
+func (b *blackboard) height() int {
+	return b.image.Height()
 }
