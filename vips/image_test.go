@@ -206,3 +206,15 @@ func TestSharpen(t *testing.T) {
 	_, _, err = image.Export(nil)
 	require.NoError(t, err)
 }
+
+func TestEmbed(t *testing.T) {
+	image, err := NewImageFromFile(resources + "tomatoes.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.Embed(10, 20, 100, 200, ExtendBlack)
+	require.NoError(t, err)
+
+	_, _, err = image.Export(nil)
+	require.NoError(t, err)
+}

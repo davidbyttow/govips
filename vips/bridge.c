@@ -168,7 +168,9 @@ int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, in
 	if (extend == VIPS_EXTEND_BACKGROUND) {
 		double background[3] = {r, g, b};
 		VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
-		return vips_embed(in, out, left, top, width, height, "extend", extend, "background", vipsBackground, NULL);
+		int code = vips_embed(in, out, left, top, width, height, "extend", extend, "background", vipsBackground, NULL);
+		vips_area_unref(VIPS_AREA(vipsBackground));
+		return code;
 	}
 	return vips_embed(in, out, left, top, width, height, "extend", extend, NULL);
 }
@@ -198,12 +200,9 @@ int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g,
 
 	double background[3] = {r, g, b};
 	VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
-
-	return vips_flatten(in, out,
-		"background", vipsBackground,
-		"max_alpha", is_16bit(in->Type) ? 65535.0 : 255.0,
-		NULL
-	);
+	int code = vips_flatten(in, out, "background", vipsBackground, "max_alpha", is_16bit(in->Type) ? 65535.0 : 255.0, NULL);
+	vips_area_unref(VIPS_AREA(vipsBackground));
+	return code;
 }
 
 int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c, double d, VipsInterpolate *interpolator) {

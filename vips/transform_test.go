@@ -35,7 +35,7 @@ func TestTransform(t *testing.T) {
 	PrintObjectReport("Final")
 }
 
-func TestEmbed(t *testing.T) {
+func TestResize(t *testing.T) {
 	goldenTest(t, resources+"shapes.png", func(tx *Transform) {
 		tx.Resize(512, 256)
 	})

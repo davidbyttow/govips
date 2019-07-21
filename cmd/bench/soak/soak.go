@@ -18,16 +18,16 @@ import (
 )
 
 var (
-	batchFlag        = flag.Int("batch", 5, "Transforms per batch")
+	batchFlag        = flag.Int("batch", 10, "Transforms per batch")
 	varianceFlag     = flag.Int("variance", 10, "Target height and width variance")
 	delayFlag        = flag.Int("delay", 10, "Delay in milliseconds between batches")
 	limitFlag        = flag.Int("limit", 100, "Total number of images to process. 0 = infinite")
-	widthFlag        = flag.Int("width", 300, "Target width of each image")
-	heightFlag       = flag.Int("height", 300, "Target height of each image")
+	widthFlag        = flag.Int("width", 400, "Target width of each image")
+	heightFlag       = flag.Int("height", 400, "Target height of each image")
 	cacheFlag        = flag.Bool("cache", true, "Cache remote images")
-	concurrencyFlag  = flag.Int("concurrency", 1, "Concurrency level")
-	maxCacheMemFlag  = flag.Int("maxCacheMem", 0, "Max cache memory")
-	maxCacheSizeFlag = flag.Int("maxCacheSize", 0, "Max cache size")
+	concurrencyFlag  = flag.Int("concurrency", 2, "Concurrency level")
+	maxCacheMemFlag  = flag.Int("maxCacheMem", 100, "Max cache memory")
+	maxCacheSizeFlag = flag.Int("maxCacheSize", 100, "Max cache size")
 	imageFlag        = flag.String("image", "cmd/bench/soak/dwi.jpg", "Image file to load")
 	cpuProfileFlag   = flag.String("cpuprofile", "", "write cpu profile `file`")
 	memProfileFlag   = flag.String("memprofile", "", "write memory profile to `file`")
@@ -61,9 +61,8 @@ func main() {
 
 	soak()
 
-	vips.ShutdownThread()
-	vips.Shutdown()
 	runtime.GC()
+
 	vips.PrintObjectReport("Soak test")
 	outputStats()
 
@@ -78,6 +77,8 @@ func main() {
 		}
 		_ = f.Close()
 	}
+
+	vips.Shutdown()
 }
 
 func soak() {
@@ -118,8 +119,11 @@ func soak() {
 				}
 				defer img.Close()
 
-				_ = img.ExtractArea(0, 0, 100, 100)
-				_, _, err = vips.NewTransform().Resize(w, h).AutoRotate().Format(vips.ImageTypeWEBP).ApplyAndExport(img)
+				_ = img.AutoRotate()
+				_ = img.ExtractArea(10, 10, 300, 300)
+				_ = img.Resize(0.8, 0.8, vips.KernelLanczos3)
+				_ = img.Embed(10, 20, 600, 500, vips.ExtendBlack)
+				_, _, err = vips.NewTransform().Resize(w, h).Format(vips.ImageTypeWEBP).ApplyAndExport(img)
 
 				if count%batch == 0 {
 					log.Printf("Processed %d...\n", count)
