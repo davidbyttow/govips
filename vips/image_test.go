@@ -11,7 +11,7 @@ import (
 
 // todo: add missing tests...
 
-func TestLoadImage_AccessMode_Default(t *testing.T) {
+func TestImageRef_AccessMode__Default(t *testing.T) {
 	Startup(nil)
 
 	srcBytes, err := ioutil.ReadFile(resources + "test.png")
@@ -32,28 +32,7 @@ func TestLoadImage_AccessMode_Default(t *testing.T) {
 	}
 }
 
-func TestLoadImage_AccessMode_Random(t *testing.T) {
-	Startup(nil)
-
-	srcBytes, err := ioutil.ReadFile(resources + "test.png")
-	require.NoError(t, err)
-
-	src := bytes.NewReader(srcBytes)
-	img, err := NewImageFromReader(src)
-	require.NoError(t, err)
-	defer img.Close()
-
-	if assert.NoError(t, err) {
-		assert.NotNil(t, img)
-		// check random access by encoding twice
-		_, _, err = img.Export(nil)
-		assert.NoError(t, err)
-		_, _, err = img.Export(nil)
-		assert.NoError(t, err)
-	}
-}
-
-func TestImageTypeSupport_HEIF(t *testing.T) {
+func TestImageRef_Support__HEIF(t *testing.T) {
 	Startup(nil)
 
 	raw, err := ioutil.ReadFile(resources + "citron.heic")
@@ -197,7 +176,7 @@ func TestImageRef_Embed(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestImageRef_GetOrientation_HasEXIF(t *testing.T) {
+func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 	image, err := NewImageFromFile(resources + "rotate.jpg")
 	require.NoError(t, err)
 	defer image.Close()
@@ -207,7 +186,7 @@ func TestImageRef_GetOrientation_HasEXIF(t *testing.T) {
 	assert.Equal(t, 6, o)
 }
 
-func TestImageRef_GetOrientation_NoEXIF(t *testing.T) {
+func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 	image, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
 	defer image.Close()
