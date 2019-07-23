@@ -157,6 +157,11 @@ func (r *ImageRef) HasAlpha() bool {
 	return vipsHasAlpha(r.image)
 }
 
+// Return the orientation number as appears in the EXIF, if present
+func (r *ImageRef) GetOrientation() int {
+	return vipsGetMetaOrientation(r.image)
+}
+
 // ResX returns the X resolution
 func (r *ImageRef) ResX() float64 {
 	return float64(r.image.Xres)

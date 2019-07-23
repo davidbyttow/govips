@@ -6,3 +6,5 @@
 
 unsigned long has_icc_profile(VipsImage *in);
 int remove_icc_profile(VipsImage *in);
+
+int get_meta_orientation(VipsImage *in);

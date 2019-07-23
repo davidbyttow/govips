@@ -161,7 +161,7 @@ func TestImageRef_Close(t *testing.T) {
 	PrintObjectReport("Final")
 }
 
-func TestLinear1(t *testing.T) {
+func TestImageRef_Linear1(t *testing.T) {
 	image, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
 	defer image.Close()
@@ -173,7 +173,7 @@ func TestLinear1(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestSharpen(t *testing.T) {
+func TestImageRef_Sharpen(t *testing.T) {
 	image, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
 	defer image.Close()
@@ -185,7 +185,7 @@ func TestSharpen(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestEmbed(t *testing.T) {
+func TestImageRef_Embed(t *testing.T) {
 	image, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
 	defer image.Close()
@@ -195,4 +195,24 @@ func TestEmbed(t *testing.T) {
 
 	_, _, err = image.Export(nil)
 	require.NoError(t, err)
+}
+
+func TestImageRef_GetOrientation_HasEXIF(t *testing.T) {
+	image, err := NewImageFromFile(resources + "rotate.jpg")
+	require.NoError(t, err)
+	defer image.Close()
+
+	o := image.GetOrientation()
+
+	assert.Equal(t, 6, o)
+}
+
+func TestImageRef_GetOrientation_NoEXIF(t *testing.T) {
+	image, err := NewImageFromFile(resources + "tomatoes.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	o := image.GetOrientation()
+
+	assert.Equal(t, 0, o)
 }
