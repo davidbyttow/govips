@@ -5,7 +5,6 @@ package vips
 import "C"
 import (
 	"bytes"
-	"log"
 	"math"
 	"runtime"
 	"unsafe"
@@ -70,33 +69,25 @@ func IsTypeSupported(imageType ImageType) bool {
 func DetermineImageType(buf []byte) ImageType {
 	if len(buf) < 12 {
 		return ImageTypeUnknown
-	}
-	if isJPEG(buf) {
+	} else if isJPEG(buf) {
 		return ImageTypeJPEG
-	}
-	if isPNG(buf) {
+	} else if isPNG(buf) {
 		return ImageTypePNG
-	}
-	if IsTypeSupported(ImageTypeGIF) && isGIF(buf) {
+	} else if isGIF(buf) {
 		return ImageTypeGIF
-	}
-	if IsTypeSupported(ImageTypeTIFF) && isTIFF(buf) {
+	} else if isTIFF(buf) {
 		return ImageTypeTIFF
-	}
-	if IsTypeSupported(ImageTypeWEBP) && isWEBP(buf) {
+	} else if isWEBP(buf) {
 		return ImageTypeWEBP
-	}
-	if IsTypeSupported(ImageTypeHEIF) && isHEIF(buf) {
+	} else if isHEIF(buf) {
 		return ImageTypeHEIF
-	}
-	if IsTypeSupported(ImageTypeSVG) && isSVG(buf) {
+	} else if isSVG(buf) {
 		return ImageTypeSVG
-	}
-	if IsTypeSupported(ImageTypePDF) && isPDF(buf) {
+	} else if isPDF(buf) {
 		return ImageTypePDF
+	} else {
+		return ImageTypeUnknown
 	}
-
-	return ImageTypeUnknown
 }
 
 var jpeg = []byte("\xFF\xD8\xFF")
@@ -158,19 +149,12 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	var out *C.VipsImage
 
 	imageType := DetermineImageType(buf)
-	if imageType == ImageTypeUnknown {
-		if len(buf) > 2 {
-			log.Printf("Failed to understand image format size=%d %x %x %x", len(buf), buf[0], buf[1], buf[2])
-		} else {
-			log.Printf("Failed to understand image format size=%d", len(buf))
-		}
+	if !IsTypeSupported(imageType) {
+		info("failed to understand image format size=%d", len(buf))
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	bufLength := C.size_t(len(buf))
-	imageBuf := unsafe.Pointer(&buf[0])
-
-	if err := C.load_image_buffer(imageBuf, bufLength, C.int(imageType), &out); err != 0 {
+	if err := C.load_image_buffer(unsafe.Pointer(&buf[0]), C.size_t(len(buf)), C.int(imageType), &out); err != 0 {
 		return nil, ImageTypeUnknown, handleImageError(out)
 	}
 
