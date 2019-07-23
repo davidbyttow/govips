@@ -28,6 +28,7 @@ image, err := NewImageFromFile("image.jpg")
 if err != nil {
 	return nil, err
 }
+defer image.Close()
 
 // Resize an image with padding
 return vips.Transform().
