@@ -39,7 +39,7 @@ func TestLoadImage_AccessMode_Random(t *testing.T) {
 	require.NoError(t, err)
 
 	src := bytes.NewReader(srcBytes)
-	img, err := NewImageFromReader(src, WithAccessMode(AccessRandom))
+	img, err := NewImageFromReader(src)
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -50,28 +50,6 @@ func TestLoadImage_AccessMode_Random(t *testing.T) {
 		assert.NoError(t, err)
 		_, _, err = img.Export(nil)
 		assert.NoError(t, err)
-	}
-}
-
-func TestLoadImage_AccessMode_Sequential(t *testing.T) {
-	Startup(nil)
-
-	srcBytes, err := ioutil.ReadFile(resources + "test.png")
-	require.NoError(t, err)
-
-	src := bytes.NewReader(srcBytes)
-	img, err := NewImageFromReader(src, WithAccessMode(AccessSequential))
-	require.NoError(t, err)
-	defer img.Close()
-
-	if assert.NoError(t, err) {
-		assert.NotNil(t, img)
-		// check sequential access by encoding twice where the second fails
-		_, _, err = img.Export(nil)
-		assert.NoError(t, err)
-		_, _, err = img.Export(nil)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "out of order")
 	}
 }
 

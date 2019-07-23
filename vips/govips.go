@@ -1,11 +1,13 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "vips/vips.h"
+// #include <vips/vips.h>
+// #include "govips.h"
 import "C"
 import (
 	"fmt"
 	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -29,9 +31,12 @@ const (
 )
 
 var (
-	running           = false
-	initLock          sync.Mutex
-	statCollectorDone chan struct{}
+	running             = false
+	initLock            sync.Mutex
+	statCollectorDone   chan struct{}
+	once                sync.Once
+	typeLoaders         = make(map[string]ImageType)
+	supportedImageTypes = make(map[ImageType]bool)
 )
 
 // Config allows fine-tuning of libvips library
@@ -183,4 +188,28 @@ func startupIfNeeded() {
 		info("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
 		Startup(nil)
 	}
+}
+
+// InitTypes initializes caches and figures out which image types are supported
+func initTypes() {
+	once.Do(func() {
+		cType := C.CString("VipsOperation")
+		defer freeCString(cType)
+
+		for k, v := range ImageTypes {
+			name := strings.ToLower("VipsForeignLoad" + v)
+			typeLoaders[name] = k
+			typeLoaders[name+"buffer"] = k
+
+			cFunc := C.CString(v + "load")
+			//noinspection GoDeferInLoop
+			defer freeCString(cFunc)
+
+			ret := C.vips_type_find(cType, cFunc)
+
+			supportedImageTypes[k] = int(ret) != 0
+
+			info("Registered image type loader type=%s", v)
+		}
+	})
 }

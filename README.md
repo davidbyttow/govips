@@ -12,12 +12,6 @@ The intent for this is to enable developers to build extremely fast image proces
 
 Libvips is generally 4-8x faster than other graphics processors such as GraphicsMagick and ImageMagick.
 
-## Supported image operations
-This library supports all known operations available to libvips found here:
-- [VIPS function list](http://libvips.github.io/libvips/API/current/VipsImage.html)
-- [VipsImage](http://libvips.github.io/libvips/API/current/VipsImage.html)
-- [VipsOperation](http://libvips.github.io/libvips/API/current/VipsOperation.html)
-
 ## Requirements
 - [libvips](https://github.com/libvips/libvips) 8+ (8.8.1+ recommended for GIF, PDF, SVG, HEIC support)
 - C compatible compiler such as gcc 4.6+ or clang 3.0+
@@ -30,12 +24,16 @@ go get -u github.com/wix-playground/govips/vips
 
 ## Example usage
 ```go
+image, err := NewImageFromFile("image.jpg")
+if err != nil {
+	return nil, err
+}
+
 // Resize an image with padding
 return vips.Transform().
-	LoadFile(inputFile).
 	PadStrategy(vips.ExtendBlack).
 	Resize(1200, 1200).
-	OutputFile(outputFile)
+	ApplyAndExport(image)
 ```
 
 ## Contributing

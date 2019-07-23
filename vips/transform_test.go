@@ -165,7 +165,7 @@ func TestOverlay(t *testing.T) {
 	require.NoError(t, err)
 	defer clover.Close()
 
-	err = tomatoes.Composite(clover, BlendModeOver)
+	err = tomatoes.Composite(clover, BlendModeOver, 0, 0)
 	require.NoError(t, err)
 
 	buf, _, err := tomatoes.Export(nil)

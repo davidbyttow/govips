@@ -1,15 +1,21 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "bridge.h"
+// #include "image.h"
 import "C"
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"runtime"
 	"unsafe"
+)
+
+const (
+	defaultQuality     = 90
+	defaultCompression = 6
 )
 
 // ImageRef contains a libvips image and manages its lifecycle. You should
@@ -30,48 +36,44 @@ type ImageMetadata struct {
 	Height int
 }
 
-type LoadOption func(o *vipsLoadOptions)
-
-func WithAccessMode(a Access) LoadOption {
-	return func(o *vipsLoadOptions) {
-		switch a {
-		case AccessRandom:
-			o.cOpts.access = C.VIPS_ACCESS_RANDOM
-		case AccessSequential:
-			o.cOpts.access = C.VIPS_ACCESS_SEQUENTIAL
-		case AccessSequentialUnbuffered:
-			o.cOpts.access = C.VIPS_ACCESS_SEQUENTIAL_UNBUFFERED
-		default:
-			o.cOpts.access = C.VIPS_ACCESS_RANDOM
-		}
-	}
+// ExportParams are options when exporting an image to file or buffer
+type ExportParams struct {
+	Format          ImageType
+	Quality         int
+	Compression     int
+	Interlaced      bool
+	Lossless        bool
+	StripProfile    bool
+	StripMetadata   bool
+	Interpretation  Interpretation
+	BackgroundColor *Color
 }
 
 // NewImageFromReader loads an ImageRef from the given reader
-func NewImageFromReader(r io.Reader, opts ...LoadOption) (*ImageRef, error) {
+func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewImageFromBuffer(buf, opts...)
+	return NewImageFromBuffer(buf)
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
-func NewImageFromFile(file string, opts ...LoadOption) (*ImageRef, error) {
+func NewImageFromFile(file string) (*ImageRef, error) {
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewImageFromBuffer(buf, opts...)
+	return NewImageFromBuffer(buf)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(buf []byte, opts ...LoadOption) (*ImageRef, error) {
+func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf, opts...)
+	image, format, err := vipsLoadFromBuffer(buf)
 	if err != nil {
 		return nil, err
 	}
@@ -89,9 +91,8 @@ func (r *ImageRef) Metadata() *ImageMetadata {
 	}
 }
 
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-copy
 // create a new ref
-func (r *ImageRef) Copy(options ...*Option) (*ImageRef, error) {
+func (r *ImageRef) Copy() (*ImageRef, error) {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
 		return nil, err
@@ -143,7 +144,12 @@ func (r *ImageRef) Bands() int {
 
 // HasProfile returns if the image has an ICC profile embedded.
 func (r *ImageRef) HasProfile() bool {
-	return vipsHasProfile(r.image)
+	return vipsHasICCProfile(r.image)
+}
+
+// alias to HasProfile()
+func (r *ImageRef) HasICCProfile() bool {
+	return r.HasProfile()
 }
 
 // HasAlpha returns if the image has an alpha layer.
@@ -186,9 +192,13 @@ func (r *ImageRef) Interpretation() Interpretation {
 	return Interpretation(int(r.image.Type))
 }
 
-// Avg executes the 'avg' operation
-func (r *ImageRef) Avg(options ...*Option) (float64, error) {
-	return Avg(r.image, options...)
+// Alias to Interpretation()
+func (r *ImageRef) ColorSpace() Interpretation {
+	return r.Interpretation()
+}
+
+func (r *ImageRef) IsColorSpaceSupported() bool {
+	return vipsIsColorSpaceSupported(r.image)
 }
 
 // Export exports the image
@@ -203,7 +213,7 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	}
 
 	// the exported buf is not necessarily in same format as the original buf, might default to JPEG as well.
-	buf, format, err := vipsExportBuffer(r.image, p)
+	buf, format, err := r.exportBuffer(p)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -217,9 +227,8 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	return buf, metadata, nil
 }
 
-// compose images
-func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode) error {
-	out, err := vipsComposite([]*C.VipsImage{r.image, overlay.image}, mode)
+func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error {
+	out, err := vipsComposite2(r.image, overlay.image, mode, x, y)
 	if err != nil {
 		return err
 	}
@@ -273,129 +282,9 @@ func (r *ImageRef) Linear1(a, b float64) error {
 	return nil
 }
 
-// Abs executes the 'abs' operation
-func (r *ImageRef) Abs(options ...*Option) error {
-	out, err := Abs(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
 // Autorot executes the 'autorot' operation
 func (r *ImageRef) AutoRotate() error {
 	out, err := vipsAutoRotate(r.image)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Bandbool executes the 'bandbool' operation
-func (r *ImageRef) Bandbool(boolean OperationBoolean, options ...*Option) error {
-	out, err := Bandbool(r.image, boolean, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Bandfold executes the 'bandfold' operation
-func (r *ImageRef) Bandfold(options ...*Option) error {
-	out, err := Bandfold(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Bandunfold executes the 'bandunfold' operation
-func (r *ImageRef) Bandunfold(options ...*Option) error {
-	out, err := Bandunfold(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Buildlut executes the 'buildlut' operation
-func (r *ImageRef) Buildlut(options ...*Option) error {
-	out, err := Buildlut(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Byteswap executes the 'byteswap' operation
-func (r *ImageRef) Byteswap(options ...*Option) error {
-	out, err := Byteswap(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Cache executes the 'cache' operation
-func (r *ImageRef) Cache(options ...*Option) error {
-	out, err := Cache(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Cast executes the 'cast' operation
-func (r *ImageRef) Cast(format BandFormat, options ...*Option) error {
-	out, err := Cast(r.image, format, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Cmc2Lch executes the 'CMC2LCh' operation
-func (r *ImageRef) Cmc2Lch(options ...*Option) error {
-	out, err := Cmc2Lch(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Colourspace executes the 'colourspace' operation
-func (r *ImageRef) Colourspace(space Interpretation, options ...*Option) error {
-	out, err := Colourspace(r.image, space, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Complex executes the 'complex' operation
-func (r *ImageRef) Complex(cmplx OperationComplex, options ...*Option) error {
-	out, err := Complex(r.image, cmplx, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Complexget executes the 'complexget' operation
-func (r *ImageRef) Complexget(get OperationComplexGet, options ...*Option) error {
-	out, err := Complexget(r.image, get, options...)
 	if err != nil {
 		return err
 	}
@@ -413,19 +302,14 @@ func (r *ImageRef) ExtractArea(left int, top int, width int, height int) error {
 	return nil
 }
 
-// Falsecolour executes the 'falsecolour' operation
-func (r *ImageRef) Falsecolour(options ...*Option) error {
-	out, err := Falsecolour(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
+func (r *ImageRef) RemoveICCProfile() error {
+	vipsRemoveICCProfile(r.image)
+	// this works in place on the header
 	return nil
 }
 
-// FillNearest executes the 'fill_nearest' operation
-func (r *ImageRef) FillNearest(options ...*Option) error {
-	out, err := FillNearest(r.image, options...)
+func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
+	out, err := vipsToColorSpace(r.image, interpretation)
 	if err != nil {
 		return err
 	}
@@ -434,38 +318,8 @@ func (r *ImageRef) FillNearest(options ...*Option) error {
 }
 
 // Flatten executes the 'flatten' operation
-func (r *ImageRef) Flatten(options ...*Option) error {
-	out, err := Flatten(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Float2Rad executes the 'float2rad' operation
-func (r *ImageRef) Float2Rad(options ...*Option) error {
-	out, err := Float2Rad(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Fwfft executes the 'fwfft' operation
-func (r *ImageRef) Fwfft(options ...*Option) error {
-	out, err := Fwfft(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Gamma executes the 'gamma' operation
-func (r *ImageRef) Gamma(options ...*Option) error {
-	out, err := Gamma(r.image, options...)
+func (r *ImageRef) Flatten(backgroundColor *Color) error {
+	out, err := vipsFlatten(r.image, backgroundColor)
 	if err != nil {
 		return err
 	}
@@ -493,156 +347,6 @@ func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 	return nil
 }
 
-// Globalbalance executes the 'globalbalance' operation
-func (r *ImageRef) Globalbalance(options ...*Option) error {
-	out, err := Globalbalance(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Grid executes the 'grid' operation
-func (r *ImageRef) Grid(tileHeight int, across int, down int, options ...*Option) error {
-	out, err := Grid(r.image, tileHeight, across, down, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HistCum executes the 'hist_cum' operation
-func (r *ImageRef) HistCum(options ...*Option) error {
-	out, err := HistCum(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HistEqual executes the 'hist_equal' operation
-func (r *ImageRef) HistEqual(options ...*Option) error {
-	out, err := HistEqual(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HistFind executes the 'hist_find' operation
-func (r *ImageRef) HistFind(options ...*Option) error {
-	out, err := HistFind(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HistFindNdim executes the 'hist_find_ndim' operation
-func (r *ImageRef) HistFindNdim(options ...*Option) error {
-	out, err := HistFindNdim(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HistLocal executes the 'hist_local' operation
-func (r *ImageRef) HistLocal(width int, height int, options ...*Option) error {
-	out, err := HistLocal(r.image, width, height, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HistNorm executes the 'hist_norm' operation
-func (r *ImageRef) HistNorm(options ...*Option) error {
-	out, err := HistNorm(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HistPlot executes the 'hist_plot' operation
-func (r *ImageRef) HistPlot(options ...*Option) error {
-	out, err := HistPlot(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HoughCircle executes the 'hough_circle' operation
-func (r *ImageRef) HoughCircle(options ...*Option) error {
-	out, err := HoughCircle(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// HoughLine executes the 'hough_line' operation
-func (r *ImageRef) HoughLine(options ...*Option) error {
-	out, err := HoughLine(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Hsv2Srgb executes the 'HSV2sRGB' operation
-func (r *ImageRef) Hsv2Srgb(options ...*Option) error {
-	out, err := Hsv2Srgb(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// IccExport executes the 'icc_export' operation
-func (r *ImageRef) IccExport(options ...*Option) error {
-	out, err := IccExport(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// IccImport executes the 'icc_import' operation
-func (r *ImageRef) IccImport(options ...*Option) error {
-	out, err := IccImport(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// IccTransform executes the 'icc_transform' operation
-func (r *ImageRef) IccTransform(outputProfile string, options ...*Option) error {
-	out, err := IccTransform(r.image, outputProfile, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
 // Invert executes the 'invert' operation
 func (r *ImageRef) Invert() error {
 	out, err := vipsInvert(r.image)
@@ -653,229 +357,9 @@ func (r *ImageRef) Invert() error {
 	return nil
 }
 
-// Invertlut executes the 'invertlut' operation
-func (r *ImageRef) Invertlut(options ...*Option) error {
-	out, err := Invertlut(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Invfft executes the 'invfft' operation
-func (r *ImageRef) Invfft(options ...*Option) error {
-	out, err := Invfft(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Lab2Labq executes the 'Lab2LabQ' operation
-func (r *ImageRef) Lab2Labq(options ...*Option) error {
-	out, err := Lab2Labq(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Lab2Labs executes the 'Lab2LabS' operation
-func (r *ImageRef) Lab2Labs(options ...*Option) error {
-	out, err := Lab2Labs(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Lab2Lch executes the 'Lab2LCh' operation
-func (r *ImageRef) Lab2Lch(options ...*Option) error {
-	out, err := Lab2Lch(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Lab2Xyz executes the 'Lab2XYZ' operation
-func (r *ImageRef) Lab2Xyz(options ...*Option) error {
-	out, err := Lab2Xyz(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Labelregions executes the 'labelregions' operation
-func (r *ImageRef) Labelregions(options ...*Option) error {
-	out, err := Labelregions(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Labq2Lab executes the 'LabQ2Lab' operation
-func (r *ImageRef) Labq2Lab(options ...*Option) error {
-	out, err := Labq2Lab(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Labq2Labs executes the 'LabQ2LabS' operation
-func (r *ImageRef) Labq2Labs(options ...*Option) error {
-	out, err := Labq2Labs(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Labq2Srgb executes the 'LabQ2sRGB' operation
-func (r *ImageRef) Labq2Srgb(options ...*Option) error {
-	out, err := Labq2Srgb(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Labs2Lab executes the 'LabS2Lab' operation
-func (r *ImageRef) Labs2Lab(options ...*Option) error {
-	out, err := Labs2Lab(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Labs2Labq executes the 'LabS2LabQ' operation
-func (r *ImageRef) Labs2Labq(options ...*Option) error {
-	out, err := Labs2Labq(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Linecache executes the 'linecache' operation
-func (r *ImageRef) Linecache(options ...*Option) error {
-	out, err := Linecache(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Math executes the 'math' operation
-func (r *ImageRef) Math(math OperationMath, options ...*Option) error {
-	out, err := Math(r.image, math, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Measure executes the 'measure' operation
-func (r *ImageRef) Measure(h int, v int, options ...*Option) error {
-	out, err := Measure(r.image, h, v, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Msb executes the 'msb' operation
-func (r *ImageRef) Msb(options ...*Option) error {
-	out, err := Msb(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Premultiply executes the 'premultiply' operation
-func (r *ImageRef) Premultiply(options ...*Option) error {
-	out, err := Premultiply(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Rad2Float executes the 'rad2float' operation
-func (r *ImageRef) Rad2Float(options ...*Option) error {
-	out, err := Rad2Float(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Rank executes the 'rank' operation
-func (r *ImageRef) Rank(width int, height int, index int, options ...*Option) error {
-	out, err := Rank(r.image, width, height, index, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Reduce executes the 'reduce' operation
-func (r *ImageRef) Reduce(hshrink float64, vshrink float64, options ...*Option) error {
-	out, err := Reduce(r.image, hshrink, vshrink, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Reduceh executes the 'reduceh' operation
-func (r *ImageRef) Reduceh(hshrink float64, options ...*Option) error {
-	out, err := Reduceh(r.image, hshrink, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Reducev executes the 'reducev' operation
-func (r *ImageRef) Reducev(vshrink float64, options ...*Option) error {
-	out, err := Reducev(r.image, vshrink, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Replicate executes the 'replicate' operation
-func (r *ImageRef) Replicate(across int, down int, options ...*Option) error {
-	out, err := Replicate(r.image, across, down, options...)
+// Resize executes the 'resize' operation
+func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
+	out, err := vipsResize(r.image, scale, kernel)
 	if err != nil {
 		return err
 	}
@@ -884,8 +368,8 @@ func (r *ImageRef) Replicate(across int, down int, options ...*Option) error {
 }
 
 // Resize executes the 'resize' operation
-func (r *ImageRef) Resize(scale float64, vscale float64, kernel Kernel) error {
-	out, err := vipsResize(r.image, scale, vscale, kernel)
+func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
+	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
 		return err
 	}
@@ -924,18 +408,8 @@ func (r *ImageRef) Flip(direction Direction) error {
 }
 
 // Rotate executes the 'rot' operation
-func (r *ImageRef) Rotate(angle Angle, options ...*Option) error {
+func (r *ImageRef) Rotate(angle Angle) error {
 	out, err := vipsRotate(r.image, angle)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Rotate45 executes the 'rot45' operation
-func (r *ImageRef) Rotate45(options ...*Option) error {
-	out, err := Rot45(r.image, options...)
 	if err != nil {
 		return err
 	}
@@ -945,297 +419,7 @@ func (r *ImageRef) Rotate45(options ...*Option) error {
 
 // Label executes the 'label' operation
 func (r *ImageRef) Label(labelParams *LabelParams) error {
-	out, err := vipsLabel(r.image, labelParams)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Round executes the 'round' operation
-func (r *ImageRef) Round(round OperationRound, options ...*Option) error {
-	out, err := Round(r.image, round, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Scale executes the 'scale' operation
-func (r *ImageRef) Scale(options ...*Option) error {
-	out, err := Scale(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Scrgb2Bw executes the 'scRGB2BW' operation
-func (r *ImageRef) Scrgb2Bw(options ...*Option) error {
-	out, err := Scrgb2Bw(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Scrgb2Srgb executes the 'scRGB2sRGB' operation
-func (r *ImageRef) Scrgb2Srgb(options ...*Option) error {
-	out, err := Scrgb2Srgb(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Scrgb2Xyz executes the 'scRGB2XYZ' operation
-func (r *ImageRef) Scrgb2Xyz(options ...*Option) error {
-	out, err := Scrgb2Xyz(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Sequential executes the 'sequential' operation
-func (r *ImageRef) Sequential(options ...*Option) error {
-	out, err := Sequential(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Shrink executes the 'shrink' operation
-func (r *ImageRef) Shrink(hshrink float64, vshrink float64, options ...*Option) error {
-	out, err := Shrink(r.image, hshrink, vshrink, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Shrinkh executes the 'shrinkh' operation
-func (r *ImageRef) Shrinkh(hshrink int, options ...*Option) error {
-	out, err := Shrinkh(r.image, hshrink, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Shrinkv executes the 'shrinkv' operation
-func (r *ImageRef) Shrinkv(vshrink int, options ...*Option) error {
-	out, err := Shrinkv(r.image, vshrink, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Sign executes the 'sign' operation
-func (r *ImageRef) Sign(options ...*Option) error {
-	out, err := Sign(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Similarity executes the 'similarity' operation
-func (r *ImageRef) Similarity(options ...*Option) error {
-	out, err := Similarity(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Smartcrop executes the 'smartcrop' operation
-func (r *ImageRef) Smartcrop(width int, height int, options ...*Option) error {
-	out, err := Smartcrop(r.image, width, height, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Spectrum executes the 'spectrum' operation
-func (r *ImageRef) Spectrum(options ...*Option) error {
-	out, err := Spectrum(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Srgb2Hsv executes the 'sRGB2HSV' operation
-func (r *ImageRef) Srgb2Hsv(options ...*Option) error {
-	out, err := Srgb2Hsv(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Srgb2Scrgb executes the 'sRGB2scRGB' operation
-func (r *ImageRef) Srgb2Scrgb(options ...*Option) error {
-	out, err := Srgb2Scrgb(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Stats executes the 'stats' operation
-func (r *ImageRef) Stats(options ...*Option) error {
-	out, err := Stats(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Stdif executes the 'stdif' operation
-func (r *ImageRef) Stdif(width int, height int, options ...*Option) error {
-	out, err := Stdif(r.image, width, height, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Subsample executes the 'subsample' operation
-func (r *ImageRef) Subsample(xfac int, yfac int, options ...*Option) error {
-	out, err := Subsample(r.image, xfac, yfac, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// ThumbnailImage executes the 'thumbnail_image' operation
-func (r *ImageRef) ThumbnailImage(width int, options ...*Option) error {
-	out, err := ThumbnailImage(r.image, width, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Tilecache executes the 'tilecache' operation
-func (r *ImageRef) Tilecache(options ...*Option) error {
-	out, err := Tilecache(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Unpremultiply executes the 'unpremultiply' operation
-func (r *ImageRef) Unpremultiply(options ...*Option) error {
-	out, err := Unpremultiply(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Wrap executes the 'wrap' operation
-func (r *ImageRef) Wrap(options ...*Option) error {
-	out, err := Wrap(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Xyz2Lab executes the 'XYZ2Lab' operation
-func (r *ImageRef) Xyz2Lab(options ...*Option) error {
-	out, err := Xyz2Lab(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Xyz2Scrgb executes the 'XYZ2scRGB' operation
-func (r *ImageRef) Xyz2Scrgb(options ...*Option) error {
-	out, err := Xyz2Scrgb(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Xyz2Yxy executes the 'XYZ2Yxy' operation
-func (r *ImageRef) Xyz2Yxy(options ...*Option) error {
-	out, err := Xyz2Yxy(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Yxy2Xyz executes the 'Yxy2XYZ' operation
-func (r *ImageRef) Yxy2Xyz(options ...*Option) error {
-	out, err := Yxy2Xyz(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Bandmean executes the 'bandmean' operation
-func (r *ImageRef) Bandmean(options ...*Option) error {
-	out, err := Bandmean(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Lch2Cmc executes the 'LCh2CMC' operation
-func (r *ImageRef) Lch2Cmc(options ...*Option) error {
-	out, err := Lch2Cmc(r.image, options...)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
-}
-
-// Lch2Lab executes the 'LCh2Lab' operation
-func (r *ImageRef) Lch2Lab(options ...*Option) error {
-	out, err := Lch2Lab(r.image, options...)
+	out, err := labelImage(r.image, labelParams)
 	if err != nil {
 		return err
 	}
@@ -1264,4 +448,74 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 	}
 
 	r.image = image
+}
+
+func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error) {
+	var buf []byte
+	var err error
+
+	format := params.Format
+	if format != ImageTypeUnknown && !IsTypeSupported(format) {
+		return nil, ImageTypeUnknown, fmt.Errorf("cannot save to %#v", ImageTypes[format])
+	}
+
+	if params.Quality == 0 {
+		params.Quality = defaultQuality
+	}
+
+	if params.Compression == 0 {
+		params.Compression = defaultCompression
+	}
+
+	if params.Interpretation == 0 {
+		params.Interpretation = r.Interpretation()
+	}
+
+	if params.StripProfile {
+		err = r.RemoveICCProfile()
+		if err != nil {
+			return nil, ImageTypeUnknown, err
+		}
+	}
+
+	// Apply the proper colour space
+	if r.IsColorSpaceSupported() && params.Interpretation != r.Interpretation() {
+		err = r.ToColorSpace(params.Interpretation)
+		if err != nil {
+			return nil, ImageTypeUnknown, err
+		}
+	}
+
+	if params.BackgroundColor != nil && r.HasAlpha() {
+		err = r.Flatten(params.BackgroundColor)
+		if err != nil {
+			return nil, ImageTypeUnknown, err
+		}
+	}
+
+	switch format {
+	case ImageTypeWEBP:
+		buf, err = vipsSaveWebPToBuffer(r.image, params.StripMetadata, params.Quality, params.Lossless)
+	case ImageTypePNG:
+		buf, err = vipsSavePNGToBuffer(r.image, params.StripMetadata, params.Compression, params.Quality, params.Interlaced)
+	case ImageTypeTIFF:
+		buf, err = vipsSaveTIFFToBuffer(r.image)
+	case ImageTypeHEIF:
+		buf, err = vipsSaveHEIFToBuffer(r.image, params.Quality, params.Lossless)
+	default:
+		format = ImageTypeJPEG
+		buf, err = vipsSaveJPEGToBuffer(r.image, params.Quality, params.StripMetadata, params.Interlaced)
+	}
+
+	if err != nil {
+		return nil, ImageTypeUnknown, err
+	}
+
+	return buf, format, nil
+}
+
+///////////////
+
+func vipsHasAlpha(in *C.VipsImage) bool {
+	return int(C.has_alpha_channel(in)) > 0
 }

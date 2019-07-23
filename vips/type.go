@@ -1,36 +1,8 @@
 package vips
 
 // #cgo pkg-config: vips
-// #include "bridge.h"
+// #include <vips/vips.h>
 import "C"
-import (
-	"strings"
-	"sync"
-)
-
-// ResizeStrategy is the strategy to use when resizing an image
-type ResizeStrategy int
-
-// ResizeStrategy enum
-const (
-	ResizeStrategyAuto ResizeStrategy = iota
-	ResizeStrategyEmbed
-	ResizeStrategyCrop
-	ResizeStrategyStretch
-)
-
-// ExportParams are options when exporting an image to file or buffer
-type ExportParams struct {
-	Format          ImageType
-	Quality         int
-	Compression     int
-	Interlaced      bool
-	Lossless        bool
-	StripProfile    bool
-	StripMetadata   bool
-	Interpretation  Interpretation
-	BackgroundColor *Color
-}
 
 // Color represents an RGB
 type Color struct {
@@ -40,99 +12,6 @@ type Color struct {
 // ColorBlack is shorthand for black RGB
 //noinspection GoUnusedGlobalVariable
 var ColorBlack = Color{0, 0, 0}
-
-const DefaultFont = "sans 10"
-
-// LabelParams represents a text-based label
-type LabelParams struct {
-	Text      string
-	Font      string
-	Width     Scalar
-	Height    Scalar
-	OffsetX   Scalar
-	OffsetY   Scalar
-	Opacity   float32
-	Color     Color
-	Alignment Align
-}
-
-// Anchor represents the an anchor for cropping and other image operations
-type Anchor int
-
-// Anchor enum
-const (
-	AnchorAuto Anchor = iota
-	AnchorCenter
-	AnchorTop
-	AnchorTopRight
-	AnchorTopLeft
-	AnchorRight
-	AnchorBottom
-	AnchorBottomLeft
-	AnchorBottomRight
-	AnchorLeft
-)
-
-// FlipDirection represents the direction to flip
-type FlipDirection int
-
-// Flip enum
-const (
-	FlipNone FlipDirection = iota
-	FlipHorizontal
-	FlipVertical
-	FlipBoth
-)
-
-// ImageType represents an image type
-type ImageType int
-
-// ImageType enum
-const (
-	ImageTypeUnknown ImageType = C.UNKNOWN
-	ImageTypeGIF     ImageType = C.GIF
-	ImageTypeJPEG    ImageType = C.JPEG
-	ImageTypeMagick  ImageType = C.MAGICK
-	ImageTypePDF     ImageType = C.PDF
-	ImageTypePNG     ImageType = C.PNG
-	ImageTypeSVG     ImageType = C.SVG
-	ImageTypeTIFF    ImageType = C.TIFF
-	ImageTypeWEBP    ImageType = C.WEBP
-	ImageTypeHEIF    ImageType = C.HEIF
-)
-
-var imageTypeExtensionMap = map[ImageType]string{
-	ImageTypeGIF:    ".gif",
-	ImageTypeJPEG:   ".jpeg",
-	ImageTypeMagick: ".magick",
-	ImageTypePDF:    ".pdf",
-	ImageTypePNG:    ".png",
-	ImageTypeSVG:    ".svg",
-	ImageTypeTIFF:   ".tiff",
-	ImageTypeWEBP:   ".webp",
-	ImageTypeHEIF:   ".heic",
-}
-
-// OutputExt returns the canonical extension for the ImageType
-func (i ImageType) OutputExt() string {
-	if ext, ok := imageTypeExtensionMap[i]; ok {
-		return ext
-	}
-	return ""
-}
-
-// Kernel represents VipsKernel type
-type Kernel int
-
-// Kernel enum
-const (
-	KernelAuto     Kernel = -1
-	KernelNearest  Kernel = C.VIPS_KERNEL_NEAREST
-	KernelLinear   Kernel = C.VIPS_KERNEL_LINEAR
-	KernelCubic    Kernel = C.VIPS_KERNEL_CUBIC
-	KernelLanczos2 Kernel = C.VIPS_KERNEL_LANCZOS2
-	KernelLanczos3 Kernel = C.VIPS_KERNEL_LANCZOS3
-)
 
 // Interpolator represents the vips interpolator types
 type Interpolator string
@@ -237,19 +116,6 @@ const (
 	OperationComplexImag OperationComplexGet = C.VIPS_OPERATION_COMPLEXGET_IMAG
 )
 
-// ExtendStrategy represents VIPS_EXTEND type
-type ExtendStrategy int
-
-// ExtendStrategy enum
-const (
-	ExtendBlack      ExtendStrategy = C.VIPS_EXTEND_BLACK
-	ExtendCopy       ExtendStrategy = C.VIPS_EXTEND_COPY
-	ExtendRepeat     ExtendStrategy = C.VIPS_EXTEND_REPEAT
-	ExtendMirror     ExtendStrategy = C.VIPS_EXTEND_MIRROR
-	ExtendWhite      ExtendStrategy = C.VIPS_EXTEND_WHITE
-	ExtendBackground ExtendStrategy = C.VIPS_EXTEND_BACKGROUND
-)
-
 // Align represents VIPS_ALIGN
 type Align int
 
@@ -258,68 +124,6 @@ const (
 	AlignLow    Align = C.VIPS_ALIGN_LOW
 	AlignCenter Align = C.VIPS_ALIGN_CENTRE
 	AlignHigh   Align = C.VIPS_ALIGN_HIGH
-)
-
-// Direction represents VIPS_DIRECTION type
-type Direction int
-
-// Direction enum
-const (
-	DirectionHorizontal Direction = C.VIPS_DIRECTION_HORIZONTAL
-	DirectionVertical   Direction = C.VIPS_DIRECTION_VERTICAL
-)
-
-// Angle represents VIPS_ANGLE type
-type Angle int
-
-// Angle enum
-const (
-	Angle0   Angle = C.VIPS_ANGLE_D0
-	Angle90  Angle = C.VIPS_ANGLE_D90
-	Angle180 Angle = C.VIPS_ANGLE_D180
-	Angle270 Angle = C.VIPS_ANGLE_D270
-)
-
-// Angle45 represents VIPS_ANGLE45 type
-type Angle45 int
-
-// Angle45 enum
-const (
-	Angle45_0   Angle45 = C.VIPS_ANGLE45_D0
-	Angle45_45  Angle45 = C.VIPS_ANGLE45_D45
-	Angle45_90  Angle45 = C.VIPS_ANGLE45_D90
-	Angle45_135 Angle45 = C.VIPS_ANGLE45_D135
-	Angle45_180 Angle45 = C.VIPS_ANGLE45_D180
-	Angle45_225 Angle45 = C.VIPS_ANGLE45_D225
-	Angle45_270 Angle45 = C.VIPS_ANGLE45_D270
-	Angle45_315 Angle45 = C.VIPS_ANGLE45_D315
-)
-
-// Interpretation represents VIPS_INTERPRETATION type
-type Interpretation int
-
-// Interpretation enum
-const (
-	InterpretationError     Interpretation = C.VIPS_INTERPRETATION_ERROR
-	InterpretationMultiband Interpretation = C.VIPS_INTERPRETATION_MULTIBAND
-	InterpretationBW        Interpretation = C.VIPS_INTERPRETATION_B_W
-	InterpretationHistogram Interpretation = C.VIPS_INTERPRETATION_HISTOGRAM
-	InterpretationXYZ       Interpretation = C.VIPS_INTERPRETATION_XYZ
-	InterpretationLAB       Interpretation = C.VIPS_INTERPRETATION_LAB
-	InterpretationCMYK      Interpretation = C.VIPS_INTERPRETATION_CMYK
-	InterpretationLABQ      Interpretation = C.VIPS_INTERPRETATION_LABQ
-	InterpretationRGB       Interpretation = C.VIPS_INTERPRETATION_RGB
-	InterpretationCMC       Interpretation = C.VIPS_INTERPRETATION_CMC
-	InterpretationLCH       Interpretation = C.VIPS_INTERPRETATION_LCH
-	InterpretationLABS      Interpretation = C.VIPS_INTERPRETATION_LABS
-	InterpretationSRGB      Interpretation = C.VIPS_INTERPRETATION_sRGB
-	InterpretationYXY       Interpretation = C.VIPS_INTERPRETATION_YXY
-	InterpretationFourier   Interpretation = C.VIPS_INTERPRETATION_FOURIER
-	InterpretationGB16      Interpretation = C.VIPS_INTERPRETATION_RGB16
-	InterpretationGrey16    Interpretation = C.VIPS_INTERPRETATION_GREY16
-	InterpretationMatrix    Interpretation = C.VIPS_INTERPRETATION_MATRIX
-	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
-	InterpretationHSV       Interpretation = C.VIPS_INTERPRETATION_HSV
 )
 
 // BandFormat represents VIPS_FORMAT type
@@ -351,16 +155,6 @@ const (
 	CodingRAD   Coding = C.VIPS_CODING_RAD
 )
 
-// Access represents VIPS_ACCESS
-type Access int
-
-// Access enum
-const (
-	AccessRandom               Access = C.VIPS_ACCESS_RANDOM
-	AccessSequential           Access = C.VIPS_ACCESS_SEQUENTIAL
-	AccessSequentialUnbuffered Access = C.VIPS_ACCESS_SEQUENTIAL_UNBUFFERED
-)
-
 // OperationMorphology represents VIPS_OPERATION_MORPHOLOGY
 type OperationMorphology int
 
@@ -370,52 +164,10 @@ const (
 	MorphologyDilate OperationMorphology = C.VIPS_OPERATION_MORPHOLOGY_DILATE
 )
 
-var ImageTypes = map[ImageType]string{
-	ImageTypeGIF:    "gif",
-	ImageTypeJPEG:   "jpeg",
-	ImageTypeMagick: "magick",
-	ImageTypePDF:    "pdf",
-	ImageTypePNG:    "png",
-	ImageTypeSVG:    "svg",
-	ImageTypeTIFF:   "tiff",
-	ImageTypeWEBP:   "webp",
-	ImageTypeHEIF:   "heif",
-}
-
 type Composite struct {
 	Image     *ImageRef
 	BlendMode BlendMode
 }
-
-type BlendMode int
-
-const (
-	BlendModeClear      BlendMode = C.VIPS_BLEND_MODE_CLEAR
-	BlendModeSource     BlendMode = C.VIPS_BLEND_MODE_SOURCE
-	BlendModeOver       BlendMode = C.VIPS_BLEND_MODE_OVER
-	BlendModeIn         BlendMode = C.VIPS_BLEND_MODE_IN
-	BlendModeOut        BlendMode = C.VIPS_BLEND_MODE_OUT
-	BlendModeAtop       BlendMode = C.VIPS_BLEND_MODE_ATOP
-	BlendModeDest       BlendMode = C.VIPS_BLEND_MODE_DEST
-	BlendModeDestOver   BlendMode = C.VIPS_BLEND_MODE_DEST_OVER
-	BlendModeDestIn     BlendMode = C.VIPS_BLEND_MODE_DEST_IN
-	BlendModeDestOut    BlendMode = C.VIPS_BLEND_MODE_DEST_OUT
-	BlendModeDestAtop   BlendMode = C.VIPS_BLEND_MODE_DEST_ATOP
-	BlendModeXOR        BlendMode = C.VIPS_BLEND_MODE_XOR
-	BlendModeAdd        BlendMode = C.VIPS_BLEND_MODE_ADD
-	BlendModeSaturate   BlendMode = C.VIPS_BLEND_MODE_SATURATE
-	BlendModeMultiply   BlendMode = C.VIPS_BLEND_MODE_MULTIPLY
-	BlendModeScreen     BlendMode = C.VIPS_BLEND_MODE_SCREEN
-	BlendModeOverlay    BlendMode = C.VIPS_BLEND_MODE_OVERLAY
-	BlendModeDarken     BlendMode = C.VIPS_BLEND_MODE_DARKEN
-	BlendModeLighten    BlendMode = C.VIPS_BLEND_MODE_LIGHTEN
-	BlendModeColorDodge BlendMode = C.VIPS_BLEND_MODE_COLOUR_DODGE
-	BlendModeColorBurn  BlendMode = C.VIPS_BLEND_MODE_COLOUR_BURN
-	BlendModeHardLight  BlendMode = C.VIPS_BLEND_MODE_HARD_LIGHT
-	BlendModeSoftLight  BlendMode = C.VIPS_BLEND_MODE_SOFT_LIGHT
-	BlendModeDifference BlendMode = C.VIPS_BLEND_MODE_DIFFERENCE
-	BlendModeExclusion  BlendMode = C.VIPS_BLEND_MODE_EXCLUSION
-)
 
 // Size represents VIPS_SIZE type
 type Size int
@@ -428,42 +180,3 @@ const (
 	SizeForce Size = C.VIPS_SIZE_FORCE
 	SizeLast  Size = C.VIPS_SIZE_LAST
 )
-
-var (
-	once                sync.Once
-	typeLoaders         = make(map[string]ImageType)
-	supportedImageTypes = make(map[ImageType]bool)
-)
-
-// InitTypes initializes caches and figures out which image types are supported
-func initTypes() {
-	once.Do(func() {
-		cType := C.CString("VipsOperation")
-		defer freeCString(cType)
-
-		for k, v := range ImageTypes {
-			name := strings.ToLower("VipsForeignLoad" + v)
-			typeLoaders[name] = k
-			typeLoaders[name+"buffer"] = k
-
-			cFunc := C.CString(v + "load")
-			//noinspection GoDeferInLoop
-			defer freeCString(cFunc)
-
-			ret := C.vips_type_find(cType, cFunc)
-
-			supportedImageTypes[k] = int(ret) != 0
-
-			info("Registered image type loader type=%s", v)
-		}
-	})
-}
-
-// DetermineImageType attempts to determine the image type of the given buffer
-func DetermineImageType(buf []byte) ImageType {
-	return vipsDetermineImageType(buf)
-}
-
-func IsTypeSupported(imageType ImageType) bool {
-	return supportedImageTypes[imageType]
-}

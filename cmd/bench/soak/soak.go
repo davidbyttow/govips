@@ -121,7 +121,7 @@ func soak() {
 
 				_ = img.AutoRotate()
 				_ = img.ExtractArea(10, 10, 300, 300)
-				_ = img.Resize(0.8, 0.8, vips.KernelLanczos3)
+				_ = img.Resize(0.8, vips.KernelLanczos3)
 				_ = img.Embed(10, 20, 600, 500, vips.ExtendBlack)
 				_, _, err = vips.NewTransform().Resize(w, h).Format(vips.ImageTypeWEBP).ApplyAndExport(img)
 
