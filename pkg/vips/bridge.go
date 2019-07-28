@@ -89,6 +89,14 @@ func vipsHasProfile(input *C.VipsImage) bool {
 	return int(C.has_profile_embed(input)) > 0
 }
 
+func vipsHasPages(input *C.VipsImage) bool {
+	return int(C.has_pages_embed(input)) > 0
+}
+
+func vipsGetPages(input *C.VipsImage) int {
+	return int(C.get_pages(input))
+}
+
 func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {
 	if params.StripProfile && vipsHasProfile(input) {
 		C.remove_icc_profile(input)

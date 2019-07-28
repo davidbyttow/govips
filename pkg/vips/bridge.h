@@ -35,6 +35,9 @@ typedef struct {
 
 typedef struct {
 	int access;
+	int Page;
+	int N;
+	double DPI;
 } ImageLoadOptions;
 
 int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsImage **out);
@@ -51,6 +54,8 @@ int copy_image(VipsImage *in, VipsImage **out);
 int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space);
 int is_colorspace_supported(VipsImage *in);
 unsigned long has_profile_embed(VipsImage *in);
+unsigned long has_pages_embed(VipsImage *in);
+int get_pages(VipsImage *in);
 int remove_icc_profile(VipsImage *in);
 int extract_band(VipsImage *in, VipsImage **out, int band, int num);
 int linear1(VipsImage *in, VipsImage **out, double a, double b);

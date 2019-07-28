@@ -26,6 +26,16 @@ type ImageRef struct {
 
 type LoadOption func(o *vipsLoadOptions)
 
+// Image with PDF LoadOptions
+func WithPDFOptions(Page int, N int, DPI int) LoadOption {
+	return func(o *vipsLoadOptions) {
+		o.cOpts.access = C.VIPS_ACCESS_RANDOM
+		o.cOpts.Page = C.int(Page)
+		o.cOpts.N = C.int(N)
+		o.cOpts.DPI = C.double(DPI)
+	}
+}
+
 func WithAccessMode(a Access) LoadOption {
 	return func(o *vipsLoadOptions) {
 		switch a {
@@ -185,6 +195,15 @@ func (ref *ImageRef) Export(params ExportParams) ([]byte, ImageType, error) {
 // HasProfile returns if the image has an ICC profile embedded.
 func (ref *ImageRef) HasProfile() bool {
 	return vipsHasProfile(ref.image)
+}
+
+// GetPages returns pages per VIPS_META_N_PAGES in the profile
+// Only for Type PDF
+func (ref *ImageRef) GetPages() int {
+	if !vipsHasPages(ref.image) {
+		return -1
+	}
+	return vipsGetPages(ref.image)
 }
 
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.

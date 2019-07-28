@@ -21,7 +21,13 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 	} else if (imageType == GIF) {
 		code = vips_gifload_buffer(buf, len, out, "access", o->access, NULL);
 	} else if (imageType == PDF) {
-		code = vips_pdfload_buffer(buf, len, out, "access", o->access, NULL);
+		code = vips_pdfload_buffer(buf, len, out,
+ 			"access", o->access,
+ 			"page", o->Page,
+ 			"n", o->N,
+ 			"dpi", o->DPI,
+ 			NULL
+		);
 	} else if (imageType == SVG) {
 		code = vips_svgload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
@@ -35,6 +41,27 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 
 unsigned long has_profile_embed(VipsImage *in) {
 	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
+}
+
+unsigned long has_pages_embed(VipsImage *in) {
+	return vips_image_get_typeof(in, VIPS_META_N_PAGES);
+}
+
+int get_pages(VipsImage *in) {
+  	GValue value = { 0 };
+  	int d;
+
+	if (vips_image_get (in, VIPS_META_N_PAGES, &value))
+	  return -1;
+
+	// if (G_VALUE_TYPE (&value) != G_TYPE_DOUBLE) {
+	//   g_value_unset (&value);
+	//   return -1;
+	// }
+
+	d = g_value_get_int (&value);
+	g_value_unset (&value);
+  return d;
 }
 
 int remove_icc_profile(VipsImage *in) {
