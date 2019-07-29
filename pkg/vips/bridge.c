@@ -54,11 +54,6 @@ int get_pages(VipsImage *in) {
 	if (vips_image_get (in, VIPS_META_N_PAGES, &value))
 	  return -1;
 
-	// if (G_VALUE_TYPE (&value) != G_TYPE_DOUBLE) {
-	//   g_value_unset (&value);
-	//   return -1;
-	// }
-
 	d = g_value_get_int (&value);
 	g_value_unset (&value);
   return d;
