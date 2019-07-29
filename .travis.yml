@@ -44,7 +44,7 @@ before_install:
     test -d libvips-${VIPS_VERSION} && {
       cd libvips-${VIPS_VERSION}
     } || {
-      wget https://github.com/jcupitt/libvips/archive/v${VIPS_VERSION}.zip
+      wget https://github.com/libvips/libvips/archive/v${VIPS_VERSION}.zip
       unzip v${VIPS_VERSION}
       cd libvips-${VIPS_VERSION}
       test -f autogen.sh && ./autogen.sh || ./bootstrap.sh
