@@ -8,7 +8,7 @@ go:
   - 1.9
 
 env:
-  - VIPS_VERSION=8.6.2
+  - VIPS_VERSION=8.8.1
 
 matrix:
   allow_failures:
