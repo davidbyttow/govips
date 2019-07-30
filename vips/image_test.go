@@ -205,8 +205,6 @@ func TestImageRef_Close(t *testing.T) {
 
 	assert.Nil(t, image.image)
 
-	// todo: how do I check that vips GC it as well?
-
 	PrintObjectReport("Final")
 }
 

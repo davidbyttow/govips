@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"runtime"
+	"sync"
 	"unsafe"
 )
 
@@ -23,6 +23,7 @@ const (
 type ImageRef struct {
 	image  *C.VipsImage
 	format ImageType
+	lock   sync.Mutex
 
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
@@ -103,14 +104,14 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 		format: format,
 		buf:    buf,
 	}
-	runtime.SetFinalizer(image, finalizeImage)
+	//runtime.SetFinalizer(image, finalizeImage)
 
 	return image
 }
 
-func finalizeImage(ref *ImageRef) {
-	ref.Close()
-}
+//func finalizeImage(ref *ImageRef) {
+//	ref.Close()
+//}
 
 // Close closes an image and frees internal memory associated with it
 func (r *ImageRef) Close() {
@@ -450,16 +451,19 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 // setImage resets the image for this image and frees the previous one
 func (r *ImageRef) setImage(image *C.VipsImage) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
 	if r.image == image {
 		return
 	}
 
 	un := r.image
-	if un != nil {
-		defer unrefImage(un)
-	}
-
 	r.image = image
+
+	if un != nil {
+		unrefImage(un)
+	}
 }
 
 func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error) {
