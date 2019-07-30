@@ -446,7 +446,7 @@ func (b *blackboard) resize() error {
 	kernel := b.ReductionSampler
 
 	// Check for the simple scale down cases
-	if b.targetScale != 0 {
+	if b.targetScale != 0 && b.targetScale != 1 {
 		err := b.image.Resize(b.targetScale, kernel)
 		if err != nil {
 			return err
