@@ -43,10 +43,6 @@ type ExportParams struct {
 	Compression int
 	Interlaced  bool
 	Lossless    bool
-	//StripProfile    bool
-	//StripMetadata   bool
-	Interpretation  Interpretation
-	BackgroundColor *Color
 }
 
 // NewImageFromReader loads an ImageRef from the given reader
@@ -477,27 +473,6 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	if params.Compression == 0 {
 		params.Compression = defaultCompression
-	}
-
-	if params.Interpretation == 0 {
-		params.Interpretation = r.Interpretation()
-	}
-
-	// Apply the proper colour space
-	// todo: move to calling transform, this mutates the image...
-	if r.IsColorSpaceSupported() && params.Interpretation != r.Interpretation() {
-		err = r.ToColorSpace(params.Interpretation)
-		if err != nil {
-			return nil, ImageTypeUnknown, err
-		}
-	}
-
-	// todo: move to calling transform, this mutates the image...
-	if params.BackgroundColor != nil && r.HasAlpha() {
-		err = r.Flatten(params.BackgroundColor)
-		if err != nil {
-			return nil, ImageTypeUnknown, err
-		}
 	}
 
 	switch format {

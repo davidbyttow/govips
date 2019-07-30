@@ -68,6 +68,8 @@ type TransformParams struct {
 	SharpM2                 float64
 	StripProfile            bool
 	StripMetadata           bool
+	Interpretation          Interpretation
+	BackgroundColor         *Color
 }
 
 // Transform handles single image transformations
@@ -84,11 +86,11 @@ func NewTransform() *Transform {
 			CropAnchor:              AnchorAuto,
 			ReductionSampler:        KernelLanczos3,
 			EnlargementInterpolator: InterpolateBicubic,
+			Interpretation:          InterpretationSRGB,
 		},
 		exportParams: &ExportParams{
-			Format:         ImageTypeUnknown,
-			Quality:        90,
-			Interpretation: InterpretationSRGB,
+			Format:  ImageTypeUnknown,
+			Quality: 90,
 		},
 	}
 }
@@ -319,13 +321,13 @@ func (t *Transform) StripProfile() *Transform {
 // BackgroundColor sets the background color of the image when a transparent
 // image is flattened
 func (t *Transform) BackgroundColor(color *Color) *Transform {
-	t.exportParams.BackgroundColor = color
+	t.transformParams.BackgroundColor = color
 	return t
 }
 
 // Interpretation sets interpretation for image
 func (t *Transform) Interpretation(interpretation Interpretation) *Transform {
-	t.exportParams.Interpretation = interpretation
+	t.transformParams.Interpretation = interpretation
 	return t
 }
 
@@ -657,6 +659,21 @@ func (b *blackboard) postProcess() error {
 
 	if b.Label != nil {
 		err = b.image.Label(b.Label)
+		if err != nil {
+			return err
+		}
+	}
+
+	// Apply the proper colour space
+	if b.image.IsColorSpaceSupported() && b.Interpretation != b.image.Interpretation() {
+		err = b.image.ToColorSpace(b.Interpretation)
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.BackgroundColor != nil && b.image.HasAlpha() {
+		err = b.image.Flatten(b.BackgroundColor)
 		if err != nil {
 			return err
 		}
