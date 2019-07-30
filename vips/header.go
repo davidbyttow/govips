@@ -12,6 +12,10 @@ func vipsRemoveICCProfile(in *C.VipsImage) bool {
 	return fromGboolean(C.remove_icc_profile(in))
 }
 
+func vipsRemoveMetadata(in *C.VipsImage) {
+	C.remove_metadata(in)
+}
+
 func vipsGetMetaOrientation(in *C.VipsImage) int {
 	return int(C.get_meta_orientation(in))
 }

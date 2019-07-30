@@ -66,6 +66,8 @@ type TransformParams struct {
 	SharpSigma              float64
 	SharpX1                 float64
 	SharpM2                 float64
+	StripProfile            bool
+	StripMetadata           bool
 }
 
 // Transform handles single image transformations
@@ -304,13 +306,13 @@ func (t *Transform) Lossless() *Transform {
 
 // StripMetadata strips metadata from the image
 func (t *Transform) StripMetadata() *Transform {
-	t.exportParams.StripMetadata = true
+	t.transformParams.StripMetadata = true
 	return t
 }
 
 // StripProfile strips ICC profile from the image
 func (t *Transform) StripProfile() *Transform {
-	t.exportParams.StripProfile = true
+	t.transformParams.StripProfile = true
 	return t
 }
 
@@ -655,6 +657,20 @@ func (b *blackboard) postProcess() error {
 
 	if b.Label != nil {
 		err = b.image.Label(b.Label)
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.StripMetadata {
+		err = b.image.RemoveMetadata()
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.StripProfile {
+		err = b.image.RemoveICCProfile()
 		if err != nil {
 			return err
 		}

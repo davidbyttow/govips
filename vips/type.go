@@ -164,11 +164,6 @@ const (
 	MorphologyDilate OperationMorphology = C.VIPS_OPERATION_MORPHOLOGY_DILATE
 )
 
-type Composite struct {
-	Image     *ImageRef
-	BlendMode BlendMode
-}
-
 // Size represents VIPS_SIZE type
 type Size int
 

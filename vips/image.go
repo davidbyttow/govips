@@ -38,13 +38,13 @@ type ImageMetadata struct {
 
 // ExportParams are options when exporting an image to file or buffer
 type ExportParams struct {
-	Format          ImageType
-	Quality         int
-	Compression     int
-	Interlaced      bool
-	Lossless        bool
-	StripProfile    bool
-	StripMetadata   bool
+	Format      ImageType
+	Quality     int
+	Compression int
+	Interlaced  bool
+	Lossless    bool
+	//StripProfile    bool
+	//StripMetadata   bool
 	Interpretation  Interpretation
 	BackgroundColor *Color
 }
@@ -313,6 +313,13 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
+// won't remove the ICC profile
+func (r *ImageRef) RemoveMetadata() error {
+	vipsRemoveMetadata(r.image)
+	// this works in place on the header
+	return nil
+}
+
 func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
 	out, err := vipsToColorSpace(r.image, interpretation)
 	if err != nil {
@@ -476,14 +483,8 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 		params.Interpretation = r.Interpretation()
 	}
 
-	if params.StripProfile {
-		err = r.RemoveICCProfile()
-		if err != nil {
-			return nil, ImageTypeUnknown, err
-		}
-	}
-
 	// Apply the proper colour space
+	// todo: move to calling transform, this mutates the image...
 	if r.IsColorSpaceSupported() && params.Interpretation != r.Interpretation() {
 		err = r.ToColorSpace(params.Interpretation)
 		if err != nil {
@@ -491,6 +492,7 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 		}
 	}
 
+	// todo: move to calling transform, this mutates the image...
 	if params.BackgroundColor != nil && r.HasAlpha() {
 		err = r.Flatten(params.BackgroundColor)
 		if err != nil {
@@ -500,16 +502,16 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	switch format {
 	case ImageTypeWEBP:
-		buf, err = vipsSaveWebPToBuffer(r.image, params.StripMetadata, params.Quality, params.Lossless)
+		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless)
 	case ImageTypePNG:
-		buf, err = vipsSavePNGToBuffer(r.image, params.StripMetadata, params.Compression, params.Quality, params.Interlaced)
+		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Quality, params.Interlaced)
 	case ImageTypeTIFF:
 		buf, err = vipsSaveTIFFToBuffer(r.image)
 	case ImageTypeHEIF:
 		buf, err = vipsSaveHEIFToBuffer(r.image, params.Quality, params.Lossless)
 	default:
 		format = ImageTypeJPEG
-		buf, err = vipsSaveJPEGToBuffer(r.image, params.Quality, params.StripMetadata, params.Interlaced)
+		buf, err = vipsSaveJPEGToBuffer(r.image, params.Quality, false, params.Interlaced)
 	}
 
 	if err != nil {

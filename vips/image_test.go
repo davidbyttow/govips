@@ -125,6 +125,19 @@ func TestImageRef_HasProfile__False(t *testing.T) {
 	assert.False(t, got)
 }
 
+func TestImageRef_RemoveMetadata(t *testing.T) {
+	Startup(nil)
+
+	img, err := NewImageFromFile(resources + "adobe-rgb.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	err = img.RemoveMetadata()
+	require.NoError(t, err)
+
+	assert.True(t, img.HasProfile())
+}
+
 func TestImageRef_Close(t *testing.T) {
 	Startup(nil)
 

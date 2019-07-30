@@ -9,140 +9,123 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestTransform(t *testing.T) {
-	Startup(nil)
-
-	in, err := NewImageFromFile(resources + "canyon.jpg")
-	require.NoError(t, err)
-
-	buf, metadata, err := NewTransform().
-		Scale(0.25).
-		ApplyAndExport(in)
-
-	require.NoError(t, err)
-	require.True(t, len(buf) > 0)
-	assert.Equal(t, metadata.Format, ImageTypeJPEG)
-
-	out, err := NewImageFromBuffer(buf)
-	require.NoError(t, err)
-
-	assert.Equal(t, 640, out.Width())
-	assert.Equal(t, 400, out.Height())
-
-	in.Close()
-	out.Close()
-
-	PrintObjectReport("Final")
-}
-
-func TestResize(t *testing.T) {
+func TestTransform_Resize(t *testing.T) {
 	goldenTest(t, resources+"shapes.png", func(tx *Transform) {
 		tx.Resize(512, 256)
 	})
 }
 
-func TestFlatten(t *testing.T) {
+func TestTransform_Flatten(t *testing.T) {
 	goldenTest(t, resources+"shapes.png", func(tx *Transform) {
-		tx.BackgroundColor(&Color{R: 255, G: 192, B: 203}).StripProfile()
+		tx.BackgroundColor(&Color{R: 255, G: 192, B: 203})
 	})
 }
 
-func TestResizeWithICC(t *testing.T) {
+func TestTransform_Resize_RetainICC(t *testing.T) {
 	goldenTest(t, resources+"icc.jpg", func(tx *Transform) {
+		tx.ResizeWidth(300).StripMetadata()
+	})
+}
+
+func TestTransform_Resize_StripICC(t *testing.T) {
+	goldenTest(t, resources+"icc.jpg", func(tx *Transform) {
+		tx.ResizeWidth(300).StripProfile()
+	})
+}
+
+func TestTransform_AdobeRGB_sRGB_StripICC(t *testing.T) {
+	goldenTest(t, resources+"adobe-rgb.jpg", func(tx *Transform) {
+		tx.StripProfile()
+	})
+}
+
+func TestTransform_AdobeRGB_sRGB_StripMetadata(t *testing.T) {
+	// this strips the ICC profile as well
+	goldenTest(t, resources+"adobe-rgb.jpg", func(tx *Transform) {
 		tx.StripMetadata()
-		tx.ResizeWidth(300)
 	})
 }
 
-func TestResizeAndStripICC(t *testing.T) {
-	goldenTest(t, resources+"icc.jpg", func(tx *Transform) {
-		tx.StripMetadata().ResizeWidth(300).StripProfile()
+func TestTransform_AdobeRGB_sRGB_Resize_RetainMetadata(t *testing.T) {
+	// this strips the ICC profile as well
+	goldenTest(t, resources+"adobe-rgb.jpg", func(tx *Transform) {
+		tx.Resize(1000, 1000)
 	})
 }
 
-func TestResizeCrop(t *testing.T) {
+func TestTransform_Resize_Crop(t *testing.T) {
 	goldenTest(t, resources+"colors.png", func(tx *Transform) {
-		tx.Resize(100, 300).
-			ResizeStrategy(ResizeStrategyCrop)
+		tx.Resize(100, 300).ResizeStrategy(ResizeStrategyCrop)
 	})
 }
 
-func TestResizeShapes(t *testing.T) {
+func TestTransform_ResizeShapes(t *testing.T) {
 	goldenTest(t, resources+"shapes.png", func(tx *Transform) {
 		tx.Resize(341, 256)
 	})
 }
 
-func TestRelativeResizeShapes(t *testing.T) {
+func TestTransform_RelativeResizeShapes(t *testing.T) {
 	goldenTest(t, resources+"shapes.png", func(tx *Transform) {
 		tx.ScaleHeight(0.5)
 	})
 }
 
-func TestCenterCrop(t *testing.T) {
+func TestTransform_CenterCrop(t *testing.T) {
 	goldenTest(t, resources+"shapes.png", func(tx *Transform) {
-		tx.Resize(341, 256).
-			ResizeStrategy(ResizeStrategyCrop)
+		tx.Resize(341, 256).ResizeStrategy(ResizeStrategyCrop)
 	})
 }
 
-func TestBottomRightCrop(t *testing.T) {
+func TestTransform_BottomRightCrop(t *testing.T) {
 	goldenTest(t, resources+"shapes.png", func(tx *Transform) {
-		tx.Resize(341, 256).
-			ResizeStrategy(ResizeStrategyCrop).
-			Anchor(AnchorBottomRight)
+		tx.Resize(341, 256).ResizeStrategy(ResizeStrategyCrop).Anchor(AnchorBottomRight)
 	})
 }
 
-func TestOffsetCrop(t *testing.T) {
+func TestTransform_OffsetCrop(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
-		tx.Resize(500, 720).
-			CropOffsetX(120).
-			ResizeStrategy(ResizeStrategyCrop)
+		tx.Resize(500, 720).CropOffsetX(120).ResizeStrategy(ResizeStrategyCrop)
 	})
 }
 
-func TestOffsetCropBounds(t *testing.T) {
+func TestTransform_OffsetCropBounds(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
-		tx.Resize(100, 100).
-			CropOffsetX(120).
-			ResizeStrategy(ResizeStrategyCrop)
+		tx.Resize(100, 100).CropOffsetX(120).ResizeStrategy(ResizeStrategyCrop)
 	})
 }
 
-func TestRelativeOffsetCrop(t *testing.T) {
+func TestTransform_RelativeOffsetCrop(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
-		tx.Resize(500, 720).
-			CropRelativeOffsetX(0.1066).
-			ResizeStrategy(ResizeStrategyCrop)
+		tx.Resize(500, 720).CropRelativeOffsetX(0.1066).ResizeStrategy(ResizeStrategyCrop)
 	})
 }
 
-func TestRotate(t *testing.T) {
+func TestTransform_Rotate(t *testing.T) {
 	goldenTest(t, resources+"canyon.jpg", func(tx *Transform) {
 		tx.Rotate(Angle90)
 	})
 }
 
-func TestAutoRotate(t *testing.T) {
+func TestTransform_AutoRotate(t *testing.T) {
 	goldenTest(t, resources+"canyon.jpg", func(tx *Transform) {
 		tx.AutoRotate()
 	})
 }
 
-func TestScale3x(t *testing.T) {
+func TestTransform_Scale3x(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
 		tx.Scale(3.0)
 	})
 }
 
-func TestMaxScale(t *testing.T) {
+func TestTransform_MaxScale(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
 		tx.MaxScale(1.0).ResizeWidth(100000)
 	})
 }
 
-func TestOverlay(t *testing.T) {
+func TestTransform_Overlay(t *testing.T) {
 	if testing.Short() {
 		return
 	}
@@ -173,7 +156,7 @@ func TestOverlay(t *testing.T) {
 	assertGoldenMatch(t, resources+"tomatoes.png", buf)
 }
 
-func TestBandJoin(t *testing.T) {
+func TestTransform_BandJoin(t *testing.T) {
 	image1, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
 	defer image1.Close()

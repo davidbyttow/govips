@@ -74,7 +74,7 @@ int find_image_type_saver(int t) {
 }
 
 int save_jpeg_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int interlace) {
-	return vips_jpegsave_buffer(in, buf, len,
+    return vips_jpegsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),
 		"Q", quality,
 		"optimize_coding", TRUE,
