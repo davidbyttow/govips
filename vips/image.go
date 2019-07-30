@@ -450,8 +450,12 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 // setImage resets the image for this image and frees the previous one
 func (r *ImageRef) setImage(image *C.VipsImage) {
-	if r.image != nil || r.image != image {
-		un := r.image
+	if r.image == image {
+		return
+	}
+
+	un := r.image
+	if un != nil {
 		defer unrefImage(un)
 	}
 

@@ -3,6 +3,7 @@ package vips
 import (
 	"bytes"
 	"io/ioutil"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -138,21 +139,6 @@ func TestImageRef_RemoveMetadata(t *testing.T) {
 	assert.True(t, img.HasProfile())
 }
 
-func TestImageRef_Close(t *testing.T) {
-	Startup(nil)
-
-	image, err := NewImageFromFile(resources + "test.png")
-	assert.NoError(t, err)
-
-	image.Close()
-
-	assert.Nil(t, image.image)
-
-	// todo: how do I check that vips GC it as well?
-
-	PrintObjectReport("Final")
-}
-
 func TestImageRef_Linear1(t *testing.T) {
 	image, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
@@ -207,4 +193,35 @@ func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 	o := image.GetOrientation()
 
 	assert.Equal(t, 0, o)
+}
+
+func TestImageRef_Close(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "test.png")
+	assert.NoError(t, err)
+
+	image.Close()
+
+	assert.Nil(t, image.image)
+
+	// todo: how do I check that vips GC it as well?
+
+	PrintObjectReport("Final")
+}
+
+func TestImageRef_Close__AlreadyClosed(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "test.png")
+	assert.NoError(t, err)
+
+	image.Close()
+	assert.Nil(t, image.image)
+
+	runtime.GC()
+
+	image.Close()
+
+	runtime.GC()
 }
