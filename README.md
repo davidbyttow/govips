@@ -2,11 +2,9 @@
 
 
 ## A libvips library for Go
-This package wraps the core functionality of [libvips](https://github.com/libvips/libvips) image processing library by exposing all image operations on first-class types in Go. Additionally, it exposes raw access to call operations directly, for forward compatibility.
+This package wraps the core functionality of [libvips](https://github.com/libvips/libvips) image processing library by exposing all image operations on first-class types in Go.
 
 How fast is libvips? See this: [Speed and Memory Use](https://github.com/libvips/libvips/wiki/Speed-and-memory-use)
-
-This library was inspired primarily based on the C++ wrapper in libvips.
 
 The intent for this is to enable developers to build extremely fast image processors in Go, which is suited well for concurrent requests.
 
