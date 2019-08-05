@@ -18,17 +18,16 @@ const (
 	defaultCompression = 6
 )
 
-// ImageRef contains a libvips image and manages its lifecycle. You should
-// close an image when done or it will leak until the next GC
+// ImageRef contains a libvips image and manages its lifecycle. You need to
+// close an image when done or it will leak
 type ImageRef struct {
-	image  *C.VipsImage
-	format ImageType
-	lock   sync.Mutex
-
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf []byte
+	buf    []byte
+	image  *C.VipsImage
+	format ImageType
+	lock   sync.Mutex
 }
 
 type ImageMetadata struct {
@@ -104,19 +103,24 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 		format: format,
 		buf:    buf,
 	}
-	//runtime.SetFinalizer(image, finalizeImage)
 
 	return image
 }
 
-//func finalizeImage(ref *ImageRef) {
-//	ref.Close()
-//}
-
 // Close closes an image and frees internal memory associated with it
 func (r *ImageRef) Close() {
-	r.setImage(nil)
+	r.lock.Lock()
+
+	info("close %p", r.image)
+	if r.image != nil {
+		info("unref %p", r.image)
+		unrefImage(r.image)
+		r.image = nil
+	}
+
 	r.buf = nil
+
+	r.lock.Unlock()
 }
 
 // Format returns the initial format of the vips image when loaded
@@ -458,12 +462,11 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 		return
 	}
 
-	un := r.image
-	r.image = image
-
-	if un != nil {
-		unrefImage(un)
+	if r.image != nil {
+		unrefImage(r.image)
 	}
+
+	r.image = image
 }
 
 func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error) {

@@ -2,12 +2,11 @@ package vips
 
 import (
 	"bytes"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"runtime"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 // todo: add missing tests...
@@ -176,6 +175,8 @@ func TestImageRef_Embed(t *testing.T) {
 }
 
 func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
+	Startup(nil)
+
 	image, err := NewImageFromFile(resources + "rotate.jpg")
 	require.NoError(t, err)
 	defer image.Close()
@@ -186,6 +187,8 @@ func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 }
 
 func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
+	Startup(nil)
+
 	image, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
 	defer image.Close()
@@ -193,6 +196,39 @@ func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 	o := image.GetOrientation()
 
 	assert.Equal(t, 0, o)
+}
+
+func TestImageRef_ExtractArea(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "tomatoes.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.ExtractArea(1, 2, 3, 4)
+	require.NoError(t, err)
+}
+
+func TestImageRef_ExtractArea__Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "tomatoes.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.ExtractArea(1, 2, 10000, 4)
+	require.Error(t, err)
+}
+
+func TestImageRef_Resize__Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "tomatoes.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.Resize(-1, KernelLanczos3)
+	require.Error(t, err)
 }
 
 func TestImageRef_Close(t *testing.T) {
@@ -214,12 +250,29 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	image, err := NewImageFromFile(resources + "test.png")
 	assert.NoError(t, err)
 
+	go image.Close()
+	go image.Close()
+	go image.Close()
+	go image.Close()
+	defer image.Close()
 	image.Close()
+
 	assert.Nil(t, image.image)
-
 	runtime.GC()
+}
 
-	image.Close()
+func TestImageRef_NotImage(t *testing.T) {
+	Startup(nil)
 
-	runtime.GC()
+	image, err := NewImageFromFile(resources + "not-image.txt")
+	require.Error(t, err)
+	require.Nil(t, image)
+}
+
+func TestImageRef_Suspect1(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "suspect-1.png")
+	require.Error(t, err)
+	require.Nil(t, image)
 }
