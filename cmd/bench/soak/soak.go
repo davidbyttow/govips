@@ -18,7 +18,7 @@ import (
 )
 
 var (
-	batchFlag        = flag.Int("batch", 10, "Transforms per batch")
+	batchFlag        = flag.Int("batch", 50, "Transforms per batch")
 	varianceFlag     = flag.Int("variance", 10, "Target height and width variance")
 	delayFlag        = flag.Int("delay", 10, "Delay in milliseconds between batches")
 	limitFlag        = flag.Int("limit", 100, "Total number of images to process. 0 = infinite")

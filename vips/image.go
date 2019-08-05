@@ -111,9 +111,9 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 func (r *ImageRef) Close() {
 	r.lock.Lock()
 
-	info("close %p", r.image)
+	//info("close %p", r.image)
 	if r.image != nil {
-		info("unref %p", r.image)
+		info("close - unref %p", r.image)
 		unrefImage(r.image)
 		r.image = nil
 	}
@@ -458,11 +458,13 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
+	//info("set image in %p, out %p", image, r.image)
 	if r.image == image {
 		return
 	}
 
 	if r.image != nil {
+		//info("unref %p", r.image)
 		unrefImage(r.image)
 	}
 
