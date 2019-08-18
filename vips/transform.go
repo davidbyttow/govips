@@ -346,7 +346,7 @@ func (t *Transform) Interlaced() *Transform {
 func (t *Transform) Apply(image *ImageRef) (*ImageRef, error) {
 	startupIfNeeded()
 
-	defer ShutdownThread()
+	//defer ShutdownThread()
 
 	return newBlackboard(image, t.transformParams).execute()
 }

@@ -18,17 +18,17 @@ import (
 )
 
 var (
-	batchFlag        = flag.Int("batch", 50, "Transforms per batch")
-	varianceFlag     = flag.Int("variance", 10, "Target height and width variance")
+	batchFlag        = flag.Int("batch", 100, "Transforms per batch")
+	varianceFlag     = flag.Int("variance", 100, "Target height and width variance")
 	delayFlag        = flag.Int("delay", 10, "Delay in milliseconds between batches")
-	limitFlag        = flag.Int("limit", 100, "Total number of images to process. 0 = infinite")
+	limitFlag        = flag.Int("limit", 1000, "Total number of images to process. 0 = infinite")
 	widthFlag        = flag.Int("width", 400, "Target width of each image")
 	heightFlag       = flag.Int("height", 400, "Target height of each image")
 	cacheFlag        = flag.Bool("cache", true, "Cache remote images")
-	concurrencyFlag  = flag.Int("concurrency", 2, "Concurrency level")
+	concurrencyFlag  = flag.Int("concurrency", 16, "Concurrency level")
 	maxCacheMemFlag  = flag.Int("maxCacheMem", 100, "Max cache memory")
 	maxCacheSizeFlag = flag.Int("maxCacheSize", 100, "Max cache size")
-	imageFlag        = flag.String("image", "cmd/bench/soak/dwi.jpg", "Image file to load")
+	imageFlag        = flag.String("image", "cmd/bench/soak/clover.png", "Image file to load")
 	cpuProfileFlag   = flag.String("cpuprofile", "", "write cpu profile `file`")
 	memProfileFlag   = flag.String("memprofile", "", "write memory profile to `file`")
 )
@@ -51,6 +51,7 @@ func main() {
 		ConcurrencyLevel: *concurrencyFlag,
 		MaxCacheMem:      *maxCacheMemFlag,
 		MaxCacheSize:     *maxCacheSizeFlag,
+		MaxCacheFiles:    0,
 		CollectStats:     true,
 	})
 
@@ -119,11 +120,12 @@ func soak() {
 				}
 				defer img.Close()
 
+				_ = img.Metadata()
+				_ = img.GetOrientation()
 				_ = img.AutoRotate()
 				_ = img.ExtractArea(10, 10, 300, 300)
 				_ = img.Resize(0.8, vips.KernelLanczos3)
-				_ = img.Embed(10, 20, 600, 500, vips.ExtendBlack)
-				_, _, err = vips.NewTransform().Resize(w, h).Format(vips.ImageTypeWEBP).ApplyAndExport(img)
+				_, _, err = vips.NewTransform().StripMetadata().Format(vips.ImageTypePNG).ApplyAndExport(img)
 
 				if count%batch == 0 {
 					log.Printf("Processed %d...\n", count)
