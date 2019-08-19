@@ -83,3 +83,14 @@ func Test_DetermineImageType__PDF(t *testing.T) {
 	imageType := DetermineImageType(buf)
 	assert.Equal(t, ImageTypePDF, imageType)
 }
+
+func Test_DetermineImageType__BMP(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := ioutil.ReadFile(resources + "teddy.bmp")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypeBMP, imageType)
+}

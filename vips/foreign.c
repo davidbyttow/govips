@@ -49,8 +49,8 @@ int find_image_loader(int t) {
       return vips_type_find("VipsOperation", "pngload");
     case JPEG:
       return vips_type_find("VipsOperation", "jpegload");
-		case HEIF:
-			return vips_type_find("VipsOperation", "heifload");
+    case HEIF:
+      return vips_type_find("VipsOperation", "heifload");
     case MAGICK:
       return vips_type_find("VipsOperation", "magickload");
   }
@@ -67,8 +67,8 @@ int find_image_type_saver(int t) {
       return vips_type_find("VipsOperation", "pngsave_buffer");
     case JPEG:
       return vips_type_find("VipsOperation", "jpegsave_buffer");
-		case HEIF:
-			return vips_type_find("VipsOperation", "heifsave_buffer");
+    case HEIF:
+      return vips_type_find("VipsOperation", "heifsave_buffer");
   }
 	return 0;
 }

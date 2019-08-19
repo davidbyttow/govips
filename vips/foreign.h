@@ -15,7 +15,8 @@ enum types {
 	PDF,
 	SVG,
 	MAGICK,
-	HEIF
+	HEIF,
+	BMP
 };
 
 int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out);

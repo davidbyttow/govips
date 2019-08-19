@@ -51,6 +51,25 @@ func TestImageRef_Support__HEIF(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
+func TestImageRef_Support__BMP(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "teddy.bmp")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	defer img.Close()
+
+	if assert.NoError(t, err) {
+		assert.NotNil(t, img)
+	}
+
+	_, metadata, err := img.Export(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, ImageTypePNG, metadata.Format)
+}
+
 func TestImageRef_HasAlpha__True(t *testing.T) {
 	Startup(nil)
 
