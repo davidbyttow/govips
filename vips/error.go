@@ -18,7 +18,7 @@ var (
 
 func handleImageError(out *C.VipsImage) error {
 	if out != nil {
-		unrefImage(out)
+		clearImage(out)
 	}
 
 	return handleVipsError()

@@ -4,3 +4,5 @@
 #include <vips/vips.h>
 
 int has_alpha_channel(VipsImage *image);
+
+void clear_image(VipsImage **image);

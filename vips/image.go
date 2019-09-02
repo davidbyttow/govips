@@ -113,8 +113,8 @@ func (r *ImageRef) Close() {
 
 	//info("close %p", r.image)
 	if r.image != nil {
-		info("close - unref %p", r.image)
-		unrefImage(r.image)
+		//info("close - unref %p", r.image)
+		clearImage(r.image)
 		r.image = nil
 	}
 
@@ -465,7 +465,7 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 
 	if r.image != nil {
 		//info("unref %p", r.image)
-		unrefImage(r.image)
+		clearImage(r.image)
 	}
 
 	r.image = image
@@ -513,4 +513,10 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 func vipsHasAlpha(in *C.VipsImage) bool {
 	return int(C.has_alpha_channel(in)) > 0
+}
+
+//////////////
+
+func clearImage(ref *C.VipsImage) {
+	C.clear_image(&ref)
 }
