@@ -15,9 +15,15 @@ func TestTransform_Resize(t *testing.T) {
 	})
 }
 
-func TestTransform_BMP_Alpha(t *testing.T) {
+func TestTransform_BMP__Alpha(t *testing.T) {
 	goldenTest(t, resources+"with-alpha.bmp", func(tx *Transform) {
 		tx.AutoRotate()
+	})
+}
+
+func TestTransform_HEIC__Resize(t *testing.T) {
+	goldenTest(t, resources+"citron.heic", func(tx *Transform) {
+		tx.Resize(512, 256)
 	})
 }
 
