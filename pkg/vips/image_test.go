@@ -171,3 +171,30 @@ func TestImageRef_HasProfile(t *testing.T) {
 		})
 	}
 }
+
+func TestImageRef_HasAlpha(t *testing.T) {
+	tests := []struct {
+		name string
+		path string
+		want bool
+	}{
+		{
+			"image with alpha",
+			"testdata/with_alpha.png",
+			true,
+		},
+		{
+			"image without alpha",
+			"testdata/without_alpha.png",
+			false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ref, err := vips.NewImageFromFile(tt.path)
+			require.NoError(t, err)
+			got := ref.HasAlpha()
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
