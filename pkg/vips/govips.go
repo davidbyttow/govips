@@ -29,6 +29,9 @@ const VipsMajorVersion = int(C.VIPS_MAJOR_VERSION)
 // VipsMinorVersion if the minor version of libvips
 const VipsMinorVersion = int(C.VIPS_MINOR_VERSION)
 
+// ShowDebugLog controls whether debug-level log is printed
+var ShowDebugLog = true
+
 var (
 	running           = false
 	initLock          sync.Mutex
