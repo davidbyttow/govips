@@ -265,6 +265,13 @@ func vipsDetermineImageType(buf []byte) ImageType {
 	if IsTypeSupported(ImageTypeSVG) && buf[0] == 0x3c && buf[1] == 0x3f && buf[2] == 0x78 && buf[3] == 0x6d {
 		return ImageTypeSVG
 	}
+	// ftyp types
+	if IsTypeSupported(ImageTypeHEIF) && buf[4] == 0x66 && buf[5] == 0x74 && buf[6] == 0x79 && buf[7] == 0x70 {
+		ftyp := string(buf[8:12])
+		if ftyp == "heic" || ftyp == "heif" || ftyp == "hevc" || ftyp == "hevx" || ftyp == "heim" || ftyp == "heis" || ftyp == "hevm" || ftyp == "hevs" || ftyp == "mif1" {
+			return ImageTypeHEIF
+		}
+	}
 	return ImageTypeUnknown
 }
 
