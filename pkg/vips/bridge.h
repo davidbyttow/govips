@@ -17,7 +17,8 @@ enum types {
 	GIF,
 	PDF,
 	SVG,
-	MAGICK
+	MAGICK,
+	HEIF
 };
 typedef struct {
   const char *Text;

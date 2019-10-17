@@ -96,6 +96,7 @@ const (
 	ImageTypeGIF     ImageType = C.GIF
 	ImageTypeJPEG    ImageType = C.JPEG
 	ImageTypeMagick  ImageType = C.MAGICK
+	ImageTypeHEIF    ImageType = C.HEIF
 	ImageTypePDF     ImageType = C.PDF
 	ImageTypePNG     ImageType = C.PNG
 	ImageTypeSVG     ImageType = C.SVG
@@ -107,6 +108,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeGIF:    ".gif",
 	ImageTypeJPEG:   ".jpeg",
 	ImageTypeMagick: ".magick",
+	ImageTypeHEIF:   ".heif",
 	ImageTypePDF:    ".pdf",
 	ImageTypePNG:    ".png",
 	ImageTypeSVG:    ".svg",
@@ -375,6 +377,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeGIF:    "gif",
 	ImageTypeJPEG:   "jpeg",
 	ImageTypeMagick: "magick",
+	ImageTypeHEIF:   "heif",
 	ImageTypePDF:    "pdf",
 	ImageTypePNG:    "png",
 	ImageTypeSVG:    "svg",

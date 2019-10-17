@@ -27,6 +27,8 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 #endif
 	} else if (imageType == MAGICK) {
 		code = vips_magickload_buffer(buf, len, out, "access", o->access, NULL);
+	} else if (imageType == HEIF) {
+		code = vips_heifload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
 	}
 
@@ -208,6 +210,8 @@ int find_image_loader(int t) {
       return vips_type_find("VipsOperation", "jpegload");
     case MAGICK:
       return vips_type_find("VipsOperation", "magickload");
+    case HEIF:
+      return vips_type_find("VipsOperation", "heifload");
   }
 	return 0;
 }
