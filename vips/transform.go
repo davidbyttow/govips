@@ -693,6 +693,13 @@ func (b *blackboard) postProcess() error {
 		}
 	}
 
+	if b.image.HasICCProfile() {
+		err = b.image.InjectICCProfile()
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 

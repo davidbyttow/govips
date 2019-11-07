@@ -314,6 +314,17 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
+func (r *ImageRef) InjectICCProfile() error {
+	out, err := vipsInjectICCProfile(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+
+
 // won't remove the ICC profile
 func (r *ImageRef) RemoveMetadata() error {
 	vipsRemoveMetadata(r.image)
