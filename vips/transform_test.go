@@ -22,7 +22,7 @@ func TestTransform_BMP__Alpha(t *testing.T) {
 }
 
 func TestTransform_HEIC__Resize(t *testing.T) {
-	goldenTest(t, resources+"citron.heic", func(tx *Transform) {
+	goldenTest(t, resources+"sample-1.heic", func(tx *Transform) {
 		tx.Resize(512, 256)
 	})
 }

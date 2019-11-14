@@ -18,10 +18,21 @@ func Test_DetermineImageType__JPEG(t *testing.T) {
 	assert.Equal(t, ImageTypeJPEG, imageType)
 }
 
-func Test_DetermineImageType__HEIF(t *testing.T) {
+func Test_DetermineImageType__HEIF_HEIC(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "citron.heic")
+	buf, err := ioutil.ReadFile(resources + "sample-1.heic")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypeHEIF, imageType)
+}
+
+func Test_DetermineImageType__HEIF_MIF1(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := ioutil.ReadFile(resources + "sample-2.heic")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 

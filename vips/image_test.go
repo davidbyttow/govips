@@ -14,7 +14,7 @@ import (
 func TestImageRef_AccessMode__Default(t *testing.T) {
 	Startup(nil)
 
-	srcBytes, err := ioutil.ReadFile(resources + "test.png")
+	srcBytes, err := ioutil.ReadFile(resources + "sample-1.png")
 	require.NoError(t, err)
 
 	src := bytes.NewReader(srcBytes)
@@ -35,7 +35,26 @@ func TestImageRef_AccessMode__Default(t *testing.T) {
 func TestImageRef_Support__HEIF(t *testing.T) {
 	Startup(nil)
 
-	raw, err := ioutil.ReadFile(resources + "citron.heic")
+	raw, err := ioutil.ReadFile(resources + "sample-1.heic")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	defer img.Close()
+
+	if assert.NoError(t, err) {
+		assert.NotNil(t, img)
+	}
+
+	_, metadata, err := img.Export(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, ImageTypeHEIF, metadata.Format)
+}
+
+func TestImageRef_Support__HEIF_MIF1(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "sample-2.heic")
 	require.NoError(t, err)
 
 	img, err := NewImageFromBuffer(raw)
@@ -84,7 +103,7 @@ func TestImageRef_HasAlpha__True(t *testing.T) {
 func TestImageRef_HasAlpha__False(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "test.png")
+	img, err := NewImageFromFile(resources + "sample-1.png")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -95,7 +114,7 @@ func TestImageRef_HasAlpha__False(t *testing.T) {
 func TestImageRef_AddAlpha(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "test.png")
+	img, err := NewImageFromFile(resources + "sample-1.png")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -253,7 +272,7 @@ func TestImageRef_Resize__Error(t *testing.T) {
 func TestImageRef_Close(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "test.png")
+	image, err := NewImageFromFile(resources + "sample-1.png")
 	assert.NoError(t, err)
 
 	image.Close()
@@ -266,7 +285,7 @@ func TestImageRef_Close(t *testing.T) {
 func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "test.png")
+	image, err := NewImageFromFile(resources + "sample-1.png")
 	assert.NoError(t, err)
 
 	go image.Close()
