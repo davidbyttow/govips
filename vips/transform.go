@@ -70,6 +70,9 @@ type TransformParams struct {
 	StripMetadata           bool
 	Interpretation          Interpretation
 	BackgroundColor         *Color
+	Brightness              float64
+	Saturation              float64
+	Hue                     int
 }
 
 // Transform handles single image transformations
@@ -175,10 +178,17 @@ func (t *Transform) GaussianBlur(sigma float64) *Transform {
 }
 
 // Sharpen applies a sharpen to the image
-func (t *Transform) Sharpen(sigma float64, x1 float64, m2 float64) *Transform {
+func (t *Transform) Sharpen(sigma, x1, m2 float64) *Transform {
 	t.transformParams.SharpSigma = sigma
 	t.transformParams.SharpX1 = x1
 	t.transformParams.SharpM2 = m2
+	return t
+}
+
+func (t *Transform) Modulate(brightness, saturation float64, hue int) *Transform {
+	t.transformParams.Brightness = brightness
+	t.transformParams.Saturation = saturation
+	t.transformParams.Hue = hue
 	return t
 }
 
@@ -638,6 +648,13 @@ func (b *blackboard) postProcess() error {
 
 	if b.SharpSigma > 0 {
 		err = b.image.Sharpen(b.SharpSigma, b.SharpX1, b.SharpM2)
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.Brightness > 0 {
+		err = b.image.Modulate(b.Brightness, b.Saturation, b.Hue)
 		if err != nil {
 			return err
 		}

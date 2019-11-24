@@ -168,6 +168,18 @@ func TestTransform_Overlay(t *testing.T) {
 	assertGoldenMatch(t, resources+"tomatoes.png", buf)
 }
 
+func TestTransform_Modulate(t *testing.T) {
+	goldenTest(t, resources+"canyon.jpg", func(tx *Transform) {
+		tx.Modulate(0.7, 0.5, 180)
+	})
+}
+
+func TestTransform_Modulate__Alpha(t *testing.T) {
+	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
+		tx.Modulate(1.1, 1.2, 0)
+	})
+}
+
 func TestTransform_BandJoin(t *testing.T) {
 	image1, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)

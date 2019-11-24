@@ -188,12 +188,48 @@ func TestImageRef_Linear1(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Linear(t *testing.T) {
+	image, err := NewImageFromFile(resources + "tomatoes.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.Linear([]float64{1.1, 1.2, 1.3, 1.4}, []float64{1, 2, 3, 4})
+	require.NoError(t, err)
+
+	_, _, err = image.Export(nil)
+	require.NoError(t, err)
+}
+
 func TestImageRef_Sharpen(t *testing.T) {
 	image, err := NewImageFromFile(resources + "tomatoes.png")
 	require.NoError(t, err)
 	defer image.Close()
 
 	err = image.Sharpen(3, 4, 5)
+	require.NoError(t, err)
+
+	_, _, err = image.Export(nil)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Modulate__Alpha(t *testing.T) {
+	image, err := NewImageFromFile(resources + "tomatoes.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.Modulate(0.1, 0.2, 90)
+	require.NoError(t, err)
+
+	_, _, err = image.Export(nil)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Modulate(t *testing.T) {
+	image, err := NewImageFromFile(resources + "canyon.jpg")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.Modulate(0.1, 0.2, 90)
 	require.NoError(t, err)
 
 	_, _, err = image.Export(nil)
