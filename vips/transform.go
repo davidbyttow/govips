@@ -73,6 +73,7 @@ type TransformParams struct {
 	Brightness              float64
 	Saturation              float64
 	Hue                     int
+	ModulationInt           Interpretation
 }
 
 // Transform handles single image transformations
@@ -90,6 +91,7 @@ func NewTransform() *Transform {
 			ReductionSampler:        KernelLanczos3,
 			EnlargementInterpolator: InterpolateBicubic,
 			Interpretation:          InterpretationSRGB,
+			ModulationInt:           InterpretationLCH,
 		},
 		exportParams: &ExportParams{
 			Format:  ImageTypeUnknown,
@@ -189,6 +191,15 @@ func (t *Transform) Modulate(brightness, saturation float64, hue int) *Transform
 	t.transformParams.Brightness = brightness
 	t.transformParams.Saturation = saturation
 	t.transformParams.Hue = hue
+	t.transformParams.ModulationInt = InterpretationLCH
+	return t
+}
+
+func (t *Transform) ModulateHSV(brightness, saturation float64, hue int) *Transform {
+	t.transformParams.Brightness = brightness
+	t.transformParams.Saturation = saturation
+	t.transformParams.Hue = hue
+	t.transformParams.ModulationInt = InterpretationHSV
 	return t
 }
 
@@ -654,7 +665,11 @@ func (b *blackboard) postProcess() error {
 	}
 
 	if b.Brightness > 0 {
-		err = b.image.Modulate(b.Brightness, b.Saturation, b.Hue)
+		if b.ModulationInt == InterpretationLCH {
+			err = b.image.Modulate(b.Brightness, b.Saturation, b.Hue)
+		} else {
+			err = b.image.ModulateHSV(b.Brightness, b.Saturation, b.Hue)
+		}
 		if err != nil {
 			return err
 		}

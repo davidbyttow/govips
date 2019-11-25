@@ -416,6 +416,40 @@ func (r *ImageRef) Modulate(brightness, saturation float64, hue int) error {
 	return nil
 }
 
+// Modulate the colors
+func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
+	var err error
+	var multiplications []float64
+	var additions []float64
+
+	colorspace := r.ColorSpace()
+
+	if r.HasAlpha() {
+		multiplications = []float64{1, saturation, brightness, 1}
+		additions = []float64{float64(hue), 0, 0, 0}
+	} else {
+		multiplications = []float64{1, saturation, brightness}
+		additions = []float64{float64(hue), 0, 0}
+	}
+
+	err = r.ToColorSpace(InterpretationHSV)
+	if err != nil {
+		return err
+	}
+
+	err = r.Linear(multiplications, additions)
+	if err != nil {
+		return err
+	}
+
+	err = r.ToColorSpace(colorspace)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Invert executes the 'invert' operation
 func (r *ImageRef) Invert() error {
 	out, err := vipsInvert(r.image)

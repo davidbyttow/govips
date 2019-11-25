@@ -174,9 +174,21 @@ func TestTransform_Modulate(t *testing.T) {
 	})
 }
 
+func TestTransform_Modulate_HSV(t *testing.T) {
+	goldenTest(t, resources+"canyon.jpg", func(tx *Transform) {
+		tx.ModulateHSV(0.7, 0.5, 180)
+	})
+}
+
 func TestTransform_Modulate__Alpha(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
 		tx.Modulate(1.1, 1.2, 0)
+	})
+}
+
+func TestTransform_Modulate__Alpha_HSV(t *testing.T) {
+	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
+		tx.ModulateHSV(1.1, 1.2, 120)
 	})
 }
 
