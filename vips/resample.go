@@ -3,9 +3,8 @@ package vips
 // #cgo pkg-config: vips
 // #include "resample.h"
 import "C"
-import "math"
 
-const maxScaleFactor = 5
+//const maxScaleFactor = 5
 
 // Kernel represents VipsKernel type
 type Kernel int
@@ -25,7 +24,8 @@ func vipsResize(in *C.VipsImage, scale float64, kernel Kernel) (*C.VipsImage, er
 	incOpCounter("resize")
 	var out *C.VipsImage
 
-	scale = math.Min(scale, maxScaleFactor)
+	// we'll deal with it higher in the stack
+	//scale = math.Min(scale, maxScaleFactor)
 
 	if err := C.resize_image(in, &out, C.double(scale), C.double(-1), C.int(kernel)); err != 0 {
 		return nil, handleImageError(out)
@@ -39,9 +39,9 @@ func vipsResizeWithVScale(in *C.VipsImage, scale, vscale float64, kernel Kernel)
 	incOpCounter("resize")
 	var out *C.VipsImage
 
-	// Let's not be insane
-	scale = math.Min(scale, maxScaleFactor)
-	vscale = math.Min(vscale, maxScaleFactor)
+	// we'll deal with it higher in the stack
+	//scale = math.Min(scale, maxScaleFactor)
+	//vscale = math.Min(vscale, maxScaleFactor)
 
 	if err := C.resize_image(in, &out, C.double(scale), C.gdouble(vscale), C.int(kernel)); err != 0 {
 		return nil, handleImageError(out)
