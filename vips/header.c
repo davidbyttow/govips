@@ -29,3 +29,7 @@ int get_meta_orientation(VipsImage *in) {
 
     return orientation;
 }
+
+void set_meta_orientation(VipsImage *in, int orientation) {
+	vips_image_set_int(in, VIPS_META_ORIENTATION, orientation);
+}

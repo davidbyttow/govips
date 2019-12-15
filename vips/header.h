@@ -11,3 +11,4 @@ int remove_icc_profile(VipsImage *in);
 void remove_metadata(VipsImage *in);
 
 int get_meta_orientation(VipsImage *in);
+void set_meta_orientation(VipsImage *in, int orientation);

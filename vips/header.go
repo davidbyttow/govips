@@ -19,3 +19,7 @@ func vipsRemoveMetadata(in *C.VipsImage) {
 func vipsGetMetaOrientation(in *C.VipsImage) int {
 	return int(C.get_meta_orientation(in))
 }
+
+func vipsSetMetaOrientation(in *C.VipsImage, orientation int) {
+	C.set_meta_orientation(in, C.int(orientation))
+}

@@ -68,6 +68,7 @@ type TransformParams struct {
 	SharpM2                 float64
 	StripProfile            bool
 	StripMetadata           bool
+	OverwriteOrientation    int
 	Interpretation          Interpretation
 	BackgroundColor         *Color
 }
@@ -117,6 +118,11 @@ func (t *Transform) CropOffsetX(x int) *Transform {
 // CropOffsetY sets the target offset from the crop position
 func (t *Transform) CropOffsetY(y int) *Transform {
 	t.transformParams.CropOffsetY.SetInt(y)
+	return t
+}
+
+func (t *Transform) SetOverwriteOrientation(o int) *Transform {
+	t.transformParams.OverwriteOrientation = o
 	return t
 }
 
@@ -691,6 +697,10 @@ func (b *blackboard) postProcess() error {
 		if err != nil {
 			return err
 		}
+	}
+
+	if b.OverwriteOrientation > 1 {
+		b.image.SetOrientation(b.OverwriteOrientation)
 	}
 
 	return nil

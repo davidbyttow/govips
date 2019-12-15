@@ -163,6 +163,10 @@ func (r *ImageRef) GetOrientation() int {
 	return vipsGetMetaOrientation(r.image)
 }
 
+func (r *ImageRef) SetOrientation(orientation int) {
+	vipsSetMetaOrientation(r.image, orientation)
+}
+
 // ResX returns the X resolution
 func (r *ImageRef) ResX() float64 {
 	return float64(r.image.Xres)
