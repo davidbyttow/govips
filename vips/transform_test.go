@@ -22,7 +22,7 @@ func TestTransform_BMP__Alpha(t *testing.T) {
 }
 
 func TestTransform_HEIC__Resize(t *testing.T) {
-	goldenTest(t, resources+"citron.heic", func(tx *Transform) {
+	goldenTest(t, resources+"sample-1.heic", func(tx *Transform) {
 		tx.Resize(512, 256)
 	})
 }
@@ -166,6 +166,30 @@ func TestTransform_Overlay(t *testing.T) {
 	buf, _, err := tomatoes.Export(nil)
 	require.NoError(t, err)
 	assertGoldenMatch(t, resources+"tomatoes.png", buf)
+}
+
+func TestTransform_Modulate(t *testing.T) {
+	goldenTest(t, resources+"canyon.jpg", func(tx *Transform) {
+		tx.Modulate(0.7, 0.5, 180)
+	})
+}
+
+func TestTransform_Modulate_HSV(t *testing.T) {
+	goldenTest(t, resources+"canyon.jpg", func(tx *Transform) {
+		tx.ModulateHSV(0.7, 0.5, 180)
+	})
+}
+
+func TestTransform_Modulate__Alpha(t *testing.T) {
+	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
+		tx.Modulate(1.1, 1.2, 0)
+	})
+}
+
+func TestTransform_Modulate__Alpha_HSV(t *testing.T) {
+	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
+		tx.ModulateHSV(1.1, 1.2, 120)
+	})
 }
 
 func TestTransform_BandJoin(t *testing.T) {

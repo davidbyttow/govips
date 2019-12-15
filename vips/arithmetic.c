@@ -8,6 +8,10 @@ int multiply(VipsImage *left, VipsImage *right, VipsImage **out) {
 	return vips_multiply(left, right, out, NULL);
 }
 
+int linear(VipsImage *in, VipsImage **out, double *a, double *b, int n) {
+	return vips_linear(in, out, a, b, n, NULL);
+}
+
 int linear1(VipsImage *in, VipsImage **out, double a, double b) {
 	return vips_linear1(in, out, a, b, NULL);
 }

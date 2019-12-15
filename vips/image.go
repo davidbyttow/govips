@@ -283,6 +283,19 @@ func (r *ImageRef) AddAlpha() error {
 	return nil
 }
 
+func (r *ImageRef) Linear(a, b []float64) error {
+	if len(a) != len(b) {
+		return errors.New("a and b must be of same length")
+	}
+
+	out, err := vipsLinear(r.image, a, b, len(a))
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 func (r *ImageRef) Linear1(a, b float64) error {
 	out, err := vipsLinear1(r.image, a, b)
 	if err != nil {
@@ -315,6 +328,15 @@ func (r *ImageRef) ExtractArea(left int, top int, width int, height int) error {
 func (r *ImageRef) RemoveICCProfile() error {
 	vipsRemoveICCProfile(r.image)
 	// this works in place on the header
+	return nil
+}
+
+func (r *ImageRef) InjectICCProfile() error {
+	out, err := vipsInjectICCProfile(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
 	return nil
 }
 
@@ -361,6 +383,74 @@ func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 		return err
 	}
 	r.setImage(out)
+	return nil
+}
+
+// Modulate the colors
+func (r *ImageRef) Modulate(brightness, saturation float64, hue int) error {
+	var err error
+	var multiplications []float64
+	var additions []float64
+
+	colorspace := r.ColorSpace()
+
+	if r.HasAlpha() {
+		multiplications = []float64{brightness, saturation, 1, 1}
+		additions = []float64{0, 0, float64(hue), 0}
+	} else {
+		multiplications = []float64{brightness, saturation, 1}
+		additions = []float64{0, 0, float64(hue)}
+	}
+
+	err = r.ToColorSpace(InterpretationLCH)
+	if err != nil {
+		return err
+	}
+
+	err = r.Linear(multiplications, additions)
+	if err != nil {
+		return err
+	}
+
+	err = r.ToColorSpace(colorspace)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Modulate the colors
+func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
+	var err error
+	var multiplications []float64
+	var additions []float64
+
+	colorspace := r.ColorSpace()
+
+	if r.HasAlpha() {
+		multiplications = []float64{1, saturation, brightness, 1}
+		additions = []float64{float64(hue), 0, 0, 0}
+	} else {
+		multiplications = []float64{1, saturation, brightness}
+		additions = []float64{float64(hue), 0, 0}
+	}
+
+	err = r.ToColorSpace(InterpretationHSV)
+	if err != nil {
+		return err
+	}
+
+	err = r.Linear(multiplications, additions)
+	if err != nil {
+		return err
+	}
+
+	err = r.ToColorSpace(colorspace)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

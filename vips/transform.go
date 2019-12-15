@@ -71,6 +71,10 @@ type TransformParams struct {
 	OverwriteOrientation    int
 	Interpretation          Interpretation
 	BackgroundColor         *Color
+	Brightness              float64
+	Saturation              float64
+	Hue                     int
+	ModulationInt           Interpretation
 }
 
 // Transform handles single image transformations
@@ -88,6 +92,7 @@ func NewTransform() *Transform {
 			ReductionSampler:        KernelLanczos3,
 			EnlargementInterpolator: InterpolateBicubic,
 			Interpretation:          InterpretationSRGB,
+			ModulationInt:           InterpretationLCH,
 		},
 		exportParams: &ExportParams{
 			Format:  ImageTypeUnknown,
@@ -181,10 +186,26 @@ func (t *Transform) GaussianBlur(sigma float64) *Transform {
 }
 
 // Sharpen applies a sharpen to the image
-func (t *Transform) Sharpen(sigma float64, x1 float64, m2 float64) *Transform {
+func (t *Transform) Sharpen(sigma, x1, m2 float64) *Transform {
 	t.transformParams.SharpSigma = sigma
 	t.transformParams.SharpX1 = x1
 	t.transformParams.SharpM2 = m2
+	return t
+}
+
+func (t *Transform) Modulate(brightness, saturation float64, hue int) *Transform {
+	t.transformParams.Brightness = brightness
+	t.transformParams.Saturation = saturation
+	t.transformParams.Hue = hue
+	t.transformParams.ModulationInt = InterpretationLCH
+	return t
+}
+
+func (t *Transform) ModulateHSV(brightness, saturation float64, hue int) *Transform {
+	t.transformParams.Brightness = brightness
+	t.transformParams.Saturation = saturation
+	t.transformParams.Hue = hue
+	t.transformParams.ModulationInt = InterpretationHSV
 	return t
 }
 
@@ -649,6 +670,17 @@ func (b *blackboard) postProcess() error {
 		}
 	}
 
+	if b.Brightness > 0 {
+		if b.ModulationInt == InterpretationLCH {
+			err = b.image.Modulate(b.Brightness, b.Saturation, b.Hue)
+		} else {
+			err = b.image.ModulateHSV(b.Brightness, b.Saturation, b.Hue)
+		}
+		if err != nil {
+			return err
+		}
+	}
+
 	if b.AutoRotate {
 		err = b.image.AutoRotate()
 		if err != nil {
@@ -694,6 +726,13 @@ func (b *blackboard) postProcess() error {
 
 	if b.StripProfile {
 		err = b.image.RemoveICCProfile()
+		if err != nil {
+			return err
+		}
+	}
+
+	if b.image.HasICCProfile() {
+		err = b.image.InjectICCProfile()
 		if err != nil {
 			return err
 		}

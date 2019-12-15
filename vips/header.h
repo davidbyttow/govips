@@ -5,6 +5,7 @@
 
 
 unsigned long has_icc_profile(VipsImage *in);
+int icc_transform(VipsImage *in, VipsImage **out);
 int remove_icc_profile(VipsImage *in);
 
 // won't remove the ICC profile
