@@ -31,9 +31,11 @@ type ImageRef struct {
 }
 
 type ImageMetadata struct {
-	Format ImageType
-	Width  int
-	Height int
+	Format      ImageType
+	Width       int
+	Height      int
+	Colorspace  Interpretation
+	Orientation int
 }
 
 // ExportParams are options when exporting an image to file or buffer
@@ -229,9 +231,11 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	}
 
 	metadata := &ImageMetadata{
-		Format: format,
-		Width:  r.Width(),
-		Height: r.Height(),
+		Format:      format,
+		Width:       r.Width(),
+		Height:      r.Height(),
+		Colorspace:  r.ColorSpace(),
+		Orientation: r.GetOrientation(),
 	}
 
 	return buf, metadata, nil

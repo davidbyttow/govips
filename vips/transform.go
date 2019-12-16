@@ -738,7 +738,7 @@ func (b *blackboard) postProcess() error {
 		}
 	}
 
-	if b.OverwriteOrientation > 1 {
+	if b.OverwriteOrientation > 0 {
 		b.image.SetOrientation(b.OverwriteOrientation)
 	}
 
