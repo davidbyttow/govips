@@ -378,6 +378,19 @@ func (t *Transform) Apply(image *ImageRef) (*ImageRef, error) {
 	return newBlackboard(image, t.transformParams).execute()
 }
 
+func (t *Transform) MatchOrientation(orientation int) *Transform {
+	angle, flipped := GetRotationAngleFromExif(orientation)
+	t.Rotate(angle)
+
+	if flipped {
+		t.Flip(FlipHorizontal)
+	}
+
+	t.SetOverwriteOrientation(orientation)
+
+	return t
+}
+
 // Return the formatted buffer of the transformed image, and its metadata
 func (t *Transform) ApplyAndExport(image *ImageRef) ([]byte, *ImageMetadata, error) {
 	i, err := t.Apply(image)

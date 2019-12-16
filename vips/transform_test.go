@@ -125,6 +125,18 @@ func TestTransform_AutoRotate(t *testing.T) {
 	})
 }
 
+func TestTransform_AutoRotateReal(t *testing.T) {
+	goldenTest(t, resources+"rotate.jpg", func(tx *Transform) {
+		tx.AutoRotate()
+	})
+}
+
+func TestTransform_AutoRotateRealFlipped(t *testing.T) {
+	goldenTest(t, resources+"rotated.jpg", func(tx *Transform) {
+		tx.AutoRotate()
+	})
+}
+
 func TestTransform_Scale3x(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
 		tx.Scale(3.0)

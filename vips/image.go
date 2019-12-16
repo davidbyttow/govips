@@ -309,14 +309,50 @@ func (r *ImageRef) Linear1(a, b float64) error {
 	return nil
 }
 
-// Autorot executes the 'autorot' operation
-func (r *ImageRef) AutoRotate() error {
-	out, err := vipsAutoRotate(r.image)
-	if err != nil {
-		return err
+func getZeroedAngle(angle Angle) Angle {
+	switch angle {
+	case Angle0:
+		return Angle0
+	case Angle90:
+		return Angle270
+	case Angle180:
+		return Angle180
+	case Angle270:
+		return Angle90
 	}
-	r.setImage(out)
-	return nil
+	return Angle0
+}
+
+func GetRotationAngleFromExif(orientation int) (Angle, bool) {
+
+	switch orientation {
+	case 0, 1, 2:
+		return Angle0, orientation == 2
+	case 3, 4:
+		return Angle180, orientation == 4
+	case 5, 8:
+		return Angle90, orientation == 5
+	case 6, 7:
+		return Angle270, orientation == 7
+	}
+
+	return Angle0, false
+}
+
+// Autorot do auto rotation
+func (r *ImageRef) AutoRotate() error {
+	// this is a full implementation of auto rotate as vips doesn't support auto rotating of mirrors exifs
+	// https://jcupitt.github.io/libvips/API/current/libvips-conversion.html#vips-autorot
+	angle, flipped := GetRotationAngleFromExif(r.GetOrientation())
+	if flipped {
+		err := r.Flip(DirectionHorizontal)
+		if err != nil {
+			return err
+		}
+	}
+
+	zeroAngle := getZeroedAngle(angle)
+	return r.Rotate(zeroAngle)
 }
 
 // ExtractArea executes the 'extract_area' operation
