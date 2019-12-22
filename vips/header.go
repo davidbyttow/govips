@@ -5,7 +5,7 @@ package vips
 import "C"
 
 func vipsHasICCProfile(in *C.VipsImage) bool {
-	return int(C.has_icc_profile(in)) > 0
+	return int(C.has_icc_profile(in)) != 0
 }
 
 func vipsTransformICCProfile(in *C.VipsImage) (*C.VipsImage, error) {

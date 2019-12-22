@@ -45,6 +45,12 @@ func TestTransform_Resize_StripICC(t *testing.T) {
 	})
 }
 
+func TestTransform_Resize_StripICC_idan(t *testing.T) {
+	goldenTest(t, resources+"profile.jpg", func(tx *Transform) {
+		tx.Scale(1.2).StripMetadata()
+	})
+}
+
 func TestTransform_AdobeRGB_sRGB_StripICC(t *testing.T) {
 	goldenTest(t, resources+"adobe-rgb.jpg", func(tx *Transform) {
 		tx.StripProfile()

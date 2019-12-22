@@ -576,7 +576,7 @@ int icc_transform(VipsImage *in, VipsImage **out) {
         write(tmpICCFile, color_profiles_Generic_Gray_Gamma_2_2_icc, sizeof(color_profiles_Generic_Gray_Gamma_2_2_icc));
     }
 
-    int result = vips_icc_transform(in, out, tmpICCPath, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+    int result = vips_icc_transform(in, out, tmpICCPath, "input_profile", tmpICCPath, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
 
     close(tmpICCFile);
     unlink(tmpICCPath);
