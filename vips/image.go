@@ -371,8 +371,8 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
-func (r *ImageRef) InjectICCProfile() error {
-	out, err := vipsInjectICCProfile(r.image)
+func (r *ImageRef) TransformICCProfile() error {
+	out, err := vipsTransformICCProfile(r.image)
 	if err != nil {
 		return err
 	}

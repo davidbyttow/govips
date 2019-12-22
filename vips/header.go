@@ -8,11 +8,11 @@ func vipsHasICCProfile(in *C.VipsImage) bool {
 	return int(C.has_icc_profile(in)) > 0
 }
 
-func vipsInjectICCProfile(in *C.VipsImage) (*C.VipsImage, error) {
+func vipsTransformICCProfile(in *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
 	if res := int(C.icc_transform(in, &out)); res != 0 {
-			return nil, handleImageError(out)
+		return nil, handleImageError(out)
 	}
 
 	return out, nil
