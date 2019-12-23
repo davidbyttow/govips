@@ -715,16 +715,20 @@ func (b *blackboard) postProcess() error {
 		}
 	}
 
-	// Apply the proper colour space
-	if b.image.IsColorSpaceSupported() && b.Interpretation != b.image.Interpretation() {
-		err = b.image.ToColorSpace(b.Interpretation)
+	if b.image.HasICCProfile() {
+		isCMYK := 0
+		if b.image.Interpretation() == InterpretationCMYK {
+			isCMYK = 1
+		}
+		err = b.image.TransformICCProfile(isCMYK)
 		if err != nil {
 			return err
 		}
 	}
 
-	if b.image.HasICCProfile() {
-		err = b.image.TransformICCProfile()
+	// Apply the proper colour space
+	if b.image.IsColorSpaceSupported() && b.Interpretation != b.image.Interpretation() {
+		err = b.image.ToColorSpace(b.Interpretation)
 		if err != nil {
 			return err
 		}

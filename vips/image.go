@@ -371,8 +371,8 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
-func (r *ImageRef) TransformICCProfile() error {
-	out, err := vipsTransformICCProfile(r.image)
+func (r *ImageRef) TransformICCProfile(isCmyk int) error {
+	out, err := vipsTransformICCProfile(r.image, isCmyk)
 	if err != nil {
 		return err
 	}

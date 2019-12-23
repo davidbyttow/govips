@@ -564,19 +564,26 @@ unsigned long has_icc_profile(VipsImage *in) {
     return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
 }
 
-int icc_transform(VipsImage *in, VipsImage **out) {
+int icc_transform(VipsImage *in, VipsImage **out, int isCmyk) {
     int channels = vips_image_get_bands(in);
 
     char tmpICCPath[] = "/tmp/VipsICC.XXXXXX";
     int tmpICCFile = mkstemp(tmpICCPath);
 
+    int result;
+
     if( channels > 2 ) {
-        write(tmpICCFile, color_profiles_sRGB_IEC61966_2_1_black_scaled_icc, sizeof(color_profiles_sRGB_IEC61966_2_1_black_scaled_icc));
+
+    	if (isCmyk == 1) {
+    		result = vips_icc_transform(in, out, "srgb", "input_profile", "cmyk", "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+    	} else {
+        result = vips_icc_transform(in, out, "srgb", "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+    	}
+
     } else {
         write(tmpICCFile, color_profiles_Generic_Gray_Gamma_2_2_icc, sizeof(color_profiles_Generic_Gray_Gamma_2_2_icc));
+        result = vips_icc_transform(in, out, tmpICCPath, "input_profile", tmpICCPath, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     }
-
-    int result = vips_icc_transform(in, out, tmpICCPath, "input_profile", tmpICCPath, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
 
     close(tmpICCFile);
     unlink(tmpICCPath);
