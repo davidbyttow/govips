@@ -46,8 +46,8 @@ func TestTransform_Resize_StripICC(t *testing.T) {
 }
 
 func TestTransform_Resize_StripICC_idan(t *testing.T) {
-	goldenTest(t, resources+"profile.jpg", func(tx *Transform) {
-		tx.Scale(1.2).StripMetadata()
+	goldenTest(t, resources+"bad.jpg", func(tx *Transform) {
+		tx.Scale(1.2)
 	})
 }
 

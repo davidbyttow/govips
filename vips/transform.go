@@ -1,6 +1,7 @@
 package vips
 
 import (
+	"log"
 	"math"
 )
 
@@ -715,22 +716,24 @@ func (b *blackboard) postProcess() error {
 		}
 	}
 
-	if b.image.HasICCProfile() {
-		isCMYK := 0
-		if b.image.Interpretation() == InterpretationCMYK {
-			isCMYK = 1
-		}
-		err = b.image.TransformICCProfile(isCMYK)
-		if err != nil {
-			return err
-		}
-	}
+	originalColorspace := b.image.Interpretation()
 
 	// Apply the proper colour space
 	if b.image.IsColorSpaceSupported() && b.Interpretation != b.image.Interpretation() {
 		err = b.image.ToColorSpace(b.Interpretation)
 		if err != nil {
 			return err
+		}
+	}
+
+	if b.image.HasICCProfile() {
+		isCMYK := 0
+		if originalColorspace == InterpretationCMYK {
+			isCMYK = 1
+		}
+		err = b.image.TransformICCProfile(isCMYK)
+		if err != nil {
+			log.Printf("failed to TransformICCProfile err: %+v", err)
 		}
 	}
 
