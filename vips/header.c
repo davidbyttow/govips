@@ -574,10 +574,12 @@ int icc_transform(VipsImage *in, VipsImage **out, int isCmyk) {
 
     if( channels > 2 ) {
 
+			write(tmpICCFile, color_profiles_sRGB_IEC61966_2_1_black_scaled_icc, sizeof(color_profiles_sRGB_IEC61966_2_1_black_scaled_icc));
+
     	if (isCmyk == 1) {
-    		result = vips_icc_transform(in, out, "srgb", "input_profile", "cmyk", "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+    		result = vips_icc_transform(in, out, tmpICCPath, "input_profile", "cmyk", "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     	} else {
-        result = vips_icc_transform(in, out, "srgb", "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+        result = vips_icc_transform(in, out, tmpICCPath, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     	}
 
     } else {
