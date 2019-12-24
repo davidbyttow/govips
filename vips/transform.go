@@ -733,7 +733,7 @@ func (b *blackboard) postProcess() error {
 		}
 		err = b.image.TransformICCProfile(isCMYK)
 		if err != nil {
-			log.Printf("failed to TransformICCProfile err: %+v", err)
+			log.Printf("failed to TransformICCProfile err: %v", err.Error())
 		}
 	}
 
