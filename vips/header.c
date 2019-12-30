@@ -11,18 +11,18 @@ int icc_transform(VipsImage *in, VipsImage **out, int isCmyk) {
 
     int result;
 
-    char *srgb_profile = srgb_v2_micro_icc_path;  // srgb_iec61966_2_1_icc_path
-    char *grey_profile = generic_gray_gamma_2_2_icc_path;  // sgrey_v2_micro_icc_path
+    char *srgb_profile_path = SRGB_V2_MICRO_ICC_PATH;  // SRGB_IEC61966_2_1_ICC_PATH
+    char *grey_profile_path = GENERIC_GRAY_GAMMA_2_2_ICC_PATH;  // SGREY_V2_MICRO_ICC_PATH
 
     if( channels > 2 ) {
     	if (isCmyk == 1) {
-    		result = vips_icc_transform(in, out, srgb_profile, "input_profile", "cmyk", "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+    		result = vips_icc_transform(in, out, srgb_profile_path, "input_profile", "cmyk", "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     	} else {
-        result = vips_icc_transform(in, out, srgb_profile, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+        result = vips_icc_transform(in, out, srgb_profile_path, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     	}
 
     } else {
-        result = vips_icc_transform(in, out, grey_profile, "input_profile", grey_profile, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
+        result = vips_icc_transform(in, out, grey_profile_path, "input_profile", grey_profile_path, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     }
 
     return result;

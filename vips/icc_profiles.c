@@ -643,20 +643,20 @@ unsigned char generic_gray_gamma_2_2_icc[] = {
 };
 unsigned int generic_gray_gamma_2_2_icc_len = 3588;
 
-char *srgb_v2_micro_icc_path = "/tmp/srgb_v2_micro.icc";
-char *sgrey_v2_micro_icc_path = "/tmp/sgrey_v2_micro.icc";
-char *srgb_iec61966_2_1_icc_path = "/tmp/srgb_iec61966_2_1.icc";
-char *generic_gray_gamma_2_2_icc_path = "/tmp/generic_gray_gamma_2_2.icc";
+char *SRGB_V2_MICRO_ICC_PATH = "/tmp/srgb_v2_micro.icc";
+char *SGREY_V2_MICRO_ICC_PATH = "/tmp/sgrey_v2_micro.icc";
+char *SRGB_IEC61966_2_1_ICC_PATH = "/tmp/srgb_iec61966_2_1.icc";
+char *GENERIC_GRAY_GAMMA_2_2_ICC_PATH = "/tmp/generic_gray_gamma_2_2.icc";
 
 int store_to_file(unsigned char *buffer, unsigned int buffer_len, char *path);
 
 int icc_profiles_init() {
 	int result = 0;
 
-	result += store_to_file(srgb_v2_micro_icc, srgb_v2_micro_icc_len, srgb_v2_micro_icc_path);
-	result += store_to_file(sgrey_v2_micro_icc, sgrey_v2_micro_icc_len, sgrey_v2_micro_icc_path);
-	result += store_to_file(srgb_iec61966_2_1_icc, srgb_iec61966_2_1_icc_len, srgb_iec61966_2_1_icc_path);
-	result += store_to_file(generic_gray_gamma_2_2_icc, generic_gray_gamma_2_2_icc_len, generic_gray_gamma_2_2_icc_path);
+	result += store_to_file(srgb_v2_micro_icc, srgb_v2_micro_icc_len, SRGB_V2_MICRO_ICC_PATH);
+	result += store_to_file(sgrey_v2_micro_icc, sgrey_v2_micro_icc_len, SGREY_V2_MICRO_ICC_PATH);
+	result += store_to_file(srgb_iec61966_2_1_icc, srgb_iec61966_2_1_icc_len, SRGB_IEC61966_2_1_ICC_PATH);
+	result += store_to_file(generic_gray_gamma_2_2_icc, generic_gray_gamma_2_2_icc_len, GENERIC_GRAY_GAMMA_2_2_ICC_PATH);
 
 	return result;
 }
