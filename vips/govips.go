@@ -3,6 +3,7 @@ package vips
 // #cgo pkg-config: vips
 // #include <vips/vips.h>
 // #include "govips.h"
+// #include "icc_profiles.h"
 import "C"
 import (
 	"fmt"
@@ -73,6 +74,11 @@ func Startup(config *Config) {
 	err := C.vips_init(cName)
 	if err != 0 {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
+	}
+
+	err = C.icc_profiles_init()
+	if err != 0 {
+		panic(fmt.Sprintf("Failed to initialize icc profiles=%v", err))
 	}
 
 	running = true
