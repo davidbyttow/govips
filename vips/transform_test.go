@@ -45,12 +45,6 @@ func TestTransform_Resize_StripICC(t *testing.T) {
 	})
 }
 
-func TestTransform_Resize_StripICC_idan(t *testing.T) {
-	goldenTest(t, resources+"bad.jpg", func(tx *Transform) {
-		tx.Scale(1.2)
-	})
-}
-
 func TestTransform_AdobeRGB_sRGB_StripICC(t *testing.T) {
 	goldenTest(t, resources+"adobe-rgb.jpg", func(tx *Transform) {
 		tx.StripProfile()
@@ -152,6 +146,18 @@ func TestTransform_Scale3x(t *testing.T) {
 func TestTransform_MaxScale(t *testing.T) {
 	goldenTest(t, resources+"tomatoes.png", func(tx *Transform) {
 		tx.MaxScale(1.0).ResizeWidth(100000)
+	})
+}
+
+func TestTransform_Scale_Alpha_1(t *testing.T) {
+	goldenTest(t, resources+"logo_alpha.png", func(tx *Transform) {
+		tx.Scale(0.4)
+	})
+}
+
+func TestTransform_Scale_Alpha_2(t *testing.T) {
+	goldenTest(t, resources+"logo_alpha_2.png", func(tx *Transform) {
+		tx.Scale(0.4)
 	})
 }
 

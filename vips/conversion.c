@@ -72,6 +72,26 @@ int add_alpha(VipsImage *in, VipsImage **out) {
 	return vips_addalpha(in, out, NULL);
 }
 
+int premultiply_alpha(VipsImage *in, VipsImage **out) {
+    return vips_premultiply(in, out, "max_alpha", max_alpha(in), NULL);
+}
+
+int unpremultiply_alpha(VipsImage *in, VipsImage **out) {
+    return vips_unpremultiply(in, out, NULL);
+}
+
+double max_alpha(VipsImage *in) {
+    switch (in->BandFmt) {
+    case VIPS_FORMAT_USHORT:
+        return 65535;
+    case VIPS_FORMAT_FLOAT:
+    case VIPS_FORMAT_DOUBLE:
+        return 1.0;
+    default:
+        return 255;
+    }
+}
+
 int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out, int mode, gint x, gint y) {
 	return vips_composite2(base, overlay, out, mode, "x", x, "y", y, NULL);
 }

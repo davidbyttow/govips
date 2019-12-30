@@ -21,6 +21,9 @@ int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac);
 int bandjoin(VipsImage **in, VipsImage **out, int n);
 int flatten_image(VipsImage *in, VipsImage **out, double r, double g, double b);
 int add_alpha(VipsImage *in, VipsImage **out);
+int premultiply_alpha(VipsImage *in, VipsImage **out);
+int unpremultiply_alpha(VipsImage *in, VipsImage **out);
+double max_alpha(VipsImage *in);
 
 int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out, int mode, gint x, gint y);
 
