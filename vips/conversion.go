@@ -214,6 +214,30 @@ func vipsAddAlpha(in *C.VipsImage) (*C.VipsImage, error) {
 	return out, nil
 }
 
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-premultiply
+func vipsPremultiplyAlpha(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("premultiplyAlpha")
+	var out *C.VipsImage
+
+	if err := C.premultiply_alpha(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-unpremultiply
+func vipsUnpremultiplyAlpha(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("unpremultiplyAlpha")
+	var out *C.VipsImage
+
+	if err := C.unpremultiply_alpha(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite2
 func vipsComposite2(base *C.VipsImage, overlay *C.VipsImage, mode BlendMode, x, y int) (*C.VipsImage, error) {
 	incOpCounter("composite")

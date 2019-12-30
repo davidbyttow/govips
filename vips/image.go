@@ -24,10 +24,11 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf    []byte
-	image  *C.VipsImage
-	format ImageType
-	lock   sync.Mutex
+	buf           []byte
+	image         *C.VipsImage
+	format        ImageType
+	lock          sync.Mutex
+	premultiplied bool
 }
 
 type ImageMetadata struct {
@@ -287,6 +288,33 @@ func (r *ImageRef) AddAlpha() error {
 	return nil
 }
 
+func (r *ImageRef) PremultiplyAlpha() error {
+	if r.premultiplied || !vipsHasAlpha(r.image) {
+		return nil
+	}
+
+	out, err := vipsPremultiplyAlpha(r.image)
+	if err != nil {
+		return err
+	}
+	r.premultiplied = true
+	r.setImage(out)
+	return nil
+}
+
+func (r *ImageRef) UnpremultiplyAlpha() error {
+	if !r.premultiplied {
+		return nil
+	}
+
+	out, err := vipsPremultiplyAlpha(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 func (r *ImageRef) Linear(a, b []float64) error {
 	if len(a) != len(b) {
 		return errors.New("a and b must be of same length")
@@ -506,12 +534,18 @@ func (r *ImageRef) Invert() error {
 
 // Resize executes the 'resize' operation
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
+	err := r.PremultiplyAlpha()
+	if err != nil {
+		return err
+	}
+
 	out, err := vipsResize(r.image, scale, kernel)
 	if err != nil {
 		return err
 	}
 	r.setImage(out)
-	return nil
+
+	return r.UnpremultiplyAlpha()
 }
 
 // Resize executes the 'resize' operation
