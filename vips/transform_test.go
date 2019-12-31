@@ -151,13 +151,41 @@ func TestTransform_MaxScale(t *testing.T) {
 
 func TestTransform_Scale_Alpha_1(t *testing.T) {
 	goldenTest(t, resources+"logo_alpha.png", func(tx *Transform) {
-		tx.Scale(0.4)
+		tx.Scale(0.2)
+	})
+}
+
+func TestTransform_Sharpen_Alpha(t *testing.T) {
+	goldenTest(t, resources+"logo_alpha.png", func(tx *Transform) {
+		//usm_0.66_1.00_0.01
+		sigma := 1 + (0.66 / 2)
+		x1 := 0.01 * 100
+		m2 := 1.0
+
+		tx.Sharpen(sigma, x1, m2)
+	})
+}
+
+func TestTransform_Scale_Sharpen_Alpha(t *testing.T) {
+	goldenTest(t, resources+"logo_alpha.png", func(tx *Transform) {
+		//usm_0.66_1.00_0.01
+		sigma := 1 + (0.66 / 2)
+		x1 := 0.01 * 100
+		m2 := 1.0
+
+		tx.Scale(0.5).Sharpen(sigma, x1, m2)
 	})
 }
 
 func TestTransform_Scale_Alpha_2(t *testing.T) {
 	goldenTest(t, resources+"logo_alpha_2.png", func(tx *Transform) {
-		tx.Scale(0.4)
+		tx.Scale(0.2)
+	})
+}
+
+func TestTransform_Scale_Alpha_3(t *testing.T) {
+	goldenTest(t, resources+"el_taquito.png", func(tx *Transform) {
+		tx.Scale(0.1)
 	})
 }
 

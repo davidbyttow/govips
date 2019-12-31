@@ -18,17 +18,21 @@ const (
 	defaultCompression = 6
 )
 
+type PreMultiplicationState struct {
+	bandFormat BandFormat
+}
+
 // ImageRef contains a libvips image and manages its lifecycle. You need to
 // close an image when done or it will leak
 type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf           []byte
-	image         *C.VipsImage
-	format        ImageType
-	lock          sync.Mutex
-	premultiplied bool
+	buf               []byte
+	image             *C.VipsImage
+	format            ImageType
+	lock              sync.Mutex
+	preMultiplication *PreMultiplicationState
 }
 
 type ImageMetadata struct {
@@ -289,28 +293,40 @@ func (r *ImageRef) AddAlpha() error {
 }
 
 func (r *ImageRef) PremultiplyAlpha() error {
-	if r.premultiplied || !vipsHasAlpha(r.image) {
+	if r.preMultiplication != nil || !vipsHasAlpha(r.image) {
 		return nil
 	}
+
+	band := r.BandFormat()
 
 	out, err := vipsPremultiplyAlpha(r.image)
 	if err != nil {
 		return err
 	}
-	r.premultiplied = true
+	r.preMultiplication = &PreMultiplicationState{
+		bandFormat: band,
+	}
 	r.setImage(out)
 	return nil
 }
 
 func (r *ImageRef) UnpremultiplyAlpha() error {
-	if !r.premultiplied {
+	if r.preMultiplication == nil {
 		return nil
 	}
 
-	out, err := vipsPremultiplyAlpha(r.image)
+	unpremultiplied, err := vipsUnpremultiplyAlpha(r.image)
 	if err != nil {
 		return err
 	}
+	defer clearImage(unpremultiplied)
+
+	out, err := vipsCast(unpremultiplied, r.preMultiplication.bandFormat)
+	if err != nil {
+		return err
+	}
+
+	r.preMultiplication = nil
 	r.setImage(out)
 	return nil
 }
@@ -352,7 +368,6 @@ func getZeroedAngle(angle Angle) Angle {
 }
 
 func GetRotationAngleFromExif(orientation int) (Angle, bool) {
-
 	switch orientation {
 	case 0, 1, 2:
 		return Angle0, orientation == 2
