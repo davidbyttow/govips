@@ -18,18 +18,21 @@ const (
 	defaultCompression = 6
 )
 
+type MultiplicationState struct {
+	bandFormat BandFormat
+}
+
 // ImageRef contains a libvips image and manages its lifecycle. You need to
 // close an image when done or it will leak
 type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf                       []byte
-	image                     *C.VipsImage
-	format                    ImageType
-	lock                      sync.Mutex
-	premultiplied             bool
-	unpremultipliedBandFormat BandFormat
+	buf            []byte
+	image          *C.VipsImage
+	format         ImageType
+	lock           sync.Mutex
+	multiplication *MultiplicationState
 }
 
 type ImageMetadata struct {
@@ -290,40 +293,40 @@ func (r *ImageRef) AddAlpha() error {
 }
 
 func (r *ImageRef) PremultiplyAlpha() error {
-	if r.premultiplied || !vipsHasAlpha(r.image) {
+	if r.multiplication != nil || !vipsHasAlpha(r.image) {
 		return nil
 	}
 
-	r.unpremultipliedBandFormat = r.BandFormat()
+	band := r.BandFormat()
 
 	out, err := vipsPremultiplyAlpha(r.image)
 	if err != nil {
 		return err
 	}
-	r.premultiplied = true
+	r.multiplication = &MultiplicationState{
+		bandFormat: band,
+	}
 	r.setImage(out)
 	return nil
 }
 
 func (r *ImageRef) UnpremultiplyAlpha() error {
-	if !r.premultiplied {
+	if r.multiplication == nil {
 		return nil
 	}
 
-	outPremultiplied, err := vipsUnpremultiplyAlpha(r.image)
-	defer clearImage(outPremultiplied)
+	unpremultiplied, err := vipsUnpremultiplyAlpha(r.image)
+	if err != nil {
+		return err
+	}
+	defer clearImage(unpremultiplied)
 
+	out, err := vipsCast(unpremultiplied, r.multiplication.bandFormat)
 	if err != nil {
 		return err
 	}
 
-	var out *C.VipsImage
-
-	out, err = vipsCast(outPremultiplied, r.unpremultipliedBandFormat)
-	if err != nil {
-		return err
-	}
-
+	r.multiplication = nil
 	r.setImage(out)
 	return nil
 }
@@ -365,7 +368,6 @@ func getZeroedAngle(angle Angle) Angle {
 }
 
 func GetRotationAngleFromExif(orientation int) (Angle, bool) {
-
 	switch orientation {
 	case 0, 1, 2:
 		return Angle0, orientation == 2

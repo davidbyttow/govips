@@ -239,7 +239,7 @@ func vipsUnpremultiplyAlpha(in *C.VipsImage) (*C.VipsImage, error) {
 }
 
 func vipsCast(in *C.VipsImage, bandFormat BandFormat) (*C.VipsImage, error) {
-	incOpCounter("vipsCast")
+	incOpCounter("cast")
 	var out *C.VipsImage
 
 	if err := C.cast(in, &out, C.int(bandFormat)); err != 0 {
