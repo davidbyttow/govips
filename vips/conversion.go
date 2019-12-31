@@ -238,6 +238,17 @@ func vipsUnpremultiplyAlpha(in *C.VipsImage) (*C.VipsImage, error) {
 	return out, nil
 }
 
+func vipsCast(in *C.VipsImage, bandFormat BandFormat) (*C.VipsImage, error) {
+	incOpCounter("vipsCast")
+	var out *C.VipsImage
+
+	if err := C.cast(in, &out, C.int(bandFormat)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite2
 func vipsComposite2(base *C.VipsImage, overlay *C.VipsImage, mode BlendMode, x, y int) (*C.VipsImage, error) {
 	incOpCounter("composite")

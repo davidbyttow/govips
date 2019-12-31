@@ -24,11 +24,12 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf           []byte
-	image         *C.VipsImage
-	format        ImageType
-	lock          sync.Mutex
-	premultiplied bool
+	buf                       []byte
+	image                     *C.VipsImage
+	format                    ImageType
+	lock                      sync.Mutex
+	premultiplied             bool
+	unpremultipliedBandFormat BandFormat
 }
 
 type ImageMetadata struct {
@@ -293,6 +294,8 @@ func (r *ImageRef) PremultiplyAlpha() error {
 		return nil
 	}
 
+	r.unpremultipliedBandFormat = r.BandFormat()
+
 	out, err := vipsPremultiplyAlpha(r.image)
 	if err != nil {
 		return err
@@ -307,10 +310,20 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 		return nil
 	}
 
-	out, err := vipsPremultiplyAlpha(r.image)
+	outPremultiplied, err := vipsUnpremultiplyAlpha(r.image)
+	defer clearImage(outPremultiplied)
+
 	if err != nil {
 		return err
 	}
+
+	var out *C.VipsImage
+
+	out, err = vipsCast(outPremultiplied, r.unpremultipliedBandFormat)
+	if err != nil {
+		return err
+	}
+
 	r.setImage(out)
 	return nil
 }
