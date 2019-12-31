@@ -18,7 +18,7 @@ const (
 	defaultCompression = 6
 )
 
-type MultiplicationState struct {
+type PreMultiplicationState struct {
 	bandFormat BandFormat
 }
 
@@ -28,11 +28,11 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf            []byte
-	image          *C.VipsImage
-	format         ImageType
-	lock           sync.Mutex
-	multiplication *MultiplicationState
+	buf               []byte
+	image             *C.VipsImage
+	format            ImageType
+	lock              sync.Mutex
+	preMultiplication *PreMultiplicationState
 }
 
 type ImageMetadata struct {
@@ -293,7 +293,7 @@ func (r *ImageRef) AddAlpha() error {
 }
 
 func (r *ImageRef) PremultiplyAlpha() error {
-	if r.multiplication != nil || !vipsHasAlpha(r.image) {
+	if r.preMultiplication != nil || !vipsHasAlpha(r.image) {
 		return nil
 	}
 
@@ -303,7 +303,7 @@ func (r *ImageRef) PremultiplyAlpha() error {
 	if err != nil {
 		return err
 	}
-	r.multiplication = &MultiplicationState{
+	r.preMultiplication = &PreMultiplicationState{
 		bandFormat: band,
 	}
 	r.setImage(out)
@@ -311,7 +311,7 @@ func (r *ImageRef) PremultiplyAlpha() error {
 }
 
 func (r *ImageRef) UnpremultiplyAlpha() error {
-	if r.multiplication == nil {
+	if r.preMultiplication == nil {
 		return nil
 	}
 
@@ -321,12 +321,12 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 	}
 	defer clearImage(unpremultiplied)
 
-	out, err := vipsCast(unpremultiplied, r.multiplication.bandFormat)
+	out, err := vipsCast(unpremultiplied, r.preMultiplication.bandFormat)
 	if err != nil {
 		return err
 	}
 
-	r.multiplication = nil
+	r.preMultiplication = nil
 	r.setImage(out)
 	return nil
 }

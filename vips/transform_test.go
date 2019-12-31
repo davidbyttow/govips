@@ -173,7 +173,7 @@ func TestTransform_Scale_Sharpen_Alpha(t *testing.T) {
 		x1 := 0.01 * 100
 		m2 := 1.0
 
-		tx.Scale(0.4).Sharpen(sigma, x1, m2)
+		tx.Scale(0.5).Sharpen(sigma, x1, m2)
 	})
 }
 
