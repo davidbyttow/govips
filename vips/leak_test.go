@@ -80,7 +80,7 @@ func TestCleanup(t *testing.T) {
 			go func(i int, tr transform) {
 				defer wg.Done()
 
-				in, err := NewImageFromFile(resources + "canyon.jpg")
+				in, err := NewImageFromFile(resources + "jpg-24bit-icc-iec.jpg")
 				require.NoError(t, err)
 				defer in.Close()
 

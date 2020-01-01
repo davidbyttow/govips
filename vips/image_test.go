@@ -11,10 +11,10 @@ import (
 
 // todo: add missing tests...
 
-func TestImageRef_AccessMode__Default(t *testing.T) {
+func TestImageRef_PNG(t *testing.T) {
 	Startup(nil)
 
-	srcBytes, err := ioutil.ReadFile(resources + "sample-1.png")
+	srcBytes, err := ioutil.ReadFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
 	src := bytes.NewReader(srcBytes)
@@ -32,10 +32,10 @@ func TestImageRef_AccessMode__Default(t *testing.T) {
 	}
 }
 
-func TestImageRef_Support__HEIF(t *testing.T) {
+func TestImageRef_HEIF(t *testing.T) {
 	Startup(nil)
 
-	raw, err := ioutil.ReadFile(resources + "sample-1.heic")
+	raw, err := ioutil.ReadFile(resources + "heic-24bit-exif.heic")
 	require.NoError(t, err)
 
 	img, err := NewImageFromBuffer(raw)
@@ -51,10 +51,10 @@ func TestImageRef_Support__HEIF(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
-func TestImageRef_Support__HEIF_MIF1(t *testing.T) {
+func TestImageRef_HEIF_MIF1(t *testing.T) {
 	Startup(nil)
 
-	raw, err := ioutil.ReadFile(resources + "sample-2.heic")
+	raw, err := ioutil.ReadFile(resources + "heic-24bit.heic")
 	require.NoError(t, err)
 
 	img, err := NewImageFromBuffer(raw)
@@ -70,10 +70,10 @@ func TestImageRef_Support__HEIF_MIF1(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
-func TestImageRef_Support__BMP(t *testing.T) {
+func TestImageRef_BMP(t *testing.T) {
 	Startup(nil)
 
-	raw, err := ioutil.ReadFile(resources + "teddy.bmp")
+	raw, err := ioutil.ReadFile(resources + "bmp.bmp")
 	require.NoError(t, err)
 
 	img, err := NewImageFromBuffer(raw)
@@ -92,7 +92,7 @@ func TestImageRef_Support__BMP(t *testing.T) {
 func TestImageRef_HasAlpha__True(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "with_alpha.png")
+	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -103,7 +103,7 @@ func TestImageRef_HasAlpha__True(t *testing.T) {
 func TestImageRef_HasAlpha__False(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "sample-1.png")
+	img, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -114,7 +114,7 @@ func TestImageRef_HasAlpha__False(t *testing.T) {
 func TestImageRef_AddAlpha(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "sample-1.png")
+	img, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -129,7 +129,7 @@ func TestImageRef_AddAlpha(t *testing.T) {
 func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "with_alpha.png")
+	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -144,7 +144,7 @@ func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
 func TestImageRef_HasProfile__True(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "with_icc_profile.jpg")
+	img, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -155,7 +155,7 @@ func TestImageRef_HasProfile__True(t *testing.T) {
 func TestImageRef_HasProfile__False(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "without_icc_profile.jpg")
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -166,7 +166,7 @@ func TestImageRef_HasProfile__False(t *testing.T) {
 func TestImageRef_RemoveMetadata(t *testing.T) {
 	Startup(nil)
 
-	img, err := NewImageFromFile(resources + "adobe-rgb.jpg")
+	img, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
 	defer img.Close()
 
@@ -177,7 +177,7 @@ func TestImageRef_RemoveMetadata(t *testing.T) {
 }
 
 func TestImageRef_Linear1(t *testing.T) {
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -189,7 +189,7 @@ func TestImageRef_Linear1(t *testing.T) {
 }
 
 func TestImageRef_Linear(t *testing.T) {
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit+alpha.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -201,7 +201,7 @@ func TestImageRef_Linear(t *testing.T) {
 }
 
 func TestImageRef_Sharpen(t *testing.T) {
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -213,7 +213,7 @@ func TestImageRef_Sharpen(t *testing.T) {
 }
 
 func TestImageRef_Modulate__Alpha(t *testing.T) {
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -225,7 +225,7 @@ func TestImageRef_Modulate__Alpha(t *testing.T) {
 }
 
 func TestImageRef_Modulate(t *testing.T) {
-	image, err := NewImageFromFile(resources + "canyon.jpg")
+	image, err := NewImageFromFile(resources + "jpg-24bit-icc-iec.jpg")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -237,7 +237,7 @@ func TestImageRef_Modulate(t *testing.T) {
 }
 
 func TestImageRef_Embed(t *testing.T) {
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -251,7 +251,7 @@ func TestImageRef_Embed(t *testing.T) {
 func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "rotate.jpg")
+	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -263,7 +263,7 @@ func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -275,7 +275,7 @@ func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 func TestImageRef_ExtractArea(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -286,7 +286,7 @@ func TestImageRef_ExtractArea(t *testing.T) {
 func TestImageRef_ExtractArea__Error(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -297,7 +297,7 @@ func TestImageRef_ExtractArea__Error(t *testing.T) {
 func TestImageRef_Resize__Error(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "tomatoes.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
@@ -308,7 +308,7 @@ func TestImageRef_Resize__Error(t *testing.T) {
 func TestImageRef_Close(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "sample-1.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
 	image.Close()
@@ -321,7 +321,7 @@ func TestImageRef_Close(t *testing.T) {
 func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "sample-1.png")
+	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
 	go image.Close()
@@ -338,15 +338,7 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 func TestImageRef_NotImage(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "not-image.txt")
-	require.Error(t, err)
-	require.Nil(t, image)
-}
-
-func TestImageRef_Suspect1(t *testing.T) {
-	Startup(nil)
-
-	image, err := NewImageFromFile(resources + "suspect-1.png")
+	image, err := NewImageFromFile(resources + "txt.txt")
 	require.Error(t, err)
 	require.Nil(t, image)
 }
