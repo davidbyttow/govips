@@ -476,6 +476,9 @@ func (r *ImageRef) Modulate(brightness, saturation float64, hue int) error {
 	var additions []float64
 
 	colorspace := r.ColorSpace()
+	if colorspace == InterpretationRGB {
+		colorspace = InterpretationSRGB
+	}
 
 	if r.HasAlpha() {
 		multiplications = []float64{brightness, saturation, 1, 1}
@@ -510,6 +513,9 @@ func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
 	var additions []float64
 
 	colorspace := r.ColorSpace()
+	if colorspace == InterpretationRGB {
+		colorspace = InterpretationSRGB
+	}
 
 	if r.HasAlpha() {
 		multiplications = []float64{1, saturation, brightness, 1}
