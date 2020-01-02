@@ -36,5 +36,5 @@ func handleVipsError() error {
 	s := C.GoString(C.vips_error_buffer())
 	C.vips_error_clear()
 
-	return fmt.Errorf("%v\nStack:\n%v", s, dbg.Stack())
+	return fmt.Errorf("%v\nStack:\n%s", s, dbg.Stack())
 }
