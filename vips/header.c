@@ -6,6 +6,8 @@ unsigned long has_icc_profile(VipsImage *in) {
     return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
 }
 
+
+// todo: move to color.(go, h, c)
 int icc_transform(VipsImage *in, VipsImage **out, int isCmyk) {
     int channels = vips_image_get_bands(in);
 
@@ -14,13 +16,12 @@ int icc_transform(VipsImage *in, VipsImage **out, int isCmyk) {
     char *srgb_profile_path = SRGB_V2_MICRO_ICC_PATH;  // SRGB_IEC61966_2_1_ICC_PATH
     char *grey_profile_path = GENERIC_GRAY_GAMMA_2_2_ICC_PATH;  // SGREY_V2_MICRO_ICC_PATH
 
-    if( channels > 2 ) {
+    if (channels > 2) {
     	if (isCmyk == 1) {
     		result = vips_icc_transform(in, out, srgb_profile_path, "input_profile", "cmyk", "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     	} else {
         result = vips_icc_transform(in, out, srgb_profile_path, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     	}
-
     } else {
         result = vips_icc_transform(in, out, grey_profile_path, "input_profile", grey_profile_path, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
     }
