@@ -8,6 +8,7 @@ unsigned long has_icc_profile(VipsImage *in) {
 
 
 // todo: move to color.(go, h, c)
+// https://libvips.github.io/libvips/API/8.6/libvips-colour.html#vips-icc-transform
 int icc_transform(VipsImage *in, VipsImage **out, int isCmyk) {
     int channels = vips_image_get_bands(in);
 
