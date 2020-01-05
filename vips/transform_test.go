@@ -14,6 +14,12 @@ func TestTransform_Resize_JPG(t *testing.T) {
 	})
 }
 
+func TestTransform_Resize_JPG_CMYK(t *testing.T) {
+	goldenTest(t, resources+"jpg-32bit-cmyk-icc-swop.jpg", func(tx *Transform) {
+		tx.Resize(512, 256)
+	})
+}
+
 func TestTransform_Resize_PNG_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-8bit+alpha.png", func(tx *Transform) {
 		tx.Resize(512, 256)
