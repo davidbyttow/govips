@@ -718,7 +718,7 @@ func (b *blackboard) postProcess() error {
 
 	originalColorspace := b.image.Interpretation()
 
-	// Apply the proper colour space
+	//Apply the proper colour space
 	if b.image.IsColorSpaceSupported() && b.Interpretation != b.image.Interpretation() {
 		err = b.image.ToColorSpace(b.Interpretation)
 		if err != nil {
