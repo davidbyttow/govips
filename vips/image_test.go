@@ -342,3 +342,25 @@ func TestImageRef_NotImage(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, image)
 }
+
+func TestImageRef_CmykIccTransformToSrgb__Success(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "jpg-32bit-cmyk-icc-swop.jpg")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.TransformICCProfile(1)
+	require.NoError(t, err)
+}
+
+func TestImageRef_CmykIccTransformGrayScale__Success(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "jpg-8bit-gray-scale-with-icc-profile.jpg")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.TransformICCProfile(1)
+	require.NoError(t, err)
+}

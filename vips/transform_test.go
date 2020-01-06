@@ -198,6 +198,24 @@ func TestTransform_Rotate(t *testing.T) {
 	})
 }
 
+func TestTransform_ResizeGrayScaleWithIccProfile(t *testing.T) {
+	goldenTest(t, resources+"jpg-8bit-gray-scale-with-icc-profile.jpg", func(tx *Transform) {
+		tx.Resize(640, 416)
+	})
+}
+
+func TestTransform_CmykResizeGrayScaleWithIccProfile(t *testing.T) {
+	goldenTest(t, resources+"jpg-32bit-cmyk-custom-icc-profile-gray.jpg", func(tx *Transform) {
+		tx.Resize(284, 400)
+	})
+}
+
+func TestTransform_CmykResizeGrayScaleWithDispatcherGrayIccProfile(t *testing.T) {
+	goldenTest(t, resources+"jpg-32bit-cmyk-dispatcher-gray-icc-profile.jpg", func(tx *Transform) {
+		tx.Resize(284, 400)
+	})
+}
+
 func goldenTest(t *testing.T, file string, fn func(t *Transform)) []byte {
 	if testing.Short() {
 		return nil

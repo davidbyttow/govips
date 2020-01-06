@@ -50,7 +50,7 @@ unsigned int srgb_v2_micro_icc_len = 456;
 // ATTRIBUTION:
 // The following micro icc profile taken from: https://github.com/saucecontrol/Compact-ICC-Profiles.
 // Read more (very interesting): https://photosauce.net/blog/post/making-a-minimal-srgb-icc-profile-part-1-trim-the-fat-abuse-the-spec
-unsigned char sgrey_v2_micro_icc[] = {
+unsigned char sgray_v2_micro_icc[] = {
   0x00, 0x00, 0x01, 0x50, 0x6c, 0x63, 0x6d, 0x73, 0x02, 0x10, 0x00, 0x00,
   0x6d, 0x6e, 0x74, 0x72, 0x47, 0x52, 0x41, 0x59, 0x58, 0x59, 0x5a, 0x20,
   0x07, 0xe2, 0x00, 0x03, 0x00, 0x14, 0x00, 0x09, 0x00, 0x0e, 0x00, 0x1d,
@@ -80,7 +80,7 @@ unsigned char sgrey_v2_micro_icc[] = {
   0x7e, 0x8d, 0x88, 0x2c, 0x92, 0x36, 0x9c, 0xab, 0xa7, 0x8c, 0xb2, 0xdb,
   0xbe, 0x99, 0xca, 0xc7, 0xd7, 0x65, 0xe4, 0x77, 0xf1, 0xf9, 0xff, 0xff
 };
-unsigned int sgrey_v2_micro_icc_len = 336;
+unsigned int sgray_v2_micro_icc_len = 336;
 
 unsigned char srgb_iec61966_2_1_icc[] = {
 	0x00, 0x00, 0x0b, 0xe8, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00,
@@ -644,7 +644,7 @@ unsigned char generic_gray_gamma_2_2_icc[] = {
 unsigned int generic_gray_gamma_2_2_icc_len = 3588;
 
 char *SRGB_V2_MICRO_ICC_PATH = "/tmp/srgb_v2_micro.icc";
-char *SGREY_V2_MICRO_ICC_PATH = "/tmp/sgrey_v2_micro.icc";
+char *SGRAY_V2_MICRO_ICC_PATH = "/tmp/sgray_v2_micro.icc";
 char *SRGB_IEC61966_2_1_ICC_PATH = "/tmp/srgb_iec61966_2_1.icc";
 char *GENERIC_GRAY_GAMMA_2_2_ICC_PATH = "/tmp/generic_gray_gamma_2_2.icc";
 
@@ -654,7 +654,7 @@ int icc_profiles_init() {
 	int result = 0;
 
 	result += store_to_file(srgb_v2_micro_icc, srgb_v2_micro_icc_len, SRGB_V2_MICRO_ICC_PATH);
-	result += store_to_file(sgrey_v2_micro_icc, sgrey_v2_micro_icc_len, SGREY_V2_MICRO_ICC_PATH);
+	result += store_to_file(sgray_v2_micro_icc, sgray_v2_micro_icc_len, SGRAY_V2_MICRO_ICC_PATH);
 	result += store_to_file(srgb_iec61966_2_1_icc, srgb_iec61966_2_1_icc_len, SRGB_IEC61966_2_1_ICC_PATH);
 	result += store_to_file(generic_gray_gamma_2_2_icc, generic_gray_gamma_2_2_icc_len, GENERIC_GRAY_GAMMA_2_2_ICC_PATH);
 
