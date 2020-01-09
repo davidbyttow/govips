@@ -16,6 +16,6 @@ int resize_image(VipsImage *in, VipsImage **out, double scale, gdouble vscale, i
 	if (vscale > 0) {
 		return vips_resize(in, out, scale, "vscale", vscale, "kernel", kernel, NULL);
 	}
+
 	return vips_resize(in, out, scale, "kernel", kernel, NULL);
 }
-

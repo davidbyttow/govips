@@ -174,6 +174,10 @@ func (r *ImageRef) SetOrientation(orientation int) {
 	vipsSetMetaOrientation(r.image, orientation)
 }
 
+func (r *ImageRef) RemoveOrientation() {
+	vipsRemoveMetaOrientation(r.image)
+}
+
 // ResX returns the X resolution
 func (r *ImageRef) ResX() float64 {
 	return float64(r.image.Xres)
@@ -395,7 +399,13 @@ func (r *ImageRef) AutoRotate() error {
 	}
 
 	zeroAngle := getZeroedAngle(angle)
-	return r.Rotate(zeroAngle)
+	err := r.Rotate(zeroAngle)
+	if err != nil {
+		return err
+	}
+
+	r.RemoveOrientation()
+	return nil
 }
 
 // ExtractArea executes the 'extract_area' operation
@@ -414,9 +424,25 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
+// deprecated: use optimize
 func (r *ImageRef) TransformICCProfile(isCmyk int) error {
-	out, err := vipsTransformICCProfile(r.image, isCmyk)
+	out, err := vipsOptimizeICCProfile(r.image, isCmyk)
 	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+func (r *ImageRef) OptimizeICCProfile() error {
+	isCMYK := 0
+	if r.Interpretation() == InterpretationCMYK {
+		isCMYK = 1
+	}
+
+	out, err := vipsOptimizeICCProfile(r.image, isCMYK)
+	if err != nil {
+		info(err.Error())
 		return err
 	}
 	r.setImage(out)
@@ -647,13 +673,11 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
-	//info("set image in %p, out %p", image, r.image)
 	if r.image == image {
 		return
 	}
 
 	if r.image != nil {
-		//info("unref %p", r.image)
 		clearImage(r.image)
 	}
 

@@ -1,7 +1,5 @@
 package vips
 
-import "C"
-
 // #cgo pkg-config: vips
 // #include "color.h"
 import "C"
@@ -45,6 +43,16 @@ func vipsToColorSpace(in *C.VipsImage, interpretation Interpretation) (*C.VipsIm
 	inter := C.VipsInterpretation(interpretation)
 
 	if err := C.to_colorspace(in, &out, inter); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsOptimizeICCProfile(in *C.VipsImage, isCmyk int) (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	if res := int(C.optimize_icc_profile(in, &out, C.int(isCmyk))); res != 0 {
 		return nil, handleImageError(out)
 	}
 

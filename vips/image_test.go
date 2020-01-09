@@ -89,6 +89,40 @@ func TestImageRef_BMP(t *testing.T) {
 	assert.Equal(t, ImageTypePNG, metadata.Format)
 }
 
+func TestImageRef_Error(t *testing.T) {
+	Startup(nil)
+
+	srcBytes, err := ioutil.ReadFile(resources + "png-bad-metadata.png")
+	require.NoError(t, err)
+
+	src := bytes.NewReader(srcBytes)
+	img, err := NewImageFromReader(src)
+	assert.Error(t, err)
+	assert.Nil(t, img)
+}
+
+func TestImageRef_Resize__Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.Resize(-1, KernelLanczos3)
+	require.Error(t, err)
+}
+
+func TestImageRef_ExtractArea__Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.ExtractArea(1, 2, 10000, 4)
+	require.Error(t, err)
+}
+
 func TestImageRef_HasAlpha__True(t *testing.T) {
 	Startup(nil)
 
@@ -163,91 +197,6 @@ func TestImageRef_HasProfile__False(t *testing.T) {
 	assert.False(t, got)
 }
 
-func TestImageRef_RemoveMetadata(t *testing.T) {
-	Startup(nil)
-
-	img, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
-	require.NoError(t, err)
-	defer img.Close()
-
-	err = img.RemoveMetadata()
-	require.NoError(t, err)
-
-	assert.True(t, img.HasProfile())
-}
-
-func TestImageRef_Linear1(t *testing.T) {
-	image, err := NewImageFromFile(resources + "png-24bit.png")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.Linear1(3, 4)
-	require.NoError(t, err)
-
-	_, _, err = image.Export(nil)
-	require.NoError(t, err)
-}
-
-func TestImageRef_Linear(t *testing.T) {
-	image, err := NewImageFromFile(resources + "png-24bit+alpha.png")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.Linear([]float64{1.1, 1.2, 1.3, 1.4}, []float64{1, 2, 3, 4})
-	require.NoError(t, err)
-
-	_, _, err = image.Export(nil)
-	require.NoError(t, err)
-}
-
-func TestImageRef_Sharpen(t *testing.T) {
-	image, err := NewImageFromFile(resources + "png-24bit.png")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.Sharpen(3, 4, 5)
-	require.NoError(t, err)
-
-	_, _, err = image.Export(nil)
-	require.NoError(t, err)
-}
-
-func TestImageRef_Modulate__Alpha(t *testing.T) {
-	image, err := NewImageFromFile(resources + "png-24bit.png")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.Modulate(0.1, 0.2, 90)
-	require.NoError(t, err)
-
-	_, _, err = image.Export(nil)
-	require.NoError(t, err)
-}
-
-func TestImageRef_Modulate(t *testing.T) {
-	image, err := NewImageFromFile(resources + "jpg-24bit-icc-iec.jpg")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.Modulate(0.1, 0.2, 90)
-	require.NoError(t, err)
-
-	_, _, err = image.Export(nil)
-	require.NoError(t, err)
-}
-
-func TestImageRef_Embed(t *testing.T) {
-	image, err := NewImageFromFile(resources + "png-24bit.png")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.Embed(10, 20, 100, 200, ExtendBlack)
-	require.NoError(t, err)
-
-	_, _, err = image.Export(nil)
-	require.NoError(t, err)
-}
-
 func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 	Startup(nil)
 
@@ -272,37 +221,32 @@ func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 	assert.Equal(t, 0, o)
 }
 
-func TestImageRef_ExtractArea(t *testing.T) {
+func TestImageRef_RemoveOrientation__HasEXIF(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "png-24bit.png")
+	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
 	defer image.Close()
 
-	err = image.ExtractArea(1, 2, 3, 4)
-	require.NoError(t, err)
+	image.RemoveOrientation()
+
+	o := image.GetOrientation()
+
+	assert.Equal(t, 0, o)
 }
 
-func TestImageRef_ExtractArea__Error(t *testing.T) {
+func TestImageRef_RemoveOrientation__NoEXIF(t *testing.T) {
 	Startup(nil)
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	defer image.Close()
 
-	err = image.ExtractArea(1, 2, 10000, 4)
-	require.Error(t, err)
-}
+	image.RemoveOrientation()
 
-func TestImageRef_Resize__Error(t *testing.T) {
-	Startup(nil)
+	o := image.GetOrientation()
 
-	image, err := NewImageFromFile(resources + "png-24bit.png")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.Resize(-1, KernelLanczos3)
-	require.Error(t, err)
+	assert.Equal(t, 0, o)
 }
 
 func TestImageRef_Close(t *testing.T) {
@@ -341,26 +285,4 @@ func TestImageRef_NotImage(t *testing.T) {
 	image, err := NewImageFromFile(resources + "txt.txt")
 	require.Error(t, err)
 	require.Nil(t, image)
-}
-
-func TestImageRef_CmykIccTransformToSrgb__Success(t *testing.T) {
-	Startup(nil)
-
-	image, err := NewImageFromFile(resources + "jpg-32bit-cmyk-icc-swop.jpg")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.TransformICCProfile(1)
-	require.NoError(t, err)
-}
-
-func TestImageRef_CmykIccTransformGrayScale__Success(t *testing.T) {
-	Startup(nil)
-
-	image, err := NewImageFromFile(resources + "jpg-8bit-gray-scale-with-icc-profile.jpg")
-	require.NoError(t, err)
-	defer image.Close()
-
-	err = image.TransformICCProfile(1)
-	require.NoError(t, err)
 }
