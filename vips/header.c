@@ -9,7 +9,11 @@ gboolean remove_icc_profile(VipsImage *in) {
     return vips_image_remove(in, VIPS_META_ICC_NAME);
 }
 
-// won't remove the ICC profile
+unsigned long has_iptc(VipsImage *in) {
+    return vips_image_get_typeof(in, VIPS_META_IPTC_NAME);
+}
+
+// won't remove the ICC profile and orientation
 void remove_metadata(VipsImage *in) {
     gchar ** fields = vips_image_get_fields(in);
 

@@ -86,8 +86,7 @@ const (
 func vipsCopyImage(in *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
-	err := C.copy_image(in, &out)
-	if int(err) != 0 {
+	if err := C.copy_image(in, &out); int(err) != 0 {
 		return nil, handleImageError(out)
 	}
 

@@ -8,7 +8,7 @@ go:
 env:
 	- GO111MODULE=on
 	- GOFLAGS='-mod vendor'
-	- VIPS_VERSION=8.8.4
+	- VIPS_VERSION=8.9.0
 
 addons:
 	apt:

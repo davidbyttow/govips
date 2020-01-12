@@ -95,6 +95,7 @@ func (r *ImageRef) Metadata() *ImageMetadata {
 }
 
 // create a new ref
+// deprecated
 func (r *ImageRef) Copy() (*ImageRef, error) {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
@@ -118,9 +119,7 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 func (r *ImageRef) Close() {
 	r.lock.Lock()
 
-	//info("close %p", r.image)
 	if r.image != nil {
-		//info("close - unref %p", r.image)
 		clearImage(r.image)
 		r.image = nil
 	}
@@ -160,6 +159,10 @@ func (r *ImageRef) HasICCProfile() bool {
 	return r.HasProfile()
 }
 
+func (r *ImageRef) HasIPTC() bool {
+	return vipsHasICPTC(r.image)
+}
+
 // HasAlpha returns if the image has an alpha layer.
 func (r *ImageRef) HasAlpha() bool {
 	return vipsHasAlpha(r.image)
@@ -170,12 +173,28 @@ func (r *ImageRef) GetOrientation() int {
 	return vipsGetMetaOrientation(r.image)
 }
 
-func (r *ImageRef) SetOrientation(orientation int) {
-	vipsSetMetaOrientation(r.image, orientation)
+func (r *ImageRef) SetOrientation(orientation int) error {
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsSetMetaOrientation(out, orientation)
+
+	r.setImage(out)
+	return nil
 }
 
-func (r *ImageRef) RemoveOrientation() {
-	vipsRemoveMetaOrientation(r.image)
+func (r *ImageRef) RemoveOrientation() error {
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsRemoveMetaOrientation(out)
+
+	r.setImage(out)
+	return nil
 }
 
 // ResX returns the X resolution
@@ -404,8 +423,7 @@ func (r *ImageRef) AutoRotate() error {
 		return err
 	}
 
-	r.RemoveOrientation()
-	return nil
+	return r.RemoveOrientation()
 }
 
 // ExtractArea executes the 'extract_area' operation
@@ -419,8 +437,14 @@ func (r *ImageRef) ExtractArea(left int, top int, width int, height int) error {
 }
 
 func (r *ImageRef) RemoveICCProfile() error {
-	vipsRemoveICCProfile(r.image)
-	// this works in place on the header
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsRemoveICCProfile(out)
+
+	r.setImage(out)
 	return nil
 }
 
@@ -451,8 +475,14 @@ func (r *ImageRef) OptimizeICCProfile() error {
 
 // won't remove the ICC profile
 func (r *ImageRef) RemoveMetadata() error {
-	vipsRemoveMetadata(r.image)
-	// this works in place on the header
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsRemoveMetadata(out)
+
+	r.setImage(out)
 	return nil
 }
 
