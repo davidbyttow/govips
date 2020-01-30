@@ -53,7 +53,9 @@ func TestLoadImage_AccessMode(t *testing.T) {
 			assert.NoError(t, err)
 			_, _, err = img.Export(vips.ExportParams{})
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "out of order")
+			if err != nil {
+				assert.Contains(t, err.Error(), "out of order")
+			}
 		}
 	}
 }
@@ -95,7 +97,9 @@ func TestNewImageFromFile_AccessMode(t *testing.T) {
 			assert.NoError(t, err)
 			_, _, err = img.Export(vips.ExportParams{})
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "out of order")
+			if err != nil {
+				assert.Contains(t, err.Error(), "out of order")
+			}
 		}
 	}
 }
@@ -140,7 +144,9 @@ func TestNewImageFromBuffer_AccessMode(t *testing.T) {
 			assert.NoError(t, err)
 			_, _, err = img.Export(vips.ExportParams{})
 			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "out of order")
+			if err != nil {
+				assert.Contains(t, err.Error(), "out of order")
+			}
 		}
 	}
 }
