@@ -23,8 +23,8 @@ func TestFlatten(t *testing.T) {
 }
 
 func TestResizeWithICC(t *testing.T) {
-  t.Skipf("This test doesn't pass, not sure why, but the " +
-    "checked in golden is CMYK and output sRGB")
+	t.Skipf("This test doesn't pass, not sure why, but the " +
+		"checked in golden is CMYK and output sRGB")
 	goldenTest(t, "../../assets/fixtures/icc.jpg", func(tx *vips.Transform) {
 		tx.StripMetadata()
 		tx.ResizeWidth(300)
@@ -32,8 +32,8 @@ func TestResizeWithICC(t *testing.T) {
 }
 
 func TestResizeAndStripICC(t *testing.T) {
-  t.Skipf("This test doesn't pass, not sure why, but the " +
-    "checked in golden is CMYK and output sRGB")
+	t.Skipf("This test doesn't pass, not sure why, but the " +
+		"checked in golden is CMYK and output sRGB")
 	goldenTest(t, "../../assets/fixtures/icc.jpg", func(tx *vips.Transform) {
 		tx.StripMetadata().ResizeWidth(300).StripProfile()
 	})
