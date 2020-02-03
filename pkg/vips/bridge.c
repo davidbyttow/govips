@@ -180,28 +180,6 @@ int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g,
 	);
 }
 
-int find_image_loader(int t) {
-  switch (t) {
-    case GIF:
-      return vips_type_find("VipsOperation", "gifload");
-    case PDF:
-      return vips_type_find("VipsOperation", "pdfload");
-    case TIFF:
-      return vips_type_find("VipsOperation", "tiffload");
-    case SVG:
-      return vips_type_find("VipsOperation", "svgload");
-    case WEBP:
-      return vips_type_find("VipsOperation", "webpload");
-    case PNG:
-      return vips_type_find("VipsOperation", "pngload");
-    case JPEG:
-      return vips_type_find("VipsOperation", "jpegload");
-    case MAGICK:
-      return vips_type_find("VipsOperation", "magickload");
-  }
-	return 0;
-}
-
 void gobject_set_property(VipsObject *object, const char *name, const GValue *value) {
   VipsObjectClass *object_class = VIPS_OBJECT_GET_CLASS( object );
   GType type = G_VALUE_TYPE( value );
