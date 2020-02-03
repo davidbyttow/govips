@@ -1,3 +1,6 @@
+#ifndef BRIDGE_H
+#define BRIDGE_H
+
 #include <stdlib.h>
 #include <vips/vips.h>
 #include <vips/foreign.h>
@@ -82,3 +85,5 @@ static int has_alpha_channel(VipsImage *image) {
 		(image->Bands == 5 && image->Type == VIPS_INTERPRETATION_CMYK)
 	) ? 1 : 0;
 }
+
+#endif // BRIDGE_H
