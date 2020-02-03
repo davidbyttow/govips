@@ -41,14 +41,11 @@ typedef struct {
 } ImageLoadOptions;
 
 int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsImage **out);
-int find_image_type_loader(int t);
-int find_image_type_saver(int t);
 
 int save_jpeg_buffer(VipsImage* image, void **buf, size_t *len, int strip, int quality, int interlace);
 int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int quality, int interlace);
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless);
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len);
-int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink);
 int copy_image(VipsImage *in, VipsImage **out);
 
 int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space);
@@ -64,13 +61,10 @@ int multiply(VipsImage *left, VipsImage *right, VipsImage **out);
 int resize_image(VipsImage *in, VipsImage **out, double scale, double vscale, int kernel);
 int rot_image(VipsImage *in, VipsImage **out, VipsAngle angle);
 int flip_image(VipsImage *in, VipsImage **out, int direction);
-int shrink_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink);
-int reduce_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink);
 int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac);
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width, int height, int extend, double r, double g, double b);
 int extract_image_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height);
 int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g, double b);
-int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c, double d, VipsInterpolate *interpolator);
 int gaussian_blur(VipsImage *in, VipsImage **out, double sigma);
 int invert_image(VipsImage *in, VipsImage **out);
 int composite(VipsImage **in, VipsImage **out, int n, int mode);

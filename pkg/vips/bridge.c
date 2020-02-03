@@ -41,14 +41,6 @@ int remove_icc_profile(VipsImage *in) {
   return vips_image_remove(in, VIPS_META_ICC_NAME);
 }
 
-int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
-  if (shrink > 0) {
-    return vips_jpegload_buffer(buf, len, out, "shrink", shrink, NULL);
-  } else {
-    return vips_jpegload_buffer(buf, len, out, NULL);
-  }
-}
-
 int copy_image(VipsImage *in, VipsImage **out) {
 	return vips_copy(in, out, NULL);
 }
@@ -107,14 +99,6 @@ int rot_image(VipsImage *in, VipsImage **out, VipsAngle angle) {
 
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
 	return vips_flip(in, out, direction, NULL);
-}
-
-int shrink_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink) {
-	return vips_shrink(in, out, xshrink, yshrink, NULL);
-}
-
-int reduce_image(VipsImage *in, VipsImage **out, double xshrink, double yshrink) {
-	return vips_reduce(in, out, xshrink, yshrink, NULL);
 }
 
 int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac) {
@@ -186,10 +170,6 @@ int flatten_image_background(VipsImage *in, VipsImage **out, double r, double g,
 	);
 }
 
-int transform_image(VipsImage *in, VipsImage **out, double a, double b, double c, double d, VipsInterpolate *interpolator) {
-	return vips_affine(in, out, a, b, c, d, "interpolate", interpolator, NULL);
-}
-
 int find_image_loader(int t) {
   switch (t) {
     case GIF:
@@ -208,20 +188,6 @@ int find_image_loader(int t) {
       return vips_type_find("VipsOperation", "jpegload");
     case MAGICK:
       return vips_type_find("VipsOperation", "magickload");
-  }
-	return 0;
-}
-
-int find_image_type_saver(int t) {
-  switch (t) {
-    case TIFF:
-      return vips_type_find("VipsOperation", "tiffsave_buffer");
-    case WEBP:
-      return vips_type_find("VipsOperation", "webpsave_buffer");
-    case PNG:
-      return vips_type_find("VipsOperation", "pngsave_buffer");
-    case JPEG:
-      return vips_type_find("VipsOperation", "jpegsave_buffer");
   }
 	return 0;
 }
