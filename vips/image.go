@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	defaultQuality     = 85
+	defaultQuality     = 80
 	defaultCompression = 6
 )
 
