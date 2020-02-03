@@ -206,6 +206,15 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageTy
 	case ImageTypeTIFF:
 		incOpCounter("save_tiff_buffer")
 		cErr = C.save_tiff_buffer(tmpImage, &ptr, &cLen)
+	case ImageTypeBMP:
+		incOpCounter("save_bmp_buffer")
+		cErr = C.save_bmp_buffer(tmpImage, &ptr, &cLen)
+	case ImageTypeGIF:
+		incOpCounter("save_gif_buffer")
+		cErr = C.save_gif_buffer(tmpImage, &ptr, &cLen)
+	case ImageTypeMagick:
+		incOpCounter("save_bmp_buffer")
+		cErr = C.save_magick_buffer(tmpImage, &ptr, &cLen)
 	default:
 		incOpCounter("save_jpeg_buffer")
 		format = ImageTypeJPEG
@@ -247,6 +256,9 @@ func vipsDetermineImageType(buf []byte) ImageType {
 	}
 	if buf[0] == 0x47 && buf[1] == 0x49 && buf[2] == 0x46 {
 		return ImageTypeGIF
+	}
+	if buf[0] == 0x42 && buf[1] == 0x4D {
+		return ImageTypeBMP
 	}
 	if buf[0] == 0x89 && buf[1] == 0x50 && buf[2] == 0x4E && buf[3] == 0x47 {
 		return ImageTypePNG

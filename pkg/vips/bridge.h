@@ -20,7 +20,8 @@ enum types {
 	GIF,
 	PDF,
 	SVG,
-	MAGICK
+	MAGICK,
+	BMP
 };
 typedef struct {
   const char *Text;
@@ -46,6 +47,9 @@ int save_jpeg_buffer(VipsImage* image, void **buf, size_t *len, int strip, int q
 int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int quality, int interlace);
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless);
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len);
+int save_bmp_buffer(VipsImage *in, void **buf, size_t *len);
+int save_gif_buffer(VipsImage *in, void **buf, size_t *len);
+int save_magick_buffer(VipsImage *in, void **buf, size_t *len);
 int copy_image(VipsImage *in, VipsImage **out);
 
 int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space);

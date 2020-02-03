@@ -18,14 +18,12 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 		code = vips_tiffload_buffer(buf, len, out, "access", o->access, NULL);
 #if (VIPS_MAJOR_VERSION >= 8)
 #if (VIPS_MINOR_VERSION >= 3)
-	} else if (imageType == GIF) {
-		code = vips_gifload_buffer(buf, len, out, "access", o->access, NULL);
 	} else if (imageType == PDF) {
 		code = vips_pdfload_buffer(buf, len, out, "access", o->access, NULL);
 	} else if (imageType == SVG) {
 		code = vips_svgload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
-	} else if (imageType == MAGICK) {
+	} else if (imageType == MAGICK || imageType == BMP || imageType == GIF) {
 		code = vips_magickload_buffer(buf, len, out, "access", o->access, NULL);
 #endif
 	}
@@ -76,6 +74,18 @@ int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int qual
 
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len) {
 	return vips_tiffsave_buffer(in, buf, len, NULL);
+}
+
+int save_bmp_buffer(VipsImage *in, void **buf, size_t *len) {
+  return vips_magicksave_buffer(in, buf, len, "format", "bmp", NULL);
+}
+
+int save_gif_buffer(VipsImage *in, void **buf, size_t *len) {
+  return vips_magicksave_buffer(in, buf, len, "format", "gif", NULL);
+}
+
+int save_magick_buffer(VipsImage *in, void **buf, size_t *len) {
+  return vips_magicksave_buffer(in, buf, len, "format", "magick", NULL);
 }
 
 int is_colorspace_supported(VipsImage *in) {

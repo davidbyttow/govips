@@ -101,6 +101,7 @@ const (
 	ImageTypeSVG     ImageType = C.SVG
 	ImageTypeTIFF    ImageType = C.TIFF
 	ImageTypeWEBP    ImageType = C.WEBP
+	ImageTypeBMP     ImageType = C.BMP
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -112,6 +113,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeSVG:    ".svg",
 	ImageTypeTIFF:   ".tiff",
 	ImageTypeWEBP:   ".webp",
+	ImageTypeBMP:    ".bmp",
 }
 
 // OutputExt returns the canonical extension for the ImageType
@@ -380,6 +382,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeSVG:    "svg",
 	ImageTypeTIFF:   "tiff",
 	ImageTypeWEBP:   "webp",
+	ImageTypeBMP:    "bmp",
 }
 
 type Composite struct {
@@ -464,5 +467,9 @@ func initTypes() {
 			log.Printf("Registered image type loader type=%s", v)
 			supportedImageTypes[k] = int(ret) != 0
 		}
+
+		// BMP and GIF can be saved and loaded by magick, so duplicate its status
+		supportedImageTypes[ImageTypeGIF] = supportedImageTypes[ImageTypeMagick]
+		supportedImageTypes[ImageTypeBMP] = supportedImageTypes[ImageTypeMagick]
 	})
 }
