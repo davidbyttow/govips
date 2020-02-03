@@ -28,8 +28,8 @@ func TestTransform(t *testing.T) {
 	assert.Equal(t, 400, image.Height())
 
 	image.Close()
-	vips.ShutdownThread()
-	vips.Shutdown()
+	//vips.ShutdownThread()
+	//vips.Shutdown()
 
 	vips.PrintObjectReport("Final")
 }

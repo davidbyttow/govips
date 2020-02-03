@@ -111,6 +111,6 @@ func LeakTest(fn func()) {
 		ConcurrencyLevel: 1,
 	})
 	fn()
-	vips.Shutdown()
+	//vips.Shutdown()
 	vips.PrintObjectReport("Finished")
 }
