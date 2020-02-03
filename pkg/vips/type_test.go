@@ -11,10 +11,10 @@ import (
 func TestTypes(t *testing.T) {
   tests := map[string]vips.ImageType{
     "koala.jpg": vips.ImageTypeJPEG,
-    //"koala.webp": vips.ImageTypeWEBP,
+    "koala.webp": vips.ImageTypeWEBP,
     "koala.png": vips.ImageTypePNG,
-    //"koala.tiff": vips.ImageTypeTIFF,
-    //"koala.gif": vips.ImageTypeGIF,
+    "koala.tiff": vips.ImageTypeTIFF,
+    "koala.gif": vips.ImageTypeGIF,
     //"koala.bmp": vips.ImageTypeBMP,
     //"koala.bmp2": vips.ImageTypeBMP,
     //"koala.bmp3": vips.ImageTypeBMP,
