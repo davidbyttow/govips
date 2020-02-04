@@ -359,6 +359,7 @@ func (t *Transform) Apply() ([]byte, ImageType, error) {
 		return nil, ImageTypeUnknown, err
 	}
 
+	// THIS MIGHT BE CAUSING FAILURE
 	defer C.g_object_unref(C.gpointer(transformed))
 
 	return t.exportImage(transformed, imageType)

@@ -6,29 +6,11 @@ int is_16bit(VipsInterpretation interpretation) {
 }
 
 int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsImage **out) {
-	int code = 1;
-
-	if (imageType == JPEG) {
-		code = vips_jpegload_buffer(buf, len, out, "access", o->access, NULL);
-	} else if (imageType == PNG) {
-		code = vips_pngload_buffer(buf, len, out, "access", o->access, NULL);
-	} else if (imageType == WEBP) {
-		code = vips_webpload_buffer(buf, len, out, "access", o->access, NULL);
-	} else if (imageType == TIFF) {
-		code = vips_tiffload_buffer(buf, len, out, "access", o->access, NULL);
-#if (VIPS_MAJOR_VERSION >= 8)
-#if (VIPS_MINOR_VERSION >= 3)
-	} else if (imageType == PDF) {
-		code = vips_pdfload_buffer(buf, len, out, "access", o->access, NULL);
-	} else if (imageType == SVG) {
-		code = vips_svgload_buffer(buf, len, out, "access", o->access, NULL);
-#endif
-	} else if (imageType == MAGICK || imageType == BMP || imageType == GIF) {
-		code = vips_magickload_buffer(buf, len, out, "access", o->access, NULL);
-#endif
+	*out = vips_image_new_from_buffer(buf, len, "", "access", o->access, NULL);
+	if (*out == NULL) {
+	  return -1;
 	}
-
-	return code;
+	return 0;
 }
 
 unsigned long has_profile_embed(VipsImage *in) {
