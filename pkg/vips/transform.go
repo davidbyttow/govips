@@ -45,10 +45,6 @@ type Transform struct {
 	input        *InputParams
 	tx           *TransformParams
 	export       *ExportParams
-	targetWidth  int
-	targetHeight int
-	cropOffsetX  int
-	cropOffsetY  int
 	source       []byte
 }
 

@@ -26,7 +26,7 @@ func TestOptionPrimitives(t *testing.T) {
 	for i := 0; i < 8; i++ {
 		opt := options[i]
 		if !opt.Output() {
-
+      t.Skipf("no tests yet")
 		}
 	}
 }

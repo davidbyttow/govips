@@ -4,10 +4,9 @@ package vips
 // #include "bridge.h"
 import "C"
 import (
-	"io"
-	"log"
-	"strings"
-	"sync"
+  "io"
+  "strings"
+  "sync"
 )
 
 // ResizeStrategy is the strategy to use when resizing an image
@@ -464,7 +463,6 @@ func initTypes() {
 			ret := C.vips_type_find(
 				cType,
 				cFunc)
-			log.Printf("Registered image type loader type=%s", v)
 			supportedImageTypes[k] = int(ret) != 0
 		}
 

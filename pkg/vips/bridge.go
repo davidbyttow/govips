@@ -36,8 +36,6 @@ type vipsLoadOptions struct {
 	cOpts C.ImageLoadOptions
 }
 
-var stringBuffer4096 = fixedString(4096)
-
 func vipsOperationNew(name string) *C.VipsOperation {
 	cName := C.CString(name)
 	defer freeCString(cName)
@@ -230,23 +228,6 @@ func vipsExportBuffer(image *C.VipsImage, params *ExportParams) ([]byte, ImageTy
 	return buf, format, nil
 }
 
-func isTypeSupported(imageType ImageType) bool {
-	return supportedImageTypes[imageType]
-}
-
-func isColorspaceIsSupportedBuffer(buf []byte) (bool, error) {
-	image, _, err := vipsLoadFromBuffer(buf)
-	if err != nil {
-		return false, err
-	}
-	defer C.g_object_unref(C.gpointer(image))
-	return int(C.is_colorspace_supported(image)) == 1, nil
-}
-
-func isColorspaceIsSupported(image *C.VipsImage) bool {
-	return int(C.is_colorspace_supported(image)) == 1
-}
-
 func vipsDetermineImageType(buf []byte) ImageType {
 	if len(buf) < 12 {
 		return ImageTypeUnknown
@@ -330,52 +311,6 @@ func vipsComposite(inputs []*C.VipsImage, mode BlendMode) (*C.VipsImage, error) 
 	incOpCounter("composite")
 	var output *C.VipsImage
 	if err := C.composite(&inputs[0], &output, C.int(len(inputs)), C.int(mode)); err != 0 {
-		return nil, handleVipsError()
-	}
-	return output, nil
-}
-
-func vipsHasAlpha(image *C.VipsImage) bool {
-	return int(C.has_alpha_channel(image)) > 0
-}
-
-func vipsAdd(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("add")
-	defer C.g_object_unref(C.gpointer(left))
-	defer C.g_object_unref(C.gpointer(right))
-	var output *C.VipsImage
-	if err := C.add(left, right, &output); err != 0 {
-		return nil, handleVipsError()
-	}
-	return output, nil
-}
-
-func vipsMultiply(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("multiply")
-	defer C.g_object_unref(C.gpointer(left))
-	defer C.g_object_unref(C.gpointer(right))
-	var output *C.VipsImage
-	if err := C.multiply(left, right, &output); err != 0 {
-		return nil, handleVipsError()
-	}
-	return output, nil
-}
-
-func vipsExtractBand(image *C.VipsImage, band, num int) (*C.VipsImage, error) {
-	incOpCounter("extract")
-	defer C.g_object_unref(C.gpointer(image))
-	var output *C.VipsImage
-	if err := C.extract_band(image, &output, C.int(band), C.int(num)); err != 0 {
-		return nil, handleVipsError()
-	}
-	return output, nil
-}
-
-func vipsLinear1(image *C.VipsImage, a, b float64) (*C.VipsImage, error) {
-	incOpCounter("linear1")
-	defer C.g_object_unref(C.gpointer(image))
-	var output *C.VipsImage
-	if err := C.linear1(image, &output, C.double(a), C.double(b)); err != 0 {
 		return nil, handleVipsError()
 	}
 	return output, nil

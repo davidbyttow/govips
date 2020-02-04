@@ -9,10 +9,6 @@ import (
 	"unsafe"
 )
 
-func byteArrayPointer(b []byte) unsafe.Pointer {
-	return unsafe.Pointer(&b[0])
-}
-
 func freeCString(s *C.char) {
 	C.free(unsafe.Pointer(s))
 }
@@ -32,18 +28,7 @@ func toGboolean(b bool) C.gboolean {
 }
 
 func fromGboolean(b C.gboolean) bool {
-	if b != 0 {
-		return true
-	}
-	return false
-}
-
-func fixedString(size int) string {
-	b := make([]byte, size)
-	for i := range b {
-		b[i] = '0'
-	}
-	return string(b)
+  return b != 0
 }
 
 func debug(fmt string, values ...interface{}) {
