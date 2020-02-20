@@ -16,6 +16,7 @@ import (
 const (
 	defaultQuality     = 80
 	defaultCompression = 6
+	defaultInterlaced  = true
 )
 
 type PreMultiplicationState struct {
@@ -50,6 +51,26 @@ type ExportParams struct {
 	Compression int
 	Interlaced  bool
 	Lossless    bool
+}
+
+func NewDefaultExportParams() *ExportParams {
+	return &ExportParams{
+		Quality:     defaultQuality,
+		Compression: defaultCompression,
+		Interlaced:  defaultInterlaced,
+	}
+}
+
+func NewDefaultJPEGExportParams() *ExportParams {
+	return NewDefaultExportParams()
+}
+
+func NewDefaultPNGExportParams() *ExportParams {
+	return &ExportParams{
+		Quality:     defaultQuality,
+		Compression: defaultCompression,
+		Interlaced:  false,
+	}
 }
 
 // NewImageFromReader loads an ImageRef from the given reader
@@ -245,7 +266,14 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) {
 	p := params
 	if p == nil {
-		p = &ExportParams{}
+		switch r.format {
+		case ImageTypeJPEG:
+			p = NewDefaultJPEGExportParams()
+		case ImageTypePNG:
+			p = NewDefaultPNGExportParams()
+		default:
+			p = NewDefaultExportParams()
+		}
 	}
 
 	if p.Format == ImageTypeUnknown {
@@ -427,7 +455,7 @@ func (r *ImageRef) AutoRotate() error {
 }
 
 // ExtractArea executes the 'extract_area' operation
-func (r *ImageRef) ExtractArea(left int, top int, width int, height int) error {
+func (r *ImageRef) ExtractArea(left, top, width, height int) error {
 	out, err := vipsExtractArea(r.image, left, top, width, height)
 	if err != nil {
 		return err
@@ -721,14 +749,6 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 	format := params.Format
 	if format != ImageTypeUnknown && !IsTypeSupported(format) {
 		return nil, ImageTypeUnknown, fmt.Errorf("cannot save to %#v", ImageTypes[format])
-	}
-
-	if params.Quality == 0 {
-		params.Quality = defaultQuality
-	}
-
-	if params.Compression == 0 {
-		params.Compression = defaultCompression
 	}
 
 	switch format {
