@@ -80,6 +80,13 @@ func NewDefaultPNGExportParams() *ExportParams {
 	}
 }
 
+func NewDefaultWebPExportParams() *ExportParams {
+	return &ExportParams{
+		Format:  ImageTypeWEBP,
+		Quality: defaultQuality,
+	}
+}
+
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
