@@ -55,6 +55,7 @@ type ExportParams struct {
 
 func NewDefaultExportParams() *ExportParams {
 	return &ExportParams{
+		Format:      ImageTypeUnknown, // defaults to the starting encoder
 		Quality:     defaultQuality,
 		Compression: defaultCompression,
 		Interlaced:  defaultInterlaced,
@@ -62,11 +63,17 @@ func NewDefaultExportParams() *ExportParams {
 }
 
 func NewDefaultJPEGExportParams() *ExportParams {
-	return NewDefaultExportParams()
+	return &ExportParams{
+		Format:      ImageTypeJPEG,
+		Quality:     defaultQuality,
+		Compression: defaultCompression,
+		Interlaced:  defaultInterlaced,
+	}
 }
 
 func NewDefaultPNGExportParams() *ExportParams {
 	return &ExportParams{
+		Format:      ImageTypePNG,
 		Quality:     defaultQuality,
 		Compression: defaultCompression,
 		Interlaced:  false,
