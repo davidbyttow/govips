@@ -203,17 +203,16 @@ func bmpToPNG(src []byte) ([]byte, error) {
 	return w.Bytes(), nil
 }
 
-func vipsSavePNGToBuffer(in *C.VipsImage, stripMetadata bool, compression, quality int, interlaced bool) ([]byte, error) {
+func vipsSavePNGToBuffer(in *C.VipsImage, stripMetadata bool, compression int, interlaced bool) ([]byte, error) {
 	incOpCounter("save_png_buffer")
 	var ptr unsafe.Pointer
 	cLen := C.size_t(0)
 
 	strip := C.int(boolToInt(stripMetadata))
 	comp := C.int(compression)
-	qual := C.int(quality)
 	inter := C.int(boolToInt(interlaced))
 
-	if err := C.save_png_buffer(in, &ptr, &cLen, strip, comp, qual, inter); err != 0 {
+	if err := C.save_png_buffer(in, &ptr, &cLen, strip, comp, inter); err != 0 {
 		return nil, handleSaveBufferError(ptr)
 	}
 
