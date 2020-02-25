@@ -13,12 +13,6 @@ import (
 	"unsafe"
 )
 
-const (
-	defaultQuality     = 80
-	defaultCompression = 6
-	defaultInterlaced  = true
-)
-
 type PreMultiplicationState struct {
 	bandFormat BandFormat
 }
@@ -44,6 +38,13 @@ type ImageMetadata struct {
 	Orientation int
 }
 
+// Deprecated: use us New...ExportParams instead
+const (
+	defaultQuality     = 80
+	defaultCompression = 6
+	defaultInterlaced  = true
+)
+
 // ExportParams are options when exporting an image to file or buffer
 type ExportParams struct {
 	Format      ImageType
@@ -56,34 +57,34 @@ type ExportParams struct {
 func NewDefaultExportParams() *ExportParams {
 	return &ExportParams{
 		Format:      ImageTypeUnknown, // defaults to the starting encoder
-		Quality:     defaultQuality,
-		Compression: defaultCompression,
-		Interlaced:  defaultInterlaced,
+		Quality:     80,
+		Compression: 6,
+		Interlaced:  true,
+		Lossless:    false,
 	}
 }
 
 func NewDefaultJPEGExportParams() *ExportParams {
 	return &ExportParams{
-		Format:      ImageTypeJPEG,
-		Quality:     defaultQuality,
-		Compression: defaultCompression,
-		Interlaced:  defaultInterlaced,
+		Format:     ImageTypeJPEG,
+		Quality:    80,
+		Interlaced: true,
 	}
 }
 
 func NewDefaultPNGExportParams() *ExportParams {
 	return &ExportParams{
 		Format:      ImageTypePNG,
-		Quality:     defaultQuality,
-		Compression: defaultCompression,
+		Compression: 6,
 		Interlaced:  false,
 	}
 }
 
-func NewDefaultWebPExportParams() *ExportParams {
+func NewDefaultWEBPExportParams() *ExportParams {
 	return &ExportParams{
-		Format:  ImageTypeWEBP,
-		Quality: defaultQuality,
+		Format:   ImageTypeWEBP,
+		Quality:  75,
+		Lossless: false,
 	}
 }
 
@@ -285,6 +286,8 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 			p = NewDefaultJPEGExportParams()
 		case ImageTypePNG:
 			p = NewDefaultPNGExportParams()
+		case ImageTypeWEBP:
+			p = NewDefaultWEBPExportParams()
 		default:
 			p = NewDefaultExportParams()
 		}
@@ -769,7 +772,7 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 	case ImageTypeWEBP:
 		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless)
 	case ImageTypePNG:
-		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Quality, params.Interlaced)
+		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:
 		buf, err = vipsSaveTIFFToBuffer(r.image)
 	case ImageTypeHEIF:
