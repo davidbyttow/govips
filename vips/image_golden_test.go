@@ -162,6 +162,16 @@ func TestImage_AutoRotate_6(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
+	goldenTest(t, resources+"heic-orientation-6.heic",
+		func(img *ImageRef) error {
+			return img.AutoRotate()
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 1, result.GetOrientation())
+		}, NewDefaultJPEGExportParams())
+}
+
 func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-24bit+alpha.png", func(img *ImageRef) error {
 		//usm_0.66_1.00_0.01
@@ -252,7 +262,7 @@ func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, valid
 	err = exec(i)
 	require.NoError(t, err)
 
-	buf, _, err := i.Export(params)
+	buf, metadata, err := i.Export(params)
 	require.NoError(t, err)
 
 	if validate != nil {
@@ -263,12 +273,12 @@ func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, valid
 		validate(result)
 	}
 
-	assertGoldenMatch(t, file, buf)
+	assertGoldenMatch(t, file, buf, metadata.Format)
 
 	return buf
 }
 
-func assertGoldenMatch(t *testing.T, file string, buf []byte) {
+func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) {
 	i := strings.LastIndex(file, ".")
 	if i < 0 {
 		panic("bad filename")
@@ -277,7 +287,7 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte) {
 	name := strings.Replace(t.Name(), "/", "_", -1)
 	name = strings.Replace(name, "TestImage_", "", -1)
 	prefix := file[:i] + "." + name
-	ext := file[i:]
+	ext := format.FileExt()
 	goldenFile := prefix + ".golden" + ext
 
 	golden, _ := ioutil.ReadFile(goldenFile)
