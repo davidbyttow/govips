@@ -5,7 +5,6 @@ package vips
 import "C"
 import (
 	"io"
-	"log"
 	"strings"
 	"sync"
 )
@@ -461,7 +460,7 @@ func initTypes() {
 			ret := C.vips_type_find(
 				cType,
 				cFunc)
-			log.Printf("Registered image type loader type=%s", v)
+			debug("Registered image type loader type=%s", v)
 			supportedImageTypes[k] = int(ret) != 0
 		}
 	})

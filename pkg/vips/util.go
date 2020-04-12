@@ -47,9 +47,11 @@ func fixedString(size int) string {
 }
 
 func debug(fmt string, values ...interface{}) {
-	if len(values) > 0 {
-		log.Printf(fmt, values...)
-	} else {
-		log.Print(fmt)
+	if ShowDebugLog {
+		if len(values) > 0 {
+			log.Printf(fmt, values...)
+		} else {
+			log.Print(fmt)
+		}
 	}
 }
