@@ -11,6 +11,46 @@ import (
 
 // todo: add missing tests...
 
+func TestImageRef_WebP(t *testing.T) {
+	Startup(nil)
+
+	srcBytes, err := ioutil.ReadFile(resources + "webp+alpha.webp")
+	require.NoError(t, err)
+
+	src := bytes.NewReader(srcBytes)
+	img, err := NewImageFromReader(src)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+	defer img.Close()
+
+	// check random access by encoding twice
+	_, _, err = img.Export(nil)
+	assert.NoError(t, err)
+	buf, _, err := img.Export(nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 45252, len(buf))
+}
+
+func TestImageRef_WebP__ReducedEffort(t *testing.T) {
+	Startup(nil)
+
+	srcBytes, err := ioutil.ReadFile(resources + "webp+alpha.webp")
+	require.NoError(t, err)
+
+	src := bytes.NewReader(srcBytes)
+	img, err := NewImageFromReader(src)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+	defer img.Close()
+
+	params := NewDefaultWEBPExportParams()
+	params.Effort = 2
+	buf, _, err := img.Export(params)
+	assert.NoError(t, err)
+	assert.Equal(t, 48850, len(buf))
+}
+
 func TestImageRef_PNG(t *testing.T) {
 	Startup(nil)
 

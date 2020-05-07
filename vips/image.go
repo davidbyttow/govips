@@ -52,6 +52,7 @@ type ExportParams struct {
 	Compression int
 	Interlaced  bool
 	Lossless    bool
+	Effort      int
 }
 
 func NewDefaultExportParams() *ExportParams {
@@ -61,6 +62,7 @@ func NewDefaultExportParams() *ExportParams {
 		Compression: 6,
 		Interlaced:  true,
 		Lossless:    false,
+		Effort:      4,
 	}
 }
 
@@ -85,6 +87,7 @@ func NewDefaultWEBPExportParams() *ExportParams {
 		Format:   ImageTypeWEBP,
 		Quality:  75,
 		Lossless: false,
+		Effort:   4,
 	}
 }
 
@@ -770,7 +773,7 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	switch format {
 	case ImageTypeWEBP:
-		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless)
+		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.Effort)
 	case ImageTypePNG:
 		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:
