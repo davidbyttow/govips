@@ -656,10 +656,10 @@ func (r *ImageRef) Invert() error {
 
 // Resize executes the 'resize' operation
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
-	err := r.PremultiplyAlpha()
-	if err != nil {
-		return err
-	}
+	//err := r.PremultiplyAlpha()
+	//if err != nil {
+	//	return err
+	//}
 
 	out, err := vipsResize(r.image, scale, kernel)
 	if err != nil {
@@ -667,7 +667,8 @@ func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 	}
 	r.setImage(out)
 
-	return r.UnpremultiplyAlpha()
+	//return r.UnpremultiplyAlpha()
+	return nil
 }
 
 // Resize executes the 'resize' operation
