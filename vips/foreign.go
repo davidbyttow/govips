@@ -5,6 +5,7 @@ package vips
 import "C"
 import (
 	"bytes"
+	"encoding/xml"
 	"golang.org/x/image/bmp"
 	"image/png"
 	"math"
@@ -138,11 +139,20 @@ func isHEIF(buf []byte) bool {
 		bytes.Equal(buf[8:12], mif1))
 }
 
-var svg = []byte("<svg ")
+var svg = []byte("<svg")
 
 func isSVG(buf []byte) bool {
 	sub := buf[:int(math.Min(500.0, float64(len(buf))))]
-	return bytes.Contains(sub, svg)
+	if bytes.Contains(sub, svg) {
+		data := &struct {
+			XMLName xml.Name `xml:"svg"`
+		}{}
+		err := xml.Unmarshal(buf, data)
+
+		return err == nil && data.XMLName.Local == "svg"
+	}
+
+	return false
 }
 
 var pdf = []byte("\x25\x50\x44\x46")
