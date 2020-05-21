@@ -146,6 +146,20 @@ func TestImageRef_SVG_1(t *testing.T) {
 	assert.Equal(t, ImageTypeSVG, img.Metadata().Format)
 }
 
+func TestImageRef_SVG_2(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "svg_2.svg")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+	defer img.Close()
+
+	assert.Equal(t, ImageTypeSVG, img.Metadata().Format)
+}
+
 func TestImageRef_OverSizedMetadata(t *testing.T) {
 	Startup(nil)
 

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"golang.org/x/image/bmp"
+	"golang.org/x/net/html/charset"
 	"image/png"
 	"math"
 	"runtime"
@@ -142,12 +143,16 @@ func isHEIF(buf []byte) bool {
 var svg = []byte("<svg")
 
 func isSVG(buf []byte) bool {
-	sub := buf[:int(math.Min(500.0, float64(len(buf))))]
+	sub := buf[:int(math.Min(1024.0, float64(len(buf))))]
 	if bytes.Contains(sub, svg) {
 		data := &struct {
 			XMLName xml.Name `xml:"svg"`
 		}{}
-		err := xml.Unmarshal(buf, data)
+		reader := bytes.NewReader(buf)
+		decoder := xml.NewDecoder(reader)
+		decoder.CharsetReader = charset.NewReaderLabel
+
+		err := decoder.Decode(data)
 
 		return err == nil && data.XMLName.Local == "svg"
 	}
