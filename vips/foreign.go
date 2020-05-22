@@ -150,6 +150,7 @@ func isSVG(buf []byte) bool {
 		}{}
 		reader := bytes.NewReader(buf)
 		decoder := xml.NewDecoder(reader)
+		decoder.Strict = false
 		decoder.CharsetReader = charset.NewReaderLabel
 
 		err := decoder.Decode(data)
