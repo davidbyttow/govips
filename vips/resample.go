@@ -17,6 +17,7 @@ const (
 	KernelCubic    Kernel = C.VIPS_KERNEL_CUBIC
 	KernelLanczos2 Kernel = C.VIPS_KERNEL_LANCZOS2
 	KernelLanczos3 Kernel = C.VIPS_KERNEL_LANCZOS3
+	KernelMitchell Kernel = C.VIPS_KERNEL_MITCHELL
 )
 
 // https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-resize
