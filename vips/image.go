@@ -654,20 +654,23 @@ func (r *ImageRef) Invert() error {
 	return nil
 }
 
-// Resize executes the 'resize' operation
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
-	//err := r.PremultiplyAlpha()
-	//if err != nil {
-	//	return err
-	//}
-
 	out, err := vipsResize(r.image, scale, kernel)
 	if err != nil {
 		return err
 	}
 	r.setImage(out)
 
-	//return r.UnpremultiplyAlpha()
+	return nil
+}
+
+func (r *ImageRef) AlphaResize(scale float64) error {
+	out, err := vipsAlphaResize(r.image, scale)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+
 	return nil
 }
 

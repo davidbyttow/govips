@@ -32,7 +32,7 @@ func TestImage_Resize_Upscale(t *testing.T) {
 
 func TestImage_Resize_Downscale_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
-		return img.Resize(0.9, KernelLanczos3)
+		return img.AlphaResize(0.9)
 	}, nil, nil)
 }
 
