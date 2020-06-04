@@ -52,6 +52,7 @@ type ExportParams struct {
 	Compression int
 	Interlaced  bool
 	Lossless    bool
+	Effort      int
 }
 
 func NewDefaultExportParams() *ExportParams {
@@ -655,17 +656,15 @@ func (r *ImageRef) Invert() error {
 }
 
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
-	out, err := vipsResize(r.image, scale, kernel)
-	if err != nil {
-		return err
+	var out *C.VipsImage
+	var err error
+
+	if scale < 1 && r.HasAlpha() {
+		out, err = vipsAlphaResize(r.image, scale)
+	} else {
+		out, err = vipsResize(r.image, scale, kernel)
 	}
-	r.setImage(out)
 
-	return nil
-}
-
-func (r *ImageRef) AlphaResize(scale float64) error {
-	out, err := vipsAlphaResize(r.image, scale)
 	if err != nil {
 		return err
 	}
