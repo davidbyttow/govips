@@ -19,3 +19,11 @@ int resize_image(VipsImage *in, VipsImage **out, double scale, gdouble vscale, i
 
 	return vips_resize(in, out, scale, "kernel", kernel, NULL);
 }
+
+int alpha_resize_image(VipsImage *in, VipsImage **out, double scale, gdouble vscale) {
+	if (vscale > 0) {
+		return vips_alpha_resize(in, out, scale, "vscale", vscale, NULL);
+	}
+
+	return vips_alpha_resize(in, out, scale, NULL);
+}

@@ -18,6 +18,7 @@ const (
 	InterpretationCMYK      Interpretation = C.VIPS_INTERPRETATION_CMYK
 	InterpretationLABQ      Interpretation = C.VIPS_INTERPRETATION_LABQ
 	InterpretationRGB       Interpretation = C.VIPS_INTERPRETATION_RGB
+	InterpretationRGB16     Interpretation = C.VIPS_INTERPRETATION_RGB16
 	InterpretationCMC       Interpretation = C.VIPS_INTERPRETATION_CMC
 	InterpretationLCH       Interpretation = C.VIPS_INTERPRETATION_LCH
 	InterpretationLABS      Interpretation = C.VIPS_INTERPRETATION_LABS

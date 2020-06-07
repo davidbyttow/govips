@@ -52,6 +52,7 @@ type ExportParams struct {
 	Compression int
 	Interlaced  bool
 	Lossless    bool
+	Effort      int
 }
 
 func NewDefaultExportParams() *ExportParams {
@@ -654,23 +655,14 @@ func (r *ImageRef) Invert() error {
 	return nil
 }
 
-// Resize executes the 'resize' operation
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
-	err := r.PremultiplyAlpha()
-	if err != nil {
-		return err
+	if scale < 1 && r.HasAlpha() {
+		return r.downscaleWithAlpha(scale)
+	} else {
+		return r.resizeWithAlphaMultiplication(scale, kernel)
 	}
-
-	out, err := vipsResize(r.image, scale, kernel)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-
-	return r.UnpremultiplyAlpha()
 }
 
-// Resize executes the 'resize' operation
 func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
 	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
@@ -741,6 +733,33 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
+}
+
+// Specialized implementation for downscaling an image with an alpha channel
+func (r *ImageRef) downscaleWithAlpha(scale float64) error {
+	out, err := vipsAlphaResize(r.image, scale)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
+// Downscaling without alpha or upscaling with an alpha channel
+func (r *ImageRef) resizeWithAlphaMultiplication(scale float64, kernel Kernel) error {
+	err := r.PremultiplyAlpha()
+	if err != nil {
+		return err
+	}
+
+	out, err := vipsResize(r.image, scale, kernel)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+
+	return r.UnpremultiplyAlpha()
 }
 
 // setImage resets the image for this image and frees the previous one
