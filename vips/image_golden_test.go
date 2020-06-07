@@ -162,6 +162,16 @@ func TestImage_AutoRotate_6(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_AutoRotate_6__webp(t *testing.T) {
+	goldenTest(t, resources+"jpg-orientation-6.jpg",
+		func(img *ImageRef) error {
+			return img.AutoRotate()
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 1, result.GetOrientation())
+		}, NewDefaultWEBPExportParams())
+}
+
 func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
 	goldenTest(t, resources+"heic-orientation-6.heic",
 		func(img *ImageRef) error {

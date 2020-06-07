@@ -457,7 +457,12 @@ func GetRotationAngleFromExif(orientation int) (Angle, bool) {
 func (r *ImageRef) AutoRotate() error {
 	// this is a full implementation of auto rotate as vips doesn't support auto rotating of mirrors exifs
 	// https://jcupitt.github.io/libvips/API/current/libvips-conversion.html#vips-autorot
-	angle, flipped := GetRotationAngleFromExif(r.GetOrientation())
+	orientation := r.GetOrientation()
+	if orientation < 2 {
+		return nil
+	}
+
+	angle, flipped := GetRotationAngleFromExif(orientation)
 	if flipped {
 		err := r.Flip(DirectionHorizontal)
 		if err != nil {
