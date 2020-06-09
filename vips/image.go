@@ -62,6 +62,7 @@ func NewDefaultExportParams() *ExportParams {
 		Compression: 6,
 		Interlaced:  true,
 		Lossless:    false,
+		Effort:      4,
 	}
 }
 
@@ -86,6 +87,7 @@ func NewDefaultWEBPExportParams() *ExportParams {
 		Format:   ImageTypeWEBP,
 		Quality:  75,
 		Lossless: false,
+		Effort:   4,
 	}
 }
 
@@ -455,7 +457,12 @@ func GetRotationAngleFromExif(orientation int) (Angle, bool) {
 func (r *ImageRef) AutoRotate() error {
 	// this is a full implementation of auto rotate as vips doesn't support auto rotating of mirrors exifs
 	// https://jcupitt.github.io/libvips/API/current/libvips-conversion.html#vips-autorot
-	angle, flipped := GetRotationAngleFromExif(r.GetOrientation())
+	orientation := r.GetOrientation()
+	if orientation < 2 {
+		return nil
+	}
+
+	angle, flipped := GetRotationAngleFromExif(orientation)
 	if flipped {
 		err := r.Flip(DirectionHorizontal)
 		if err != nil {
@@ -789,7 +796,7 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	switch format {
 	case ImageTypeWEBP:
-		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless)
+		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.Effort)
 	case ImageTypePNG:
 		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:

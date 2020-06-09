@@ -83,6 +83,17 @@ func Test_DetermineImageType__SVG(t *testing.T) {
 	assert.Equal(t, ImageTypeSVG, imageType)
 }
 
+func Test_DetermineImageType__SVG_1(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := ioutil.ReadFile(resources + "svg_1.svg")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypeSVG, imageType)
+}
+
 func Test_DetermineImageType__PDF(t *testing.T) {
 	Startup(&Config{})
 

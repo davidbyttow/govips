@@ -5,7 +5,9 @@ package vips
 import "C"
 import (
 	"bytes"
+	"encoding/xml"
 	"golang.org/x/image/bmp"
+	"golang.org/x/net/html/charset"
 	"image/png"
 	"math"
 	"runtime"
@@ -138,11 +140,25 @@ func isHEIF(buf []byte) bool {
 		bytes.Equal(buf[8:12], mif1))
 }
 
-var svg = []byte("<svg ")
+var svg = []byte("<svg")
 
 func isSVG(buf []byte) bool {
-	sub := buf[:int(math.Min(500.0, float64(len(buf))))]
-	return bytes.Contains(sub, svg)
+	sub := buf[:int(math.Min(1024.0, float64(len(buf))))]
+	if bytes.Contains(sub, svg) {
+		data := &struct {
+			XMLName xml.Name `xml:"svg"`
+		}{}
+		reader := bytes.NewReader(buf)
+		decoder := xml.NewDecoder(reader)
+		decoder.Strict = false
+		decoder.CharsetReader = charset.NewReaderLabel
+
+		err := decoder.Decode(data)
+
+		return err == nil && data.XMLName.Local == "svg"
+	}
+
+	return false
 }
 
 var pdf = []byte("\x25\x50\x44\x46")
@@ -219,7 +235,7 @@ func vipsSavePNGToBuffer(in *C.VipsImage, stripMetadata bool, compression int, i
 	return toBuff(ptr, cLen), nil
 }
 
-func vipsSaveWebPToBuffer(in *C.VipsImage, stripMetadata bool, quality int, lossless bool) ([]byte, error) {
+func vipsSaveWebPToBuffer(in *C.VipsImage, stripMetadata bool, quality int, lossless bool, effort int) ([]byte, error) {
 	incOpCounter("save_webp_buffer")
 	var ptr unsafe.Pointer
 	cLen := C.size_t(0)
@@ -227,8 +243,9 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, stripMetadata bool, quality int, loss
 	strip := C.int(boolToInt(stripMetadata))
 	qual := C.int(quality)
 	loss := C.int(boolToInt(lossless))
+	eff := C.int(effort)
 
-	if err := C.save_webp_buffer(in, &ptr, &cLen, strip, qual, loss); err != 0 {
+	if err := C.save_webp_buffer(in, &ptr, &cLen, strip, qual, loss, eff); err != 0 {
 		return nil, handleSaveBufferError(ptr)
 	}
 
