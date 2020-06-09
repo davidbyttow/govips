@@ -65,7 +65,11 @@ func Startup(config *Config) {
 	}
 
 	if C.VIPS_MAJOR_VERSION < 8 {
-		panic("Requires libvips version 8+")
+		panic("govips requires libvips version 8.10+")
+	}
+
+	if C.VIPS_MINOR_VERSION < 10 {
+		panic("govips requires libvips version 8.10+")
 	}
 
 	cName := C.CString("govips")
@@ -216,7 +220,7 @@ func initTypes() {
 
 			supportedImageTypes[k] = int(ret) != 0
 
-			info("Registered image type loader type=%s", v)
+			info("registered image type loader type=%s", v)
 		}
 	})
 }

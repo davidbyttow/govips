@@ -4,8 +4,6 @@ package vips
 // #include "resample.h"
 import "C"
 
-//const maxScaleFactor = 5
-
 // Kernel represents VipsKernel type
 type Kernel int
 
@@ -32,40 +30,10 @@ func vipsResize(in *C.VipsImage, scale float64, kernel Kernel) (*C.VipsImage, er
 	return out, nil
 }
 
-func vipsAlphaResize(in *C.VipsImage, scale float64) (*C.VipsImage, error) {
-	incOpCounter("resize")
-	var out *C.VipsImage
-
-	if err := C.alpha_resize_image(in, &out, C.double(scale), C.double(-1)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
 // https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-resize
 func vipsResizeWithVScale(in *C.VipsImage, scale, vscale float64, kernel Kernel) (*C.VipsImage, error) {
 	incOpCounter("resize")
 	var out *C.VipsImage
-
-	// we'll deal with it higher in the stack
-	//scale = math.Min(scale, maxScaleFactor)
-	//vscale = math.Min(vscale, maxScaleFactor)
-
-	if err := C.resize_image(in, &out, C.double(scale), C.gdouble(vscale), C.int(kernel)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-func vipsAlphaResizeWithVScale(in *C.VipsImage, scale, vscale float64, kernel Kernel) (*C.VipsImage, error) {
-	incOpCounter("resize")
-	var out *C.VipsImage
-
-	// we'll deal with it higher in the stack
-	//scale = math.Min(scale, maxScaleFactor)
-	//vscale = math.Min(vscale, maxScaleFactor)
 
 	if err := C.resize_image(in, &out, C.double(scale), C.gdouble(vscale), C.int(kernel)); err != 0 {
 		return nil, handleImageError(out)

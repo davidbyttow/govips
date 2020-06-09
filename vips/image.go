@@ -38,13 +38,6 @@ type ImageMetadata struct {
 	Orientation int
 }
 
-// Deprecated: use us New...ExportParams instead
-const (
-	defaultQuality     = 80
-	defaultCompression = 6
-	defaultInterlaced  = true
-)
-
 // ExportParams are options when exporting an image to file or buffer
 type ExportParams struct {
 	Format      ImageType
@@ -131,17 +124,6 @@ func (r *ImageRef) Metadata() *ImageMetadata {
 		Width:  r.Width(),
 		Height: r.Height(),
 	}
-}
-
-// create a new ref
-// deprecated
-func (r *ImageRef) Copy() (*ImageRef, error) {
-	out, err := vipsCopyImage(r.image)
-	if err != nil {
-		return nil, err
-	}
-
-	return newImageRef(out, r.format, r.buf), nil
 }
 
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
@@ -424,59 +406,14 @@ func (r *ImageRef) Linear1(a, b float64) error {
 	return nil
 }
 
-func getZeroedAngle(angle Angle) Angle {
-	switch angle {
-	case Angle0:
-		return Angle0
-	case Angle90:
-		return Angle270
-	case Angle180:
-		return Angle180
-	case Angle270:
-		return Angle90
-	}
-	return Angle0
-}
-
-func GetRotationAngleFromExif(orientation int) (Angle, bool) {
-	switch orientation {
-	case 0, 1, 2:
-		return Angle0, orientation == 2
-	case 3, 4:
-		return Angle180, orientation == 4
-	case 5, 8:
-		return Angle90, orientation == 5
-	case 6, 7:
-		return Angle270, orientation == 7
-	}
-
-	return Angle0, false
-}
-
 // Autorot do auto rotation
 func (r *ImageRef) AutoRotate() error {
-	// this is a full implementation of auto rotate as vips doesn't support auto rotating of mirrors exifs
-	// https://jcupitt.github.io/libvips/API/current/libvips-conversion.html#vips-autorot
-	orientation := r.GetOrientation()
-	if orientation < 2 {
-		return nil
-	}
-
-	angle, flipped := GetRotationAngleFromExif(orientation)
-	if flipped {
-		err := r.Flip(DirectionHorizontal)
-		if err != nil {
-			return err
-		}
-	}
-
-	zeroAngle := getZeroedAngle(angle)
-	err := r.Rotate(zeroAngle)
+	out, err := vipsAutoRotate(r.image)
 	if err != nil {
 		return err
 	}
-
-	return r.RemoveOrientation()
+	r.setImage(out)
+	return nil
 }
 
 // ExtractArea executes the 'extract_area' operation
@@ -662,12 +599,20 @@ func (r *ImageRef) Invert() error {
 	return nil
 }
 
+// Resize executes the 'resize' operation
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
-	if scale < 1 && r.HasAlpha() {
-		return r.downscaleWithAlpha(scale)
-	} else {
-		return r.resizeWithAlphaMultiplication(scale, kernel)
+	err := r.PremultiplyAlpha()
+	if err != nil {
+		return err
 	}
+
+	out, err := vipsResize(r.image, scale, kernel)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+
+	return r.UnpremultiplyAlpha()
 }
 
 func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
@@ -740,33 +685,6 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
-}
-
-// Specialized implementation for downscaling an image with an alpha channel
-func (r *ImageRef) downscaleWithAlpha(scale float64) error {
-	out, err := vipsAlphaResize(r.image, scale)
-	if err != nil {
-		return err
-	}
-
-	r.setImage(out)
-	return nil
-}
-
-// Downscaling without alpha or upscaling with an alpha channel
-func (r *ImageRef) resizeWithAlphaMultiplication(scale float64, kernel Kernel) error {
-	err := r.PremultiplyAlpha()
-	if err != nil {
-		return err
-	}
-
-	out, err := vipsResize(r.image, scale, kernel)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-
-	return r.UnpremultiplyAlpha()
 }
 
 // setImage resets the image for this image and frees the previous one
