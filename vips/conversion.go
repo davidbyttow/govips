@@ -4,6 +4,24 @@ package vips
 // #include "conversion.h"
 import "C"
 
+// BandFormat represents VIPS_FORMAT type
+type BandFormat int
+
+// BandFormat enum
+const (
+	BandFormatNotSet    BandFormat = C.VIPS_FORMAT_NOTSET
+	BandFormatUchar     BandFormat = C.VIPS_FORMAT_UCHAR
+	BandFormatChar      BandFormat = C.VIPS_FORMAT_CHAR
+	BandFormatUshort    BandFormat = C.VIPS_FORMAT_USHORT
+	BandFormatShort     BandFormat = C.VIPS_FORMAT_SHORT
+	BandFormatUint      BandFormat = C.VIPS_FORMAT_UINT
+	BandFormatInt       BandFormat = C.VIPS_FORMAT_INT
+	BandFormatFloat     BandFormat = C.VIPS_FORMAT_FLOAT
+	BandFormatComplex   BandFormat = C.VIPS_FORMAT_COMPLEX
+	BandFormatDouble    BandFormat = C.VIPS_FORMAT_DOUBLE
+	BandFormatDpComplex BandFormat = C.VIPS_FORMAT_DPCOMPLEX
+)
+
 type BlendMode int
 
 const (

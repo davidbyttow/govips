@@ -4,6 +4,11 @@ package vips
 // #include "color.h"
 import "C"
 
+// Color represents an RGB
+type Color struct {
+	R, G, B uint8
+}
+
 // Interpretation represents VIPS_INTERPRETATION type
 type Interpretation int
 

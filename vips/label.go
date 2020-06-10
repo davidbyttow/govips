@@ -5,6 +5,16 @@ package vips
 import "C"
 import "unsafe"
 
+// Align represents VIPS_ALIGN
+type Align int
+
+// Direction enum
+const (
+	AlignLow    Align = C.VIPS_ALIGN_LOW
+	AlignCenter Align = C.VIPS_ALIGN_CENTRE
+	AlignHigh   Align = C.VIPS_ALIGN_HIGH
+)
+
 const DefaultFont = "sans 10"
 
 // LabelParams represents a text-based label
