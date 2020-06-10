@@ -134,9 +134,11 @@ func isWEBP(buf []byte) bool {
 var ftyp = []byte("ftyp")
 var heic = []byte("heic")
 var mif1 = []byte("mif1")
+var avif = []byte("avif")
 
 func isHEIF(buf []byte) bool {
 	return bytes.Equal(buf[4:8], ftyp) && (bytes.Equal(buf[8:12], heic) ||
+		bytes.Equal(buf[8:12], avif) ||
 		bytes.Equal(buf[8:12], mif1))
 }
 

@@ -12,74 +12,29 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out) {
 		code = vips_webpload_buffer(buf, len, out, NULL);
 	} else if (imageType == TIFF) {
 		code = vips_tiffload_buffer(buf, len, out, NULL);
-#if (VIPS_MAJOR_VERSION >= 8)
-#if (VIPS_MINOR_VERSION >= 3)
 	} else if (imageType == GIF) {
 		code = vips_gifload_buffer(buf, len, out, NULL);
 	} else if (imageType == PDF) {
 		code = vips_pdfload_buffer(buf, len, out, NULL);
 	} else if (imageType == SVG) {
 		code = vips_svgload_buffer(buf, len, out, NULL);
-#endif
-#if (VIPS_MINOR_VERSION >= 8)
 	} else if (imageType == HEIF) {
 		code = vips_heifload_buffer(buf, len, out, NULL);
-#endif
 	} else if (imageType == MAGICK) {
 		code = vips_magickload_buffer(buf, len, out, NULL);
-#endif
 	}
 
 	return code;
 }
 
-int find_image_loader(int t) {
-  switch (t) {
-    case GIF:
-      return vips_type_find("VipsOperation", "gifload");
-    case PDF:
-      return vips_type_find("VipsOperation", "pdfload");
-    case TIFF:
-      return vips_type_find("VipsOperation", "tiffload");
-    case SVG:
-      return vips_type_find("VipsOperation", "svgload");
-    case WEBP:
-      return vips_type_find("VipsOperation", "webpload");
-    case PNG:
-      return vips_type_find("VipsOperation", "pngload");
-    case JPEG:
-      return vips_type_find("VipsOperation", "jpegload");
-    case HEIF:
-      return vips_type_find("VipsOperation", "heifload");
-    case MAGICK:
-      return vips_type_find("VipsOperation", "magickload");
-  }
-	return 0;
-}
-
-int find_image_type_saver(int t) {
-  switch (t) {
-    case TIFF:
-      return vips_type_find("VipsOperation", "tiffsave_buffer");
-    case WEBP:
-      return vips_type_find("VipsOperation", "webpsave_buffer");
-    case PNG:
-      return vips_type_find("VipsOperation", "pngsave_buffer");
-    case JPEG:
-      return vips_type_find("VipsOperation", "jpegsave_buffer");
-    case HEIF:
-      return vips_type_find("VipsOperation", "heifsave_buffer");
-  }
-	return 0;
-}
-
+// https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer
 int save_jpeg_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int interlace) {
     return vips_jpegsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),
 		"Q", quality,
 		"optimize_coding", TRUE,
 		"interlace", INT_TO_GBOOLEAN(interlace),
-//		"subsample_mode", VIPS_FOREIGN_JPEG_SUBSAMPLE_ON, todo: reinstate on next libvips release
+		"subsample_mode", VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
 		NULL
 	);
 }
