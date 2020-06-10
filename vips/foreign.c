@@ -19,7 +19,9 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out) {
 	} else if (imageType == SVG) {
 		code = vips_svgload_buffer(buf, len, out, NULL);
 	} else if (imageType == HEIF) {
-		code = vips_heifload_buffer(buf, len, out, NULL);
+		// added autorotate on load as currently it addresses orientation issues
+		// https://github.com/libvips/libvips/pull/1680
+		code = vips_heifload_buffer(buf, len, out, "autorotate", TRUE, NULL);
 	} else if (imageType == MAGICK) {
 		code = vips_magickload_buffer(buf, len, out, NULL);
 	}
