@@ -181,7 +181,7 @@ func (r *ImageRef) HasICCProfile() bool {
 }
 
 func (r *ImageRef) HasIPTC() bool {
-	return vipsHasICPTC(r.image)
+	return vipsHasIPTC(r.image)
 }
 
 // HasAlpha returns if the image has an alpha layer.
@@ -434,16 +434,6 @@ func (r *ImageRef) RemoveICCProfile() error {
 
 	vipsRemoveICCProfile(out)
 
-	r.setImage(out)
-	return nil
-}
-
-// deprecated: use optimize
-func (r *ImageRef) TransformICCProfile(isCmyk int) error {
-	out, err := vipsOptimizeICCProfile(r.image, isCmyk)
-	if err != nil {
-		return err
-	}
 	r.setImage(out)
 	return nil
 }

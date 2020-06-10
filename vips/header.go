@@ -12,7 +12,7 @@ func vipsRemoveICCProfile(in *C.VipsImage) bool {
 	return fromGboolean(C.remove_icc_profile(in))
 }
 
-func vipsHasICPTC(in *C.VipsImage) bool {
+func vipsHasIPTC(in *C.VipsImage) bool {
 	return int(C.has_iptc(in)) != 0
 }
 
