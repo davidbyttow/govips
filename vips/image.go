@@ -126,6 +126,17 @@ func (r *ImageRef) Metadata() *ImageMetadata {
 	}
 }
 
+// create a new ref
+// deprecated
+func (r *ImageRef) Copy() (*ImageRef, error) {
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return nil, err
+	}
+
+	return newImageRef(out, r.format, r.buf), nil
+}
+
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
 	image := &ImageRef{
 		image:  vipsImage,
@@ -406,7 +417,21 @@ func (r *ImageRef) Linear1(a, b float64) error {
 	return nil
 }
 
-// Autorot do auto rotation
+func GetRotationAngleFromExif(orientation int) (Angle, bool) {
+	switch orientation {
+	case 0, 1, 2:
+		return Angle0, orientation == 2
+	case 3, 4:
+		return Angle180, orientation == 4
+	case 5, 8:
+		return Angle90, orientation == 5
+	case 6, 7:
+		return Angle270, orientation == 7
+	}
+
+	return Angle0, false
+}
+
 func (r *ImageRef) AutoRotate() error {
 	out, err := vipsAutoRotate(r.image)
 	if err != nil {
