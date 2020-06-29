@@ -203,7 +203,7 @@ func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 		x1 := 0.01 * 100
 		m2 := 1.0
 
-		return img.Sharpen(sigma, x1, m2)
+		return img.Sharpen(sigma, x1, m2, SharpenModeLuminescence)
 	}, nil, nil)
 }
 
@@ -214,7 +214,7 @@ func TestImage_Sharpen_8bit_Alpha(t *testing.T) {
 		x1 := 0.01 * 100
 		m2 := 1.0
 
-		return img.Sharpen(sigma, x1, m2)
+		return img.Sharpen(sigma, x1, m2, SharpenModeLuminescence)
 	}, nil, nil)
 }
 
