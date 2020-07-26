@@ -112,6 +112,17 @@ func TestImageRef_RemoveMetadata_Leave_Orientation(t *testing.T) {
 		}, nil)
 }
 
+func TestImageRef_Orientation_Issue(t *testing.T) {
+	goldenTest(t, resources+"orientation-issue-1.jpg",
+		func(img *ImageRef) error {
+			return img.Resize(0.9, KernelLanczos3)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 6, result.GetOrientation())
+		},
+		NewDefaultWEBPExportParams())
+}
+
 func TestImageRef_RemoveMetadata_Leave_Profile(t *testing.T) {
 	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
 		func(img *ImageRef) error {
