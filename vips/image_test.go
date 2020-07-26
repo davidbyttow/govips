@@ -390,6 +390,19 @@ func TestImageRef_RemoveMetadata__RetainsOrientation(t *testing.T) {
 	assert.Equal(t, 5, image.GetOrientation())
 }
 
+func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "webp-orientation-6.webp")
+	require.NoError(t, err)
+	defer image.Close()
+
+	err = image.RemoveMetadata()
+	require.NoError(t, err)
+
+	assert.Equal(t, 6, image.GetOrientation())
+}
+
 func TestImageRef_RemoveICCProfile(t *testing.T) {
 	Startup(nil)
 
