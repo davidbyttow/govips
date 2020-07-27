@@ -478,7 +478,7 @@ func (r *ImageRef) OptimizeICCProfile() error {
 	return nil
 }
 
-// won't remove the ICC profile and orientation
+// won't remove the ICC profile and orientation because we must have them to correctly display the image
 func (r *ImageRef) RemoveMetadata() error {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
