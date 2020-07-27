@@ -390,6 +390,8 @@ func TestImageRef_RemoveMetadata__RetainsOrientation(t *testing.T) {
 	assert.Equal(t, 5, image.GetOrientation())
 }
 
+// Known issue: libvips does not write EXIF into WebP:
+// https://github.com/libvips/libvips/pull/1745
 func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
 	Startup(nil)
 
