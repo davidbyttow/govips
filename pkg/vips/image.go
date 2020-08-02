@@ -114,6 +114,10 @@ func (ref *ImageRef) Image() *C.VipsImage {
 	return ref.image
 }
 
+func (ref *ImageRef) AutorotAngle() Angle {
+	return vipsAutorotGetAngle(ref.image)
+}
+
 // Width returns the width of this image
 func (ref *ImageRef) Width() int {
 	return int(ref.image.Xsize)

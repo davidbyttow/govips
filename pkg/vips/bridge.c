@@ -33,6 +33,10 @@ int init_image(void *buf, size_t len, int imageType, ImageLoadOptions *o, VipsIm
 	return code;
 }
 
+VipsAngle autorot_get_angle(VipsImage *img) {
+	return vips_autorot_get_angle(img);
+}
+
 unsigned long has_profile_embed(VipsImage *in) {
 	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
 }

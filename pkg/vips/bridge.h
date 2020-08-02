@@ -54,6 +54,7 @@ unsigned long has_profile_embed(VipsImage *in);
 int remove_icc_profile(VipsImage *in);
 int extract_band(VipsImage *in, VipsImage **out, int band, int num);
 int linear1(VipsImage *in, VipsImage **out, double a, double b);
+VipsAngle autorot_get_angle(VipsImage *img);
 
 // Operations
 int add(VipsImage *left, VipsImage *right, VipsImage **out);
