@@ -428,6 +428,22 @@ const (
 	SizeLast  Size = C.VIPS_SIZE_LAST
 )
 
+// Orientation
+type Orientation int
+
+// See https://www.exif.org/Exif2-2.PDF page 24
+const (
+	OrientationUnspecified Orientation = 0
+	OrientationNormal      Orientation = 1
+	OrientationFlipH       Orientation = 2
+	OrientationRotate180   Orientation = 3
+	OrientationFlipV       Orientation = 4
+	OrientationTranspose   Orientation = 5
+	OrientationRotate90    Orientation = 6
+	OrientationTransverse  Orientation = 7
+	OrientationRotate270   Orientation = 8
+)
+
 var (
 	once                sync.Once
 	typeLoaders         = make(map[string]ImageType)

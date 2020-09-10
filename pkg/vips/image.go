@@ -92,6 +92,9 @@ func finalizeImage(ref *ImageRef) {
 
 // SetImage resets the image for this image and frees the previous one
 func (ref *ImageRef) SetImage(image *C.VipsImage) {
+	if ref.image == image {
+		return
+	}
 	if ref.image != nil {
 		defer C.g_object_unref(C.gpointer(ref.image))
 	}
@@ -116,6 +119,14 @@ func (ref *ImageRef) Image() *C.VipsImage {
 
 func (ref *ImageRef) AutorotAngle() Angle {
 	return vipsAutorotGetAngle(ref.image)
+}
+
+func (ref *ImageRef) Orientation() Orientation {
+	return vipsExifOrientation(ref.image)
+}
+
+func (ref *ImageRef) HasAlpha() bool {
+	return vipsHasAlpha(ref.image)
 }
 
 // Width returns the width of this image

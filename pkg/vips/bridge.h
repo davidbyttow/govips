@@ -8,6 +8,8 @@
 
 #define INT_TO_GBOOLEAN(bool) (bool > 0 ? TRUE : FALSE)
 
+#define EXIF_IFD0_ORIENTATION "exif-ifd0-Orientation"
+
 enum types {
 	UNKNOWN = 0,
 	JPEG,
@@ -55,6 +57,9 @@ int remove_icc_profile(VipsImage *in);
 int extract_band(VipsImage *in, VipsImage **out, int band, int num);
 int linear1(VipsImage *in, VipsImage **out, double a, double b);
 VipsAngle autorot_get_angle(VipsImage *img);
+int exif_orientation(VipsImage *img);
+const char *exif_tag(VipsImage *img, const char *tag);
+int exif_tag_to_int(VipsImage *img, const char *tag);
 
 // Operations
 int add(VipsImage *left, VipsImage *right, VipsImage **out);

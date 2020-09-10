@@ -9,6 +9,7 @@ import (
 	"math"
 	"runtime"
 	dbg "runtime/debug"
+	"strings"
 	"unsafe"
 )
 
@@ -91,6 +92,25 @@ func vipsAutorotGetAngle(image *C.VipsImage) Angle {
 
 func vipsHasProfile(input *C.VipsImage) bool {
 	return int(C.has_profile_embed(input)) > 0
+}
+
+func vipsExifStringTag(image *C.VipsImage, tag string) string {
+	return vipsExifShort(C.GoString(C.exif_tag(image, C.CString(tag))))
+}
+
+func vipsExifIntTag(image *C.VipsImage, tag string) int {
+	return int(C.exif_tag_to_int(image, C.CString(tag)))
+}
+
+func vipsExifOrientation(image *C.VipsImage) Orientation {
+	return Orientation(C.exif_orientation(image))
+}
+
+func vipsExifShort(s string) string {
+	if strings.Contains(s, " (") {
+		return s[:strings.Index(s, "(")-1]
+	}
+	return s
 }
 
 func vipsPrepareForExport(input *C.VipsImage, params *ExportParams) (*C.VipsImage, error) {

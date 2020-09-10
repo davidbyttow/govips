@@ -37,6 +37,30 @@ VipsAngle autorot_get_angle(VipsImage *img) {
 	return vips_autorot_get_angle(img);
 }
 
+int exif_orientation(VipsImage *img) {
+	return exif_tag_to_int(img, EXIF_IFD0_ORIENTATION);
+}
+
+const char *exif_tag(VipsImage *img, const char *tag) {
+	const char *exif;
+	if (
+		vips_image_get_typeof(img, tag) != 0 &&
+		!vips_image_get_string(img, tag, &exif)
+	) {
+		return &exif[0];
+	}
+	return "";
+}
+
+int exif_tag_to_int(VipsImage *img, const char *tag) {
+	int value = 0;
+	const char *exif = exif_tag(img, tag);
+	if (strcmp(exif, "")) {
+		value = atoi(&exif[0]);
+	}
+	return value;
+}
+
 unsigned long has_profile_embed(VipsImage *in) {
 	return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
 }
