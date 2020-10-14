@@ -531,7 +531,7 @@ func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 }
 
 // Modulate the colors
-func (r *ImageRef) Modulate(brightness, saturation float64, hue int) error {
+func (r *ImageRef) Modulate(brightness, saturation, hue float64) error {
 	var err error
 	var multiplications []float64
 	var additions []float64
@@ -541,12 +541,12 @@ func (r *ImageRef) Modulate(brightness, saturation float64, hue int) error {
 		colorspace = InterpretationSRGB
 	}
 
+	multiplications = []float64{brightness, saturation, 1}
+	additions = []float64{0, 0, hue}
+
 	if r.HasAlpha() {
-		multiplications = []float64{brightness, saturation, 1, 1}
-		additions = []float64{0, 0, float64(hue), 0}
-	} else {
-		multiplications = []float64{brightness, saturation, 1}
-		additions = []float64{0, 0, float64(hue)}
+		multiplications = append(multiplications, 1)
+		additions = append(additions, 0)
 	}
 
 	err = r.ToColorSpace(InterpretationLCH)
