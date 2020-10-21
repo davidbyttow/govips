@@ -6,6 +6,10 @@ go:
 matrix:
   include:
     - os: osx
+      osx_image: xcode12.2
+
+    - os: osx
+      osx_image: xcode11.3
 
     - os: linux
       dist: bionic
