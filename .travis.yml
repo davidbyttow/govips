@@ -1,11 +1,19 @@
-dist: focal
-
 language: go
 
 go:
   - 1.15.x
 
+matrix:
+  include:
+    - os: osx
+
+    - os: linux
+      dist: bionic
+
+    - os: linux
+      dist: focal
+
 before_install:
-  - sudo add-apt-repository -y ppa:tonimelisma/ppa
-  - sudo apt-get -q update
-  - sudo apt-get -y install libvips-dev
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository -y ppa:tonimelisma/ppa; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get -y install libvips-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install vips; fi
