@@ -1,13 +1,11 @@
 # govips  [![Build Status](https://travis-ci.org/davidbyttow/govips.svg)](https://travis-ci.org/davidbyttow/govips) [![GoDoc](https://godoc.org/github.com/davidbyttow/govips?status.svg)](https://godoc.org/github.com/davidbyttow/govips) [![Go Report Card](http://goreportcard.com/badge/davidbyttow/govips)](http://goreportcard.com/report/davidbyttow/govips) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## A libvips library for Go
+## A fast image processing library for Go
 This package wraps the core functionality of [libvips](https://github.com/libvips/libvips) image processing library by exposing all image operations on first-class types in Go.
 
-How fast is libvips? See this: [Speed and Memory Use](https://github.com/libvips/libvips/wiki/Speed-and-memory-use)
+Libvips is generally 4-8x faster than other graphics processors such as GraphicsMagick and ImageMagick. Check the benchmark: [Speed and Memory Use](https://github.com/libvips/libvips/wiki/Speed-and-memory-use)
 
 The intent for this is to enable developers to build extremely fast image processors in Go, which is suited well for concurrent requests.
-
-Libvips is generally 4-8x faster than other graphics processors such as GraphicsMagick and ImageMagick.
 
 ## Requirements
 - [libvips](https://github.com/libvips/libvips) 8.10+
@@ -24,17 +22,37 @@ go get -u github.com/davidbyttow/govips/vips
 package main
 
 import (
+	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/davidbyttow/govips/vips"
 )
 
-image, err := NewImageFromFile("image.jpg")
-if err != nil {
-	return nil, err
+func checkError(err error) {
+	if err != nil {
+		fmt.Println("error:", err)
+		os.Exit(1)
+	}
 }
-defer image.Close()
 
-// Resize an image
-return image.Resize(1200, 1200).Export(nil)
+func main() {
+	vips.Startup(nil)
+
+	image1, err := vips.NewImageFromFile("input.jpg")
+	checkError(err)
+	defer image1.Close()
+
+	// Rotate the picture upright and reset EXIF orientation tag
+	err = image1.AutoRotate()
+	checkError(err)
+
+	image1bytes, _, err := image1.Export(&vips.ExportParams{Format: vips.ImageTypeJPEG})
+	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
+	checkError(err)
+
+	vips.Shutdown()
+}
 ```
 
 ## Contributing
