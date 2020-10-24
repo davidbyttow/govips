@@ -6,12 +6,13 @@ import "C"
 import (
 	"bytes"
 	"encoding/xml"
-	"golang.org/x/image/bmp"
-	"golang.org/x/net/html/charset"
 	"image/png"
 	"math"
 	"runtime"
 	"unsafe"
+
+	"golang.org/x/image/bmp"
+	"golang.org/x/net/html/charset"
 )
 
 // ImageType represents an image type
@@ -45,6 +46,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeBMP:    ".bmp",
 }
 
+// ImageTypes defines the various image types supported by govips
 var ImageTypes = map[ImageType]string{
 	ImageTypeGIF:    "gif",
 	ImageTypeJPEG:   "jpeg",
@@ -66,6 +68,7 @@ func (i ImageType) FileExt() string {
 	return ""
 }
 
+// IsTypeSupported checks whether given image type is supported by govips
 func IsTypeSupported(imageType ImageType) bool {
 	startupIfNeeded()
 
