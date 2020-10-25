@@ -1,5 +1,4 @@
-# govips ![License](https://img.shields.io/badge/license-MIT-blue.svg)
-
+# govips  [![Build Status](https://travis-ci.org/davidbyttow/govips.svg)](https://travis-ci.org/davidbyttow/govips) [![GoDoc](https://godoc.org/github.com/davidbyttow/govips?status.svg)](https://godoc.org/github.com/davidbyttow/govips) [![Go Report Card](http://goreportcard.com/badge/davidbyttow/govips)](http://goreportcard.com/report/davidbyttow/govips) ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## A libvips library for Go
 This package wraps the core functionality of [libvips](https://github.com/libvips/libvips) image processing library by exposing all image operations on first-class types in Go.
