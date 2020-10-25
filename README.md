@@ -17,7 +17,7 @@ Libvips is generally 4-8x faster than other graphics processors such as Graphics
 
 ## Installation
 ```bash
-go get -u github.com/wix-playground/govips/vips
+go get -u github.com/davidbyttow/govips/vips
 ```
 
 ## Example usage
@@ -25,7 +25,7 @@ go get -u github.com/wix-playground/govips/vips
 package main
 
 import (
-	"github.com/wix-playground/govips/vips"
+	"github.com/davidbyttow/govips/vips"
 )
 
 image, err := NewImageFromFile("image.jpg")
@@ -39,7 +39,7 @@ return image.Resize(1200, 1200).Export(nil)
 ```
 
 ## Contributing
-In short, feel free to file issues or send along pull requests. See this [guide on contributing](https://github.com/wix-playground/govips/blob/master/CONTRIBUTING.md) for more information.
+In short, feel free to file issues or send along pull requests. See this [guide on contributing](https://github.com/davidbyttow/govips/blob/master/CONTRIBUTING.md) for more information.
 
 ## Credits
 Thank you to [John Cupitt](https://github.com/jcupitt) for maintaining libvips and providing feedback on vips.
