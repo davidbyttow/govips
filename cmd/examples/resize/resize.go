@@ -16,7 +16,7 @@ var (
 
 func main() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "resize -in input_file -out output_file")
+		fmt.Fprintf(os.Stderr, "resize -in input_file -out output_file\n")
 	}
 	flag.Parse()
 
