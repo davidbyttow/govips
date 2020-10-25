@@ -212,7 +212,7 @@ func (t *Transform) Crop(anchor Anchor) *Transform {
 
 // Stretch an image without maintaining aspect ratio
 func (t *Transform) Stretch() *Transform {
-	t.tx.ResizeStrategy = ResizeStrategyCrop
+	t.tx.ResizeStrategy = ResizeStrategyStretch
 	return t
 }
 
