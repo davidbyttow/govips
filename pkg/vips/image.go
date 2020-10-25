@@ -90,6 +90,17 @@ func finalizeImage(ref *ImageRef) {
 	ref.Close()
 }
 
+func (ref *ImageRef) Clone() (*ImageRef, error) {
+	image, err := vipsCopyImage(ref.image)
+	if err != nil {
+		return nil, err
+	}
+	return NewImageRef(
+		image,
+		ref.format,
+	), nil
+}
+
 // SetImage resets the image for this image and frees the previous one
 func (ref *ImageRef) SetImage(image *C.VipsImage) {
 	if ref.image != nil {
