@@ -1,77 +1,51 @@
-language: go
-go_import_path: github.com/davidbyttow/govips
+dist: xenial
 
-sudo: required
-dist: trusty
+language: go
 
 go:
-  - 1.9
+	- 1.13.x
 
 env:
-  - VIPS_VERSION=8.6.2
-
-matrix:
-  allow_failures:
-    - env: VIPS_VERSION=8.2
-    - env: VIPS_VERSION=8.3
-
-cache:
-  apt: true
-  directories:
-    - libvips
+	- GO111MODULE=on
+	- GOFLAGS='-mod vendor'
+	- VIPS_VERSION=8.9.0
 
 addons:
-  apt:
-    packages:
-      - gobject-introspection
-      - gtk-doc-tools
-      - libcfitsio3-dev
-      - libfftw3-dev
-      - libgif-dev
-      - libgs-dev
-      - libgsf-1-dev
-      - libmatio-dev
-      - libopenslide-dev
-      - liborc-0.4-dev
-      - libpango1.0-dev
-      - libpoppler-glib-dev
-      - libwebp-dev
+	apt:
+		update: true
+		packages:
+			- gobject-introspection
+			- gtk-doc-tools
+			- libcfitsio3-dev
+			- libfftw3-dev
+			- libgif-dev
+			- libgs-dev
+			- libgsf-1-dev
+			- libmatio-dev
+			- libopenslide-dev
+			- liborc-0.4-dev
+			- libpango1.0-dev
+			- libpoppler-glib-dev
+			- libwebp-dev
+			- libheif-dev
+			- curl
 
-# VIPS 8.3.3 requires Poppler 0.30 which is not released on Trusty.
+cache:
+	directories:
+		- libvips
+
 before_install:
-  - |
-    cd libvips
-    test -d libvips-${VIPS_VERSION} && {
-      cd libvips-${VIPS_VERSION}
-    } || {
-      wget https://github.com/jcupitt/libvips/archive/v${VIPS_VERSION}.zip
-      unzip v${VIPS_VERSION}
-      cd libvips-${VIPS_VERSION}
-      test -f autogen.sh && ./autogen.sh || ./bootstrap.sh
-      CXXFLAGS=-D_GLIBCXX_USE_CXX11_ABI=0 ./configure --disable-debug --disable-dependency-tracking --disable-introspection --disable-static --enable-gtk-doc-html=no --enable-gtk-doc=no --enable-pyvips8=no --without-orc --without-python $1
-      make
-    }
-    sudo make install
-    sudo ldconfig
-    cd ../..
-
-before_script:
-  - go get -u github.com/golang/lint/golint
-
-script:
-  - |
-    set -e
-    diff -u <(echo -n) <(gofmt -s -d ./)
-  - |
-    set -e
-    diff -u <(echo -n) <(go vet ./pkg/vips)
-  - |
-    set -e
-    diff -u <(echo -n) <(golint ./)
-  - |
-    set -e
-    for test in ./pkg/vips/*_test.go
-    do
-      echo $test
-      go test $test -short -v -race -covermode=atomic -coverprofile=coverage.out
-    done
+	- |
+		cd libvips
+		test -d libvips-${VIPS_VERSION} && {
+		  cd libvips-${VIPS_VERSION}
+		} || {
+		  curl -fsSLO https://github.com/libvips/libvips/releases/download/v${LIBVIPS_VERSION}/vips-${LIBVIPS_VERSION}.tar.gz
+		  tar zvxf vips-${LIBVIPS_VERSION}.tar.gz
+		  cd libvips-${VIPS_VERSION}
+		  CXXFLAGS="-D_GLIBCXX_USE_CXX11_ABI=0 -g -O3" CFLAGS="-g -O3" ./configure --disable-debug --disable-dependency-tracking --disable-introspection --disable-static --enable-gtk-doc-html=no --enable-gtk-doc=no --enable-pyvips8=no $1
+		  make
+		}
+		sudo make install
+		sudo ldconfig
+		cd ../..

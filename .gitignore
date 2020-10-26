@@ -2,3 +2,4 @@
 build/
 *.failed.*
 .vscode
+.idea
