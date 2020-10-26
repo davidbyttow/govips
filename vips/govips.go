@@ -1,3 +1,4 @@
+// Package vips provides go bindings for libvips, a fast image processing library.
 package vips
 
 // #cgo pkg-config: vips
@@ -12,17 +13,18 @@ import (
 	"sync"
 )
 
-//noinspection GoUnusedConst
+// Version is the full libvips version string (x.y.z)
 const Version = string(C.VIPS_VERSION)
 
-//noinspection GoUnusedConst
+// MajorVersion is the libvips major component of the version string (x in x.y.z)
 const MajorVersion = int(C.VIPS_MAJOR_VERSION)
 
-//noinspection GoUnusedConst
+// MinorVersion is the libvips minor component of the version string (y in x.y.z)
 const MinorVersion = int(C.VIPS_MINOR_VERSION)
 
-//noinspection GoUnusedConst
-const MicroVersion = int(C.VIPS_MICRO_VERSION) // A.K.A patch version
+// MicroVersion is the libvips micro component of the version string (z in x.y.z)
+// Also known as patch version
+const MicroVersion = int(C.VIPS_MICRO_VERSION)
 
 const (
 	defaultConcurrencyLevel = 1
@@ -68,7 +70,7 @@ func Startup(config *Config) {
 		panic("govips requires libvips version 8.10+")
 	}
 
-	if C.VIPS_MINOR_VERSION < 10 {
+	if C.VIPS_MAJOR_VERSION == 8 && C.VIPS_MINOR_VERSION < 10 {
 		panic("govips requires libvips version 8.10+")
 	}
 
@@ -158,17 +160,17 @@ func Shutdown() {
 	running = false
 }
 
-// ShutdownThread clears the cache for for the given thread
+// ShutdownThread clears the cache for for the given thread.
 func ShutdownThread() {
 	C.vips_thread_shutdown()
 }
 
-//noinspection GoUnusedExportedFunction
+// ClearCache drops the whole operation cache, handy for leak tracking.
 func ClearCache() {
 	C.vips_cache_drop_all()
 }
 
-//noinspection GoUnusedExportedFunction
+// PrintCache prints the whole operation cache to stdout for debugging purposes.
 func PrintCache() {
 	C.vips_cache_print()
 }
@@ -180,6 +182,7 @@ func PrintObjectReport(label string) {
 	info("=======================================\n\n")
 }
 
+// MemoryStats is a data structure that houses various memory statistics from ReadVipsMemStats()
 type MemoryStats struct {
 	Mem     int64
 	MemHigh int64
@@ -187,6 +190,7 @@ type MemoryStats struct {
 	Allocs  int64
 }
 
+// ReadVipsMemStats returns various memory statistics such as allocated memory and open files.
 func ReadVipsMemStats(stats *MemoryStats) {
 	stats.Mem = int64(C.vips_tracked_get_mem())
 	stats.MemHigh = int64(C.vips_tracked_get_mem_highwater())
