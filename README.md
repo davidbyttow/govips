@@ -17,6 +17,28 @@ The intent for this is to enable developers to build extremely fast image proces
 go get -u github.com/davidbyttow/govips/vips
 ```
 
+### Dependencies on macOS
+
+Use [homebrew](https://brew.sh/) to install vips and pkg-config
+
+```bash
+brew install vips pkg-config
+```
+
+### Dependencies on Ubuntu
+
+You need at least libvips 8.10.2 to work with govips. Groovy (20.10) repositories have the latest version. However on Bionic (18.04) and Focal (20.04), you need to install libvips and dependencies from a backports repository:
+
+```bash
+sudo add-apt-repository ppa:tonimelisma/ppa
+```
+
+Then:
+
+```bash
+sudo apt -y install libvips-dev
+```
+
 ## Example usage
 ```go
 package main
