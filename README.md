@@ -14,7 +14,7 @@ The intent for this is to enable developers to build extremely fast image proces
 
 ## Installation
 ```bash
-go get -u github.com/davidbyttow/govips/vips
+go get -u github.com/davidbyttow/govips/v2/vips
 ```
 
 ### Dependencies on macOS
@@ -48,7 +48,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/davidbyttow/govips/vips"
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 func checkError(err error) {
