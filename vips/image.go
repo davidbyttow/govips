@@ -42,12 +42,13 @@ type ImageMetadata struct {
 
 // ExportParams are options when exporting an image to file or buffer.
 type ExportParams struct {
-	Format      ImageType
-	Quality     int
-	Compression int
-	Interlaced  bool
-	Lossless    bool
-	Effort      int
+	Format        ImageType
+	Quality       int
+	Compression   int
+	Interlaced    bool
+	Lossless      bool
+	Effort        int
+	StripMetadata bool
 }
 
 // NewDefaultExportParams creates default values for an export when image type is not JPEG, PNG or WEBP.
@@ -778,16 +779,16 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	switch format {
 	case ImageTypeWEBP:
-		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.Effort)
+		buf, err = vipsSaveWebPToBuffer(r.image, params.StripMetadata, params.Quality, params.Lossless, params.Effort)
 	case ImageTypePNG:
-		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Interlaced)
+		buf, err = vipsSavePNGToBuffer(r.image, params.StripMetadata, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:
 		buf, err = vipsSaveTIFFToBuffer(r.image)
 	case ImageTypeHEIF:
 		buf, err = vipsSaveHEIFToBuffer(r.image, params.Quality, params.Lossless)
 	default:
 		format = ImageTypeJPEG
-		buf, err = vipsSaveJPEGToBuffer(r.image, params.Quality, false, params.Interlaced)
+		buf, err = vipsSaveJPEGToBuffer(r.image, params.Quality, params.StripMetadata, params.Interlaced)
 	}
 
 	if err != nil {
