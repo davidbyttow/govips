@@ -12,20 +12,16 @@ The intent for this is to enable developers to build extremely fast image proces
 - C compatible compiler such as gcc 4.6+ or clang 3.0+
 - Go 1.14+
 
-## Installation
-```bash
-go get -u github.com/davidbyttow/govips/v2/vips
-```
+## Dependencies
+### MacOS
 
-### Dependencies on macOS
-
-Use [homebrew](https://brew.sh/) to install vips and pkg-config
+Use [homebrew](https://brew.sh/) to install vips and pkg-config:
 
 ```bash
 brew install vips pkg-config
 ```
 
-### Dependencies on Ubuntu
+### Ubuntu
 
 You need at least libvips 8.10.2 to work with govips. Groovy (20.10) repositories have the latest version. However on Bionic (18.04) and Focal (20.04), you need to install libvips and dependencies from a backports repository:
 
@@ -37,6 +33,20 @@ Then:
 
 ```bash
 sudo apt -y install libvips-dev
+```
+
+## Installation
+
+On macOS, vips doesn't compile without setting the environment variable:
+
+```bash
+export CGO_CFLAGS_ALLOW="-Xpreprocessor"
+```
+
+Then just:
+
+```bash
+go get -u github.com/davidbyttow/govips/v2/vips
 ```
 
 ## Example usage
