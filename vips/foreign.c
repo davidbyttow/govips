@@ -1,32 +1,71 @@
 #include "lang.h"
 #include "foreign.h"
 
-int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out) {
-	int code = 1;
+int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink, int fail, int autorotate) {
+	return vips_jpegload_buffer(buf, len, out,
+		"shrink", shrink,
+		"fail", INT_TO_GBOOLEAN(fail),
+		"autorotate", INT_TO_GBOOLEAN(autorotate),
+		NULL);
+}
 
-	if (imageType == JPEG) {
-		code = vips_jpegload_buffer(buf, len, out, NULL);
-	} else if (imageType == PNG) {
-		code = vips_pngload_buffer(buf, len, out, NULL);
-	} else if (imageType == WEBP) {
-		code = vips_webpload_buffer(buf, len, out, NULL);
-	} else if (imageType == TIFF) {
-		code = vips_tiffload_buffer(buf, len, out, NULL);
-	} else if (imageType == GIF) {
-		code = vips_gifload_buffer(buf, len, out, NULL);
-	} else if (imageType == PDF) {
-		code = vips_pdfload_buffer(buf, len, out, NULL);
-	} else if (imageType == SVG) {
-		code = vips_svgload_buffer(buf, len, out, NULL);
-	} else if (imageType == HEIF) {
-		// added autorotate on load as currently it addresses orientation issues
-		// https://github.com/libvips/libvips/pull/1680
-		code = vips_heifload_buffer(buf, len, out, "autorotate", TRUE, NULL);
-	} else if (imageType == MAGICK) {
-		code = vips_magickload_buffer(buf, len, out, NULL);
-	}
+int load_png_buffer(void *buf, size_t len, VipsImage **out) {
+	return vips_pngload_buffer(buf, len, out, NULL);
+}
 
-	return code;
+int load_webp_buffer(void *buf, size_t len, VipsImage **out, int shrink) {
+	return vips_webpload_buffer(buf, len, out,
+		"shrink", shrink,
+		NULL);
+}
+
+int load_tiff_buffer(void *buf, size_t len, VipsImage **out, int page, int n, int autorotate, int subifd) {
+	return vips_tiffload_buffer(buf, len, out,
+		"page", page,
+		"n", n,
+		"autorotate", INT_TO_GBOOLEAN(autorotate),
+		"subifd", subifd,
+		NULL);
+}
+
+int load_gif_buffer(void *buf, size_t len, VipsImage **out, int page, int n) {
+	return vips_tiffload_buffer(buf, len, out,
+		"page", page,
+		"n", n,
+		NULL);
+}
+
+int load_pdf_buffer(void *buf, size_t len, VipsImage **out, int page, int n, double dpi, double scale) {
+	return vips_pdfload_buffer(buf, len, out,
+		"page", page,
+		"n", n,
+		"dpi", dpi,
+		"scale", scale,
+		NULL);
+}
+
+int load_svg_buffer(void *buf, size_t len, VipsImage **out, double dpi, double scale, int unlimited) {
+	return vips_svgload_buffer(buf, len, out,
+		"dpi", dpi,
+		"scale", scale,
+		"unlimited", INT_TO_GBOOLEAN(unlimited),
+		NULL);
+}
+
+int load_heif_buffer(void *buf, size_t len, VipsImage **out, int page, int n, int thumbnail) {
+	return vips_heifload_buffer(buf, len, out,
+		"page", page,
+		"n", n,
+		"thumbnail", INT_TO_GBOOLEAN(thumbnail),
+		NULL);
+}
+
+int load_magick_buffer(void *buf, size_t len, VipsImage **out, int page, int n, char *density) {
+	return vips_magickload_buffer(buf, len, out,
+		"page", page,
+		"n", n,
+		"density", density,
+		NULL);
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer

@@ -19,7 +19,15 @@ enum types {
 	BMP
 };
 
-int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out);
+int load_jpeg_buffer(void *buf, size_t len, VipsImage **out, int shrink, int fail, int autorotate);
+int load_png_buffer(void *buf, size_t len, VipsImage **out);
+int load_webp_buffer(void *buf, size_t len, VipsImage **out, int shrink);
+int load_tiff_buffer(void *buf, size_t len, VipsImage **out, int page, int n, int autorotate, int subifd);
+int load_gif_buffer(void *buf, size_t len, VipsImage **out, int page, int n);
+int load_pdf_buffer(void *buf, size_t len, VipsImage **out, int page, int n, double dpi, double scale);
+int load_svg_buffer(void *buf, size_t len, VipsImage **out, double dpi, double scale, int unlimited);
+int load_heif_buffer(void *buf, size_t len, VipsImage **out, int page, int n, int thumbnail);
+int load_magick_buffer(void *buf, size_t len, VipsImage **out, int page, int n, char *density);
 
 int save_jpeg_buffer(VipsImage* image, void **buf, size_t *len, int strip, int quality, int interlace);
 int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int interlace);

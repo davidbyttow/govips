@@ -51,6 +51,114 @@ type ExportParams struct {
 	StripMetadata bool
 }
 
+// ImportOptions are options when importing an image from file or buffer.
+type ImportOptions struct {
+	imageType ImageType
+	params    importParams
+}
+
+type importParams struct {
+	shrink     int     // jpeg
+	fail       bool    // jpeg
+	autorotate bool    // jpeg, tiff
+	page       int     // webp, tiff, gif, pdf, heif, magick
+	n          int     // webp, tiff, gif, pdf, heif, magick
+	scale      float64 // webp, pdf, svg
+	subifd     int     // tiff
+	dpi        float64 // pdf, svg
+	unlimited  bool    // svg
+	thumbnail  bool    // heif
+	density    string  // magick
+}
+
+// ImportOption configures ImportOptions.
+type ImportOption func(options *ImportOptions)
+
+// ImageTypeImportOption sets the image type import option. This can for example be used to force loading an image with
+// the "magick" loader. If unset, the image type is automatically detected.
+func ImageTypeImportOption(imageType ImageType) ImportOption {
+	return func(o *ImportOptions) {
+		o.imageType = imageType
+	}
+}
+
+// ShrinkParamImportOption sets the "shrink" parameter (supported by: jpeg).
+func ShrinkParamImportOption(shrink int) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.shrink = shrink
+	}
+}
+
+// FailParamImportOption sets the "fail" parameter (supported by: jpeg).
+func FailParamImportOption(fail bool) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.fail = fail
+	}
+}
+
+// AutorotateParamImportOption sets the "autorotate" parameter (supported by: jpeg, tiff).
+func AutorotateParamImportOption(autorotate bool) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.autorotate = autorotate
+	}
+}
+
+// PageParamImportOption sets the "page" parameter (supported by: webp, tiff, gif, pdf, heif, magick).
+func PageParamImportOption(page int) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.page = page
+	}
+}
+
+// NParamImportOption sets the "n" parameter (supported by: webp, tiff, gif, pdf, heif, magick).
+func NParamImportOption(n int) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.n = n
+	}
+}
+
+// ScaleParamImportOption sets the "scale" parameter (supported by: webp, pdf, svg).
+func ScaleParamImportOption(scale float64) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.scale = scale
+	}
+}
+
+// SubifdParamImportOption sets the "subfid" parameter (supported by: tiff).
+func SubifdParamImportOption(subifd int) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.subifd = subifd
+	}
+}
+
+// DPIParamImportOption sets the "dpi" parameter (supported by: pdf, svg).
+func DPIParamImportOption(dpi float64) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.dpi = dpi
+	}
+}
+
+// UnlimitedParamImportOption sets the "unlimited" parameter (supported by: svg).
+func UnlimitedParamImportOption(unlimited bool) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.unlimited = unlimited
+	}
+}
+
+// ThumbnailParamImportOption sets the "thumbnail" parameter (supported by: heif).
+func ThumbnailParamImportOption(thumbnail bool) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.thumbnail = thumbnail
+	}
+}
+
+// DensityParamImportOption sets the "density" parameter (supported by: magick).
+func DensityParamImportOption(density string) ImportOption {
+	return func(o *ImportOptions) {
+		o.params.density = density
+	}
+}
+
 // NewDefaultExportParams creates default values for an export when image type is not JPEG, PNG or WEBP.
 // By default, govips creates interlaced, lossy images with a quality of 80/100 and compression of 6/10.
 // As these are default values for a wide variety of image formats, their application varies.
@@ -98,30 +206,30 @@ func NewDefaultWEBPExportParams() *ExportParams {
 }
 
 // NewImageFromReader loads an ImageRef from the given reader
-func NewImageFromReader(r io.Reader) (*ImageRef, error) {
+func NewImageFromReader(r io.Reader, o ...ImportOption) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewImageFromBuffer(buf)
+	return NewImageFromBuffer(buf, o...)
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
-func NewImageFromFile(file string) (*ImageRef, error) {
+func NewImageFromFile(file string, o ...ImportOption) (*ImageRef, error) {
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	return NewImageFromBuffer(buf)
+	return NewImageFromBuffer(buf, o...)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
-func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+func NewImageFromBuffer(buf []byte, o ...ImportOption) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	image, format, err := vipsLoadFromBuffer(buf, o...)
 	if err != nil {
 		return nil, err
 	}

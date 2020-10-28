@@ -178,15 +178,42 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, o ...ImportOption) (*C.VipsImage, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
+	imageType := DetermineImageType(buf)
+
+	options := ImportOptions{
+		imageType: ImageTypeUnknown,
+		params: importParams{
+			shrink: 1,
+			fail:   false,
+			// set default autorotate = true for HEIF as currently it addresses orientation issues
+			// https://github.com/libvips/libvips/pull/1680
+			autorotate: imageType == ImageTypeHEIF,
+			page:       0,
+			n:          1,
+			scale:      1,
+			subifd:     -1,
+			dpi:        72,
+			unlimited:  false,
+			thumbnail:  false,
+			density:    "72x72",
+		},
+	}
+
+	for _, option := range o {
+		option(&options)
+	}
 
 	var err error
 	var out *C.VipsImage
 
-	imageType := DetermineImageType(src)
+	// if image type is overridden by options
+	if options.imageType != ImageTypeUnknown {
+		imageType = options.imageType
+	}
 
 	if imageType == ImageTypeBMP {
 		src, err = bmpToPNG(src)
@@ -202,7 +229,45 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), &out); err != 0 {
+	var code C.int
+
+	switch imageType {
+	case ImageTypeJPEG:
+		code = C.load_jpeg_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.int(options.params.shrink), C.int(boolToInt(options.params.fail)),
+			C.int(boolToInt(options.params.autorotate)))
+	case ImageTypePNG:
+		code = C.load_png_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out)
+	case ImageTypeWEBP:
+		code = C.load_webp_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.int(options.params.shrink))
+	case ImageTypeTIFF:
+		code = C.load_tiff_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.int(options.params.page), C.int(options.params.n), C.int(boolToInt(options.params.autorotate)),
+			C.int(options.params.subifd))
+	case ImageTypeGIF:
+		code = C.load_gif_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.int(options.params.page), C.int(options.params.n))
+	case ImageTypePDF:
+		code = C.load_pdf_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.int(options.params.page), C.int(options.params.n), C.double(options.params.dpi),
+			C.double(options.params.scale))
+	case ImageTypeSVG:
+		code = C.load_svg_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.double(options.params.dpi), C.double(options.params.scale), C.int(boolToInt(options.params.unlimited)))
+	case ImageTypeHEIF:
+		code = C.load_heif_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.int(options.params.page), C.int(options.params.n), C.int(boolToInt(options.params.thumbnail)))
+	case ImageTypeMagick:
+		density := C.CString(options.params.density)
+		defer C.free(unsafe.Pointer(density))
+		code = C.load_magick_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out,
+			C.int(options.params.page), C.int(options.params.n), density)
+	default:
+		panic(ErrUnsupportedImageFormat) // unreachable, in theory
+	}
+
+	if code != 0 {
 		return nil, ImageTypeUnknown, handleImageError(out)
 	}
 
