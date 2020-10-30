@@ -37,16 +37,14 @@ sudo apt -y install libvips-dev
 
 ## Installation
 
-On macOS, vips doesn't compile without setting the environment variable:
-
-```bash
-export CGO_CFLAGS_ALLOW="-Xpreprocessor"
-```
-
-Then just:
-
 ```bash
 go get -u github.com/davidbyttow/govips/v2/vips
+```
+
+### MacOS note
+On MacOS, govips may not compile without first setting an environment variable:
+```bash
+export CGO_CFLAGS_ALLOW="-Xpreprocessor"
 ```
 
 ## Example usage
