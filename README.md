@@ -1,6 +1,6 @@
 # govips [![GoDoc](https://godoc.org/github.com/davidbyttow/govips?status.svg)](https://godoc.org/github.com/davidbyttow/govips) [![Go Report Card](http://goreportcard.com/badge/davidbyttow/govips)](http://goreportcard.com/report/davidbyttow/govips) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/davidbyttow/govips) ![License](https://img.shields.io/badge/license-MIT-blue.svg) [![Build Status](https://travis-ci.org/davidbyttow/govips.svg?branch=master)](https://travis-ci.org/davidbyttow/govips) [![Coverage Status](https://coveralls.io/repos/github/davidbyttow/govips/badge.svg?branch=master)](https://coveralls.io/github/davidbyttow/govips?branch=master)
 
-## A fast image processing library for Go
+## A lightning fast image processing and resizing library for Go
 This package wraps the core functionality of [libvips](https://github.com/libvips/libvips) image processing library by exposing all image operations on first-class types in Go.
 
 Libvips is generally 4-8x faster than other graphics processors such as GraphicsMagick and ImageMagick. Check the benchmark: [Speed and Memory Use](https://github.com/libvips/libvips/wiki/Speed-and-memory-use)
@@ -88,10 +88,13 @@ func main() {
 ```
 
 ## Contributing
-In short, feel free to file issues or send along pull requests. See this [guide on contributing](https://github.com/davidbyttow/govips/blob/master/CONTRIBUTING.md) for more information.
+Feel free to file issues or create pull requests. See this [guide on contributing](https://github.com/davidbyttow/govips/blob/master/CONTRIBUTING.md) for more information.
 
 ## Credits
-Thank you to [John Cupitt](https://github.com/jcupitt) for maintaining libvips and providing feedback on vips.
+Thanks to:
+* [John Cupitt](https://github.com/jcupitt) for creating and maintaining libvips
+* [Toni Melisma](https://github.com/tonimelisma) for pushing to a 2.x release
+* All of our fantastic [contributors](https://github.com/davidbyttow/govips/graphs/contributors)
 
 ## License
 MIT - David Byttow
