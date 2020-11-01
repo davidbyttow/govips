@@ -341,7 +341,7 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 	return nil
 }
 
-// ExtractBand executes the 'extract_band' operation
+// ExtractBand extracts one or more bands out of the image (replacing the associated ImageRef)
 func (r *ImageRef) ExtractBand(band int, num int) error {
 	out, err := vipsExtractBand(r.image, band, num)
 	if err != nil {
@@ -481,7 +481,7 @@ func (r *ImageRef) AutoRotate() error {
 	return nil
 }
 
-// ExtractArea executes the 'extract_area' operation
+// ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
 	out, err := vipsExtractArea(r.image, left, top, width, height)
 	if err != nil {
@@ -548,7 +548,7 @@ func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
 	return nil
 }
 
-// Flatten executes the 'flatten' operation
+// Flatten removes the alpha channel from the image and replaces it with the background color
 func (r *ImageRef) Flatten(backgroundColor *Color) error {
 	out, err := vipsFlatten(r.image, backgroundColor)
 	if err != nil {
@@ -558,7 +558,7 @@ func (r *ImageRef) Flatten(backgroundColor *Color) error {
 	return nil
 }
 
-// GaussianBlur executes the Gaussian blur operation on the image.
+// GaussianBlur blurs the image
 func (r *ImageRef) GaussianBlur(sigma float64) error {
 	out, err := vipsGaussianBlur(r.image, sigma)
 	if err != nil {
@@ -568,7 +568,10 @@ func (r *ImageRef) GaussianBlur(sigma float64) error {
 	return nil
 }
 
-// Sharpen executes the 'sharpen' operation
+// Sharpen sharpens the image
+// sigma: sigma of the gaussian
+// x1: flat/jaggy threshold
+// m2: slope for jaggy areas
 func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 	out, err := vipsSharpen(r.image, sigma, x1, m2)
 	if err != nil {
@@ -652,7 +655,7 @@ func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
 	return nil
 }
 
-// Invert executes the 'invert' operation
+// Invert inverts the image
 func (r *ImageRef) Invert() error {
 	out, err := vipsInvert(r.image)
 	if err != nil {
@@ -689,7 +692,7 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 	return nil
 }
 
-// Embed executes the 'embed' operation
+// Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
 	out, err := vipsEmbed(r.image, left, top, width, height, extend)
 	if err != nil {
@@ -699,7 +702,7 @@ func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) er
 	return nil
 }
 
-// Zoom executes the 'zoom' operation
+// Zoom zooms the image by repeating pixels (fast nearest-neighbour)
 func (r *ImageRef) Zoom(xFactor int, yFactor int) error {
 	out, err := vipsZoom(r.image, xFactor, yFactor)
 	if err != nil {
@@ -709,7 +712,7 @@ func (r *ImageRef) Zoom(xFactor int, yFactor int) error {
 	return nil
 }
 
-// Flip executes the 'flip' operation
+// Flip flips the image either horizontally or vertically based on the parameter
 func (r *ImageRef) Flip(direction Direction) error {
 	out, err := vipsFlip(r.image, direction)
 	if err != nil {
@@ -719,7 +722,7 @@ func (r *ImageRef) Flip(direction Direction) error {
 	return nil
 }
 
-// Rotate executes the 'rot' operation
+// Rotate rotates the image based on the given angle
 func (r *ImageRef) Rotate(angle Angle) error {
 	out, err := vipsRotate(r.image, angle)
 	if err != nil {
@@ -729,7 +732,7 @@ func (r *ImageRef) Rotate(angle Angle) error {
 	return nil
 }
 
-// Label executes the 'label' operation
+// Label overlays a label on top of the image
 func (r *ImageRef) Label(labelParams *LabelParams) error {
 	out, err := labelImage(r.image, labelParams)
 	if err != nil {
