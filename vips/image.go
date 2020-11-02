@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"runtime"
 	"sync"
 	"unsafe"
 )
@@ -157,8 +158,12 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 		format: format,
 		buf:    buf,
 	}
-
+	runtime.SetFinalizer(image, finalizeImage)
 	return image
+}
+
+func finalizeImage(ref *ImageRef) {
+	ref.Close()
 }
 
 // Close closes an image and frees internal memory associated with it
