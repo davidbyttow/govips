@@ -142,7 +142,6 @@ func (r *ImageRef) Metadata() *ImageMetadata {
 }
 
 // Copy creates a new copy of the given image.
-// Deprecated: no longer supported
 func (r *ImageRef) Copy() (*ImageRef, error) {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
