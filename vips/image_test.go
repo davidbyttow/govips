@@ -453,3 +453,16 @@ func TestImageRef_NotImage(t *testing.T) {
 	require.Error(t, err)
 	require.Nil(t, image)
 }
+
+func TestImageRef_Label(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer image.Close()
+
+	lp := &LabelParams{Text: "Text label"}
+
+	err = image.Label(lp)
+	require.NoError(t, err)
+}
