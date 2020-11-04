@@ -123,6 +123,16 @@ func TestImageRef_Orientation_Issue(t *testing.T) {
 		NewDefaultWEBPExportParams())
 }
 
+func TestImageRef_PngToWebp_RemoveMetadata_Leave_Profile(t *testing.T) {
+	goldenTest(t, resources+"has-icc-profile.png",
+		func(img *ImageRef) error {
+			return img.RemoveMetadata()
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile())
+		}, NewDefaultWEBPExportParams())
+}
+
 func TestImageRef_RemoveMetadata_Leave_Profile(t *testing.T) {
 	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
 		func(img *ImageRef) error {

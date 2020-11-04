@@ -1,5 +1,6 @@
 #include "lang.h"
 #include "foreign.h"
+#include "icc_profiles.h"
 
 int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out) {
 	int code = 1;
@@ -56,11 +57,22 @@ int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compr
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/webpsave.c#L524
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-webpsave-buffer
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless, int effort) {
+	const char* profile = "none";
+
+	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+		if (vips_image_get_bands(in) > 2) {
+			profile = SRGB_V2_MICRO_ICC_PATH;
+		} else {
+			profile = SGRAY_V2_MICRO_ICC_PATH;
+		}
+	}
+
 	return vips_webpsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),
 		"Q", quality,
 		"lossless", INT_TO_GBOOLEAN(lossless),
 		"reduction_effort", effort,
+		"profile", profile,
 		NULL
 	);
 }
