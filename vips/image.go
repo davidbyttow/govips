@@ -275,26 +275,10 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 
 // Export exports the image
 func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) {
-	p := params
-	if p == nil {
-		switch r.format {
-		case ImageTypeJPEG:
-			p = NewDefaultJPEGExportParams()
-		case ImageTypePNG:
-			p = NewDefaultPNGExportParams()
-		case ImageTypeWEBP:
-			p = NewDefaultWEBPExportParams()
-		default:
-			p = NewDefaultExportParams()
-		}
-	}
-
-	if p.Format == ImageTypeUnknown {
-		p.Format = r.format
-	}
+	params = r.resolveExportParams(params)
 
 	// the exported buf is not necessarily in same format as the original buf, might default to JPEG as well.
-	buf, format, err := r.exportBuffer(p)
+	buf, format, err := r.exportBuffer(params)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -308,6 +292,27 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	}
 
 	return buf, metadata, nil
+}
+
+func (r *ImageRef) resolveExportParams(params *ExportParams) *ExportParams {
+	if params == nil {
+		switch r.format {
+		case ImageTypeJPEG:
+			params = NewDefaultJPEGExportParams()
+		case ImageTypePNG:
+			params = NewDefaultPNGExportParams()
+		case ImageTypeWEBP:
+			params = NewDefaultWEBPExportParams()
+		default:
+			params = NewDefaultExportParams()
+		}
+	}
+
+	if params.Format == ImageTypeUnknown {
+		params.Format = r.format
+	}
+
+	return params
 }
 
 func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error {
