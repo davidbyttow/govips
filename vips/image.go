@@ -28,6 +28,7 @@ type ImageRef struct {
 	format            ImageType
 	lock              sync.Mutex
 	preMultiplication *PreMultiplicationState
+	iccProfile        string
 }
 
 type ImageMetadata struct {
@@ -734,7 +735,8 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	switch format {
 	case ImageTypeWEBP:
-		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.Effort)
+		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.Effort,
+			r.iccProfile)
 	case ImageTypePNG:
 		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:

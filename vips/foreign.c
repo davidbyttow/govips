@@ -57,7 +57,8 @@ int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compr
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/webpsave.c#L524
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-webpsave-buffer
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless, int effort) {
-	const char* profile = "none";
+	char* target_profile = NULL;
+	vips_image_get_as_string(in, "target-icc-profile", &target_profile);
 
 //	if (vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
 //		if (vips_image_get_bands(in) > 2) {
@@ -67,14 +68,20 @@ int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int qual
 //		}
 //	}
 
-	return vips_webpsave_buffer(in, buf, len,
+	int result = vips_webpsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),
 		"Q", quality,
 		"lossless", INT_TO_GBOOLEAN(lossless),
 		"reduction_effort", effort,
-		"profile", profile,
+		"profile", target_profile ? target_profile : "none",
 		NULL
 	);
+
+	if (target_profile) {
+		g_free(target_profile);
+	}
+
+	return result;
 }
 
 // todo: support additional params
