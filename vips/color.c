@@ -32,6 +32,6 @@ int optimize_icc_profile(VipsImage *in, VipsImage **out, const char *input_profi
     	return -1;
     }
 
-    vips_image_set_string(*out, "target-icc-profile", target_profile);
+    vips_image_set_string(*out, "optimized-icc-profile", target_profile);
     return 0;
 }

@@ -58,7 +58,7 @@ int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compr
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-webpsave-buffer
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless, int effort) {
 	char* target_profile = NULL;
-	vips_image_get_as_string(in, "target-icc-profile", &target_profile);
+	vips_image_get_as_string(in, "optimized-icc-profile", &target_profile);
 
 	int result = vips_webpsave_buffer(in, buf, len,
 		"strip", INT_TO_GBOOLEAN(strip),
