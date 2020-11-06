@@ -470,12 +470,7 @@ func (r *ImageRef) RemoveICCProfile() error {
 }
 
 func (r *ImageRef) OptimizeICCProfile() error {
-	isCMYK := 0
-	if r.Interpretation() == InterpretationCMYK {
-		isCMYK = 1
-	}
-
-	out, err := vipsOptimizeICCProfile(r.image, isCMYK)
+	out, err := vipsOptimizeICCProfile(r.image, r.determineInputICCProfile())
 	if err != nil {
 		info(err.Error())
 		return err
@@ -706,6 +701,13 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
+}
+
+func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
+	if r.Interpretation() == InterpretationCMYK {
+		inputProfile = "cmyk"
+	}
+	return
 }
 
 // setImage resets the image for this image and frees the previous one

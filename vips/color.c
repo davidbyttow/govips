@@ -14,28 +14,24 @@ int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space) {
 }
 
 // https://libvips.github.io/libvips/API/8.6/libvips-colour.html#vips-icc-transform
-int optimize_icc_profile(VipsImage *in, VipsImage **out, int isCmyk) {
-	// todo: check current embedded profile, and skip if already set
-    int channels = vips_image_get_bands(in);
-	int result;
-	const char* target_profile;
+int optimize_icc_profile(VipsImage *in, VipsImage **out, const char *input_profile) {
+	const char* target_profile = vips_image_get_bands(in) > 2 ? SRGB_PROFILE_PATH : GRAY_PROFILE_PATH;
 
-    if (channels > 2) {
-    	if (isCmyk == 1) {
-    		result = vips_icc_transform(in, out, SRGB_PROFILE_PATH, "input_profile", "cmyk", "intent", VIPS_INTENT_PERCEPTUAL, NULL);
-    	} else {
-        	result = vips_icc_transform(in, out, SRGB_PROFILE_PATH, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
-        	// ignore embedded errors
-        	if (result != 0) {
-        		result = 0;
-        		*out = in;
-        	}
-    	}
-    	target_profile = SRGB_PROFILE_PATH;
-    } else {
-		result = vips_icc_transform(in, out, GRAY_PROFILE_PATH, "input_profile", GRAY_PROFILE_PATH, "embedded", TRUE, "intent", VIPS_INTENT_PERCEPTUAL, NULL);
-     	target_profile = GRAY_PROFILE_PATH;
+    if (!input_profile && !vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
+    	//No input profile and no embedded ICC profile in the input image, nothing to do.
+		*out = in;
+		return 0;
     }
+
+    if (vips_icc_transform(
+    	in, out, target_profile,
+    	"embedded", !input_profile,
+    	"input_profile", input_profile ? input_profile : "none",
+    	"intent", VIPS_INTENT_PERCEPTUAL,
+    	NULL)) {
+    	return -1;
+    }
+
     vips_image_set_string(*out, "target-icc-profile", target_profile);
-    return result;
+    return 0;
 }

@@ -3,6 +3,7 @@ package vips
 // #cgo pkg-config: vips
 // #include "color.h"
 import "C"
+import "unsafe"
 
 // Color represents an RGB
 type Color struct {
@@ -55,10 +56,16 @@ func vipsToColorSpace(in *C.VipsImage, interpretation Interpretation) (*C.VipsIm
 	return out, nil
 }
 
-func vipsOptimizeICCProfile(in *C.VipsImage, isCmyk int) (*C.VipsImage, error) {
+func vipsOptimizeICCProfile(in *C.VipsImage, inputProfile string) (*C.VipsImage, error) {
 	var out *C.VipsImage
+	var profile *C.char
 
-	if res := int(C.optimize_icc_profile(in, &out, C.int(isCmyk))); res != 0 {
+	if inputProfile != "" {
+		profile = C.CString(inputProfile)
+		defer C.free(unsafe.Pointer(profile))
+	}
+
+	if res := int(C.optimize_icc_profile(in, &out, profile)); res != 0 {
 		return nil, handleImageError(out)
 	}
 
