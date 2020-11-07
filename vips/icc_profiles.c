@@ -666,12 +666,14 @@ int store_to_file(unsigned char *buffer, unsigned int buffer_len, char *path) {
 	int out_fd = open(path, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
 
   if (out_fd == -1) {
+    // TODO libraries shouldn't printf to stdout, g_warning() should be used instead
     printf("failed opening file for writing: %s\n", path);
     return -1;
   }
 
 
   if (write(out_fd, buffer, buffer_len) == -1) {
+    // TODO libraries shouldn't printf to stdout, g_warning() should be used instead
   	printf("failed writing to file: %s\n", path);
   	close(out_fd);
   	return -1;

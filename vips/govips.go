@@ -62,7 +62,7 @@ func Startup(config *Config) {
 	defer runtime.UnlockOSThread()
 
 	if running {
-		info("warning libvips already started")
+		govipsLog("govips", logLevelInfo, "warning libvips already started")
 		return
 	}
 
@@ -76,6 +76,9 @@ func Startup(config *Config) {
 
 	cName := C.CString("govips")
 	defer freeCString(cName)
+
+	// Override default glib logging handler to intercept logging messages
+	C.vips_set_logging_handler()
 
 	err := C.vips_init(cName)
 	if err != 0 {
@@ -130,12 +133,12 @@ func Startup(config *Config) {
 		C.vips_cache_set_max_files(defaultMaxCacheFiles)
 	}
 
-	info("vips %s started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
+	govipsLog("govips", logLevelInfo, fmt.Sprintf("vips %s started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
 		Version,
 		int(C.vips_concurrency_get()),
 		int(C.vips_cache_get_max_files()),
 		int(C.vips_cache_get_max_mem()),
-		int(C.vips_cache_get_max()))
+		int(C.vips_cache_get_max())))
 
 	initTypes()
 }
@@ -152,7 +155,7 @@ func Shutdown() {
 	defer runtime.UnlockOSThread()
 
 	if !running {
-		info("warning libvips not started")
+		govipsLog("govips", logLevelInfo, "warning libvips not started")
 		return
 	}
 
@@ -177,9 +180,9 @@ func PrintCache() {
 
 // PrintObjectReport outputs all of the current internal objects in libvips
 func PrintObjectReport(label string) {
-	info("\n=======================================\nvips live objects: %s...\n", label)
+	govipsLog("govips", logLevelInfo, fmt.Sprintf("\n=======================================\nvips live objects: %s...\n", label))
 	C.vips_object_print_all()
-	info("=======================================\n\n")
+	govipsLog("govips", logLevelInfo, "=======================================\n\n")
 }
 
 // MemoryStats is a data structure that houses various memory statistics from ReadVipsMemStats()
@@ -200,7 +203,7 @@ func ReadVipsMemStats(stats *MemoryStats) {
 
 func startupIfNeeded() {
 	if !running {
-		info("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
+		govipsLog("govips", logLevelInfo, "libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
 		Startup(nil)
 	}
 }
@@ -224,7 +227,7 @@ func initTypes() {
 
 			supportedImageTypes[k] = int(ret) != 0
 
-			info("registered image type loader type=%s", v)
+			govipsLog("govips", logLevelInfo, fmt.Sprintf("registered image type loader type=%s", v))
 		}
 	})
 }
