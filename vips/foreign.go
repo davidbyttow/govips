@@ -6,6 +6,7 @@ import "C"
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"image/png"
 	"math"
 	"runtime"
@@ -198,7 +199,7 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	}
 
 	if !IsTypeSupported(imageType) {
-		info("failed to understand image format size=%d", len(src))
+		govipsLog("govips", logLevelInfo, fmt.Sprintf("failed to understand image format size=%d", len(src)))
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
