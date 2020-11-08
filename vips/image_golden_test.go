@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
+	"path"
 	"strings"
 	"testing"
 )
@@ -124,13 +125,16 @@ func TestImageRef_Orientation_Issue(t *testing.T) {
 }
 
 func TestImageRef_PngToWebp_OptimizeICCProfile_HasProfile(t *testing.T) {
+	exportParams := NewDefaultWEBPExportParams()
+	exportParams.Quality = 90
+
 	goldenTest(t, resources+"has-icc-profile.png",
 		func(img *ImageRef) error {
 			return img.OptimizeICCProfile()
 		},
 		func(result *ImageRef) {
 			assert.True(t, result.HasICCProfile())
-		}, NewDefaultWEBPExportParams())
+		}, exportParams)
 }
 
 func TestImageRef_RemoveMetadata_Leave_Profile(t *testing.T) {
@@ -326,7 +330,8 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 
 	golden, _ := ioutil.ReadFile(goldenFile)
 	if golden != nil {
-		if !assert.Equal(t, golden, buf) {
+		if !assert.Equal(t, golden, buf, "output not equal to golden\nExpected %v\nBut got %v",
+			path.Base(goldenFile), path.Base(file)) {
 			failed := prefix + ".failed" + ext
 			err := ioutil.WriteFile(failed, buf, 0666)
 			if err != nil {

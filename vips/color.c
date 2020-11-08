@@ -14,24 +14,13 @@ int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space) {
 }
 
 // https://libvips.github.io/libvips/API/8.6/libvips-colour.html#vips-icc-transform
-int optimize_icc_profile(VipsImage *in, VipsImage **out, const char *input_profile) {
-	const char* target_profile = vips_image_get_bands(in) > 2 ? SRGB_PROFILE_PATH : GRAY_PROFILE_PATH;
-
-    if (!input_profile && !vips_image_get_typeof(in, VIPS_META_ICC_NAME)) {
-    	//No input profile and no embedded ICC profile in the input image, nothing to do.
-		*out = in;
-		return 0;
-    }
-
-    if (vips_icc_transform(
-    	in, out, target_profile,
-    	"embedded", !input_profile,
+int icc_transform(VipsImage *in, VipsImage **out, const char *output_profile, const char *input_profile, VipsIntent intent,
+	int depth, gboolean embedded) {
+	return vips_icc_transform(
+    	in, out, output_profile,
     	"input_profile", input_profile ? input_profile : "none",
-    	"intent", VIPS_INTENT_PERCEPTUAL,
-    	NULL)) {
-    	return -1;
-    }
-
-    vips_image_set_string(*out, "optimized-icc-profile", target_profile);
-    return 0;
+    	"intent", intent,
+    	"depth", depth ? depth : 8,
+    	"embedded", embedded,
+    	NULL);
 }

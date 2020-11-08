@@ -2,6 +2,7 @@ package vips
 
 // #cgo pkg-config: vips
 // #include "image.h"
+// #include "icc_profiles.h"
 import "C"
 
 import (
@@ -23,12 +24,12 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf               []byte
-	image             *C.VipsImage
-	format            ImageType
-	lock              sync.Mutex
-	preMultiplication *PreMultiplicationState
-	iccProfile        string
+	buf                 []byte
+	image               *C.VipsImage
+	format              ImageType
+	lock                sync.Mutex
+	preMultiplication   *PreMultiplicationState
+	optimizedIccProfile string
 }
 
 type ImageMetadata struct {
@@ -470,11 +471,25 @@ func (r *ImageRef) RemoveICCProfile() error {
 }
 
 func (r *ImageRef) OptimizeICCProfile() error {
-	out, err := vipsOptimizeICCProfile(r.image, r.determineInputICCProfile())
+	inputProfile := r.determineInputICCProfile()
+	if !r.HasICCProfile() && (inputProfile == "") {
+		//No embedded ICC profile in the input image and no input profile determined, nothing to do.
+		return nil
+	}
+
+	r.optimizedIccProfile = C.GoString(C.SRGB_V2_MICRO_ICC_PATH)
+	if r.Bands() <= 2 {
+		r.optimizedIccProfile = C.GoString(C.SGRAY_V2_MICRO_ICC_PATH)
+	}
+
+	embedded := r.HasICCProfile() && (inputProfile == "")
+
+	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, 0, embedded)
 	if err != nil {
 		info(err.Error())
 		return err
 	}
+
 	r.setImage(out)
 	return nil
 }
@@ -738,7 +753,7 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 	switch format {
 	case ImageTypeWEBP:
 		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.Effort,
-			r.iccProfile)
+			r.optimizedIccProfile)
 	case ImageTypePNG:
 		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:
