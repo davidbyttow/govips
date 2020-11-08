@@ -62,7 +62,7 @@ func Startup(config *Config) {
 	defer runtime.UnlockOSThread()
 
 	if running {
-		govipsLog("govips", logLevelInfo, "warning libvips already started")
+		govipsLog("govips", LogLevelInfo, "warning libvips already started")
 		return
 	}
 
@@ -76,6 +76,12 @@ func Startup(config *Config) {
 
 	cName := C.CString("govips")
 	defer freeCString(cName)
+
+	// Initialize govips logging handler and verbosity filter to historical default
+	if !currentLoggingOverriden {
+		LoggingSettings(nil, LogLevelInfo)
+		currentLoggingOverriden = false
+	}
 
 	// Override default glib logging handler to intercept logging messages
 	C.vips_set_logging_handler()
@@ -133,7 +139,7 @@ func Startup(config *Config) {
 		C.vips_cache_set_max_files(defaultMaxCacheFiles)
 	}
 
-	govipsLog("govips", logLevelInfo, fmt.Sprintf("vips %s started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
+	govipsLog("govips", LogLevelInfo, fmt.Sprintf("vips %s started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
 		Version,
 		int(C.vips_concurrency_get()),
 		int(C.vips_cache_get_max_files()),
@@ -155,7 +161,7 @@ func Shutdown() {
 	defer runtime.UnlockOSThread()
 
 	if !running {
-		govipsLog("govips", logLevelInfo, "warning libvips not started")
+		govipsLog("govips", LogLevelInfo, "warning libvips not started")
 		return
 	}
 
@@ -180,9 +186,9 @@ func PrintCache() {
 
 // PrintObjectReport outputs all of the current internal objects in libvips
 func PrintObjectReport(label string) {
-	govipsLog("govips", logLevelInfo, fmt.Sprintf("\n=======================================\nvips live objects: %s...\n", label))
+	govipsLog("govips", LogLevelInfo, fmt.Sprintf("\n=======================================\nvips live objects: %s...\n", label))
 	C.vips_object_print_all()
-	govipsLog("govips", logLevelInfo, "=======================================\n\n")
+	govipsLog("govips", LogLevelInfo, "=======================================\n\n")
 }
 
 // MemoryStats is a data structure that houses various memory statistics from ReadVipsMemStats()
@@ -203,7 +209,7 @@ func ReadVipsMemStats(stats *MemoryStats) {
 
 func startupIfNeeded() {
 	if !running {
-		govipsLog("govips", logLevelInfo, "libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
+		govipsLog("govips", LogLevelInfo, "libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
 		Startup(nil)
 	}
 }
@@ -227,7 +233,7 @@ func initTypes() {
 
 			supportedImageTypes[k] = int(ret) != 0
 
-			govipsLog("govips", logLevelInfo, fmt.Sprintf("registered image type loader type=%s", v))
+			govipsLog("govips", LogLevelInfo, fmt.Sprintf("registered image type loader type=%s", v))
 		}
 	})
 }
