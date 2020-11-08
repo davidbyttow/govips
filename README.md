@@ -83,7 +83,8 @@ func main() {
 	err = image1.AutoRotate()
 	checkError(err)
 
-	image1bytes, _, err := image1.Export(&vips.ExportParams{Format: vips.ImageTypeJPEG})
+	ep := vips.NewDefaultJPEGExportParams()
+	image1bytes, _, err := image1.Export(ep)
 	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
 	checkError(err)
 
