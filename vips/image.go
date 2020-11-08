@@ -520,7 +520,7 @@ func (r *ImageRef) OptimizeICCProfile() error {
 
 	out, err := vipsOptimizeICCProfile(r.image, isCMYK)
 	if err != nil {
-		govipsLog("govips", logLevelError, err.Error())
+		govipsLog("govips", LogLevelError, err.Error())
 		return err
 	}
 	r.setImage(out)
