@@ -91,6 +91,8 @@ func main() {
 }
 ```
 
+See *examples/* folder for more examples.
+
 ## Running tests
 
 ```bash

@@ -21,8 +21,9 @@ const (
 	LogLevelDebug    LogLevel = C.G_LOG_LEVEL_DEBUG
 )
 
-// Two global variables which keep state of the current logging handler
-// function and desired verbosity for logging. Set by LoggingSettings()
+// Three global variables which keep state of the current logging handler
+// function, desired verbosity for logging and whether defaults have been
+// overridden. Set by LoggingSettings()
 var (
 	currentLoggingHandlerFunction LoggingHandlerFunction
 	currentLoggingVerbosity       LogLevel
@@ -30,9 +31,9 @@ var (
 )
 
 // govipsLoggingHandler is the private bridge function exported to the C library
-// and called for each logging message. It will call govipsLog which in turn will
-// filter based on verbosity and direct the messages to the currently chosen
-// LoggingHandlerFunction.
+// and called by glib and libvips for each logging message. It will call govipsLog
+// which in turn will filter based on verbosity and direct the messages to the
+// currently chosen LoggingHandlerFunction.
 //export govipsLoggingHandler
 func govipsLoggingHandler(messageDomain *C.char, messageLevel C.int, message *C.char) {
 	govipsLog(C.GoString(messageDomain), LogLevel(messageLevel), C.GoString(message))
@@ -47,9 +48,9 @@ type LoggingHandlerFunction func(messageDomain string, messageLevel LogLevel, me
 // LoggingSettings sets the logging handler and logging verbosity for govips.
 // The handler function is the function which will be called for each log message.
 // You can define one yourself to log somewhere else besides the default (stderr).
-// Define nil to use standard logging handler.
-// Verbosity is the minimum logLevel you want to pass forward. Default is logLevelInfo
-// due to backwards compatibility but it's very verbose for a library.
+// Use nil as handler to use standard logging handler.
+// Verbosity is the minimum logLevel you want to log. Default is logLevelInfo
+// due to backwards compatibility but it's quite verbose for a library.
 // Suggest setting it to at least logLevelWarning. Use logLevelDebug for debugging.
 func LoggingSettings(handler LoggingHandlerFunction, verbosity LogLevel) {
 	if handler == nil {
@@ -59,6 +60,8 @@ func LoggingSettings(handler LoggingHandlerFunction, verbosity LogLevel) {
 	}
 
 	currentLoggingVerbosity = verbosity
+	// TODO turn on debugging in libvips and redirect to handler when setting verbosity to debug
+	// This way debugging information would go to the same channel as all other logging
 
 	currentLoggingOverriden = true
 }
@@ -84,7 +87,7 @@ func defaultLoggingHandlerFunction(messageDomain string, messageLevel LogLevel, 
 }
 
 // govipsLog is the default function used to log debug or error messages internally in govips.
-// It's used by all govips functionality directly, as well as by glib and libvips via the c bridge.
+// It's used by all govips functionality directly, as well as by glib and libvips via the C bridge.
 func govipsLog(messageDomain string, messageLevel LogLevel, message string) {
 	if messageLevel <= currentLoggingVerbosity {
 		currentLoggingHandlerFunction(messageDomain, messageLevel, message)
