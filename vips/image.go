@@ -537,8 +537,8 @@ func (r *ImageRef) GaussianBlur(sigma float64) error {
 }
 
 // Sharpen executes the 'sharpen' operation
-func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64, mode SharpenMode) error {
-	out, err := vipsSharpen(r.image, sigma, x1, m2, mode)
+func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
+	out, err := vipsSharpen(r.image, sigma, x1, m2)
 	if err != nil {
 		return err
 	}
