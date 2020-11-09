@@ -314,7 +314,8 @@ func getEnvironment() string {
 		if err != nil {
 			return "linux"
 		}
-		return "linux-" + string(out)
+		strout := strings.TrimSuffix(string(out), "\n")
+		return "linux-" + strout
 	}
 	// default to linux assets otherwise
 	return "linux"
