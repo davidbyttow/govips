@@ -2,6 +2,7 @@ package vips
 
 // #cgo pkg-config: vips
 // #include "image.h"
+// #include "icc_profiles.h"
 import "C"
 
 import (
@@ -23,11 +24,12 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf               []byte
-	image             *C.VipsImage
-	format            ImageType
-	lock              sync.Mutex
-	preMultiplication *PreMultiplicationState
+	buf                 []byte
+	image               *C.VipsImage
+	format              ImageType
+	lock                sync.Mutex
+	preMultiplication   *PreMultiplicationState
+	optimizedIccProfile string
 }
 
 type ImageMetadata struct {
@@ -40,12 +42,13 @@ type ImageMetadata struct {
 
 // ExportParams are options when exporting an image to file or buffer
 type ExportParams struct {
-	Format      ImageType
-	Quality     int
-	Compression int
-	Interlaced  bool
-	Lossless    bool
-	Effort      int
+	Format       ImageType
+	Quality      int
+	Compression  int
+	Interlaced   bool
+	Lossless     bool
+	NearLossless bool
+	Effort       int
 }
 
 func NewDefaultExportParams() *ExportParams {
@@ -77,10 +80,11 @@ func NewDefaultPNGExportParams() *ExportParams {
 
 func NewDefaultWEBPExportParams() *ExportParams {
 	return &ExportParams{
-		Format:   ImageTypeWEBP,
-		Quality:  75,
-		Lossless: false,
-		Effort:   4,
+		Format:       ImageTypeWEBP,
+		Quality:      75,
+		Lossless:     false,
+		NearLossless: false,
+		Effort:       4,
 	}
 }
 
@@ -275,26 +279,10 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 
 // Export exports the image
 func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) {
-	p := params
-	if p == nil {
-		switch r.format {
-		case ImageTypeJPEG:
-			p = NewDefaultJPEGExportParams()
-		case ImageTypePNG:
-			p = NewDefaultPNGExportParams()
-		case ImageTypeWEBP:
-			p = NewDefaultWEBPExportParams()
-		default:
-			p = NewDefaultExportParams()
-		}
-	}
-
-	if p.Format == ImageTypeUnknown {
-		p.Format = r.format
-	}
+	params = r.resolveExportParams(params)
 
 	// the exported buf is not necessarily in same format as the original buf, might default to JPEG as well.
-	buf, format, err := r.exportBuffer(p)
+	buf, format, err := r.exportBuffer(params)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -308,6 +296,27 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	}
 
 	return buf, metadata, nil
+}
+
+func (r *ImageRef) resolveExportParams(params *ExportParams) *ExportParams {
+	if params == nil {
+		switch r.format {
+		case ImageTypeJPEG:
+			params = NewDefaultJPEGExportParams()
+		case ImageTypePNG:
+			params = NewDefaultPNGExportParams()
+		case ImageTypeWEBP:
+			params = NewDefaultWEBPExportParams()
+		default:
+			params = NewDefaultExportParams()
+		}
+	}
+
+	if params.Format == ImageTypeUnknown {
+		params.Format = r.format
+	}
+
+	return params
 }
 
 func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error {
@@ -464,16 +473,25 @@ func (r *ImageRef) RemoveICCProfile() error {
 }
 
 func (r *ImageRef) OptimizeICCProfile() error {
-	isCMYK := 0
-	if r.Interpretation() == InterpretationCMYK {
-		isCMYK = 1
+	inputProfile := r.determineInputICCProfile()
+	if !r.HasICCProfile() && (inputProfile == "") {
+		//No embedded ICC profile in the input image and no input profile determined, nothing to do.
+		return nil
 	}
 
-	out, err := vipsOptimizeICCProfile(r.image, isCMYK)
+	r.optimizedIccProfile = C.GoString(C.SRGB_V2_MICRO_ICC_PATH)
+	if r.Bands() <= 2 {
+		r.optimizedIccProfile = C.GoString(C.SGRAY_V2_MICRO_ICC_PATH)
+	}
+
+	embedded := r.HasICCProfile() && (inputProfile == "")
+
+	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, 0, embedded)
 	if err != nil {
 		info(err.Error())
 		return err
 	}
+
 	r.setImage(out)
 	return nil
 }
@@ -702,6 +720,13 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 	return bytes, nil
 }
 
+func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
+	if r.Interpretation() == InterpretationCMYK {
+		inputProfile = "cmyk"
+	}
+	return
+}
+
 // setImage resets the image for this image and frees the previous one
 func (r *ImageRef) setImage(image *C.VipsImage) {
 	r.lock.Lock()
@@ -729,7 +754,8 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	switch format {
 	case ImageTypeWEBP:
-		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.Effort)
+		buf, err = vipsSaveWebPToBuffer(r.image, false, params.Quality, params.Lossless, params.NearLossless,
+			params.Effort, r.optimizedIccProfile)
 	case ImageTypePNG:
 		buf, err = vipsSavePNGToBuffer(r.image, false, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:
