@@ -23,6 +23,11 @@ func vipsResize(in *C.VipsImage, scale float64, kernel Kernel) (*C.VipsImage, er
 	incOpCounter("resize")
 	var out *C.VipsImage
 
+	// libvips recommends Lanczos3 as the default kernel
+	if kernel == KernelAuto {
+		kernel = KernelLanczos3
+	}
+
 	if err := C.resize_image(in, &out, C.double(scale), C.double(-1), C.int(kernel)); err != 0 {
 		return nil, handleImageError(out)
 	}

@@ -22,8 +22,12 @@ const (
 	BandFormatDpComplex BandFormat = C.VIPS_FORMAT_DPCOMPLEX
 )
 
+// BlendMode gives the various Porter-Duff and PDF blend modes.
+// See https://libvips.github.io/libvips/API/current/libvips-conversion.html#VipsBlendMode
 type BlendMode int
 
+// Constants define the various Porter-Duff and PDF blend modes.
+// See https://libvips.github.io/libvips/API/current/libvips-conversion.html#VipsBlendMode
 const (
 	BlendModeClear      BlendMode = C.VIPS_BLEND_MODE_CLEAR
 	BlendModeSource     BlendMode = C.VIPS_BLEND_MODE_SOURCE
