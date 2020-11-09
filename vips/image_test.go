@@ -22,7 +22,6 @@ func TestImageRef_WebP(t *testing.T) {
 	img, err := NewImageFromReader(src)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	_, _, err = img.Export(nil)
 	assert.NoError(t, err)
@@ -38,7 +37,6 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 	img, err := NewImageFromReader(src)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	params := NewDefaultWEBPExportParams()
 	params.Effort = 2
@@ -56,7 +54,6 @@ func TestImageRef_PNG(t *testing.T) {
 	img, err := NewImageFromReader(src)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	// check random access by encoding twice
 	_, _, err = img.Export(nil)
@@ -74,7 +71,6 @@ func TestImageRef_HEIF(t *testing.T) {
 	img, err := NewImageFromBuffer(raw)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	_, metadata, err := img.Export(nil)
 	assert.NoError(t, err)
@@ -90,7 +86,6 @@ func TestImageRef_HEIF_MIF1(t *testing.T) {
 	img, err := NewImageFromBuffer(raw)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	_, metadata, err := img.Export(nil)
 	assert.NoError(t, err)
@@ -106,7 +101,6 @@ func TestImageRef_BMP(t *testing.T) {
 	img, err := NewImageFromBuffer(raw)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	_, metadata, err := img.Export(nil)
 	assert.NoError(t, err)
@@ -122,7 +116,6 @@ func TestImageRef_SVG(t *testing.T) {
 	img, err := NewImageFromBuffer(raw)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	assert.Equal(t, ImageTypeSVG, img.Metadata().Format)
 }
@@ -136,7 +129,6 @@ func TestImageRef_SVG_1(t *testing.T) {
 	img, err := NewImageFromBuffer(raw)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	assert.Equal(t, ImageTypeSVG, img.Metadata().Format)
 }
@@ -150,7 +142,6 @@ func TestImageRef_SVG_2(t *testing.T) {
 	img, err := NewImageFromBuffer(raw)
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	assert.Equal(t, ImageTypeSVG, img.Metadata().Format)
 }
@@ -172,7 +163,6 @@ func TestImageRef_Resize__Error(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.Resize(-1, KernelLanczos3)
 	require.Error(t, err)
@@ -183,7 +173,6 @@ func TestImageRef_ExtractArea__Error(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.ExtractArea(1, 2, 10000, 4)
 	require.Error(t, err)
@@ -194,7 +183,6 @@ func TestImageRef_HasAlpha__True(t *testing.T) {
 
 	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
 	require.NoError(t, err)
-	defer img.Close()
 
 	assert.True(t, img.HasAlpha())
 }
@@ -204,7 +192,6 @@ func TestImageRef_HasAlpha__False(t *testing.T) {
 
 	img, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
-	defer img.Close()
 
 	assert.False(t, img.HasAlpha())
 }
@@ -215,7 +202,6 @@ func TestImageRef_AddAlpha(t *testing.T) {
 	img, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	err = img.AddAlpha()
 	assert.NoError(t, err)
@@ -231,7 +217,6 @@ func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
 	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	err = img.AddAlpha()
 	assert.NoError(t, err)
@@ -247,7 +232,6 @@ func TestImageRef_HasProfile__True(t *testing.T) {
 	img, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	assert.True(t, img.HasProfile())
 }
@@ -258,7 +242,6 @@ func TestImageRef_HasIPTC__True(t *testing.T) {
 	img, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	assert.True(t, img.HasIPTC())
 }
@@ -269,7 +252,6 @@ func TestImageRef_HasIPTC__False(t *testing.T) {
 	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
 	require.NoError(t, err)
 	require.NotNil(t, img)
-	defer img.Close()
 
 	assert.False(t, img.HasIPTC())
 }
@@ -279,7 +261,6 @@ func TestImageRef_HasProfile__False(t *testing.T) {
 
 	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
 	require.NoError(t, err)
-	defer img.Close()
 
 	assert.False(t, img.HasProfile())
 }
@@ -289,7 +270,6 @@ func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
-	defer image.Close()
 
 	assert.Equal(t, 6, image.GetOrientation())
 }
@@ -299,7 +279,6 @@ func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
-	defer image.Close()
 
 	assert.Equal(t, 0, image.GetOrientation())
 }
@@ -309,7 +288,6 @@ func TestImageRef_SetOrientation__HasEXIF(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.SetOrientation(5)
 	require.NoError(t, err)
@@ -322,7 +300,6 @@ func TestImageRef_SetOrientation__NoEXIF(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.SetOrientation(5)
 	require.NoError(t, err)
@@ -335,7 +312,6 @@ func TestImageRef_RemoveOrientation__HasEXIF(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.RemoveOrientation()
 	require.NoError(t, err)
@@ -348,7 +324,6 @@ func TestImageRef_RemoveOrientation__NoEXIF(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.RemoveOrientation()
 	require.NoError(t, err)
@@ -361,7 +336,6 @@ func TestImageRef_RemoveMetadata__RetainsProfile(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
-	defer image.Close()
 
 	require.True(t, image.HasIPTC())
 
@@ -377,7 +351,6 @@ func TestImageRef_RemoveMetadata__RetainsOrientation(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-5.jpg")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.RemoveMetadata()
 	require.NoError(t, err)
@@ -392,7 +365,6 @@ func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "webp-orientation-6.webp")
 	require.NoError(t, err)
-	defer image.Close()
 
 	err = image.RemoveMetadata()
 	require.NoError(t, err)
@@ -405,7 +377,6 @@ func TestImageRef_RemoveICCProfile(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
-	defer image.Close()
 
 	require.True(t, image.HasIPTC())
 
@@ -422,7 +393,7 @@ func TestImageRef_Close(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
-	image.Close()
+	image.close()
 
 	assert.Nil(t, image.image)
 
@@ -435,12 +406,12 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
-	go image.Close()
-	go image.Close()
-	go image.Close()
-	go image.Close()
-	defer image.Close()
-	image.Close()
+	go image.close()
+	go image.close()
+	go image.close()
+	go image.close()
+	defer image.close()
+	image.close()
 
 	assert.Nil(t, image.image)
 	runtime.GC()

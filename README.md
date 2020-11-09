@@ -74,10 +74,10 @@ func checkError(err error) {
 
 func main() {
 	vips.Startup(nil)
+	defer vips.Shutdown()
 
 	image1, err := vips.NewImageFromFile("input.jpg")
 	checkError(err)
-	defer image1.Close()
 
 	// Rotate the picture upright and reset EXIF orientation tag
 	err = image1.AutoRotate()
@@ -88,7 +88,6 @@ func main() {
 	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
 	checkError(err)
 
-	vips.Shutdown()
 }
 ```
 

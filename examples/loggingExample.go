@@ -52,10 +52,10 @@ func myLogger(messageDomain string, verbosity vips.LogLevel, message string) {
 func main() {
 	vips.LoggingSettings(myLogger, vips.LogLevelInfo)
 	vips.Startup(nil)
+	defer vips.Shutdown()
 
 	image1, err := vips.NewImageFromFile("input.jpg")
 	checkError(err)
-	defer image1.Close()
 
 	myLogger("loggingExample", vips.LogLevelInfo, fmt.Sprintf("Before: %v x %v", image1.Height(), image1.Width()))
 	err = image1.Resize(0.9, vips.KernelAuto)
@@ -66,6 +66,4 @@ func main() {
 	image1bytes, _, err := image1.Export(ep)
 	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
 	checkError(err)
-
-	vips.Shutdown()
 }
