@@ -430,7 +430,6 @@ func TestImageRef_Label(t *testing.T) {
 
 	image, err := NewImageFromFile(resources + "jpg-24bit.jpg")
 	require.NoError(t, err)
-	defer image.Close()
 
 	lp := &LabelParams{Text: "Text label"}
 
