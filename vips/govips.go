@@ -233,7 +233,9 @@ func initTypes() {
 
 			supportedImageTypes[k] = int(ret) != 0
 
-			govipsLog("govips", LogLevelInfo, fmt.Sprintf("registered image type loader type=%s", v))
+			if supportedImageTypes[k] {
+				govipsLog("govips", LogLevelInfo, fmt.Sprintf("registered image type loader type=%s", v))
+			}
 		}
 	})
 }
