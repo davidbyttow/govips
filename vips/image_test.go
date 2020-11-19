@@ -436,3 +436,20 @@ func TestImageRef_Label(t *testing.T) {
 	err = image.Label(lp)
 	require.NoError(t, err)
 }
+
+// TODO Add unit tests for:
+// Copy
+// Close
+// Bands
+// ResX
+// ResY
+// OffsetX
+// OffsetY
+// Coding
+// IsColosSpaceSupported
+// Composite
+// ExtractBand
+// BandJoin
+// GetRotationAngleFromEXIF
+// Flatten
+// ToBytes

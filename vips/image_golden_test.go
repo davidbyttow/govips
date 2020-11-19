@@ -279,6 +279,50 @@ func TestImageRef_Linear_Alpha(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Zoom(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.Zoom(2, 3)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 200, result.Width())
+			assert.Equal(t, 300, result.Height())
+		}, nil)
+}
+
+func TestImage_ResizeWithVScale(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.ResizeWithVScale(1.1, 1.2, KernelLanczos3)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 110, result.Width())
+			assert.Equal(t, 120, result.Height())
+		}, nil)
+}
+
+func TestImage_GaussianBlur(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.GaussianBlur(10.5)
+	}, nil, nil)
+}
+
+func TestImage_Invert(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Invert()
+	}, nil, nil)
+}
+
+func TestImage_Flip(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Flip(DirectionVertical)
+	}, nil, nil)
+}
+
+// TODO Add unit tests for:
+// Embed
+// Zoom
+
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 
