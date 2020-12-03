@@ -290,6 +290,28 @@ func TestImage_Zoom(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_Thumbnail_NoCrop(t *testing.T) {
+	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(img *ImageRef) error {
+			return img.Thumbnail(36, 36, InterestingNone)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 36, result.Width())
+			assert.Equal(t, 24, result.Height())
+		}, nil)
+}
+
+func TestImage_Thumbnail_CropCentered(t *testing.T) {
+	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(img *ImageRef) error {
+			return img.Thumbnail(25, 25, InterestingCentre)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 25, result.Width())
+			assert.Equal(t, 25, result.Height())
+		}, nil)
+}
+
 func TestImage_ResizeWithVScale(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg",
 		func(img *ImageRef) error {

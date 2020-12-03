@@ -703,6 +703,18 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 	return nil
 }
 
+// Thumbnail resizes the image to the given width and height.
+// If crop is true the returned image size will be exactly the given height and width,
+// otherwise the width and height will be within the given parameters.
+func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
+	out, err := vipsThumbnail(r.image, width, height, crop)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
 	out, err := vipsEmbed(r.image, left, top, width, height, extend)

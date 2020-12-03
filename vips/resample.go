@@ -46,3 +46,14 @@ func vipsResizeWithVScale(in *C.VipsImage, scale, vscale float64, kernel Kernel)
 
 	return out, nil
 }
+
+func vipsThumbnail(in *C.VipsImage, width, height int, crop Interesting) (*C.VipsImage, error) {
+	incOpCounter("thumbnail")
+	var out *C.VipsImage
+
+	if err := C.thumbnail_image(in, &out, C.int(width), C.int(height), C.int(crop)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
