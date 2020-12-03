@@ -104,6 +104,21 @@ const (
 	ExtendBackground ExtendStrategy = C.VIPS_EXTEND_BACKGROUND
 )
 
+// Interesting represents VIPS_INTERESTING type
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#VipsInteresting
+type Interesting int
+
+const (
+	InterestingNone      Interesting = C.VIPS_INTERESTING_NONE
+	InterestingCentre    Interesting = C.VIPS_INTERESTING_CENTRE
+	InterestingEntropy   Interesting = C.VIPS_INTERESTING_ENTROPY
+	InterestingAttention Interesting = C.VIPS_INTERESTING_ATTENTION
+	InterestingLow       Interesting = C.VIPS_INTERESTING_LOW
+	InterestingHigh      Interesting = C.VIPS_INTERESTING_HIGH
+	InterestingAll       Interesting = C.VIPS_INTERESTING_ALL
+	InterestingLast      Interesting = C.VIPS_INTERESTING_LAST
+)
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-copy
 func vipsCopyImage(in *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
