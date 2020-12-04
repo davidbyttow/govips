@@ -64,6 +64,7 @@ func main() {
 
 	ep := vips.NewDefaultJPEGExportParams()
 	image1bytes, _, err := image1.Export(ep)
+	checkError(err)
 	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
 	checkError(err)
 }
