@@ -270,6 +270,18 @@ func vipsCast(in *C.VipsImage, bandFormat BandFormat) (*C.VipsImage, error) {
 	return out, nil
 }
 
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite
+func vipsComposite(ins []*C.VipsImage, modes []C.int, xs, ys []C.int) (*C.VipsImage, error) {
+	incOpCounter("composite_multi")
+	var out *C.VipsImage
+
+	if err := C.composite_image(&ins[0], &out, C.int(len(ins)), &modes[0], &xs[0], &ys[0]); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite2
 func vipsComposite2(base *C.VipsImage, overlay *C.VipsImage, mode BlendMode, x, y int) (*C.VipsImage, error) {
 	incOpCounter("composite")

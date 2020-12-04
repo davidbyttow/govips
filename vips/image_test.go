@@ -437,6 +437,41 @@ func TestImageRef_Label(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Composite(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	imageOverlay, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+
+	err = image.Composite(imageOverlay, BlendModeXOR, 10, 20)
+	require.NoError(t, err)
+}
+
+func TestImageRef_CompositeMulti(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	images := []*ImageComposite{}
+	for i, uri := range []string{"png-8bit+alpha.png", "png-24bit+alpha.png"} {
+		image, err := NewImageFromFile(resources + uri)
+		require.NoError(t, err)
+
+		//add offset test
+		images = append(images, &ImageComposite{image, BlendModeOver, (i + 1) * 20, (i + 2) * 20})
+	}
+
+	err = image.CompositeMulti(images)
+	require.NoError(t, err)
+
+	_, _, err = image.Export(nil)
+	require.NoError(t, err)
+}
+
 // TODO Add unit tests for:
 // Copy
 // Close
@@ -447,7 +482,6 @@ func TestImageRef_Label(t *testing.T) {
 // OffsetY
 // Coding
 // IsColosSpaceSupported
-// Composite
 // ExtractBand
 // BandJoin
 // GetRotationAngleFromEXIF
