@@ -96,6 +96,17 @@ double max_alpha(VipsImage *in) {
     }
 }
 
+int composite_image(VipsImage **in, VipsImage **out, int n, int *mode, int *x, int *y) {
+	VipsArrayInt *xs = vips_array_int_new(x, n-1);
+	VipsArrayInt *ys = vips_array_int_new(y, n-1);
+
+	int code = vips_composite(in, out, n, mode, "x", xs, "y", ys, NULL);
+
+	vips_area_unref(VIPS_AREA(xs));
+	vips_area_unref(VIPS_AREA(ys));
+	return code;
+}
+
 int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out, int mode, gint x, gint y) {
 	return vips_composite2(base, overlay, out, mode, "x", x, "y", y, NULL);
 }

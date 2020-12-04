@@ -26,6 +26,7 @@ int unpremultiply_alpha(VipsImage *in, VipsImage **out);
 int cast(VipsImage *in, VipsImage **out, int bandFormat);
 double max_alpha(VipsImage *in);
 
+int composite_image(VipsImage **in, VipsImage **out, int n, int *mode, int *x, int *y);
 int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out, int mode, gint x, gint y);
 
 int is_16bit(VipsInterpretation interpretation);

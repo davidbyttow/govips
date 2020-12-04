@@ -342,6 +342,16 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	return buf, metadata, nil
 }
 
+// CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
+func (r *ImageRef) CompositeMulti(ins []*ImageComposite) error {
+	out, err := vipsComposite(toVipsCompositeStructs(r, ins))
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Composite composites the given overlay image on top of the associated image with provided blending mode.
 func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error {
 	out, err := vipsComposite2(r.image, overlay.image, mode, x, y)
