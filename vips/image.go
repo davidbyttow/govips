@@ -115,6 +115,7 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 		return nil, err
 	}
 
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
 	return NewImageFromBuffer(buf)
 }
 
@@ -129,6 +130,7 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 
 	ref := newImageRef(image, format, buf)
 
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
 	return ref, nil
 }
 
@@ -162,6 +164,7 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 }
 
 func finalizeImage(ref *ImageRef) {
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("closing image %p", ref))
 	ref.close()
 }
 
