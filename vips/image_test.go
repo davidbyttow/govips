@@ -472,18 +472,18 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func BenchmarkCreateNewImage(b *testing.B) {
+func BenchmarkExportImage(b *testing.B) {
 	Startup(nil)
 
 	fileBuf, err := ioutil.ReadFile(resources + "heic-24bit.heic")
 	require.NoError(b, err)
 
+	img, err := NewImageFromBuffer(fileBuf)
+	require.NoError(b, err)
+
 	b.SetParallelism(100)
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		img, err := NewImageFromBuffer(fileBuf)
-		require.NoError(b, err)
-
 		_, _, err = img.Export(NewDefaultJPEGExportParams())
 		require.NoError(b, err)
 	}
