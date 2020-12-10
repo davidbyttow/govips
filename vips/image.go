@@ -474,6 +474,7 @@ func (r *ImageRef) Linear1(a, b float64) error {
 }
 
 // GetRotationAngleFromExif returns the angle which the image is currently rotated in.
+// First returned value is the angle and second is a boolean indicating whether image is flipped.
 // This is based on the EXIF orientation tag standard.
 // If no proper orientation number is provided, the picture will be assumed to be upright.
 func GetRotationAngleFromExif(orientation int) (Angle, bool) {

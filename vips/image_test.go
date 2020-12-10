@@ -2,6 +2,7 @@ package vips
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"runtime"
 	"testing"
@@ -9,8 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// todo: add missing tests...
 
 func TestImageRef_WebP(t *testing.T) {
 	Startup(nil)
@@ -393,8 +392,10 @@ func TestImageRef_Close(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
-	image.close()
+	image.Close()
+	assert.NotNil(t, image.image)
 
+	image.close()
 	assert.Nil(t, image.image)
 
 	PrintObjectReport("Final")
@@ -502,16 +503,65 @@ func BenchmarkExportImage(b *testing.B) {
 	b.ReportAllocs()
 }
 
+func TestMemstats(t *testing.T) {
+	var stats MemoryStats
+	ReadVipsMemStats(&stats)
+	assert.NotNil(t, stats)
+	assert.NotNil(t, stats.Allocs)
+	assert.NotNil(t, stats.Files)
+	assert.NotNil(t, stats.Mem)
+	assert.NotNil(t, stats.MemHigh)
+	govipsLog("govips", LogLevelInfo, fmt.Sprintf("MemoryStats: allocs: %d, files: %d, mem: %d, memhigh: %d", stats.Allocs, stats.Files, stats.Mem, stats.MemHigh))
+}
+
+func TestBands(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	bands := image.Bands()
+	assert.Equal(t, bands, 3)
+}
+
+func TestCoding(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	coding := image.Coding()
+	assert.Equal(t, coding, CodingNone)
+}
+
+func TestGetRotation(t *testing.T) {
+	Startup(nil)
+
+	rotation, flipped := GetRotationAngleFromExif(6)
+	assert.Equal(t, rotation, Angle270)
+	assert.Equal(t, flipped, false)
+}
+
+func TestResOffset(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	x := image.ResX()
+	y := image.ResY()
+	offx := image.OffsetX()
+	offy := image.OffsetY()
+
+	assert.Equal(t, x, float64(2.835))
+	assert.Equal(t, y, float64(2.835))
+	assert.Equal(t, offx, 0)
+	assert.Equal(t, offy, 0)
+}
+
 // TODO Add unit tests for:
-// Bands
-// ResX
-// ResY
-// OffsetX
-// OffsetY
-// Coding
 // IsColosSpaceSupported
 // ExtractBand
 // BandJoin
-// GetRotationAngleFromEXIF
 // Flatten
 // ToBytes
