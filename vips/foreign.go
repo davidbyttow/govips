@@ -179,6 +179,14 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
+func vipsLoadSource(src *Source) (*C.VipsImage, error) {
+	img := C.load_image_source(src.src)
+	if img == nil {
+		return nil, fmt.Errorf("error loading image from source")
+	}
+	return img, nil
+}
+
 func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.

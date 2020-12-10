@@ -100,12 +100,14 @@ func NewDefaultWEBPExportParams() *ExportParams {
 
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
-	buf, err := ioutil.ReadAll(r)
+	src := NewSource(r)
+	img, err := vipsLoadSource(src)
 	if err != nil {
 		return nil, err
 	}
-
-	return NewImageFromBuffer(buf)
+	return &ImageRef{
+		image: img,
+	}, nil
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef

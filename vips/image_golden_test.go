@@ -2,6 +2,7 @@ package vips
 
 import (
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -348,25 +349,43 @@ func TestImage_Flip(t *testing.T) {
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 
-	i, err := NewImageFromFile(file)
+	LoggingSettings(nil, LogLevelDebug)
+
+	// Test with loading the buffer immediately into memory
+	bufImg, err := NewImageFromFile(file)
 	require.NoError(t, err)
 
-	err = exec(i)
+	// Test with using an image source
+	imageFile, err := os.Open(file)
 	require.NoError(t, err)
 
-	buf, metadata, err := i.Export(params)
+	readerImg, err := NewImageFromReader(imageFile)
 	require.NoError(t, err)
 
-	if validate != nil {
-		result, err := NewImageFromBuffer(buf)
+	var returnBuf []byte
+	imgRefs := []*ImageRef{bufImg, readerImg}
+	for i, imgRef := range imgRefs {
+		err = exec(imgRef)
 		require.NoError(t, err)
 
-		validate(result)
+		buf, metadata, err := imgRef.Export(params)
+		require.NoError(t, err)
+
+		if i == 0 {
+			returnBuf = buf
+		}
+
+		if validate != nil {
+			result, err := NewImageFromBuffer(buf)
+			require.NoError(t, err)
+
+			validate(result)
+		}
+
+		assertGoldenMatch(t, file, buf, metadata.Format)
 	}
 
-	assertGoldenMatch(t, file, buf, metadata.Format)
-
-	return buf
+	return returnBuf
 }
 
 func getEnvironment() string {

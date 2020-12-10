@@ -29,6 +29,11 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out) {
 	return code;
 }
 
+VipsImage * load_image_source(VipsSourceCustom *source) {
+	// https://libvips.github.io/libvips/API/current/VipsImage.html#vips-image-new-from-source
+	return vips_image_new_from_source( (VipsSource*) source, "", NULL);
+}
+
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer
 int save_jpeg_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int interlace) {
     return vips_jpegsave_buffer(in, buf, len,
