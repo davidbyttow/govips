@@ -472,6 +472,18 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestCopy(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	imageCopy, err := image.Copy()
+	require.NoError(t, err)
+
+	assert.Equal(t, image.buf, imageCopy.buf)
+}
+
 func BenchmarkExportImage(b *testing.B) {
 	Startup(nil)
 
@@ -491,8 +503,6 @@ func BenchmarkExportImage(b *testing.B) {
 }
 
 // TODO Add unit tests for:
-// Copy
-// Close
 // Bands
 // ResX
 // ResY

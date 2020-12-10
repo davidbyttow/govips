@@ -341,9 +341,11 @@ func TestImage_Flip(t *testing.T) {
 	}, nil, nil)
 }
 
-// TODO Add unit tests for:
-// Embed
-// Zoom
+func TestImage_Embed(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Embed(10, 10, 20, 20, ExtendBlack)
+	}, nil, nil)
+}
 
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
