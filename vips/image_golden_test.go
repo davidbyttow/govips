@@ -347,6 +347,12 @@ func TestImage_Embed(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_ExtractBand(t *testing.T) {
+	goldenTest(t, resources+"with_alpha.png", func(img *ImageRef) error {
+		return img.ExtractBand(2, 1)
+	}, nil, nil)
+}
+
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 

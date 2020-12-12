@@ -559,6 +559,19 @@ func TestResOffset(t *testing.T) {
 	assert.Equal(t, offy, 0)
 }
 
+func TestBandJoin(t *testing.T) {
+	Startup(nil)
+
+	image1, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	image2, err := NewImageFromFile(resources + "png-8bit.png")
+	require.NoError(t, err)
+
+	err = image1.BandJoin(image2)
+	require.NoError(t, err)
+}
+
 func TestIsColorSpaceSupport(t *testing.T) {
 	Startup(nil)
 
