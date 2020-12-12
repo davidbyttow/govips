@@ -559,6 +559,16 @@ func TestResOffset(t *testing.T) {
 	assert.Equal(t, offy, 0)
 }
 
+func TestToBytes(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	buf1, err := image.ToBytes()
+	assert.Equal(t, 6220800, len(buf1))
+}
+
 func TestBandJoin(t *testing.T) {
 	Startup(nil)
 
@@ -584,9 +594,3 @@ func TestIsColorSpaceSupport(t *testing.T) {
 	err = image.ToColorSpace(InterpretationError)
 	assert.Error(t, err)
 }
-
-// TODO Add unit tests for:
-// ExtractBand
-// BandJoin
-// Flatten
-// ToBytes

@@ -353,6 +353,12 @@ func TestImage_ExtractBand(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Flatten(t *testing.T) {
+	goldenTest(t, resources+"with_alpha.png", func(img *ImageRef) error {
+		return img.Flatten(&Color{R: 32, G: 64, B: 128})
+	}, nil, nil)
+}
+
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 
