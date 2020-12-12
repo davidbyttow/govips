@@ -540,6 +540,22 @@ func TestGetRotation(t *testing.T) {
 	rotation, flipped := GetRotationAngleFromExif(6)
 	assert.Equal(t, rotation, Angle270)
 	assert.Equal(t, flipped, false)
+
+	rotation, flipped = GetRotationAngleFromExif(2)
+	assert.Equal(t, rotation, Angle0)
+	assert.Equal(t, flipped, true)
+
+	rotation, flipped = GetRotationAngleFromExif(9)
+	assert.Equal(t, rotation, Angle0)
+	assert.Equal(t, flipped, false)
+
+	rotation, flipped = GetRotationAngleFromExif(4)
+	assert.Equal(t, rotation, Angle180)
+	assert.Equal(t, flipped, true)
+
+	rotation, flipped = GetRotationAngleFromExif(8)
+	assert.Equal(t, rotation, Angle90)
+	assert.Equal(t, flipped, false)
 }
 
 func TestResOffset(t *testing.T) {
@@ -594,3 +610,15 @@ func TestIsColorSpaceSupport(t *testing.T) {
 	err = image.ToColorSpace(InterpretationError)
 	assert.Error(t, err)
 }
+
+// TODO unit tests to cover:
+// NewImageFromReader failing test
+// NewImageFromFile failing test
+// Copy failing test
+// SetOrientation failing test
+// RemoveOrientation failing test
+// ExportBuffer failing test
+// Exporting a TIFF image
+// Providing Linear() with different length a and b slices
+// RemoveICCProfile failing test
+// RemoveMetadata failing test

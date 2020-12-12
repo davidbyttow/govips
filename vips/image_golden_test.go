@@ -359,6 +359,12 @@ func TestImage_Flatten(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Tiff(t *testing.T) {
+	goldenTest(t, resources+"tif.tif", func(img *ImageRef) error {
+		return img.OptimizeICCProfile()
+	}, nil, nil)
+}
+
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 
