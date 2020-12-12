@@ -559,8 +559,20 @@ func TestResOffset(t *testing.T) {
 	assert.Equal(t, offy, 0)
 }
 
+func TestIsColorSpaceSupport(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	supported := image.IsColorSpaceSupported()
+	assert.True(t, supported)
+
+	err = image.ToColorSpace(InterpretationError)
+	assert.Error(t, err)
+}
+
 // TODO Add unit tests for:
-// IsColosSpaceSupported
 // ExtractBand
 // BandJoin
 // Flatten
