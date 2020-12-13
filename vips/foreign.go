@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"image/png"
 	"math"
-	"reflect"
 	"runtime"
 	"unsafe"
 
@@ -303,12 +302,8 @@ func vipsSaveJPEGToBuffer(in *C.VipsImage, quality int, stripMetadata, interlace
 }
 
 func toBuff(ptr unsafe.Pointer, cLen C.size_t) []byte {
-	// Create a go slice from the C memory without copying the data
-	// https://stackoverflow.com/questions/51187973/how-to-create-an-array-or-a-slice-from-an-array-unsafe-pointer-in-golang
-	sh := &reflect.SliceHeader{
-		Data: uintptr(ptr),
-		Len:  int(cLen),
-		Cap:  int(cLen),
-	}
-	return *(*[]byte)(unsafe.Pointer(sh))
+	buf := C.GoBytes(ptr, C.int(cLen))
+	gFreePointer(ptr)
+
+	return buf
 }
