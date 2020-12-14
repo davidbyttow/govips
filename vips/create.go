@@ -4,18 +4,7 @@ package vips
 // #include "create.h"
 import "C"
 
-// XYZ loads an image buffer and creates a new Image
-func XYZ(width int, height int) (*ImageRef, error) {
-	startupIfNeeded()
-
-	image, err := vipsXYZ(width, height)
-	if err != nil {
-		return nil, err
-	}
-
-	return newImageRef(image, ImageTypeBMP, nil), nil
-}
-
+// https://libvips.github.io/libvips/API/current/libvips-create.html#vips-xyz
 func vipsXYZ(width int, height int) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
