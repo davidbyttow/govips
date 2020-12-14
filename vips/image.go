@@ -447,6 +447,26 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 	return nil
 }
 
+// Add calculates a sum of the image + addend and stores it back in the image
+func (r *ImageRef) Add(addend *ImageRef) error {
+	out, err := vipsAdd(r.image, addend.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Multiply calculates the product of the image * multiplier and stores it back in the image
+func (r *ImageRef) Multiply(multiplier *ImageRef) error {
+	out, err := vipsMultiply(r.image, multiplier.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Linear passes an image through a linear transformation (ie. output = input * a + b).
 // See https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func (r *ImageRef) Linear(a, b []float64) error {
