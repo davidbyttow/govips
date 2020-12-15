@@ -37,7 +37,7 @@ int save_jpeg_buffer(VipsImage *in, void **buf, size_t *len, int strip, int qual
 		"Q", quality,
 		"optimize_coding", TRUE,
 		"interlace", INT_TO_GBOOLEAN(interlace),
-		"subsample_mode", VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
+		"subsample_mode", VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF,
 		NULL
 	);
 }
