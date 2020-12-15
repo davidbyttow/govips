@@ -323,6 +323,34 @@ func TestImage_ResizeWithVScale(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_Add(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			addend, err := NewImageFromFile(resources + "heic-24bit.heic")
+			require.NoError(t, err)
+
+			return img.Add(addend)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 1440, result.Width())
+			assert.Equal(t, 960, result.Height())
+		}, nil)
+}
+
+func TestImage_Multiply(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			multiplier, err := NewImageFromFile(resources + "heic-24bit.heic")
+			require.NoError(t, err)
+
+			return img.Multiply(multiplier)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 1440, result.Width())
+			assert.Equal(t, 960, result.Height())
+		}, nil)
+}
+
 func TestImage_GaussianBlur(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.GaussianBlur(10.5)
@@ -341,9 +369,29 @@ func TestImage_Flip(t *testing.T) {
 	}, nil, nil)
 }
 
-// TODO Add unit tests for:
-// Embed
-// Zoom
+func TestImage_Embed(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Embed(10, 10, 20, 20, ExtendBlack)
+	}, nil, nil)
+}
+
+func TestImage_ExtractBand(t *testing.T) {
+	goldenTest(t, resources+"with_alpha.png", func(img *ImageRef) error {
+		return img.ExtractBand(2, 1)
+	}, nil, nil)
+}
+
+func TestImage_Flatten(t *testing.T) {
+	goldenTest(t, resources+"with_alpha.png", func(img *ImageRef) error {
+		return img.Flatten(&Color{R: 32, G: 64, B: 128})
+	}, nil, nil)
+}
+
+func TestImage_Tiff(t *testing.T) {
+	goldenTest(t, resources+"tif.tif", func(img *ImageRef) error {
+		return img.OptimizeICCProfile()
+	}, nil, nil)
+}
 
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
