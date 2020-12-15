@@ -108,6 +108,7 @@ const (
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#VipsInteresting
 type Interesting int
 
+// Interesting constants represent areas of interest which smart cropping will crop based on.
 const (
 	InterestingNone      Interesting = C.VIPS_INTERESTING_NONE
 	InterestingCentre    Interesting = C.VIPS_INTERESTING_CENTRE
