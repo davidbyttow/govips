@@ -2,6 +2,7 @@ package vips
 
 import (
 	"bytes"
+	"fmt"
 	"io/ioutil"
 	"runtime"
 	"testing"
@@ -9,8 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// todo: add missing tests...
 
 func TestImageRef_WebP(t *testing.T) {
 	Startup(nil)
@@ -393,8 +392,10 @@ func TestImageRef_Close(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
-	image.close()
+	image.Close()
+	assert.NotNil(t, image.image)
 
+	image.close()
 	assert.Nil(t, image.image)
 
 	PrintObjectReport("Final")
@@ -472,18 +473,152 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 	require.NoError(t, err)
 }
 
-// TODO Add unit tests for:
-// Copy
-// Close
-// Bands
-// ResX
-// ResY
-// OffsetX
-// OffsetY
-// Coding
-// IsColosSpaceSupported
-// ExtractBand
-// BandJoin
-// GetRotationAngleFromEXIF
-// Flatten
-// ToBytes
+func TestCopy(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	imageCopy, err := image.Copy()
+	require.NoError(t, err)
+
+	assert.Equal(t, image.buf, imageCopy.buf)
+}
+
+func BenchmarkExportImage(b *testing.B) {
+	Startup(nil)
+
+	fileBuf, err := ioutil.ReadFile(resources + "heic-24bit.heic")
+	require.NoError(b, err)
+
+	img, err := NewImageFromBuffer(fileBuf)
+	require.NoError(b, err)
+
+	b.SetParallelism(100)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_, _, err = img.Export(NewDefaultJPEGExportParams())
+		require.NoError(b, err)
+	}
+	b.ReportAllocs()
+}
+
+func TestMemstats(t *testing.T) {
+	var stats MemoryStats
+	ReadVipsMemStats(&stats)
+	assert.NotNil(t, stats)
+	assert.NotNil(t, stats.Allocs)
+	assert.NotNil(t, stats.Files)
+	assert.NotNil(t, stats.Mem)
+	assert.NotNil(t, stats.MemHigh)
+	govipsLog("govips", LogLevelInfo, fmt.Sprintf("MemoryStats: allocs: %d, files: %d, mem: %d, memhigh: %d", stats.Allocs, stats.Files, stats.Mem, stats.MemHigh))
+}
+
+func TestBands(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	bands := image.Bands()
+	assert.Equal(t, bands, 3)
+}
+
+func TestCoding(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	coding := image.Coding()
+	assert.Equal(t, coding, CodingNone)
+}
+
+func TestGetRotation(t *testing.T) {
+	Startup(nil)
+
+	rotation, flipped := GetRotationAngleFromExif(6)
+	assert.Equal(t, rotation, Angle270)
+	assert.Equal(t, flipped, false)
+
+	rotation, flipped = GetRotationAngleFromExif(2)
+	assert.Equal(t, rotation, Angle0)
+	assert.Equal(t, flipped, true)
+
+	rotation, flipped = GetRotationAngleFromExif(9)
+	assert.Equal(t, rotation, Angle0)
+	assert.Equal(t, flipped, false)
+
+	rotation, flipped = GetRotationAngleFromExif(4)
+	assert.Equal(t, rotation, Angle180)
+	assert.Equal(t, flipped, true)
+
+	rotation, flipped = GetRotationAngleFromExif(8)
+	assert.Equal(t, rotation, Angle90)
+	assert.Equal(t, flipped, false)
+}
+
+func TestResOffset(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	x := image.ResX()
+	y := image.ResY()
+	offx := image.OffsetX()
+	offy := image.OffsetY()
+
+	assert.Equal(t, x, float64(2.835))
+	assert.Equal(t, y, float64(2.835))
+	assert.Equal(t, offx, 0)
+	assert.Equal(t, offy, 0)
+}
+
+func TestToBytes(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	buf1, err := image.ToBytes()
+	assert.Equal(t, 6220800, len(buf1))
+}
+
+func TestBandJoin(t *testing.T) {
+	Startup(nil)
+
+	image1, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	image2, err := NewImageFromFile(resources + "png-8bit.png")
+	require.NoError(t, err)
+
+	err = image1.BandJoin(image2)
+	require.NoError(t, err)
+}
+
+func TestIsColorSpaceSupport(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	supported := image.IsColorSpaceSupported()
+	assert.True(t, supported)
+
+	err = image.ToColorSpace(InterpretationError)
+	assert.Error(t, err)
+}
+
+// TODO unit tests to cover:
+// NewImageFromReader failing test
+// NewImageFromFile failing test
+// Copy failing test
+// SetOrientation failing test
+// RemoveOrientation failing test
+// ExportBuffer failing test
+// Exporting a TIFF image
+// Providing Linear() with different length a and b slices
+// RemoveICCProfile failing test
+// RemoveMetadata failing test

@@ -115,6 +115,7 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 		return nil, err
 	}
 
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
 	return NewImageFromBuffer(buf)
 }
 
@@ -129,6 +130,7 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 
 	ref := newImageRef(image, format, buf)
 
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
 	return ref, nil
 }
 
@@ -162,6 +164,7 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 }
 
 func finalizeImage(ref *ImageRef) {
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("closing image %p", ref))
 	ref.close()
 }
 
@@ -444,6 +447,26 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 	return nil
 }
 
+// Add calculates a sum of the image + addend and stores it back in the image
+func (r *ImageRef) Add(addend *ImageRef) error {
+	out, err := vipsAdd(r.image, addend.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Multiply calculates the product of the image * multiplier and stores it back in the image
+func (r *ImageRef) Multiply(multiplier *ImageRef) error {
+	out, err := vipsMultiply(r.image, multiplier.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Linear passes an image through a linear transformation (ie. output = input * a + b).
 // See https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func (r *ImageRef) Linear(a, b []float64) error {
@@ -471,6 +494,7 @@ func (r *ImageRef) Linear1(a, b float64) error {
 }
 
 // GetRotationAngleFromExif returns the angle which the image is currently rotated in.
+// First returned value is the angle and second is a boolean indicating whether image is flipped.
 // This is based on the EXIF orientation tag standard.
 // If no proper orientation number is provided, the picture will be assumed to be upright.
 func GetRotationAngleFromExif(orientation int) (Angle, bool) {
