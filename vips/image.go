@@ -467,8 +467,9 @@ func (r *ImageRef) Multiply(multiplier *ImageRef) error {
 	return nil
 }
 
-func (r *ImageRef) Divide(multiplier *ImageRef) error {
-	out, err := vipsDivide(r.image, multiplier.image)
+// Divide calculates the product of the image / denominator and stores it back in the image
+func (r *ImageRef) Divide(denominator *ImageRef) error {
+	out, err := vipsDivide(r.image, denominator.image)
 	if err != nil {
 		return err
 	}
