@@ -354,10 +354,10 @@ func TestImage_Multiply(t *testing.T) {
 func TestImageRef_Divide(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg",
 		func(img *ImageRef) error {
-			multiplier, err := NewImageFromFile(resources + "heic-24bit.heic")
+			denominator, err := NewImageFromFile(resources + "heic-24bit.heic")
 			require.NoError(t, err)
 
-			return img.Multiply(multiplier)
+			return img.Divide(denominator)
 		},
 		func(result *ImageRef) {
 			assert.Equal(t, 1440, result.Width())
