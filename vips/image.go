@@ -467,6 +467,15 @@ func (r *ImageRef) Multiply(multiplier *ImageRef) error {
 	return nil
 }
 
+func (r *ImageRef) Divide(multiplier *ImageRef) error {
+	out, err := vipsDivide(r.image, multiplier.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Linear passes an image through a linear transformation (ie. output = input * a + b).
 // See https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func (r *ImageRef) Linear(a, b []float64) error {
