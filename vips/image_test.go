@@ -91,6 +91,21 @@ func TestImageRef_HEIF_MIF1(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
+func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "heic-ftypmsf1.heic")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, metadata, err := img.Export(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, ImageTypeHEIF, metadata.Format)
+}
+
 func TestImageRef_BMP(t *testing.T) {
 	Startup(nil)
 
