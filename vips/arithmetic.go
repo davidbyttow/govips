@@ -28,6 +28,18 @@ func vipsMultiply(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 	return out, nil
 }
 
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-divide
+func vipsDivide(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("divide")
+	var out *C.VipsImage
+
+	if err := C.divide(left, right, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 //  https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func vipsLinear(in *C.VipsImage, a, b []float64, n int) (*C.VipsImage, error) {
 	incOpCounter("linear")

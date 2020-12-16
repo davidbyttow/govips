@@ -153,6 +153,13 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 	return newImageRef(out, r.format, r.buf), nil
 }
 
+// XYZ Creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
+// and elements in the second band have their y coordinate.
+func XYZ(width, height int) (*ImageRef, error) {
+	image, err := vipsXYZ(width, height)
+	return &ImageRef{image: image}, err
+}
+
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
 	image := &ImageRef{
 		image:  vipsImage,
@@ -365,6 +372,16 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 	return nil
 }
 
+// Mapim resamples an image using index to look up pixels
+func (r *ImageRef) Mapim(index *ImageRef) error {
+	out, err := vipsMapim(r.image, index.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // ExtractBand extracts one or more bands out of the image (replacing the associated ImageRef)
 func (r *ImageRef) ExtractBand(band int, num int) error {
 	out, err := vipsExtractBand(r.image, band, num)
@@ -460,6 +477,16 @@ func (r *ImageRef) Add(addend *ImageRef) error {
 // Multiply calculates the product of the image * multiplier and stores it back in the image
 func (r *ImageRef) Multiply(multiplier *ImageRef) error {
 	out, err := vipsMultiply(r.image, multiplier.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Divide calculates the product of the image / denominator and stores it back in the image
+func (r *ImageRef) Divide(denominator *ImageRef) error {
+	out, err := vipsDivide(r.image, denominator.image)
 	if err != nil {
 		return err
 	}
