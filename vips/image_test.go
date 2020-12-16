@@ -91,6 +91,21 @@ func TestImageRef_HEIF_MIF1(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
+func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "heic-ftypmsf1.heic")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, metadata, err := img.Export(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, ImageTypeHEIF, metadata.Format)
+}
+
 func TestImageRef_BMP(t *testing.T) {
 	Startup(nil)
 
@@ -451,6 +466,35 @@ func TestImageRef_Composite(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Mapim(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	index, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+
+	_ = index.ExtractBand(0, 2)
+	require.NoError(t, err)
+
+	err = image.Mapim(index)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Mapim__Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	index, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+
+	err = image.Mapim(index)
+	assert.Error(t, err)
+}
+
 func TestImageRef_CompositeMulti(t *testing.T) {
 	Startup(nil)
 
@@ -625,6 +669,13 @@ func TestImageRef_Divide__Error(t *testing.T) {
 
 	err = image.Divide(denominator)
 	assert.Error(t, err)
+}
+
+func TestXYZ(t *testing.T) {
+	Startup(nil)
+
+	_, err := XYZ(100, 100)
+	require.NoError(t, err)
 }
 
 // TODO unit tests to cover:

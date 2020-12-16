@@ -153,6 +153,13 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 	return newImageRef(out, r.format, r.buf), nil
 }
 
+// XYZ Creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
+// and elements in the second band have their y coordinate.
+func XYZ(width, height int) (*ImageRef, error) {
+	image, err := vipsXYZ(width, height)
+	return &ImageRef{image: image}, err
+}
+
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
 	image := &ImageRef{
 		image:  vipsImage,
@@ -358,6 +365,16 @@ func (r *ImageRef) CompositeMulti(ins []*ImageComposite) error {
 // Composite composites the given overlay image on top of the associated image with provided blending mode.
 func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error {
 	out, err := vipsComposite2(r.image, overlay.image, mode, x, y)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Mapim resamples an image using index to look up pixels
+func (r *ImageRef) Mapim(index *ImageRef) error {
+	out, err := vipsMapim(r.image, index.image)
 	if err != nil {
 		return err
 	}
