@@ -153,6 +153,13 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 	return newImageRef(out, r.format, r.buf), nil
 }
 
+// XYZ Creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
+// and elements in the second band have their y coordinate.
+func XYZ(width, height int) (*ImageRef, error) {
+	image, err := vipsXYZ(width, height)
+	return &ImageRef{image: image}, err
+}
+
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
 	image := &ImageRef{
 		image:  vipsImage,

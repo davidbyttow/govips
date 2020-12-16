@@ -626,6 +626,13 @@ func TestIsColorSpaceSupport(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestXYZ(t *testing.T) {
+	Startup(nil)
+
+	_, err := XYZ(100, 100)
+	require.NoError(t, err)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test
