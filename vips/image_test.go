@@ -611,6 +611,22 @@ func TestIsColorSpaceSupport(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestImageRef_Divide__Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.ExtractBand(0, 2)
+	require.NoError(t, err)
+
+	denominator, err := NewImageFromFile(resources + "heic-24bit.heic")
+	require.NoError(t, err)
+
+	err = image.Divide(denominator)
+	assert.Error(t, err)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test
