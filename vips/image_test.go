@@ -466,6 +466,35 @@ func TestImageRef_Composite(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Mapim(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	index, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+
+	_ = index.ExtractBand(0, 2)
+	require.NoError(t, err)
+
+	err = image.Mapim(index)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Mapim__Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	index, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+
+	err = image.Mapim(index)
+	assert.Error(t, err)
+}
+
 func TestImageRef_CompositeMulti(t *testing.T) {
 	Startup(nil)
 

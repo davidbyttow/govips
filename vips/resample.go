@@ -57,3 +57,15 @@ func vipsThumbnail(in *C.VipsImage, width, height int, crop Interesting) (*C.Vip
 
 	return out, nil
 }
+
+// https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-mapim
+func vipsMapim(in *C.VipsImage, index *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("mapim")
+	var out *C.VipsImage
+
+	if err := C.mapim(in, &out, index); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
