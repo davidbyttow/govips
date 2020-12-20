@@ -4,12 +4,19 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func init() {
+	if os.Getenv("CI") != "" {
+		consoleLogging()
+	}
+}
 
 func TestImageRef_WebP(t *testing.T) {
 	Startup(nil)

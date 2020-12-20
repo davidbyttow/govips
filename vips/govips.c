@@ -22,3 +22,11 @@ void vips_unset_logging_handler(void)
 {
   g_log_set_default_handler(null_logging_handler, NULL);
 }
+
+/* This function skips the Govips logging handler and logs
+   directly to stdout. To be used only for testing and debugging.
+   Needed for CI because of a Go macOS bug which doesn't clean cgo callbacks on exit. */
+void vips_default_logging_handler(void)
+{
+  g_log_set_default_handler(g_log_default_handler, NULL);
+}

@@ -19,3 +19,4 @@ static void null_logging_handler(
 
 void vips_set_logging_handler(void);
 void vips_unset_logging_handler(void);
+void vips_default_logging_handler(void);

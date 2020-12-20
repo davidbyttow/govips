@@ -90,7 +90,7 @@ func Startup(config *Config) {
 	}
 
 	// Override default glib logging handler to intercept logging messages
-	C.vips_set_logging_handler()
+	enableLogging()
 
 	err := C.vips_init(cName)
 	if err != 0 {
@@ -155,6 +155,21 @@ func Startup(config *Config) {
 	initTypes()
 }
 
+func enableLogging() {
+	C.vips_set_logging_handler()
+}
+
+func disableLogging() {
+	C.vips_unset_logging_handler()
+}
+
+// consoleLogging overrides the Govips logging handler and makes glib
+// use its default logging handler which outputs everything to console.
+// Needed for CI unit testing due to a macOS bug in Go (doesn't clean cgo callbacks on exit)
+func consoleLogging() {
+	C.vips_default_logging_handler()
+}
+
 // Shutdown libvips
 func Shutdown() {
 	hasShutdown = true
@@ -175,7 +190,7 @@ func Shutdown() {
 	}
 
 	C.vips_shutdown()
-	C.vips_unset_logging_handler()
+	disableLogging()
 	running = false
 }
 
