@@ -27,7 +27,7 @@ const (
 var (
 	currentLoggingHandlerFunction LoggingHandlerFunction
 	currentLoggingVerbosity       LogLevel
-	currentLoggingOverriden       bool
+	currentLoggingOverridden      bool
 )
 
 // govipsLoggingHandler is the private bridge function exported to the C library
@@ -63,7 +63,7 @@ func LoggingSettings(handler LoggingHandlerFunction, verbosity LogLevel) {
 	// TODO turn on debugging in libvips and redirect to handler when setting verbosity to debug
 	// This way debugging information would go to the same channel as all other logging
 
-	currentLoggingOverriden = true
+	currentLoggingOverridden = true
 }
 
 func defaultLoggingHandlerFunction(messageDomain string, messageLevel LogLevel, message string) {
