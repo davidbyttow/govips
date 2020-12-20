@@ -14,3 +14,4 @@ static void govips_logging_handler(
     const gchar *message, gpointer user_data);
 
 void vips_set_logging_handler(void);
+void vips_unset_logging_handler(void);
