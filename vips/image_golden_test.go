@@ -1,10 +1,12 @@
 package vips
 
 import (
+	"bytes"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"io/ioutil"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -138,6 +140,35 @@ func TestImageRef_PngToWebp_OptimizeICCProfile_NearLossless_HasProfile(t *testin
 		}, exportParams)
 }
 
+func TestImageRef_PngToWebp_OptimizeICCProfile_LosslessAndNearLossless(t *testing.T) {
+	exportParams := NewDefaultWEBPExportParams()
+	exportParams.Quality = 90
+	exportParams.Lossless = true
+	exportParams.NearLossless = true
+
+	goldenTest(t, resources+"has-icc-profile.png",
+		func(img *ImageRef) error {
+			return img.OptimizeICCProfile()
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile())
+		}, exportParams)
+}
+
+func TestImageRef_PngToWebp_OptimizeICCProfile_Lossless(t *testing.T) {
+	exportParams := NewDefaultWEBPExportParams()
+	exportParams.Quality = 90
+	exportParams.Lossless = true
+
+	goldenTest(t, resources+"has-icc-profile.png",
+		func(img *ImageRef) error {
+			return img.OptimizeICCProfile()
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile())
+		}, exportParams)
+}
+
 func TestImageRef_RemoveMetadata_Leave_Profile(t *testing.T) {
 	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
 		func(img *ImageRef) error {
@@ -211,7 +242,7 @@ func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
 		}, NewDefaultJPEGExportParams())
 }
 
-func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
+func TestImage_Sharpen_Luminescence_24bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-24bit+alpha.png", func(img *ImageRef) error {
 		//usm_0.66_1.00_0.01
 		sigma := 1 + (0.66 / 2)
@@ -219,6 +250,17 @@ func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 		m2 := 1.0
 
 		return img.Sharpen(sigma, x1, m2, SharpenModeLuminescence)
+	}, nil, nil)
+}
+
+func TestImage_Sharpen_RGB_24bit_Alpha(t *testing.T) {
+	goldenTest(t, resources+"png-24bit+alpha.png", func(img *ImageRef) error {
+		//usm_0.66_1.00_0.01
+		sigma := 1 + (0.66 / 2)
+		x1 := 0.01 * 100
+		m2 := 1.0
+
+		return img.Sharpen(sigma, x1, m2, SharpenModeRGB)
 	}, nil, nil)
 }
 
@@ -291,17 +333,18 @@ func TestImageRef_Linear_Alpha(t *testing.T) {
 	}, nil, nil)
 }
 
-func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
+func goldenTest(t *testing.T, goldenFileName string, exec func(img *ImageRef) error, validate func(img *ImageRef),
+	exportParams *ExportParams) []byte {
 	Startup(nil)
 
-	i, err := NewImageFromFile(file)
+	goldenImage, err := NewImageFromFile(goldenFileName)
 	require.NoError(t, err)
-	defer i.Close()
+	defer goldenImage.Close()
 
-	err = exec(i)
+	err = exec(goldenImage)
 	require.NoError(t, err)
 
-	buf, metadata, err := i.Export(params)
+	buf, metadata, err := goldenImage.Export(exportParams)
 	require.NoError(t, err)
 
 	if validate != nil {
@@ -312,31 +355,37 @@ func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, valid
 		validate(result)
 	}
 
-	assertGoldenMatch(t, file, buf, metadata.Format)
+	assertGoldenMatch(t, goldenFileName, buf, metadata.Format)
 
 	return buf
 }
 
-func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) {
-	i := strings.LastIndex(file, ".")
-	if i < 0 {
+func assertGoldenMatch(t *testing.T, imagePath string, imageData []byte, format ImageType) {
+	imagePath, err := filepath.Abs(imagePath)
+	panicOnError(err)
+
+	dotIndex := strings.LastIndex(imagePath, ".")
+	if dotIndex < 0 {
 		panic("bad filename")
 	}
 
-	name := strings.Replace(t.Name(), "/", "_", -1)
-	name = strings.Replace(name, "TestImage_", "", -1)
-	prefix := file[:i] + "." + name
+	testName := strings.Replace(t.Name(), "/", "_", -1)
+	testName = strings.Replace(testName, "TestImage_", "", -1)
+	prefix := imagePath[:dotIndex] + "." + testName
 	ext := format.FileExt()
-	goldenFile := prefix + ".golden" + ext
+	goldenPath, err := filepath.Abs(prefix + ".golden" + ext)
+	panicOnError(err)
 
-	golden, _ := ioutil.ReadFile(goldenFile)
-	if golden != nil {
-		if !assert.Equal(t, golden, buf,
-			"output not equal to golden\nExpected %v (%v bytes)\nBut got %v (%v bytes)",
-			path.Base(goldenFile), len(golden),
-			path.Base(file), len(buf)) {
-			failed := prefix + ".failed" + ext
-			err := ioutil.WriteFile(failed, buf, 0666)
+	expectedData, _ := ioutil.ReadFile(goldenPath)
+	if expectedData != nil {
+		if !bytes.Equal(expectedData, imageData) {
+			failedPath := prefix + ".failed" + ext
+			assert.Fail(t, "Output not equal to golden result",
+				"expected\t%v (%v bytes)\n"+
+					"but got\t\t%v (%v bytes)",
+				goldenPath, len(expectedData), failedPath, len(imageData))
+			fmt.Printf("To diff and prompt to replace golden file: ./diff-replace-golden.sh %v %v", goldenPath, failedPath)
+			err := ioutil.WriteFile(failedPath, imageData, 0666)
 			if err != nil {
 				panic(err)
 			}
@@ -344,7 +393,13 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 		return
 	}
 
-	t.Log("writing golden file: " + goldenFile)
-	err := ioutil.WriteFile(goldenFile, buf, 0644)
-	assert.NoError(t, err)
+	t.Log("writing golden file: " + goldenPath)
+	err = ioutil.WriteFile(goldenPath, imageData, 0644)
+	panicOnError(err)
+}
+
+func panicOnError(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

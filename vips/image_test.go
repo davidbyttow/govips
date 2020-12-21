@@ -29,7 +29,7 @@ func TestImageRef_WebP(t *testing.T) {
 	buf, _, err := img.Export(nil)
 	assert.NoError(t, err)
 
-	assert.Equal(t, 45252, len(buf))
+	assert.Equal(t, 44694, len(buf))
 }
 
 func TestImageRef_WebP__ReducedEffort(t *testing.T) {
@@ -48,7 +48,7 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 	params.Effort = 2
 	buf, _, err := img.Export(params)
 	assert.NoError(t, err)
-	assert.Equal(t, 48850, len(buf))
+	assert.Equal(t, 48310, len(buf))
 }
 
 func TestImageRef_PNG(t *testing.T) {
