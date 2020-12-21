@@ -12,10 +12,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func init() {
-	if os.Getenv("CI") != "" {
-		consoleLogging()
-	}
+func TestMain(m *testing.M) {
+	ret := m.Run()
+	Shutdown()
+	os.Exit(ret)
 }
 
 func TestImageRef_WebP(t *testing.T) {

@@ -20,9 +20,6 @@ func captureOutput(f func()) string {
 
 func Test_DefaultLogging(t *testing.T) {
 	Startup(nil)
-	if os.Getenv("CI") != "" {
-		enableLogging()
-	}
 	LoggingSettings(nil, LogLevelInfo)
 
 	output := captureOutput(func() {
@@ -31,16 +28,10 @@ func Test_DefaultLogging(t *testing.T) {
 	dateRegexp := regexp.MustCompile(`[0-9\/\:]+ `)
 	output = dateRegexp.ReplaceAllString(output, "")
 	assert.Equal(t, "[test.info] abcde12345\n", output)
-	if os.Getenv("CI") != "" {
-		consoleLogging()
-	}
 }
 
 func Test_LoggingVerbosity(t *testing.T) {
 	Startup(nil)
-	if os.Getenv("CI") != "" {
-		enableLogging()
-	}
 	LoggingSettings(nil, LogLevelMessage)
 
 	output := captureOutput(func() {
@@ -54,16 +45,10 @@ func Test_LoggingVerbosity(t *testing.T) {
 		govipsLog("test", LogLevelInfo, "fghji67890")
 	})
 	assert.Equal(t, "", output2)
-	if os.Getenv("CI") != "" {
-		consoleLogging()
-	}
 }
 
 func Test_LoggingHandler(t *testing.T) {
 	Startup(nil)
-	if os.Getenv("CI") != "" {
-		enableLogging()
-	}
 
 	var testDomain string
 	var testVerbosity LogLevel
@@ -79,7 +64,4 @@ func Test_LoggingHandler(t *testing.T) {
 	assert.Equal(t, "domain", testDomain)
 	assert.Equal(t, LogLevelCritical, testVerbosity)
 	assert.Equal(t, "abcde12345", testMessage)
-	if os.Getenv("CI") != "" {
-		consoleLogging()
-	}
 }

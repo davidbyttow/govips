@@ -2,7 +2,6 @@ package vips
 
 import (
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -11,12 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func init() {
-	if os.Getenv("CI") != "" {
-		consoleLogging()
-	}
-}
 
 func TestImage_Resize_Downscale(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg",
