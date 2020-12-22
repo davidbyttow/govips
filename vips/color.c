@@ -1,5 +1,4 @@
 #include "color.h"
-#include "icc_profiles.h"
 #include <unistd.h>
 
 int is_colorspace_supported(VipsImage *in) {
@@ -11,11 +10,8 @@ int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space) {
 }
 
 // https://libvips.github.io/libvips/API/8.6/libvips-colour.html#vips-icc-transform
-int optimize_icc_profile(VipsImage *in, VipsImage **out, int isCmyk) {
+int optimize_icc_profile(VipsImage *in, VipsImage **out, int isCmyk, char *srgb_profile_path, char *gray_profile_path) {
 	// todo: check current embedded profile, and skip if already set
-
-    char *srgb_profile_path = SRGB_V2_MICRO_ICC_PATH;
-    char *gray_profile_path = SGRAY_V2_MICRO_ICC_PATH;
 
     int channels = vips_image_get_bands(in);
 	int result;

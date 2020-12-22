@@ -3,6 +3,10 @@ package vips
 // #cgo pkg-config: vips
 // #include "color.h"
 import "C"
+import (
+	"path/filepath"
+	"unsafe"
+)
 
 // Color represents an RGB
 type Color struct {
@@ -58,9 +62,15 @@ func vipsToColorSpace(in *C.VipsImage, interpretation Interpretation) (*C.VipsIm
 func vipsOptimizeICCProfile(in *C.VipsImage, isCmyk int) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
-	if res := int(C.optimize_icc_profile(in, &out, C.int(isCmyk))); res != 0 {
+	srgbProfilePath := C.CString(filepath.Join(temporaryDirectory, sRGBV2MicroICCProfilePath))
+	grayProfilePath := C.CString(filepath.Join(temporaryDirectory, sGrayV2MicroICCProfilePath))
+
+	if res := int(C.optimize_icc_profile(in, &out, C.int(isCmyk), srgbProfilePath, grayProfilePath)); res != 0 {
 		return nil, handleImageError(out)
 	}
+
+	C.free(unsafe.Pointer(srgbProfilePath))
+	C.free(unsafe.Pointer(grayProfilePath))
 
 	return out, nil
 }

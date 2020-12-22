@@ -4,10 +4,10 @@ package vips
 // #cgo pkg-config: vips
 // #include <vips/vips.h>
 // #include "govips.h"
-// #include "icc_profiles.h"
 import "C"
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -97,10 +97,7 @@ func Startup(config *Config) {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
-	err = C.icc_profiles_init()
-	if err != 0 {
-		panic(fmt.Sprintf("Failed to initialize icc profiles=%v", err))
-	}
+	initializeICCProfiles()
 
 	running = true
 
@@ -188,6 +185,8 @@ func Shutdown() {
 		govipsLog("govips", LogLevelInfo, "warning libvips not started")
 		return
 	}
+
+	os.RemoveAll(temporaryDirectory)
 
 	C.vips_shutdown()
 	disableLogging()
