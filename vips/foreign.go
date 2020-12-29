@@ -260,12 +260,16 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, stripMetadata bool, quality int, loss
 	return toBuff(ptr, cLen), nil
 }
 
-func vipsSaveTIFFToBuffer(in *C.VipsImage) ([]byte, error) {
+func vipsSaveTIFFToBuffer(in *C.VipsImage, stripMetadata bool, quality int, lossless bool) ([]byte, error) {
 	incOpCounter("save_tiff_buffer")
 	var ptr unsafe.Pointer
 	cLen := C.size_t(0)
 
-	if err := C.save_tiff_buffer(in, &ptr, &cLen); err != 0 {
+	strip := C.int(boolToInt(stripMetadata))
+	qual := C.int(quality)
+	loss := C.int(boolToInt(lossless))
+
+	if err := C.save_tiff_buffer(in, &ptr, &cLen, strip, qual, loss); err != 0 {
 		return nil, handleSaveBufferError(ptr)
 	}
 
