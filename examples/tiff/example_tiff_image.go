@@ -1,6 +1,6 @@
 // NOTE: Run from project root directory
 
-package main
+package package_test
 
 import (
 	"fmt"
