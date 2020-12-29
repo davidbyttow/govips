@@ -76,6 +76,20 @@ int save_heif_buffer(VipsImage *in, void **buf, size_t *len, int quality, int lo
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-tiffsave-buffer
-int save_tiff_buffer(VipsImage *in, void **buf, size_t *len) {
-	return vips_tiffsave_buffer(in, buf, len, NULL);
+int save_tiff_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless) {
+  // TODO: Allow various options to be passed in.
+	return vips_tiffsave_buffer(in, buf, len,
+    "strip", INT_TO_GBOOLEAN(strip),
+    "Q", quality,
+    "compression", lossless ? VIPS_FOREIGN_TIFF_COMPRESSION_NONE : VIPS_FOREIGN_TIFF_COMPRESSION_LZW,
+    "pyramid", FALSE,
+    "predictor", VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL,
+    "pyramid", FALSE,
+    "tile", FALSE,
+    "tile_height", 256,
+    "tile_width", 256,
+    "xres", 1.0,
+    "yres", 1.0,
+    NULL
+  );
 }

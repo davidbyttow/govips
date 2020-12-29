@@ -870,7 +870,7 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 	case ImageTypePNG:
 		buf, err = vipsSavePNGToBuffer(r.image, params.StripMetadata, params.Compression, params.Interlaced)
 	case ImageTypeTIFF:
-		buf, err = vipsSaveTIFFToBuffer(r.image)
+		buf, err = vipsSaveTIFFToBuffer(r.image, params.StripMetadata, params.Quality, params.Lossless)
 	case ImageTypeHEIF:
 		buf, err = vipsSaveHEIFToBuffer(r.image, params.Quality, params.Lossless)
 	default:

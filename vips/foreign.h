@@ -21,8 +21,9 @@ enum types {
 
 int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out);
 
+// TODO: Pass options as discrete params objects based on types rather than long function signatures
 int save_jpeg_buffer(VipsImage* image, void **buf, size_t *len, int strip, int quality, int interlace);
 int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compression, int interlace);
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless, int effort);
 int save_heif_buffer(VipsImage *in, void **buf, size_t *len, int quality, int lossless);
-int save_tiff_buffer(VipsImage *in, void **buf, size_t *len);
+int save_tiff_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless);
