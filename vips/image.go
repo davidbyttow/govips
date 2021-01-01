@@ -816,6 +816,16 @@ func (r *ImageRef) Rotate(angle Angle) error {
 	return nil
 }
 
+func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *Color,
+	idx float64, idy float64, odx float64, ody float64) error {
+	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Label overlays a label on top of the image
 func (r *ImageRef) Label(labelParams *LabelParams) error {
 	out, err := labelImage(r.image, labelParams)

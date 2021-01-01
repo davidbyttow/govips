@@ -48,6 +48,24 @@ int bandjoin(VipsImage **in, VipsImage **out, int n) {
 	return vips_bandjoin(in, out, n, NULL);
 }
 
+int similarity(VipsImage *in, VipsImage **out, double scale, double angle, double r, double g, double b,
+	double idx, double idy, double odx, double ody) {
+	if (is_16bit(in->Type)) {
+		r = 65535 * r / 255;
+		g = 65535 * g / 255;
+		b = 65535 * b / 255;
+	}
+
+	double background[3] = {r, g, b};
+	VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
+
+	int code = vips_similarity(in, out, "scale", scale, "angle", angle, "background", vipsBackground,
+		"idx", idx, "idy", idy, "odx", odx, "ody", ody, NULL);
+
+	vips_area_unref(VIPS_AREA(vipsBackground));
+	return code;
+}
+
 int flatten_image(VipsImage *in, VipsImage **out, double r, double g, double b) {
 	if (is_16bit(in->Type)) {
 		r = 65535 * r / 255;

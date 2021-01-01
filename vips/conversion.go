@@ -179,6 +179,21 @@ func vipsExtractBand(in *C.VipsImage, band, num int) (*C.VipsImage, error) {
 	return out, nil
 }
 
+// http://libvips.github.io/libvips/API/current/libvips-resample.html#vips-similarity
+func vipsSimilarity(in *C.VipsImage, scale float64, angle float64, color *Color,
+	idx float64, idy float64, odx float64, ody float64) (*C.VipsImage, error) {
+	incOpCounter("similarity")
+	var out *C.VipsImage
+
+	if err := C.similarity(in, &out, C.double(scale), C.double(angle),
+		C.double(color.R), C.double(color.G), C.double(color.B),
+		C.double(idx), C.double(idy), C.double(odx), C.double(ody)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-rot
 func vipsRotate(in *C.VipsImage, angle Angle) (*C.VipsImage, error) {
 	incOpCounter("rot")
