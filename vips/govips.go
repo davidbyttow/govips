@@ -85,8 +85,7 @@ func Startup(config *Config) {
 
 	// Initialize govips logging handler and verbosity filter to historical default
 	if !currentLoggingOverridden {
-		LoggingSettings(nil, LogLevelInfo)
-		currentLoggingOverridden = false
+		govipsLoggingSettings(nil, LogLevelInfo)
 	}
 
 	// Override default glib logging handler to intercept logging messages
