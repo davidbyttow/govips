@@ -5,8 +5,10 @@ package vips
 import "C"
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"io/ioutil"
 	"runtime"
@@ -861,6 +863,22 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
+}
+
+// ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries
+func (r *ImageRef) ToImage(params *ExportParams) (image.Image, error) {
+	imageBytes, _, err := r.Export(params)
+	if err != nil {
+		return nil, err
+	}
+
+	reader := bytes.NewReader(imageBytes)
+	img, _, err := image.Decode(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
 }
 
 // setImage resets the image for this image and frees the previous one
