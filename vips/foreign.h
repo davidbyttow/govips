@@ -4,8 +4,11 @@
 #include <vips/vips.h>
 #include <vips/foreign.h>
 
+#ifndef BOOL
+#define BOOL int
+#endif
 
-enum types {
+typedef enum types {
 	UNKNOWN = 0,
 	JPEG,
 	WEBP,
@@ -17,7 +20,7 @@ enum types {
 	MAGICK,
 	HEIF,
 	BMP
-};
+} ImageType;
 
 int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out);
 
@@ -27,3 +30,29 @@ int save_png_buffer(VipsImage *in, void **buf, size_t *len, int strip, int compr
 int save_webp_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless, int effort);
 int save_heif_buffer(VipsImage *in, void **buf, size_t *len, int quality, int lossless);
 int save_tiff_buffer(VipsImage *in, void **buf, size_t *len, int strip, int quality, int lossless);
+
+typedef struct SaveAsParams {
+  VipsImage *inputImage;
+  void **outputBuffer;
+  ImageType outputFormat;
+  size_t *outputLen;
+
+  BOOL stripMetadata;
+  int quality;
+  BOOL interlace;
+  
+  // PNG
+  int pngCompression;
+
+  // WEBP
+  BOOL webpLossless;
+  int webpReductionEffort;
+
+  // HEIF
+  BOOL heifLossless;
+
+  // TIFF
+  VipsForeignTiffCompression tiffCompression;
+} SaveAsParams;
+
+int save_to_buffer(SaveAsParams *params);

@@ -61,6 +61,15 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeBMP:    "bmp",
 }
 
+// TiffCompression represents method for compressing a tiff at export
+type TiffCompression int
+
+// TiffCompression enum
+const (
+	TiffCompressionNone TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_NONE
+	TiffCompressionLzw  TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_LZW
+)
+
 // FileExt returns the canonical extension for the ImageType
 func (i ImageType) FileExt() string {
 	if ext, ok := imageTypeExtensionMap[i]; ok {
@@ -229,18 +238,33 @@ func bmpToPNG(src []byte) ([]byte, error) {
 
 func vipsSavePNGToBuffer(in *C.VipsImage, stripMetadata bool, compression int, interlaced bool) ([]byte, error) {
 	incOpCounter("save_png_buffer")
-	var ptr unsafe.Pointer
-	cLen := C.size_t(0)
+	var buf unsafe.Pointer
+	len := C.size_t(0)
 
-	strip := C.int(boolToInt(stripMetadata))
-	comp := C.int(compression)
-	inter := C.int(boolToInt(interlaced))
+	// strip := C.int(boolToInt(stripMetadata))
+	// comp := C.int(compression)
+	// inter := C.int(boolToInt(interlaced))
 
-	if err := C.save_png_buffer(in, &ptr, &cLen, strip, comp, inter); err != 0 {
-		return nil, handleSaveBufferError(ptr)
+	params := C.struct_SaveAsParams{
+		inputImage:     in,
+		outputBuffer:   &buf,
+		outputLen:      &len,
+		stripMetadata:  C.int(boolToInt(stripMetadata)),
+		interlace:      C.int(boolToInt(interlaced)),
+		pngCompression: C.int(compression),
 	}
 
-	return toBuff(ptr, cLen), nil
+	var ptr = (*C.struct_SaveAsParams)(unsafe.Pointer(&params))
+
+	// if err := C.save_png_buffer(in, &ptr, &cLen, strip, comp, inter); err != 0 {
+	// 	return nil, handleSaveBufferError(ptr)
+	// }
+
+	if err := C.save_to_buffer(ptr); err != 0 {
+		return nil, handleSaveBufferError(buf)
+	}
+
+	return toBuff(buf, len), nil
 }
 
 func vipsSaveWebPToBuffer(in *C.VipsImage, stripMetadata bool, quality int, lossless bool, effort int) ([]byte, error) {

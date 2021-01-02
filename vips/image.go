@@ -44,6 +44,7 @@ type ImageMetadata struct {
 }
 
 // ExportParams are options when exporting an image to file or buffer.
+// Deprecated: Use format-specific params
 type ExportParams struct {
 	Format        ImageType
 	Quality       int
@@ -58,6 +59,7 @@ type ExportParams struct {
 // By default, govips creates interlaced, lossy images with a quality of 80/100 and compression of 6/10.
 // As these are default values for a wide variety of image formats, their application varies.
 // Some formats use the quality parameters, some compression, etc.
+// Deprecated: Use format-specific params
 func NewDefaultExportParams() *ExportParams {
 	return &ExportParams{
 		Format:      ImageTypeUnknown, // defaults to the starting encoder
@@ -97,6 +99,85 @@ func NewDefaultWEBPExportParams() *ExportParams {
 		Quality:  75,
 		Lossless: false,
 		Effort:   4,
+	}
+}
+
+// ExportJpegParams are options when exporting a JPEG to file or buffer
+type ExportJpegParams struct {
+	StripMetadata bool
+	Quality       int
+	Interlace     bool
+}
+
+// NewExportJpegParams creates default values for an export of a JPEG image.
+// By default, govips creates interlaced JPEGs with a quality of 80/100.
+func NewExportJpegParams() *ExportJpegParams {
+	return &ExportJpegParams{
+		Quality:   80,
+		Interlace: true,
+	}
+}
+
+// ExportPngParams are options when exporting a PNG to file or buffer
+type ExportPngParams struct {
+	StripMetadata bool
+	Compression   int
+	Interlace     bool
+}
+
+// NewExportPngParams creates default values for an export of a PNG image.
+// By default, govips creates non-interlaced PNGs with a compression of 6/10.
+func NewExportPngParams() *ExportPngParams {
+	return &ExportPngParams{
+		Compression: 6,
+		Interlace:   false,
+	}
+}
+
+// ExportWebpParams are options when exporting a WEBP to file or buffer
+type ExportWebpParams struct {
+	StripMetadata   bool
+	Quality         int
+	Lossless        bool
+	ReductionEffort int
+}
+
+// NewExportWebpParams creates default values for an export of a WEBP image.
+// By default, govips creates lossy images with a quality of 75/100.
+func NewExportWebpParams() *ExportWebpParams {
+	return &ExportWebpParams{
+		Quality:         75,
+		Lossless:        false,
+		ReductionEffort: 4,
+	}
+}
+
+// ExportHeifParams are options when exporting a HEIF to file or buffer
+type ExportHeifParams struct {
+	Quality  int
+	Lossless bool
+}
+
+// NewExportHeifParams creates default values for an export of a HEIF image.
+func NewExportHeifParams() *ExportHeifParams {
+	return &ExportHeifParams{
+		Quality:  80,
+		Lossless: false,
+	}
+}
+
+// ExportTiffParams are options when exporting a TIFF to file or buffer
+type ExportTiffParams struct {
+	StripMetadata bool
+	Quality       int
+	Compression   TiffCompression
+}
+
+// NewExportTiffParams creates default values for an export of a TIFF image.
+func NewExportTiffParams() *ExportTiffParams {
+	return &ExportTiffParams{
+		Quality:     80,
+		Compression: TiffCompressionLzw,
 	}
 }
 
@@ -935,6 +1016,11 @@ func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error)
 
 	return buf, format, nil
 }
+
+// func (r *ImageRef) exportJpegBuffer(params *ExportJpegParams) ([]byte, ImageType, error) {
+// 	var buf []byte
+// 	var err error
+// }
 
 ///////////////
 
