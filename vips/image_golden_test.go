@@ -371,6 +371,34 @@ func TestImage_GaussianBlur(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_BandJoinConst(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.BandJoinConst([]float64{255})
+	}, nil, nil)
+}
+
+func TestImage_SimilarityRGB(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		err := img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+			10, 10, 20, 20)
+		assert.Nil(t, err)
+		assert.Equal(t, 3, img.Bands())
+		return nil
+	}, nil, nil)
+}
+
+func TestImage_SimilarityRGBA(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		err := img.AddAlpha()
+		assert.Nil(t, err)
+		err = img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+			10, 10, 20, 20)
+		assert.Nil(t, err)
+		assert.Equal(t, 4, img.Bands())
+		return nil
+	}, nil, nil)
+}
+
 func TestImage_Invert(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Invert()
