@@ -828,7 +828,8 @@ func (r *ImageRef) Rotate(angle Angle) error {
 
 // Similarity lets you scale, offset and rotate images by arbitrary angles in a single operation while defining the
 // color of new background pixels. If the input image has no alpha channel, the alpha on `backgroundColor` will be
-// ignored. You can add an alpha channel to an image with `BandJoinConst` (e.g. `img.BandJoinConst([]float64{255})`).
+// ignored. You can add an alpha channel to an image with `BandJoinConst` (e.g. `img.BandJoinConst([]float64{255})`) or
+// AddAlpha.
 func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *ColorRGBA,
 	idx float64, idy float64, odx float64, ody float64) error {
 	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
