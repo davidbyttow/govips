@@ -384,22 +384,22 @@ func TestImage_BandJoinConst(t *testing.T) {
 
 func TestImage_SimilarityRGB(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
-		err := img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
 			10, 10, 20, 20)
-		assert.Equal(t, 3, img.Bands())
-		return err
-	}, nil, nil)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 3, result.Bands())
+	}, nil)
 }
 
 func TestImage_SimilarityRGBA(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		err := img.AddAlpha()
 		assert.Nil(t, err)
-		err = img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
 			10, 10, 20, 20)
-		assert.Equal(t, 4, img.Bands())
-		return err
-	}, nil, nil)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 4, result.Bands())
+	}, nil)
 }
 
 func TestImage_Decode_JPG(t *testing.T) {
