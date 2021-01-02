@@ -179,6 +179,33 @@ func vipsExtractBand(in *C.VipsImage, band, num int) (*C.VipsImage, error) {
 	return out, nil
 }
 
+// http://libvips.github.io/libvips/API/current/libvips-resample.html#vips-similarity
+func vipsSimilarity(in *C.VipsImage, scale float64, angle float64, color *ColorRGBA,
+	idx float64, idy float64, odx float64, ody float64) (*C.VipsImage, error) {
+	incOpCounter("similarity")
+	var out *C.VipsImage
+
+	if err := C.similarity(in, &out, C.double(scale), C.double(angle),
+		C.double(color.R), C.double(color.G), C.double(color.B), C.double(color.A),
+		C.double(idx), C.double(idy), C.double(odx), C.double(ody)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-smartcrop
+func vipsSmartCrop(in *C.VipsImage, width int, height int, interesting Interesting) (*C.VipsImage, error) {
+	incOpCounter("smartcrop")
+	var out *C.VipsImage
+
+	if err := C.smartcrop(in, &out, C.int(width), C.int(height), C.int(interesting)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-rot
 func vipsRotate(in *C.VipsImage, angle Angle) (*C.VipsImage, error) {
 	incOpCounter("rot")
@@ -221,6 +248,18 @@ func vipsBandJoin(ins []*C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
 	if err := C.bandjoin(&ins[0], &out, C.int(len(ins))); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-bandjoin-const
+func vipsBandJoinConst(in *C.VipsImage, constants []float64) (*C.VipsImage, error) {
+	incOpCounter("bandjoin_const")
+	var out *C.VipsImage
+
+	if err := C.bandjoin_const(in, &out, (*C.double)(&constants[0]), C.int(len(constants))); err != 0 {
 		return nil, handleImageError(out)
 	}
 

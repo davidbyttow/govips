@@ -5,8 +5,10 @@ package vips
 import "C"
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"io/ioutil"
 	"runtime"
@@ -400,6 +402,16 @@ func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	}
 
 	out, err := vipsBandJoin(vipsImages)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// BandJoinConst appends a set of constant bands to an image.
+func (r *ImageRef) BandJoinConst(constants []float64) error {
+	out, err := vipsBandJoinConst(r.image, constants)
 	if err != nil {
 		return err
 	}
@@ -806,9 +818,32 @@ func (r *ImageRef) Flip(direction Direction) error {
 	return nil
 }
 
-// Rotate rotates the image based on the given angle
+// Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
 	out, err := vipsRotate(r.image, angle)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Similarity lets you scale, offset and rotate images by arbitrary angles in a single operation while defining the
+// color of new background pixels. If the input image has no alpha channel, the alpha on `backgroundColor` will be
+// ignored. You can add an alpha channel to an image with `BandJoinConst` (e.g. `img.BandJoinConst([]float64{255})`) or
+// AddAlpha.
+func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *ColorRGBA,
+	idx float64, idy float64, odx float64, ody float64) error {
+	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) error {
+	out, err := vipsSmartCrop(r.image, width, height, interesting)
 	if err != nil {
 		return err
 	}
@@ -837,6 +872,22 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
+}
+
+// ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries
+func (r *ImageRef) ToImage(params *ExportParams) (image.Image, error) {
+	imageBytes, _, err := r.Export(params)
+	if err != nil {
+		return nil, err
+	}
+
+	reader := bytes.NewReader(imageBytes)
+	img, _, err := image.Decode(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
 }
 
 // setImage resets the image for this image and frees the previous one

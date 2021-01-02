@@ -1,6 +1,11 @@
 package vips
 
 import (
+	"bytes"
+	"golang.org/x/image/bmp"
+	"image"
+	jpeg2 "image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"os/exec"
 	"runtime"
@@ -368,6 +373,96 @@ func TestImageRef_Divide(t *testing.T) {
 func TestImage_GaussianBlur(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.GaussianBlur(10.5)
+	}, nil, nil)
+}
+
+func TestImage_BandJoinConst(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.BandJoinConst([]float64{255})
+	}, nil, nil)
+}
+
+func TestImage_SmartCrop(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.SmartCrop(60, 80, InterestingCentre)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 60, result.Width())
+		assert.Equal(t, 80, result.Height())
+	}, nil)
+}
+
+func TestImage_SimilarityRGB(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+			10, 10, 20, 20)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 3, result.Bands())
+	}, nil)
+}
+
+func TestImage_SimilarityRGBA(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		err := img.AddAlpha()
+		assert.Nil(t, err)
+		err = img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+			10, 10, 20, 20)
+		assert.Nil(t, err)
+		assert.Equal(t, 4, img.Bands())
+		return nil
+	}, nil, nil)
+}
+
+func TestImage_Decode_JPG(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		goImg, err := img.ToImage(nil)
+
+		buf := new(bytes.Buffer)
+		err = jpeg2.Encode(buf, goImg, nil)
+		assert.Nil(t, err)
+
+		config, format, err := image.DecodeConfig(buf)
+		assert.Nil(t, err)
+		assert.Equal(t, "jpeg", format)
+		assert.NotNil(t, config)
+		assert.True(t, config.Height > 0)
+		assert.True(t, config.Width > 0)
+		return nil
+	}, nil, nil)
+}
+
+func TestImage_Decode_BMP(t *testing.T) {
+	goldenTest(t, resources+"bmp.bmp", func(img *ImageRef) error {
+		goImg, err := img.ToImage(nil)
+
+		buf := new(bytes.Buffer)
+		err = bmp.Encode(buf, goImg)
+		assert.Nil(t, err)
+
+		config, format, err := image.DecodeConfig(buf)
+		assert.Nil(t, err)
+		assert.Equal(t, "bmp", format)
+		assert.NotNil(t, config)
+		assert.True(t, config.Height > 0)
+		assert.True(t, config.Width > 0)
+		return nil
+	}, nil, nil)
+}
+
+func TestImage_Decode_PNG(t *testing.T) {
+	goldenTest(t, resources+"png-8bit.png", func(img *ImageRef) error {
+		goImg, err := img.ToImage(nil)
+
+		buf := new(bytes.Buffer)
+		err = png.Encode(buf, goImg)
+		assert.Nil(t, err)
+
+		config, format, err := image.DecodeConfig(buf)
+		assert.Nil(t, err)
+		assert.Equal(t, "png", format)
+		assert.NotNil(t, config)
+		assert.Equal(t, 150, config.Height)
+		assert.Equal(t, 200, config.Width)
+		return nil
 	}, nil, nil)
 }
 

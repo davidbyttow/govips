@@ -17,8 +17,12 @@ int rot_image(VipsImage *in, VipsImage **out, VipsAngle angle);
 int autorot_image(VipsImage *in, VipsImage **out);
 
 int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac);
+int smartcrop(VipsImage *in, VipsImage **out, int width, int height, int interesting);
 
 int bandjoin(VipsImage **in, VipsImage **out, int n);
+int bandjoin_const(VipsImage *in, VipsImage **out, double constants[], int n);
+int similarity(VipsImage *in, VipsImage **out, double scale, double angle, double r, double g, double b, double a,
+	double idx, double idy, double odx, double ody);
 int flatten_image(VipsImage *in, VipsImage **out, double r, double g, double b);
 int add_alpha(VipsImage *in, VipsImage **out);
 int premultiply_alpha(VipsImage *in, VipsImage **out);
