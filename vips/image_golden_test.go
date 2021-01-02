@@ -382,6 +382,15 @@ func TestImage_BandJoinConst(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_SmartCrop(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.SmartCrop(60, 80, InterestingCentre)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 60, result.Width())
+		assert.Equal(t, 80, result.Height())
+	}, nil)
+}
+
 func TestImage_SimilarityRGB(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
@@ -395,11 +404,12 @@ func TestImage_SimilarityRGBA(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		err := img.AddAlpha()
 		assert.Nil(t, err)
-		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+		err = img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
 			10, 10, 20, 20)
-	}, func(result *ImageRef) {
-		assert.Equal(t, 4, result.Bands())
-	}, nil)
+		assert.Nil(t, err)
+		assert.Equal(t, 4, img.Bands())
+		return nil
+	}, nil, nil)
 }
 
 func TestImage_Decode_JPG(t *testing.T) {

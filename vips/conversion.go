@@ -194,6 +194,18 @@ func vipsSimilarity(in *C.VipsImage, scale float64, angle float64, color *ColorR
 	return out, nil
 }
 
+// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-smartcrop
+func vipsSmartCrop(in *C.VipsImage, width int, height int, interesting Interesting) (*C.VipsImage, error) {
+	incOpCounter("smartcrop")
+	var out *C.VipsImage
+
+	if err := C.smartcrop(in, &out, C.int(width), C.int(height), C.int(interesting)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-rot
 func vipsRotate(in *C.VipsImage, angle Angle) (*C.VipsImage, error) {
 	incOpCounter("rot")

@@ -80,6 +80,10 @@ int similarity(VipsImage *in, VipsImage **out, double scale, double angle, doubl
 	return code;
 }
 
+int smartcrop(VipsImage *in, VipsImage **out, int width, int height, int interesting) {
+	return vips_smartcrop(in, out, width, height, "interesting", interesting, NULL);
+}
+
 int flatten_image(VipsImage *in, VipsImage **out, double r, double g, double b) {
 	if (is_16bit(in->Type)) {
 		r = 65535 * r / 255;

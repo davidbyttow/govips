@@ -842,6 +842,15 @@ func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *Col
 	return nil
 }
 
+func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) error {
+	out, err := vipsSmartCrop(r.image, width, height, interesting)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Label overlays a label on top of the image
 func (r *ImageRef) Label(labelParams *LabelParams) error {
 	out, err := labelImage(r.image, labelParams)
