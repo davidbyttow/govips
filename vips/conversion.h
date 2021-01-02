@@ -19,7 +19,8 @@ int autorot_image(VipsImage *in, VipsImage **out);
 int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac);
 
 int bandjoin(VipsImage **in, VipsImage **out, int n);
-int similarity(VipsImage *in, VipsImage **out, double scale, double angle, double r, double g, double b,
+int bandjoin_const(VipsImage *in, VipsImage **out, double constants[], int n);
+int similarity(VipsImage *in, VipsImage **out, double scale, double angle, double r, double g, double b, double a,
 	double idx, double idy, double odx, double ody);
 int flatten_image(VipsImage *in, VipsImage **out, double r, double g, double b);
 int add_alpha(VipsImage *in, VipsImage **out);

@@ -13,6 +13,11 @@ type Color struct {
 	R, G, B uint8
 }
 
+// Color represents an RGBA
+type ColorRGBA struct {
+	R, G, B, A uint8
+}
+
 // Interpretation represents VIPS_INTERPRETATION type
 type Interpretation int
 

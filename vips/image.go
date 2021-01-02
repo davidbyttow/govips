@@ -407,6 +407,16 @@ func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	return nil
 }
 
+// BandJoinConst appends a set of constant bands to an image.
+func (r *ImageRef) BandJoinConst(constants []float64) error {
+	out, err := vipsBandJoinConst(r.image, constants)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // AddAlpha adds an alpha channel to the associated image.
 func (r *ImageRef) AddAlpha() error {
 	if vipsHasAlpha(r.image) {
@@ -806,7 +816,7 @@ func (r *ImageRef) Flip(direction Direction) error {
 	return nil
 }
 
-// Rotate rotates the image based on the given angle
+// Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
 	out, err := vipsRotate(r.image, angle)
 	if err != nil {
@@ -816,7 +826,10 @@ func (r *ImageRef) Rotate(angle Angle) error {
 	return nil
 }
 
-func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *Color,
+// Similarity lets you scale, offset and rotate images by arbitrary angles in a single operation while defining the
+// color of new background pixels. If the input image has no alpha channel, the alpha on `backgroundColor` will be
+// ignored. You can add an alpha channel to an image with `BandJoinConst` (e.g. `img.BandJoinConst([]float64{255})`).
+func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *ColorRGBA,
 	idx float64, idy float64, odx float64, ody float64) error {
 	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
 	if err != nil {
