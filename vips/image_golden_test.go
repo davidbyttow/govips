@@ -411,7 +411,7 @@ func TestImage_DrawRectRGBA(t *testing.T) {
 			G: 255,
 			B: 0,
 			A: 255,
-		}, 20, 20, img.Width()-40, img.Height()-40, true)
+		}, 20, 20, img.Width()-40, img.Height()-40, false)
 	}, nil, nil)
 }
 
