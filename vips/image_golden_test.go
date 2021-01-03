@@ -526,6 +526,16 @@ func TestImage_Tiff(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Black(t *testing.T) {
+	Startup(nil)
+	i, err := Black(10, 20)
+	require.NoError(t, err)
+	buf, metadata, err := i.Export(nil)
+	require.NoError(t, err)
+
+	assertGoldenMatch(t, resources+"jpg-24bit.jpg", buf, metadata.Format)
+}
+
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 

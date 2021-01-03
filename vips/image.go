@@ -162,6 +162,12 @@ func XYZ(width, height int) (*ImageRef, error) {
 	return &ImageRef{image: image}, err
 }
 
+// Black creates a new black image of the specified size
+func Black(width, height int) (*ImageRef, error) {
+	image, err := vipsBlack(width, height)
+	return &ImageRef{image: image}, err
+}
+
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
 	image := &ImageRef{
 		image:  vipsImage,
