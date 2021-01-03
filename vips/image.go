@@ -749,6 +749,15 @@ func (r *ImageRef) Invert() error {
 	return nil
 }
 
+// DrawRect draws an (optionally filled) rectangle with a single colour
+func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
+	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Resize resizes the image based on the scale, maintaining aspect ratio
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 	err := r.PremultiplyAlpha()
