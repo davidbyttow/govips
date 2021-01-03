@@ -391,6 +391,30 @@ func TestImage_SmartCrop(t *testing.T) {
 	}, nil)
 }
 
+func TestImage_DrawRect(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.DrawRect(ColorRGBA{
+			R: 255,
+			G: 255,
+			B: 0,
+			A: 0,
+		}, 20, 20, img.Width()-40, img.Height()-40, true)
+	}, nil, nil)
+}
+
+func TestImage_DrawRectRGBA(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		err := img.AddAlpha()
+		assert.Nil(t, err)
+		return img.DrawRect(ColorRGBA{
+			R: 255,
+			G: 255,
+			B: 0,
+			A: 255,
+		}, 20, 20, img.Width()-40, img.Height()-40, true)
+	}, nil, nil)
+}
+
 func TestImage_SimilarityRGB(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
