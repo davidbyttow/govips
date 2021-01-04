@@ -195,22 +195,32 @@ func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	return NewImageFromBuffer(buf)
 }
 
-// NewImageFromFile loads an image from file and creates a new ImageRef
+// NewImageFromFile loads an image from file and creates a new ImageRef with default options
 func NewImageFromFile(file string) (*ImageRef, error) {
+	return NewImageFromFileWithOptions(file)
+}
+
+// NewImageFromFileWithOptions loads an image from file and creates a new ImageRef
+func NewImageFromFileWithOptions(file string, opts ...*ImportParams) (*ImageRef, error) {
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
-	return NewImageFromBuffer(buf)
+	return NewImageFromBufferWithOptions(buf, opts...)
 }
 
-// NewImageFromBuffer loads an image buffer and creates a new Image
+// NewImageFromBuffer loads an image buffer and creates a new Image with default options
 func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+	return NewImageFromBufferWithOptions(buf)
+}
+
+// NewImageFromBufferWithOptions loads an image buffer and creates a new Image
+func NewImageFromBufferWithOptions(buf []byte, opts ...*ImportParams) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	image, format, err := vipsLoadFromBuffer(buf, MergeImportParams(opts...))
 	if err != nil {
 		return nil, err
 	}

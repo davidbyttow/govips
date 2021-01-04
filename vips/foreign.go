@@ -205,7 +205,14 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func toGBoolean(value bool) C.gboolean {
+	if value {
+		return C.TRUE
+	}
+	return C.FALSE
+}
+
+func vipsLoadFromBuffer(buf []byte, param *ImportParams) (*C.VipsImage, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
@@ -229,7 +236,21 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), &out); err != 0 {
+	var cparam C.ImportParams
+	if param.Fail != nil {
+		cparam.fail_set = C.TRUE
+		cparam.fail = toGBoolean(*param.Fail)
+	}
+	if param.AutoRotate != nil {
+		cparam.autorotate_set = C.TRUE
+		cparam.autorotate = toGBoolean(*param.AutoRotate)
+	}
+	if param.Shrink != nil {
+		cparam.shrink_set = C.TRUE
+		cparam.shrink = C.gint(*param.Shrink)
+	}
+
+	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), &out, &cparam); err != 0 {
 		return nil, ImageTypeUnknown, handleImageError(out)
 	}
 

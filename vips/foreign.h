@@ -26,7 +26,18 @@ typedef enum types {
   BMP
 } ImageType;
 
-int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out);
+typedef struct {
+    gboolean fail_set;
+    gboolean fail;
+
+    gboolean autorotate_set;
+    gboolean autorotate;
+
+    gboolean shrink_set;
+    gint     shrink;
+} ImportParams;
+
+int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out, ImportParams *params);
 
 typedef struct SaveParams {
   VipsImage *inputImage;

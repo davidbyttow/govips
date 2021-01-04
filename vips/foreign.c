@@ -1,30 +1,92 @@
 #include "foreign.h"
-
+#include "govips.h"
 #include "lang.h"
 
-int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out) {
+int load_image_buffer_operation(VipsOperation *operation, VipsBlob *blob, VipsImage **out, ImportParams *params) {
+  int result;
+
+  // Set operation parameters
+  result = vips_object_set(VIPS_OBJECT(operation), "buffer", blob, "out", out, NULL);
+  if (result) {
+    return result;
+  }
+
+  if (params->fail_set) {
+    result = vips_object_set(VIPS_OBJECT(operation), "fail", params->fail, NULL);
+    if (result) {
+      govipsLoggingHandler("govips", G_LOG_LEVEL_INFO, "can't set optional parameter \"fail\"");
+    }
+  }
+
+  if (params->autorotate_set) {
+    result = vips_object_set(VIPS_OBJECT(operation), "autorotate", params->autorotate, NULL);
+    if (result) {
+      govipsLoggingHandler("govips", G_LOG_LEVEL_INFO, "can't set optional parameter \"autorotate\"");
+    }
+  }
+
+  if (params->shrink_set) {
+    result = vips_object_set(VIPS_OBJECT(operation), "shrink", params->shrink, NULL);
+    if (result) {
+      return result;
+    }
+  }
+
+  // Execute operation
+  result = vips_cache_operation_buildp(&operation);
+  if (result) {
+    return result;
+  }
+
+  // Get operation output
+  g_object_get(VIPS_OBJECT(operation), "out", out, NULL);
+  return 0;
+}
+
+int load_image_buffer_generic(const char *method, void *buf, size_t len, VipsImage **out, ImportParams *params) {
+  VipsOperation *operation;
+  VipsBlob *blob;
+  int result;
+
+  operation = vips_operation_new(method);
+  if (operation == NULL) {
+    return -1;
+  }
+
+  blob = vips_blob_new(NULL, buf, len);
+  result = load_image_buffer_operation(operation, blob, out, params);
+
+  vips_area_unref(VIPS_AREA(blob));
+  vips_object_unref_outputs(VIPS_OBJECT(operation));
+  g_object_unref(operation);
+  return result;
+}
+
+int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out, ImportParams *params) {
   int code = 1;
 
   if (imageType == JPEG) {
-    code = vips_jpegload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("jpegload_buffer", buf, len, out, params);
   } else if (imageType == PNG) {
-    code = vips_pngload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("pngload_buffer", buf, len, out, params);
   } else if (imageType == WEBP) {
-    code = vips_webpload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("webpload_buffer", buf, len, out, params);
   } else if (imageType == TIFF) {
-    code = vips_tiffload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("tiffload_buffer", buf, len, out, params);
   } else if (imageType == GIF) {
-    code = vips_gifload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("gifload_buffer", buf, len, out, params);
   } else if (imageType == PDF) {
-    code = vips_pdfload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("pdfload_buffer", buf, len, out, params);
   } else if (imageType == SVG) {
-    code = vips_svgload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("svgload_buffer", buf, len, out, params);
   } else if (imageType == HEIF) {
     // added autorotate on load as currently it addresses orientation issues
     // https://github.com/libvips/libvips/pull/1680
-    code = vips_heifload_buffer(buf, len, out, "autorotate", TRUE, NULL);
+    params->autorotate_set = TRUE;
+    params->autorotate = TRUE;
+    code = load_image_buffer_generic("heifload_buffer", buf, len, out, params);
   } else if (imageType == MAGICK) {
-    code = vips_magickload_buffer(buf, len, out, NULL);
+    code = load_image_buffer_generic("magickload_buffer", buf, len, out, params);
   }
 
   return code;
