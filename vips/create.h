@@ -5,3 +5,4 @@
 #include <vips/foreign.h>
 
 int xyz(VipsImage **out, int width, int height);
+int black(VipsImage **out, int width, int height);
