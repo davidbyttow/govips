@@ -2,7 +2,6 @@ package vips
 
 import (
 	"bytes"
-	"golang.org/x/image/bmp"
 	"image"
 	jpeg2 "image/jpeg"
 	"image/png"
@@ -11,6 +10,8 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"golang.org/x/image/bmp"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

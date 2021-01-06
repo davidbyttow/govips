@@ -123,9 +123,10 @@ func TestImageRef_BMP(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
+	exported, metadata, err := img.Export(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypePNG, metadata.Format)
+	assert.NotNil(t, exported)
 }
 
 func TestImageRef_SVG(t *testing.T) {
