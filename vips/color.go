@@ -13,7 +13,7 @@ type Color struct {
 	R, G, B uint8
 }
 
-// Color represents an RGBA
+// ColorRGBA represents an RGB with alpha channel (A)
 type ColorRGBA struct {
 	R, G, B, A uint8
 }

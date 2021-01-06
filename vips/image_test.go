@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -684,6 +685,31 @@ func TestXYZ(t *testing.T) {
 
 	_, err := XYZ(100, 100)
 	require.NoError(t, err)
+}
+
+func TestDeprecatedExportParams(t *testing.T) {
+	Startup(nil)
+
+	defaultExportParams := NewDefaultExportParams()
+	assert.Equal(t, ImageTypeUnknown, defaultExportParams.Format)
+
+	pngExportParams := NewPngExportParams()
+	assert.Equal(t, 6, pngExportParams.Compression)
+}
+
+func TestNewImageFromReaderFail(t *testing.T) {
+	r := strings.NewReader("")
+	buf, err := NewImageFromReader(r)
+
+	assert.Nil(t, buf)
+	assert.Error(t, err)
+}
+
+func TestNewImageFromFileFail(t *testing.T) {
+	buf, err := NewImageFromFile("/tmp/nonexistent-fasljdfalkjfadlafjladsfkjadfsljafdslk")
+
+	assert.Nil(t, buf)
+	assert.Error(t, err)
 }
 
 // TODO unit tests to cover:
