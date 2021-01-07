@@ -66,8 +66,24 @@ type TiffCompression int
 
 // TiffCompression enum
 const (
-	TiffCompressionNone TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_NONE
-	TiffCompressionLzw  TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_LZW
+	TiffCompressionNone     TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_NONE
+	TiffCompressionJpeg     TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_JPEG
+	TiffCompressionDeflate  TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_DEFLATE
+	TiffCompressionPackbits TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_PACKBITS
+	TiffCompressionFax4     TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_CCITTFAX4
+	TiffCompressionLzw      TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_LZW
+	TiffCompressionWebp     TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_WEBP
+	TiffCompressionZstd     TiffCompression = C.VIPS_FOREIGN_TIFF_COMPRESSION_ZSTD
+)
+
+// TiffPredictor represents method for compressing a tiff at export
+type TiffPredictor int
+
+// TiffPredictor enum
+const (
+	TiffPredictorNone       TiffPredictor = C.VIPS_FOREIGN_TIFF_PREDICTOR_NONE
+	TiffPredictorHorizontal TiffPredictor = C.VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL
+	TiffPredictorFloat      TiffPredictor = C.VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT
 )
 
 // FileExt returns the canonical extension for the ImageType
@@ -236,16 +252,26 @@ func bmpToPNG(src []byte) ([]byte, error) {
 	return w.Bytes(), nil
 }
 
+func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, error) {
+	incOpCounter("save_jpeg_buffer")
+
+	p := C.create_save_params(C.JPEG)
+	p.inputImage = in
+	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
+	p.quality = C.int(params.Quality)
+	p.interlace = C.int(boolToInt(params.Interlace))
+
+	return vipsSaveToBuffer(p)
+}
+
 func vipsSavePNGToBuffer(in *C.VipsImage, params PngExportParams) ([]byte, error) {
 	incOpCounter("save_png_buffer")
 
-	p := C.struct_SaveParams{
-		inputImage:     in,
-		outputFormat:   C.PNG,
-		stripMetadata:  C.int(boolToInt(params.StripMetadata)),
-		interlace:      C.int(boolToInt(params.Interlace)),
-		pngCompression: C.int(params.Compression),
-	}
+	p := C.create_save_params(C.PNG)
+	p.inputImage = in
+	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
+	p.interlace = C.int(boolToInt(params.Interlace))
+	p.pngCompression = C.int(params.Compression)
 
 	return vipsSaveToBuffer(p)
 }
@@ -253,14 +279,12 @@ func vipsSavePNGToBuffer(in *C.VipsImage, params PngExportParams) ([]byte, error
 func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, error) {
 	incOpCounter("save_webp_buffer")
 
-	p := C.struct_SaveParams{
-		inputImage:          in,
-		outputFormat:        C.WEBP,
-		stripMetadata:       C.int(boolToInt(params.StripMetadata)),
-		quality:             C.int(params.Quality),
-		webpLossless:        C.int(boolToInt(params.Lossless)),
-		webpReductionEffort: C.int(params.ReductionEffort),
-	}
+	p := C.create_save_params(C.WEBP)
+	p.inputImage = in
+	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
+	p.quality = C.int(params.Quality)
+	p.webpLossless = C.int(boolToInt(params.Lossless))
+	p.webpReductionEffort = C.int(params.ReductionEffort)
 
 	return vipsSaveToBuffer(p)
 }
@@ -268,13 +292,11 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 func vipsSaveTIFFToBuffer(in *C.VipsImage, params TiffExportParams) ([]byte, error) {
 	incOpCounter("save_tiff_buffer")
 
-	p := C.struct_SaveParams{
-		inputImage:      in,
-		outputFormat:    C.TIFF,
-		stripMetadata:   C.int(boolToInt(params.StripMetadata)),
-		quality:         C.int(params.Quality),
-		tiffCompression: C.VipsForeignTiffCompression(params.Compression),
-	}
+	p := C.create_save_params(C.TIFF)
+	p.inputImage = in
+	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
+	p.quality = C.int(params.Quality)
+	p.tiffCompression = C.VipsForeignTiffCompression(params.Compression)
 
 	return vipsSaveToBuffer(p)
 }
@@ -282,26 +304,11 @@ func vipsSaveTIFFToBuffer(in *C.VipsImage, params TiffExportParams) ([]byte, err
 func vipsSaveHEIFToBuffer(in *C.VipsImage, params HeifExportParams) ([]byte, error) {
 	incOpCounter("save_heif_buffer")
 
-	p := C.struct_SaveParams{
-		inputImage:   in,
-		outputFormat: C.HEIF,
-		quality:      C.int(params.Quality),
-		heifLossless: C.int(boolToInt(params.Lossless)),
-	}
-
-	return vipsSaveToBuffer(p)
-}
-
-func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, error) {
-	incOpCounter("save_jpeg_buffer")
-
-	p := C.struct_SaveParams{
-		inputImage:    in,
-		outputFormat:  C.JPEG,
-		stripMetadata: C.int(boolToInt(params.StripMetadata)),
-		quality:       C.int(params.Quality),
-		interlace:     C.int(boolToInt(params.Interlace)),
-	}
+	p := C.create_save_params(C.HEIF)
+	p.inputImage = in
+	p.outputFormat = C.HEIF
+	p.quality = C.int(params.Quality)
+	p.heifLossless = C.int(boolToInt(params.Lossless))
 
 	return vipsSaveToBuffer(p)
 }

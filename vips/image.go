@@ -174,6 +174,7 @@ type TiffExportParams struct {
 	StripMetadata bool
 	Quality       int
 	Compression   TiffCompression
+	Predictor     TiffPredictor
 }
 
 // NewTiffExportParams creates default values for an export of a TIFF image.
@@ -181,6 +182,7 @@ func NewTiffExportParams() *TiffExportParams {
 	return &TiffExportParams{
 		Quality:     80,
 		Compression: TiffCompressionLzw,
+		Predictor:   TiffPredictorHorizontal,
 	}
 }
 
