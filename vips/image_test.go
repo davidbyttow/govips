@@ -504,6 +504,35 @@ func TestImageRef_Mapim__Error(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestImageRef_Maplut(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	lut, err := XYZ(1,1)
+	require.NoError(t, err)
+
+	_ = image.ExtractBand(0, 2)
+	require.NoError(t, err)
+
+	err = image.Maplut(lut)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Maplut_Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	lut, err := XYZ(1,1)
+	require.NoError(t, err)
+
+	err = image.Maplut(lut)
+	assert.Error(t, err)
+}
+
 func TestImageRef_CompositeMulti(t *testing.T) {
 	Startup(nil)
 

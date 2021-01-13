@@ -589,6 +589,16 @@ func (r *ImageRef) Mapim(index *ImageRef) error {
 	return nil
 }
 
+// Maplut maps an image through another image acting as a LUT (Look Up Table)
+func (r *ImageRef) Maplut(lut *ImageRef) error {
+	out, err := vipsMaplut(r.image, lut.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // ExtractBand extracts one or more bands out of the image (replacing the associated ImageRef)
 func (r *ImageRef) ExtractBand(band int, num int) error {
 	out, err := vipsExtractBand(r.image, band, num)
