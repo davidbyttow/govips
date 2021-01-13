@@ -566,7 +566,12 @@ func getEnvironment() string {
 	case "windows":
 		return "windows"
 	case "darwin":
-		return "macos"
+		out, err := exec.Command("sw_vers", "-productVersion").Output()
+		if err != nil {
+			return "macos-unknown"
+		}
+		majorVersion := strings.Split(strings.TrimSpace(string(out)), ".")[0]
+		return "macos-" + majorVersion
 	case "linux":
 		out, err := exec.Command("lsb_release", "-cs").Output()
 		if err != nil {
