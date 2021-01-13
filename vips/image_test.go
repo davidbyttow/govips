@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"runtime"
 	"strings"
@@ -745,6 +746,15 @@ func TestNewImageFromFileFail(t *testing.T) {
 	buf, err := NewImageFromFile("/tmp/nonexistent-fasljdfalkjfadlafjladsfkjadfsljafdslk")
 
 	assert.Nil(t, buf)
+	assert.Error(t, err)
+}
+
+func TestImageRef_Cast(t *testing.T){
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	assert.NoError(t, err)
+	err = image.Cast(BandFormatUchar)
+	assert.NoError(t, err)
+	err = image.Cast(math.MaxInt8)
 	assert.Error(t, err)
 }
 

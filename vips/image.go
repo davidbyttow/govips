@@ -698,6 +698,16 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 	return nil
 }
 
+// Cast converts the image to a target band format
+func (r *ImageRef) Cast(format BandFormat) error {
+	out, err:= vipsCast(r.image, format)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Add calculates a sum of the image + addend and stores it back in the image
 func (r *ImageRef) Add(addend *ImageRef) error {
 	out, err := vipsAdd(r.image, addend.image)
