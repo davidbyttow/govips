@@ -249,7 +249,7 @@ func XYZ(width, height int) (*ImageRef, error) {
 }
 
 // Identity creates an identity lookup table, which will leave an image unchanged when applied with Maplut.
-//Each entry in the table has a value equal to its position.
+// Each entry in the table has a value equal to its position.
 func Identity() (*ImageRef, error) {
 	img, err := vipsIdentity()
 	return &ImageRef{image: img}, err
