@@ -48,6 +48,42 @@ int bandjoin(VipsImage **in, VipsImage **out, int n) {
 	return vips_bandjoin(in, out, n, NULL);
 }
 
+int bandjoin_const(VipsImage *in, VipsImage **out, double constants[], int n) {
+	return vips_bandjoin_const(in, out, constants, n, NULL);
+}
+
+int similarity(VipsImage *in, VipsImage **out, double scale, double angle, double r, double g, double b, double a,
+	double idx, double idy, double odx, double ody) {
+	if (is_16bit(in->Type)) {
+		r = 65535 * r / 255;
+		g = 65535 * g / 255;
+		b = 65535 * b / 255;
+		a = 65535 * a / 255;
+	}
+
+	double background[3] = {r, g, b};
+	double backgroundRGBA[4] = {r, g, b, a};
+
+	VipsArrayDouble *vipsBackground;
+
+	// Ignore the alpha channel if the image doesn't have one
+	if (in->Bands <= 3) {
+		vipsBackground = vips_array_double_new(background, 3);
+	} else {
+		vipsBackground = vips_array_double_new(backgroundRGBA, 4);
+	}
+
+	int code = vips_similarity(in, out, "scale", scale, "angle", angle, "background", vipsBackground,
+		"idx", idx, "idy", idy, "odx", odx, "ody", ody, NULL);
+
+	vips_area_unref(VIPS_AREA(vipsBackground));
+	return code;
+}
+
+int smartcrop(VipsImage *in, VipsImage **out, int width, int height, int interesting) {
+	return vips_smartcrop(in, out, width, height, "interesting", interesting, NULL);
+}
+
 int flatten_image(VipsImage *in, VipsImage **out, double r, double g, double b) {
 	if (is_16bit(in->Type)) {
 		r = 65535 * r / 255;

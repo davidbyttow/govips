@@ -1,4 +1,4 @@
-package vips_test
+package package_test
 
 import (
 	"fmt"

@@ -5,8 +5,10 @@ package vips
 import "C"
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"io/ioutil"
 	"runtime"
@@ -42,6 +44,7 @@ type ImageMetadata struct {
 }
 
 // ExportParams are options when exporting an image to file or buffer.
+// Deprecated: Use format-specific params
 type ExportParams struct {
 	Format        ImageType
 	Quality       int
@@ -56,6 +59,7 @@ type ExportParams struct {
 // By default, govips creates interlaced, lossy images with a quality of 80/100 and compression of 6/10.
 // As these are default values for a wide variety of image formats, their application varies.
 // Some formats use the quality parameters, some compression, etc.
+// Deprecated: Use format-specific params
 func NewDefaultExportParams() *ExportParams {
 	return &ExportParams{
 		Format:      ImageTypeUnknown, // defaults to the starting encoder
@@ -69,6 +73,7 @@ func NewDefaultExportParams() *ExportParams {
 
 // NewDefaultJPEGExportParams creates default values for an export of a JPEG image.
 // By default, govips creates interlaced JPEGs with a quality of 80/100.
+// Deprecated: Use NewJpegExportParams
 func NewDefaultJPEGExportParams() *ExportParams {
 	return &ExportParams{
 		Format:     ImageTypeJPEG,
@@ -79,6 +84,7 @@ func NewDefaultJPEGExportParams() *ExportParams {
 
 // NewDefaultPNGExportParams creates default values for an export of a PNG image.
 // By default, govips creates non-interlaced PNGs with a compression of 6/10.
+// Deprecated: Use NewPngExportParams
 func NewDefaultPNGExportParams() *ExportParams {
 	return &ExportParams{
 		Format:      ImageTypePNG,
@@ -89,12 +95,94 @@ func NewDefaultPNGExportParams() *ExportParams {
 
 // NewDefaultWEBPExportParams creates default values for an export of a WEBP image.
 // By default, govips creates lossy images with a quality of 75/100.
+// Deprecated: Use NewWebpExportParams
 func NewDefaultWEBPExportParams() *ExportParams {
 	return &ExportParams{
 		Format:   ImageTypeWEBP,
 		Quality:  75,
 		Lossless: false,
 		Effort:   4,
+	}
+}
+
+// JpegExportParams are options when exporting a JPEG to file or buffer
+type JpegExportParams struct {
+	StripMetadata bool
+	Quality       int
+	Interlace     bool
+}
+
+// NewJpegExportParams creates default values for an export of a JPEG image.
+// By default, govips creates interlaced JPEGs with a quality of 80/100.
+func NewJpegExportParams() *JpegExportParams {
+	return &JpegExportParams{
+		Quality:   80,
+		Interlace: true,
+	}
+}
+
+// PngExportParams are options when exporting a PNG to file or buffer
+type PngExportParams struct {
+	StripMetadata bool
+	Compression   int
+	Interlace     bool
+}
+
+// NewPngExportParams creates default values for an export of a PNG image.
+// By default, govips creates non-interlaced PNGs with a compression of 6/10.
+func NewPngExportParams() *PngExportParams {
+	return &PngExportParams{
+		Compression: 6,
+		Interlace:   false,
+	}
+}
+
+// WebpExportParams are options when exporting a WEBP to file or buffer
+type WebpExportParams struct {
+	StripMetadata   bool
+	Quality         int
+	Lossless        bool
+	ReductionEffort int
+}
+
+// NewWebpExportParams creates default values for an export of a WEBP image.
+// By default, govips creates lossy images with a quality of 75/100.
+func NewWebpExportParams() *WebpExportParams {
+	return &WebpExportParams{
+		Quality:         75,
+		Lossless:        false,
+		ReductionEffort: 4,
+	}
+}
+
+// HeifExportParams are options when exporting a HEIF to file or buffer
+type HeifExportParams struct {
+	Quality  int
+	Lossless bool
+}
+
+// NewHeifExportParams creates default values for an export of a HEIF image.
+func NewHeifExportParams() *HeifExportParams {
+	return &HeifExportParams{
+		Quality:  80,
+		Lossless: false,
+	}
+}
+
+// TiffExportParams are options when exporting a TIFF to file or buffer
+type TiffExportParams struct {
+	StripMetadata bool
+	Quality       int
+	Compression   TiffCompression
+	Predictor     TiffPredictor
+}
+
+// NewTiffExportParams creates default values for an export of a TIFF image.
+func NewTiffExportParams() *TiffExportParams {
+	return &TiffExportParams{
+		Quality:     80,
+		Compression: TiffCompressionLzw,
+		Predictor:   TiffPredictorHorizontal,
 	}
 }
 
@@ -157,6 +245,12 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
 	image, err := vipsXYZ(width, height)
+	return &ImageRef{image: image}, err
+}
+
+// Black creates a new black image of the specified size
+func Black(width, height int) (*ImageRef, error) {
+	image, err := vipsBlack(width, height)
 	return &ImageRef{image: image}, err
 }
 
@@ -312,44 +406,157 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 	return vipsIsColorSpaceSupported(r.image)
 }
 
-// Export creates a byte array of the image for use.
-// The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
-// N.B. govips does not currently have built-in support for directly exporting to a file.
-// The function also returns a copy of the image metadata as well as an error.
-func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) {
-	p := params
-	if p == nil {
-		switch r.format {
-		case ImageTypeJPEG:
-			p = NewDefaultJPEGExportParams()
-		case ImageTypePNG:
-			p = NewDefaultPNGExportParams()
-		case ImageTypeWEBP:
-			p = NewDefaultWEBPExportParams()
-		default:
-			p = NewDefaultExportParams()
-		}
-	}
-
-	if p.Format == ImageTypeUnknown {
-		p.Format = r.format
-	}
-
-	// the exported buf is not necessarily in same format as the original buf, might default to JPEG as well.
-	buf, format, err := r.exportBuffer(p)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	metadata := &ImageMetadata{
+func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
+	return &ImageMetadata{
 		Format:      format,
 		Width:       r.Width(),
 		Height:      r.Height(),
 		Colorspace:  r.ColorSpace(),
 		Orientation: r.GetOrientation(),
 	}
+}
 
-	return buf, metadata, nil
+// Export creates a byte array of the image for use.
+// The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
+// N.B. govips does not currently have built-in support for directly exporting to a file.
+// The function also returns a copy of the image metadata as well as an error.
+// Deprecated: Use ExportNative or format-specific Export methods
+func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil || params.Format == ImageTypeUnknown {
+		return r.ExportNative()
+	}
+
+	format := params.Format
+
+	if !IsTypeSupported(format) {
+		return nil, r.newMetadata(ImageTypeUnknown), fmt.Errorf("cannot save to %#v", ImageTypes[format])
+	}
+
+	switch format {
+	case ImageTypeWEBP:
+		return r.ExportWebp(&WebpExportParams{
+			StripMetadata:   params.StripMetadata,
+			Quality:         params.Quality,
+			Lossless:        params.Lossless,
+			ReductionEffort: params.Effort,
+		})
+	case ImageTypePNG:
+		return r.ExportPng(&PngExportParams{
+			StripMetadata: params.StripMetadata,
+			Compression:   params.Compression,
+			Interlace:     params.Interlaced,
+		})
+	case ImageTypeTIFF:
+		compression := TiffCompressionLzw
+		if params.Lossless {
+			compression = TiffCompressionNone
+		}
+		return r.ExportTiff(&TiffExportParams{
+			StripMetadata: params.StripMetadata,
+			Quality:       params.Quality,
+			Compression:   compression,
+		})
+	case ImageTypeHEIF:
+		return r.ExportHeif(&HeifExportParams{
+			Quality:  params.Quality,
+			Lossless: params.Lossless,
+		})
+	default:
+		format = ImageTypeJPEG
+		return r.ExportJpeg(&JpegExportParams{
+			Quality:       params.Quality,
+			StripMetadata: params.StripMetadata,
+			Interlace:     params.Interlaced,
+		})
+	}
+}
+
+// ExportNative exports the image to a buffer based on its native format with default parameters.
+func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
+	switch r.format {
+	case ImageTypeJPEG:
+		return r.ExportJpeg(NewJpegExportParams())
+	case ImageTypePNG:
+		return r.ExportPng(NewPngExportParams())
+	case ImageTypeWEBP:
+		return r.ExportWebp(NewWebpExportParams())
+	case ImageTypeHEIF:
+		return r.ExportHeif(NewHeifExportParams())
+	case ImageTypeTIFF:
+		return r.ExportTiff(NewTiffExportParams())
+	default:
+		return r.ExportJpeg(NewJpegExportParams())
+	}
+}
+
+// ExportJpeg exports the image as JPEG to a buffer.
+func (r *ImageRef) ExportJpeg(params *JpegExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewJpegExportParams()
+	}
+
+	buf, err := vipsSaveJPEGToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeJPEG), nil
+}
+
+// ExportPng exports the image as PNG to a buffer.
+func (r *ImageRef) ExportPng(params *PngExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewPngExportParams()
+	}
+
+	buf, err := vipsSavePNGToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypePNG), nil
+}
+
+// ExportWebp exports the image as WEBP to a buffer.
+func (r *ImageRef) ExportWebp(params *WebpExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewWebpExportParams()
+	}
+
+	buf, err := vipsSaveWebPToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeWEBP), nil
+}
+
+// ExportHeif exports the image as HEIF to a buffer.
+func (r *ImageRef) ExportHeif(params *HeifExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewHeifExportParams()
+	}
+
+	buf, err := vipsSaveHEIFToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeHEIF), nil
+}
+
+// ExportTiff exports the image as TIFF to a buffer.
+func (r *ImageRef) ExportTiff(params *TiffExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewTiffExportParams()
+	}
+
+	buf, err := vipsSaveTIFFToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeTIFF), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
@@ -400,6 +607,16 @@ func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	}
 
 	out, err := vipsBandJoin(vipsImages)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// BandJoinConst appends a set of constant bands to an image.
+func (r *ImageRef) BandJoinConst(constants []float64) error {
+	out, err := vipsBandJoinConst(r.image, constants)
 	if err != nil {
 		return err
 	}
@@ -737,6 +954,15 @@ func (r *ImageRef) Invert() error {
 	return nil
 }
 
+// DrawRect draws an (optionally filled) rectangle with a single colour
+func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
+	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // Resize resizes the image based on the scale, maintaining aspect ratio
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 	err := r.PremultiplyAlpha()
@@ -806,9 +1032,33 @@ func (r *ImageRef) Flip(direction Direction) error {
 	return nil
 }
 
-// Rotate rotates the image based on the given angle
+// Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
 	out, err := vipsRotate(r.image, angle)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Similarity lets you scale, offset and rotate images by arbitrary angles in a single operation while defining the
+// color of new background pixels. If the input image has no alpha channel, the alpha on `backgroundColor` will be
+// ignored. You can add an alpha channel to an image with `BandJoinConst` (e.g. `img.BandJoinConst([]float64{255})`) or
+// AddAlpha.
+func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *ColorRGBA,
+	idx float64, idy float64, odx float64, ody float64) error {
+	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// SmartCrop will crop the image based on interestingness factor
+func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) error {
+	out, err := vipsSmartCrop(r.image, width, height, interesting)
 	if err != nil {
 		return err
 	}
@@ -839,6 +1089,22 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 	return bytes, nil
 }
 
+// ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries
+func (r *ImageRef) ToImage(params *ExportParams) (image.Image, error) {
+	imageBytes, _, err := r.Export(params)
+	if err != nil {
+		return nil, err
+	}
+
+	reader := bytes.NewReader(imageBytes)
+	img, _, err := image.Decode(reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return img, nil
+}
+
 // setImage resets the image for this image and frees the previous one
 func (r *ImageRef) setImage(image *C.VipsImage) {
 	r.lock.Lock()
@@ -855,43 +1121,9 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 	r.image = image
 }
 
-func (r *ImageRef) exportBuffer(params *ExportParams) ([]byte, ImageType, error) {
-	var buf []byte
-	var err error
-
-	format := params.Format
-	if format != ImageTypeUnknown && !IsTypeSupported(format) {
-		return nil, ImageTypeUnknown, fmt.Errorf("cannot save to %#v", ImageTypes[format])
-	}
-
-	switch format {
-	case ImageTypeWEBP:
-		buf, err = vipsSaveWebPToBuffer(r.image, params.StripMetadata, params.Quality, params.Lossless, params.Effort)
-	case ImageTypePNG:
-		buf, err = vipsSavePNGToBuffer(r.image, params.StripMetadata, params.Compression, params.Interlaced)
-	case ImageTypeTIFF:
-		buf, err = vipsSaveTIFFToBuffer(r.image)
-	case ImageTypeHEIF:
-		buf, err = vipsSaveHEIFToBuffer(r.image, params.Quality, params.Lossless)
-	default:
-		format = ImageTypeJPEG
-		buf, err = vipsSaveJPEGToBuffer(r.image, params.Quality, params.StripMetadata, params.Interlaced)
-	}
-
-	if err != nil {
-		return nil, ImageTypeUnknown, err
-	}
-
-	return buf, format, nil
-}
-
-///////////////
-
 func vipsHasAlpha(in *C.VipsImage) bool {
 	return int(C.has_alpha_channel(in)) > 0
 }
-
-//////////////
 
 func clearImage(ref *C.VipsImage) {
 	C.clear_image(&ref)

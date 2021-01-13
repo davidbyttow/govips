@@ -4,12 +4,20 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+func TestMain(m *testing.M) {
+	ret := m.Run()
+	Shutdown()
+	os.Exit(ret)
+}
 
 func TestImageRef_WebP(t *testing.T) {
 	Startup(nil)
@@ -116,9 +124,10 @@ func TestImageRef_BMP(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
+	exported, metadata, err := img.Export(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypePNG, metadata.Format)
+	assert.NotNil(t, exported)
 }
 
 func TestImageRef_SVG(t *testing.T) {
@@ -676,6 +685,31 @@ func TestXYZ(t *testing.T) {
 
 	_, err := XYZ(100, 100)
 	require.NoError(t, err)
+}
+
+func TestDeprecatedExportParams(t *testing.T) {
+	Startup(nil)
+
+	defaultExportParams := NewDefaultExportParams()
+	assert.Equal(t, ImageTypeUnknown, defaultExportParams.Format)
+
+	pngExportParams := NewPngExportParams()
+	assert.Equal(t, 6, pngExportParams.Compression)
+}
+
+func TestNewImageFromReaderFail(t *testing.T) {
+	r := strings.NewReader("")
+	buf, err := NewImageFromReader(r)
+
+	assert.Nil(t, buf)
+	assert.Error(t, err)
+}
+
+func TestNewImageFromFileFail(t *testing.T) {
+	buf, err := NewImageFromFile("/tmp/nonexistent-fasljdfalkjfadlafjladsfkjadfsljafdslk")
+
+	assert.Nil(t, buf)
+	assert.Error(t, err)
 }
 
 // TODO unit tests to cover:

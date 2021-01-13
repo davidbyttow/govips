@@ -2,3 +2,4 @@
 *.failed.*
 .vscode
 .idea
+node_modules/

@@ -4,10 +4,10 @@ package vips
 // #cgo pkg-config: vips
 // #include <vips/vips.h>
 // #include "govips.h"
-// #include "icc_profiles.h"
 import "C"
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
@@ -35,6 +35,7 @@ const (
 
 var (
 	running             = false
+	hasShutdown         = false
 	initLock            sync.Mutex
 	statCollectorDone   chan struct{}
 	once                sync.Once
@@ -56,9 +57,14 @@ type Config struct {
 // Startup sets up the libvips support and ensures the versions are correct. Pass in nil for
 // default configuration.
 func Startup(config *Config) {
+	if hasShutdown {
+		panic("govips cannot be stopped and restarted")
+	}
+
 	initLock.Lock()
-	runtime.LockOSThread()
 	defer initLock.Unlock()
+
+	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
 	if running {
@@ -78,23 +84,19 @@ func Startup(config *Config) {
 	defer freeCString(cName)
 
 	// Initialize govips logging handler and verbosity filter to historical default
-	if !currentLoggingOverriden {
-		LoggingSettings(nil, LogLevelInfo)
-		currentLoggingOverriden = false
+	if !currentLoggingOverridden {
+		govipsLoggingSettings(nil, LogLevelInfo)
 	}
 
 	// Override default glib logging handler to intercept logging messages
-	C.vips_set_logging_handler()
+	enableLogging()
 
 	err := C.vips_init(cName)
 	if err != 0 {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
-	err = C.icc_profiles_init()
-	if err != 0 {
-		panic(fmt.Sprintf("Failed to initialize icc profiles=%v", err))
-	}
+	initializeICCProfiles()
 
 	running = true
 
@@ -149,15 +151,33 @@ func Startup(config *Config) {
 	initTypes()
 }
 
+func enableLogging() {
+	C.vips_set_logging_handler()
+}
+
+func disableLogging() {
+	C.vips_unset_logging_handler()
+}
+
+// consoleLogging overrides the Govips logging handler and makes glib
+// use its default logging handler which outputs everything to console.
+// Needed for CI unit testing due to a macOS bug in Go (doesn't clean cgo callbacks on exit)
+func consoleLogging() {
+	C.vips_default_logging_handler()
+}
+
 // Shutdown libvips
 func Shutdown() {
+	hasShutdown = true
+
 	if statCollectorDone != nil {
 		statCollectorDone <- struct{}{}
 	}
 
 	initLock.Lock()
-	runtime.LockOSThread()
 	defer initLock.Unlock()
+
+	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
 	if !running {
@@ -165,11 +185,15 @@ func Shutdown() {
 		return
 	}
 
+	os.RemoveAll(temporaryDirectory)
+
 	C.vips_shutdown()
+	disableLogging()
 	running = false
 }
 
-// ShutdownThread clears the cache for for the given thread.
+// ShutdownThread clears the cache for for the given thread. This needs to be
+// called when a thread using vips exits.
 func ShutdownThread() {
 	C.vips_thread_shutdown()
 }

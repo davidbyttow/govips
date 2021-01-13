@@ -1,11 +1,17 @@
 package vips
 
 import (
+	"bytes"
+	"image"
+	jpeg2 "image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"os/exec"
 	"runtime"
 	"strings"
 	"testing"
+
+	"golang.org/x/image/bmp"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -371,6 +377,120 @@ func TestImage_GaussianBlur(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_BandJoinConst(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.BandJoinConst([]float64{255})
+	}, nil, nil)
+}
+
+func TestImage_SmartCrop(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.SmartCrop(60, 80, InterestingCentre)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 60, result.Width())
+		assert.Equal(t, 80, result.Height())
+	}, nil)
+}
+
+func TestImage_DrawRect(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.DrawRect(ColorRGBA{
+			R: 255,
+			G: 255,
+			B: 0,
+			A: 0,
+		}, 20, 20, img.Width()-40, img.Height()-40, true)
+	}, nil, nil)
+}
+
+func TestImage_DrawRectRGBA(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		err := img.AddAlpha()
+		assert.Nil(t, err)
+		return img.DrawRect(ColorRGBA{
+			R: 255,
+			G: 255,
+			B: 0,
+			A: 255,
+		}, 20, 20, img.Width()-40, img.Height()-40, false)
+	}, nil, nil)
+}
+
+func TestImage_SimilarityRGB(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+			10, 10, 20, 20)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 3, result.Bands())
+	}, nil)
+}
+
+func TestImage_SimilarityRGBA(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		err := img.AddAlpha()
+		assert.Nil(t, err)
+		err = img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
+			10, 10, 20, 20)
+		assert.Nil(t, err)
+		assert.Equal(t, 4, img.Bands())
+		return nil
+	}, nil, nil)
+}
+
+func TestImage_Decode_JPG(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		goImg, err := img.ToImage(nil)
+
+		buf := new(bytes.Buffer)
+		err = jpeg2.Encode(buf, goImg, nil)
+		assert.Nil(t, err)
+
+		config, format, err := image.DecodeConfig(buf)
+		assert.Nil(t, err)
+		assert.Equal(t, "jpeg", format)
+		assert.NotNil(t, config)
+		assert.True(t, config.Height > 0)
+		assert.True(t, config.Width > 0)
+		return nil
+	}, nil, nil)
+}
+
+func TestImage_Decode_BMP(t *testing.T) {
+	goldenTest(t, resources+"bmp.bmp", func(img *ImageRef) error {
+		goImg, err := img.ToImage(nil)
+
+		buf := new(bytes.Buffer)
+		err = bmp.Encode(buf, goImg)
+		assert.Nil(t, err)
+
+		config, format, err := image.DecodeConfig(buf)
+		assert.Nil(t, err)
+		assert.Equal(t, "bmp", format)
+		assert.NotNil(t, config)
+		assert.True(t, config.Height > 0)
+		assert.True(t, config.Width > 0)
+		return nil
+	}, nil, nil)
+}
+
+func TestImage_Decode_PNG(t *testing.T) {
+	goldenTest(t, resources+"png-8bit.png", func(img *ImageRef) error {
+		goImg, err := img.ToImage(nil)
+
+		buf := new(bytes.Buffer)
+		err = png.Encode(buf, goImg)
+		assert.Nil(t, err)
+
+		config, format, err := image.DecodeConfig(buf)
+		assert.Nil(t, err)
+		assert.Equal(t, "png", format)
+		assert.NotNil(t, config)
+		assert.Equal(t, 150, config.Height)
+		assert.Equal(t, 200, config.Width)
+		return nil
+	}, nil, nil)
+}
+
 func TestImage_Invert(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Invert()
@@ -405,6 +525,16 @@ func TestImage_Tiff(t *testing.T) {
 	goldenTest(t, resources+"tif.tif", func(img *ImageRef) error {
 		return img.OptimizeICCProfile()
 	}, nil, nil)
+}
+
+func TestImage_Black(t *testing.T) {
+	Startup(nil)
+	i, err := Black(10, 20)
+	require.NoError(t, err)
+	buf, metadata, err := i.Export(nil)
+	require.NoError(t, err)
+
+	assertGoldenMatch(t, resources+"jpg-24bit.jpg", buf, metadata.Format)
 }
 
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
