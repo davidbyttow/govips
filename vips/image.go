@@ -241,11 +241,18 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 	return newImageRef(out, r.format, r.buf), nil
 }
 
-// XYZ Creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
+// XYZ creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
 	image, err := vipsXYZ(width, height)
 	return &ImageRef{image: image}, err
+}
+
+// Identity creates an identity lookup table, which will leave an image unchanged when applied with Maplut.
+// Each entry in the table has a value equal to its position.
+func Identity() (*ImageRef, error) {
+	img, err := vipsIdentity()
+	return &ImageRef{image: img}, err
 }
 
 // Black creates a new black image of the specified size

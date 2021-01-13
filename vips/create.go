@@ -25,3 +25,14 @@ func vipsBlack(width int, height int) (*C.VipsImage, error) {
 
 	return out, nil
 }
+
+// https://libvips.github.io/libvips/API/current/libvips-create.html#vips-identity
+func vipsIdentity() (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	if err := C.identity(&out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}

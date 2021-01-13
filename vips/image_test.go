@@ -716,6 +716,13 @@ func TestXYZ(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestIdentity(t *testing.T) {
+	Startup(nil)
+
+	_, err := Identity()
+	require.NoError(t, err)
+}
+
 func TestDeprecatedExportParams(t *testing.T) {
 	Startup(nil)
 

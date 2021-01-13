@@ -10,3 +10,8 @@ int xyz(VipsImage **out, int width, int height){
 int black(VipsImage **out, int width, int height) {
 	return vips_black(out, width, height, NULL);
 }
+
+// https://libvips.github.io/libvips/API/current/libvips-create.html#vips-identity
+int identity(VipsImage **out) {
+	return vips_identity(out, NULL);
+}
