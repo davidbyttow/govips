@@ -225,7 +225,7 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, params *LoadParams) (*C.VipsImage, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
@@ -249,7 +249,9 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), &out); err != 0 {
+	loadParams := createLoadParams(imageType, params)
+
+	if err := C.load_image_buffer(&loadParams, unsafe.Pointer(&src[0]), C.size_t(len(src)), &out); err != 0 {
 		return nil, ImageTypeUnknown, handleImageError(out)
 	}
 
@@ -272,6 +274,19 @@ func bmpToPNG(src []byte) ([]byte, error) {
 	}
 
 	return w.Bytes(), nil
+}
+
+func createLoadParams(format ImageType, params *LoadParams) C.LoadParams {
+	p := C.create_load_params(C.ImageType(format))
+	p.autorotate = C.int(boolToInt(params.AutoRotate))
+	p.fail = C.int(boolToInt(params.FailOnError))
+	p.page = C.int(params.Page)
+	p.n = C.int(params.NumPages)
+	p.dpi = C.gdouble(params.Density)
+	p.jpegShrink = C.int(params.JpegShrinkFactor)
+	p.heifThumbnail = C.int(boolToInt(params.HeifThumbnail))
+	p.svgUnlimited = C.int(boolToInt(params.SvgUnlimited))
+	return p
 }
 
 func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, error) {

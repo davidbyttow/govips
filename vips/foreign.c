@@ -2,51 +2,54 @@
 
 #include "lang.h"
 
-int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out)
-{
+int load_image_buffer(LoadParams *params, void *buf, size_t len,
+                      VipsImage **out) {
   int code = 1;
+  ImageType imageType = params->inputFormat;
 
-  if (imageType == JPEG)
-  {
-    code = vips_jpegload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == PNG)
-  {
+  if (imageType == JPEG) {
+    // shrink: int, fail: bool, autorotate: bool
+    code = vips_jpegload_buffer(buf, len, out, "fail", params->fail,
+                                "autorotate", params->autorotate, "shrink",
+                                params->jpegShrink, NULL);
+  } else if (imageType == PNG) {
     code = vips_pngload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == WEBP)
-  {
-    code = vips_webpload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == TIFF)
-  {
-    code = vips_tiffload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == GIF)
-  {
-    code = vips_gifload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == PDF)
-  {
-    code = vips_pdfload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == SVG)
-  {
-    code = vips_svgload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == HEIF)
-  {
+  } else if (imageType == WEBP) {
+    // page: int, n: int, scale: double
+    code = vips_webpload_buffer(buf, len, out, "page", params->page, "n",
+                                params->n, NULL);
+  } else if (imageType == TIFF) {
+    // page: int, n: int, autorotate: bool, subifd: int
+    code =
+        vips_tiffload_buffer(buf, len, out, "page", params->page, "n",
+                             params->n, "autorotate", params->autorotate, NULL);
+  } else if (imageType == GIF) {
+    // page: int, n: int, scale: double
+    code = vips_gifload_buffer(buf, len, out, "page", params->page, "n",
+                               params->n, NULL);
+  } else if (imageType == PDF) {
+    // page: int, n: int, dpi: double, scale: double, background: color
+    code = vips_pdfload_buffer(buf, len, out, "page", params->page, "n",
+                               params->n, "dpi", params->dpi, NULL);
+  } else if (imageType == SVG) {
+    // dpi: double, scale: double, unlimited: bool
+    code = vips_svgload_buffer(buf, len, out, "dpi", params->dpi, "unlimited",
+                               params->svgUnlimited, NULL);
+  } else if (imageType == HEIF) {
     // added autorotate on load as currently it addresses orientation issues
     // https://github.com/libvips/libvips/pull/1680
-    code = vips_heifload_buffer(buf, len, out, "autorotate", TRUE, NULL);
-  }
-  else if (imageType == AVIF)
-  {
-    code = vips_heifload_buffer(buf, len, out, NULL);
-  }
-  else if (imageType == MAGICK)
-  {
-    code = vips_magickload_buffer(buf, len, out, NULL);
+    // page: int, n: int, thumbnail: bool
+    code = vips_heifload_buffer(buf, len, out, "page", params->page, "n",
+                                params->n, "thumbnail", params->heifThumbnail,
+                                "autorotate", TRUE, NULL);
+  } else if (imageType == MAGICK) {
+    // page: int, n: int, density: string
+    code = vips_magickload_buffer(buf, len, out, "page", params->page, "n",
+                                  params->n, NULL);
+  } else if (imageType == AVIF) {
+    code = vips_heifload_buffer(buf, len, out, "page", params->page, "n",
+                                params->n, "thumbnail", params->heifThumbnail,
+                                "autorotate", params->autorotate, NULL);
   }
 
   return code;
@@ -274,4 +277,8 @@ SaveParams create_save_params(ImageType outputFormat)
   return params;
 }
 
-void init_save_params(SaveParams *params) { *params = defaultSaveParams; }
+LoadParams create_load_params(ImageType inputFormat) {
+  LoadParams params;
+  params.inputFormat = inputFormat;
+  return params;
+}

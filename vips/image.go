@@ -42,6 +42,30 @@ type ImageMetadata struct {
 	Orientation int
 }
 
+// LoadParams are options for loading an image. Some are type-specific.
+// For default loading, use NewLoadParams() or specify nil
+type LoadParams struct {
+	AutoRotate  bool
+	FailOnError bool
+	Page        int
+	NumPages    int
+	Density     int
+
+	JpegShrinkFactor int
+	HeifThumbnail    bool
+	SvgUnlimited     bool
+}
+
+// NewLoadParams creates default LoadParams
+func NewLoadParams() *LoadParams {
+	return &LoadParams{
+		FailOnError:      true,
+		NumPages:         1,
+		Density:          72,
+		JpegShrinkFactor: 1,
+	}
+}
+
 // ExportParams are options when exporting an image to file or buffer.
 // Deprecated: Use format-specific params
 type ExportParams struct {
@@ -250,9 +274,18 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+	return LoadImageFromBuffer(buf, nil)
+}
+
+// LoadImageFromBuffer loads an image buffer and creates a new Image
+func LoadImageFromBuffer(buf []byte, params *LoadParams) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	if params == nil {
+		params = NewLoadParams()
+	}
+
+	image, format, err := vipsLoadFromBuffer(buf, params)
 	if err != nil {
 		return nil, err
 	}
