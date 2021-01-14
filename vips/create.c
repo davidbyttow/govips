@@ -12,6 +12,6 @@ int black(VipsImage **out, int width, int height) {
 }
 
 // https://libvips.github.io/libvips/API/current/libvips-create.html#vips-identity
-int identity(VipsImage **out) {
-	return vips_identity(out, NULL);
+int identity(VipsImage **out, bool ushort) {
+	return vips_identity(out, ushort, NULL);
 }
