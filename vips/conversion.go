@@ -136,7 +136,7 @@ func vipsEmbed(in *C.VipsImage, left, top, width, height int, extend ExtendStrat
 	incOpCounter("embed")
 	var out *C.VipsImage
 
-	if err := C.embed_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend), 0, 0, 0); err != 0 {
+	if err := C.embed_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend)); err != 0 {
 		return nil, handleImageError(out)
 	}
 

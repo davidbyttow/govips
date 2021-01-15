@@ -27,3 +27,7 @@ int thumbnail_image(VipsImage *in, VipsImage **out, int width, int height, int c
 int mapim(VipsImage *in, VipsImage **out, VipsImage *index) {
 	return vips_mapim(in, out, index, NULL);
 }
+
+int maplut(VipsImage *in, VipsImage **out, VipsImage *lut) {
+	return vips_maplut(in, out, lut, NULL);
+}

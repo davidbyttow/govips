@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"os"
 	"runtime"
 	"strings"
@@ -504,6 +505,35 @@ func TestImageRef_Mapim__Error(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestImageRef_Maplut(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	lut, err := XYZ(1,1)
+	require.NoError(t, err)
+
+	_ = image.ExtractBand(0, 2)
+	require.NoError(t, err)
+
+	err = image.Maplut(lut)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Maplut_Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	lut, err := XYZ(1,1)
+	require.NoError(t, err)
+
+	err = image.Maplut(lut)
+	assert.Error(t, err)
+}
+
 func TestImageRef_CompositeMulti(t *testing.T) {
 	Startup(nil)
 
@@ -687,6 +717,13 @@ func TestXYZ(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestIdentity(t *testing.T) {
+	Startup(nil)
+
+	_, err := Identity()
+	require.NoError(t, err)
+}
+
 func TestDeprecatedExportParams(t *testing.T) {
 	Startup(nil)
 
@@ -709,6 +746,15 @@ func TestNewImageFromFileFail(t *testing.T) {
 	buf, err := NewImageFromFile("/tmp/nonexistent-fasljdfalkjfadlafjladsfkjadfsljafdslk")
 
 	assert.Nil(t, buf)
+	assert.Error(t, err)
+}
+
+func TestImageRef_Cast(t *testing.T){
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	assert.NoError(t, err)
+	err = image.Cast(BandFormatUchar)
+	assert.NoError(t, err)
+	err = image.Cast(math.MaxInt8)
 	assert.Error(t, err)
 }
 

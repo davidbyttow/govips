@@ -51,6 +51,12 @@ func TestImage_Resize_Upscale_Alpha(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Embed_ExtendBackground_Alpha(t *testing.T) {
+	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
+		return img.Embed(0, 0, 1000, 500, ExtendBackground)
+	}, nil, nil)
+}
+
 func TestImage_OptimizeICCProfile_CMYK(t *testing.T) {
 	goldenTest(t, resources+"jpg-32bit-cmyk-icc-swop.jpg",
 		func(img *ImageRef) error {
@@ -566,7 +572,12 @@ func getEnvironment() string {
 	case "windows":
 		return "windows"
 	case "darwin":
-		return "macos"
+		out, err := exec.Command("sw_vers", "-productVersion").Output()
+		if err != nil {
+			return "macos-unknown"
+		}
+		majorVersion := strings.Split(strings.TrimSpace(string(out)), ".")[0]
+		return "macos-" + majorVersion
 	case "linux":
 		out, err := exec.Command("lsb_release", "-cs").Output()
 		if err != nil {

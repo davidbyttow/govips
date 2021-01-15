@@ -241,11 +241,18 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 	return newImageRef(out, r.format, r.buf), nil
 }
 
-// XYZ Creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
+// XYZ creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
 	image, err := vipsXYZ(width, height)
 	return &ImageRef{image: image}, err
+}
+
+// Identity creates an identity lookup table, which will leave an image unchanged when applied with Maplut.
+// Each entry in the table has a value equal to its position.
+func Identity() (*ImageRef, error) {
+	img, err := vipsIdentity()
+	return &ImageRef{image: img}, err
 }
 
 // Black creates a new black image of the specified size
@@ -589,6 +596,16 @@ func (r *ImageRef) Mapim(index *ImageRef) error {
 	return nil
 }
 
+// Maplut maps an image through another image acting as a LUT (Look Up Table)
+func (r *ImageRef) Maplut(lut *ImageRef) error {
+	out, err := vipsMaplut(r.image, lut.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // ExtractBand extracts one or more bands out of the image (replacing the associated ImageRef)
 func (r *ImageRef) ExtractBand(band int, num int) error {
 	out, err := vipsExtractBand(r.image, band, num)
@@ -677,6 +694,16 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 	}
 
 	r.preMultiplication = nil
+	r.setImage(out)
+	return nil
+}
+
+// Cast converts the image to a target band format
+func (r *ImageRef) Cast(format BandFormat) error {
+	out, err:= vipsCast(r.image, format)
+	if err != nil {
+		return err
+	}
 	r.setImage(out)
 	return nil
 }
