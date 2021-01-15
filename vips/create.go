@@ -29,8 +29,8 @@ func vipsBlack(width int, height int) (*C.VipsImage, error) {
 // https://libvips.github.io/libvips/API/current/libvips-create.html#vips-identity
 func vipsIdentity(ushort bool) (*C.VipsImage, error) {
 	var out *C.VipsImage
-
-	if err := C.identity(&out, ushort); err != 0 {
+	ushortInt := C.int(boolToInt(ushort))
+	if err := C.identity(&out, ushortInt); err != 0 {
 		return nil, handleImageError(out)
 	}
 

@@ -690,7 +690,9 @@ func TestXYZ(t *testing.T) {
 func TestIdentity(t *testing.T) {
 	Startup(nil)
 
-	_, err := Identity()
+	_, err := Identity(false)
+	require.NoError(t, err)
+	_, err = Identity(true)
 	require.NoError(t, err)
 }
 
