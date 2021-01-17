@@ -6,4 +6,4 @@
 
 int xyz(VipsImage **out, int width, int height);
 int black(VipsImage **out, int width, int height);
-int identity(VipsImage **out);
+int identity(VipsImage **out, int ushort);
