@@ -81,7 +81,7 @@ func vipsAverage(in *C.VipsImage) (float64, error) {
 	incOpCounter("average")
 	var out C.double
 
-	if err := C.average(in, &out); err !=0 {
+	if err := C.average(in, &out); err != 0 {
 		return 0, handleVipsError()
 	}
 
