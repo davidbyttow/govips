@@ -511,7 +511,7 @@ func TestImageRef_Maplut(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
-	lut, err := XYZ(1,1)
+	lut, err := XYZ(1, 1)
 	require.NoError(t, err)
 
 	_ = image.ExtractBand(0, 2)
@@ -527,7 +527,7 @@ func TestImageRef_Maplut_Error(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
-	lut, err := XYZ(1,1)
+	lut, err := XYZ(1, 1)
 	require.NoError(t, err)
 
 	err = image.Maplut(lut)
@@ -751,12 +751,27 @@ func TestNewImageFromFileFail(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestImageRef_Cast(t *testing.T){
+func TestImageRef_Cast(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 	err = image.Cast(BandFormatUchar)
 	assert.NoError(t, err)
 	err = image.Cast(math.MaxInt8)
+	assert.Error(t, err)
+}
+
+func TestImageRef_Average(t *testing.T) {
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	assert.NoError(t, err)
+	average, err := image.Average()
+	assert.NoError(t, err)
+	assert.NotEqual(t, 0, average)
+}
+
+func TestImageRef_Linear_Fails(t *testing.T) {
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	assert.NoError(t, err)
+	err = image.Linear([]float64{1,2}, []float64{1,2,3})
 	assert.Error(t, err)
 }
 

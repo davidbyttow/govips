@@ -700,7 +700,7 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 
 // Cast converts the image to a target band format
 func (r *ImageRef) Cast(format BandFormat) error {
-	out, err:= vipsCast(r.image, format)
+	out, err := vipsCast(r.image, format)
 	if err != nil {
 		return err
 	}
@@ -979,6 +979,15 @@ func (r *ImageRef) Invert() error {
 	}
 	r.setImage(out)
 	return nil
+}
+
+// Average finds the average value in an image
+func (r *ImageRef) Average() (float64, error) {
+	out, err := vipsAverage(r.image)
+	if err != nil {
+		return 0, err
+	}
+	return out, nil
 }
 
 // DrawRect draws an (optionally filled) rectangle with a single colour
