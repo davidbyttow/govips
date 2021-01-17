@@ -981,6 +981,15 @@ func (r *ImageRef) Invert() error {
 	return nil
 }
 
+// Average finds the average value in an image
+func (r *ImageRef) Average() (float64, error){
+	out, err := vipsAverage(r.image)
+	if err != nil {
+		return 0, err
+	}
+	return out, nil
+}
+
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)

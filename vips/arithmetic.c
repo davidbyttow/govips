@@ -23,3 +23,7 @@ int linear1(VipsImage *in, VipsImage **out, double a, double b) {
 int invert_image(VipsImage *in, VipsImage **out) {
 	return vips_invert(in, out, NULL);
 }
+
+int average(VipsImage *in, double *out) {
+	return vips_avg(in, out, NULL);
+}

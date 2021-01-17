@@ -760,6 +760,14 @@ func TestImageRef_Cast(t *testing.T){
 	assert.Error(t, err)
 }
 
+func TestImageRef_Average(t *testing.T) {
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	assert.NoError(t, err)
+	average, err := image.Average()
+	assert.NoError(t, err)
+	assert.NotEqual(t, 0, average)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

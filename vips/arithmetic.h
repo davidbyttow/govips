@@ -9,3 +9,4 @@ int divide(VipsImage *left, VipsImage *right, VipsImage **out);
 int linear(VipsImage *in, VipsImage **out, double *a, double *b, int n);
 int linear1(VipsImage *in, VipsImage **out, double a, double b);
 int invert_image(VipsImage *in, VipsImage **out);
+int average(VipsImage *in, double *out);
