@@ -173,10 +173,10 @@ static SaveParams defaultSaveParams = {
   tiffPredictor : VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL,
   tiffPyramid : FALSE,
   tiffTile : FALSE,
-  tiffTileHeight : 0,
-  tiffTileWidth : 0,
-  tiffXRes : 0.0,
-  tiffYRes : 0.0
+  tiffTileHeight : 256,
+  tiffTileWidth : 256,
+  tiffXRes : 1.0,
+  tiffYRes : 1.0
 };
 
 SaveParams create_save_params(ImageType outputFormat) {
