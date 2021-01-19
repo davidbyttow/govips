@@ -77,22 +77,22 @@ int load_image_buffer(LoadParams *params, void *buf, size_t len,
   return code;
 }
 
-#define SET_BOOL(OP, PARAM, NAME)                                         \
-  if (PARAM.is_set) {                                                     \
-    vips_object_set(VIPS_OBJECT(OP), NAME, get_bool_param(&PARAM), NULL); \
+#define MAYBE_SET_BOOL(OP, PARAM, NAME)                          \
+  if (PARAM.is_set) {                                            \
+    vips_object_set(VIPS_OBJECT(OP), NAME, PARAM.value.b, NULL); \
   }
 
-#define SET_INT(OP, PARAM, NAME)                                         \
-  if (PARAM.is_set) {                                                    \
-    vips_object_set(VIPS_OBJECT(OP), NAME, get_int_param(&PARAM), NULL); \
+#define MAYBE_SET_INT(OP, PARAM, NAME)                           \
+  if (PARAM.is_set) {                                            \
+    vips_object_set(VIPS_OBJECT(OP), NAME, PARAM.value.i, NULL); \
   }
 
 typedef int (*SetLoadOptionsFn)(VipsOperation *operation, LoadParams *params);
 
 int set_jpegload_options(VipsOperation *operation, LoadParams *params) {
-  SET_BOOL(operation, params->autorotate, "autorotate");
-  SET_BOOL(operation, params->fail, "fail");
-  SET_INT(operation, params->jpegShrink, "shrink");
+  MAYBE_SET_BOOL(operation, params->autorotate, "autorotate");
+  MAYBE_SET_BOOL(operation, params->fail, "fail");
+  MAYBE_SET_INT(operation, params->jpegShrink, "shrink");
   return 0;
 }
 
@@ -101,48 +101,48 @@ int set_pngload_options(VipsOperation *operation, LoadParams *params) {
 }
 
 int set_webpload_options(VipsOperation *operation, LoadParams *params) {
-  SET_INT(operation, params->page, "page");
-  SET_INT(operation, params->n, "n");
+  MAYBE_SET_INT(operation, params->page, "page");
+  MAYBE_SET_INT(operation, params->n, "n");
   return 0;
 }
 
 int set_tiffload_options(VipsOperation *operation, LoadParams *params) {
-  SET_BOOL(operation, params->autorotate, "autorotate");
-  SET_INT(operation, params->page, "page");
-  SET_INT(operation, params->n, "n");
+  MAYBE_SET_BOOL(operation, params->autorotate, "autorotate");
+  MAYBE_SET_INT(operation, params->page, "page");
+  MAYBE_SET_INT(operation, params->n, "n");
   return 0;
 }
 
 int set_gifload_options(VipsOperation *operation, LoadParams *params) {
-  SET_INT(operation, params->page, "page");
-  SET_INT(operation, params->n, "n");
+  MAYBE_SET_INT(operation, params->page, "page");
+  MAYBE_SET_INT(operation, params->n, "n");
   return 0;
 }
 
 int set_pdfload_options(VipsOperation *operation, LoadParams *params) {
-  SET_INT(operation, params->page, "page");
-  SET_INT(operation, params->n, "n");
-  SET_INT(operation, params->dpi, "dpi");
+  MAYBE_SET_INT(operation, params->page, "page");
+  MAYBE_SET_INT(operation, params->n, "n");
+  MAYBE_SET_INT(operation, params->dpi, "dpi");
   return 0;
 }
 
 int set_svgload_options(VipsOperation *operation, LoadParams *params) {
-  SET_BOOL(operation, params->svgUnlimited, "unlimited");
-  SET_INT(operation, params->dpi, "dpi");
+  MAYBE_SET_BOOL(operation, params->svgUnlimited, "unlimited");
+  MAYBE_SET_INT(operation, params->dpi, "dpi");
   return 0;
 }
 
 int set_heifload_options(VipsOperation *operation, LoadParams *params) {
-  SET_BOOL(operation, params->autorotate, "autorotate");
-  SET_BOOL(operation, params->heifThumbnail, "thumbnail");
-  SET_INT(operation, params->page, "page");
-  SET_INT(operation, params->n, "n");
+  MAYBE_SET_BOOL(operation, params->autorotate, "autorotate");
+  MAYBE_SET_BOOL(operation, params->heifThumbnail, "thumbnail");
+  MAYBE_SET_INT(operation, params->page, "page");
+  MAYBE_SET_INT(operation, params->n, "n");
   return 0;
 }
 
 int set_magickload_options(VipsOperation *operation, LoadParams *params) {
-  SET_INT(operation, params->page, "page");
-  SET_INT(operation, params->n, "n");
+  MAYBE_SET_INT(operation, params->page, "page");
+  MAYBE_SET_INT(operation, params->n, "n");
   return 0;
 }
 

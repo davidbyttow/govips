@@ -283,7 +283,7 @@ func maybeSetBoolParam(p BoolParameter, cp *C.Param) {
 
 func maybeSetIntParam(p IntParameter, cp *C.Param) {
 	if p.IsSet() {
-		C.set_bool_param(cp, C.int(p.Get()))
+		C.set_int_param(cp, C.int(p.Get()))
 	}
 }
 
