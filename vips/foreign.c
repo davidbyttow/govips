@@ -2,6 +2,28 @@
 
 #include "lang.h"
 
+void set_bool_param(Param *p, gboolean b) {
+  p->type = PARAM_TYPE_BOOL;
+  p->value.b = b;
+  p->is_set = TRUE;
+}
+
+void set_int_param(Param *p, gint i) {
+  p->type = PARAM_TYPE_INT;
+  p->value.i = i;
+  p->is_set = TRUE;
+}
+
+void set_double_param(Param *p, gdouble d) {
+  p->type = PARAM_TYPE_DOUBLE;
+  p->value.d = d;
+  p->is_set = TRUE;
+}
+
+gboolean get_bool_param(Param *p) { return p->value.b; }
+gboolean get_int_param(Param *p) { return p->value.i; }
+gboolean get_double_param(Param *p) { return p->value.d; }
+
 int load_image_buffer(LoadParams *params, void *buf, size_t len,
                       VipsImage **out) {
   int code = 1;
@@ -55,35 +77,134 @@ int load_image_buffer(LoadParams *params, void *buf, size_t len,
   return code;
 }
 
-typedef int (*VipsBuildOperationFn)(VipsOperation *operation,
-                                    SaveParams *params);
+#define SET_BOOL(OP, PARAM, NAME)                                         \
+  if (PARAM.is_set) {                                                     \
+    vips_object_set(VIPS_OBJECT(OP), NAME, get_bool_param(&PARAM), NULL); \
+  }
+
+#define SET_INT(OP, PARAM, NAME)                                         \
+  if (PARAM.is_set) {                                                    \
+    vips_object_set(VIPS_OBJECT(OP), NAME, get_int_param(&PARAM), NULL); \
+  }
+
+typedef int (*SetLoadOptionsFn)(VipsOperation *operation, LoadParams *params);
+
+int set_jpegload_options(VipsOperation *operation, LoadParams *params) {
+  SET_BOOL(operation, params->autorotate, "autorotate");
+  SET_BOOL(operation, params->fail, "fail");
+  SET_INT(operation, params->jpegShrink, "shrink");
+  return 0;
+}
+
+int set_pngload_options(VipsOperation *operation, LoadParams *params) {
+  return 0;
+}
+
+int set_webpload_options(VipsOperation *operation, LoadParams *params) {
+  SET_INT(operation, params->page, "page");
+  SET_INT(operation, params->n, "n");
+  return 0;
+}
+
+int set_tiffload_options(VipsOperation *operation, LoadParams *params) {
+  SET_BOOL(operation, params->autorotate, "autorotate");
+  SET_INT(operation, params->page, "page");
+  SET_INT(operation, params->n, "n");
+  return 0;
+}
+
+int set_gifload_options(VipsOperation *operation, LoadParams *params) {
+  SET_INT(operation, params->page, "page");
+  SET_INT(operation, params->n, "n");
+  return 0;
+}
+
+int set_pdfload_options(VipsOperation *operation, LoadParams *params) {
+  SET_INT(operation, params->page, "page");
+  SET_INT(operation, params->n, "n");
+  SET_INT(operation, params->dpi, "dpi");
+  return 0;
+}
+
+int set_svgload_options(VipsOperation *operation, LoadParams *params) {
+  SET_BOOL(operation, params->svgUnlimited, "unlimited");
+  SET_INT(operation, params->dpi, "dpi");
+  return 0;
+}
+
+int set_heifload_options(VipsOperation *operation, LoadParams *params) {
+  SET_BOOL(operation, params->autorotate, "autorotate");
+  SET_BOOL(operation, params->heifThumbnail, "thumbnail");
+  SET_INT(operation, params->page, "page");
+  SET_INT(operation, params->n, "n");
+  return 0;
+}
+
+int set_magickload_options(VipsOperation *operation, LoadParams *params) {
+  SET_INT(operation, params->page, "page");
+  SET_INT(operation, params->n, "n");
+  return 0;
+}
+
+int load_buffer(const char *operationName, void *buf, size_t len,
+                LoadParams *params, SetLoadOptionsFn setLoadOptions) {
+  VipsBlob *blob = vips_blob_new(NULL, buf, len);
+
+  VipsOperation *operation = vips_operation_new(operationName);
+  if (!operation) {
+    return 1;
+  }
+
+  if (vips_object_set(VIPS_OBJECT(operation), "buffer", blob, NULL)) {
+    vips_area_unref(VIPS_AREA(blob));
+    return 1;
+  }
+
+  vips_area_unref(VIPS_AREA(blob));
+
+  if (setLoadOptions(operation, params)) {
+    vips_object_unref_outputs(VIPS_OBJECT(operation));
+    g_object_unref(operation);
+    return 1;
+  }
+
+  if (vips_cache_operation_buildp(&operation)) {
+    vips_object_unref_outputs(VIPS_OBJECT(operation));
+    g_object_unref(operation);
+    return 1;
+  }
+
+  g_object_get(VIPS_OBJECT(operation), "out", &params->outputImage, NULL);
+
+  g_object_unref(operation);
+
+  return 0;
+}
+
+typedef int (*SetSaveOptionsFn)(VipsOperation *operation, SaveParams *params);
 
 int save_buffer(const char *operationName, SaveParams *params,
-                VipsBuildOperationFn buildFn)
-{
+                SetSaveOptionsFn setSaveOptions) {
   VipsBlob *blob;
   VipsOperation *operation = vips_operation_new(operationName);
-  if (!operation)
-  {
-    return -1;
+  if (!operation) {
+    return 1;
   }
 
-  if (vips_object_set(VIPS_OBJECT(operation), "in", params->inputImage, NULL))
-  {
-    return -1;
+  if (vips_object_set(VIPS_OBJECT(operation), "in", params->inputImage, NULL)) {
+    return 1;
   }
 
-  if (buildFn(operation, params))
-  {
+  if (setSaveOptions(operation, params)) {
     g_object_unref(operation);
-    return -1;
+    return 1;
   }
 
   if (vips_cache_operation_buildp(&operation))
   {
     vips_object_unref_outputs(VIPS_OBJECT(operation));
     g_object_unref(operation);
-    return -1;
+    return 1;
   }
 
   g_object_get(VIPS_OBJECT(operation), "buffer", &blob, NULL);
@@ -100,8 +221,7 @@ int save_buffer(const char *operationName, SaveParams *params,
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer
-int set_jpeg_options(VipsOperation *operation, SaveParams *params)
-{
+int set_jpegsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = vips_object_set(VIPS_OBJECT(operation),
                             "strip", params->stripMetadata,
                             "optimize_coding", params->jpegOptimizeCoding,
@@ -113,8 +233,7 @@ int set_jpeg_options(VipsOperation *operation, SaveParams *params)
                             "quant_table", params->jpegQuantTable,
                             NULL);
 
-  if (!ret && params->quality)
-  {
+  if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
@@ -122,15 +241,13 @@ int set_jpeg_options(VipsOperation *operation, SaveParams *params)
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-pngsave-buffer
-int set_png_options(VipsOperation *operation, SaveParams *params)
-{
-  int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
-                            "compression", params->pngCompression, "interlace",
-                            params->interlace, "filter", params->pngFilter, NULL);
+int set_pngsave_options(VipsOperation *operation, SaveParams *params) {
+  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+                  "compression", params->pngCompression, "interlace",
+                  params->interlace, "filter", params->pngFilter, NULL);
 
-  if (!ret && params->quality)
-  {
-    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  if (params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
   return ret;
@@ -139,15 +256,13 @@ int set_png_options(VipsOperation *operation, SaveParams *params)
 // todo: support additional params
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/webpsave.c#L524
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-webpsave-buffer
-int set_webp_options(VipsOperation *operation, SaveParams *params)
-{
+int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
-                            "lossless", params->webpLossless, "reduction_effort",
-                            params->webpReductionEffort, NULL);
+                  "lossless", params->webpLossless, "reduction_effort",
+                  params->webpReductionEffort, NULL);
 
-  if (!ret && params->quality)
-  {
-    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  if (!ret && params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
   return ret;
@@ -155,22 +270,10 @@ int set_webp_options(VipsOperation *operation, SaveParams *params)
 
 // todo: support additional params
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
-int set_heif_options(VipsOperation *operation, SaveParams *params)
-{
-  int ret = vips_object_set(VIPS_OBJECT(operation), "lossless", params->heifLossless,
-                            NULL);
 
-  if (!ret && params->quality)
-  {
-    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
-  }
-
-  return ret;
-}
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-tiffsave-buffer
-int set_tiff_options(VipsOperation *operation, SaveParams *params)
-{
+int set_tiffsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
                             "compression", params->tiffCompression, "predictor",
                             params->tiffPredictor, "pyramid", params->tiffPyramid,
@@ -187,28 +290,102 @@ int set_tiff_options(VipsOperation *operation, SaveParams *params)
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave-buffer
-int set_magick_options(VipsOperation *operation, SaveParams *params)
-{
-  vips_object_set(VIPS_OBJECT(operation), "format", "GIF", NULL);
-
-  if (params->quality)
+int set_magick_options(VipsOperation *operation, SaveParams *params) {
+  int ret = vips_object_set(VIPS_OBJECT(operation), "format", "GIF", NULL);
+  if (!ret && params->quality)
   {
-    return vips_object_set(VIPS_OBJECT(operation), "quality", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "quality", params->quality, NULL);
   }
+  return ret;
 }
 
-int set_avif_options(VipsOperation *operation, SaveParams *params)
-{
-  vips_object_set(VIPS_OBJECT(operation), "compression", VIPS_FOREIGN_HEIF_COMPRESSION_AV1,
-                  "lossless", params->heifLossless, "speed", params->avifSpeed, NULL);
+int set_avif_options(VipsOperation *operation, SaveParams *params) {
+  int ret = vips_object_set(VIPS_OBJECT(operation), "compression", VIPS_FOREIGN_HEIF_COMPRESSION_AV1,
+                            "lossless", params->heifLossless, "speed", params->avifSpeed, NULL);
 
-  if (params->quality)
+  if (!ret && params->quality)
   {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
-  // TODO add return value or change function to void
+  return ret;
 }
+
+int load_from_buffer(LoadParams *params, void *buf, size_t len) {
+  switch (params->inputFormat) {
+    case JPEG:
+      return load_buffer("jpegload_buffer", buf, len, params,
+                         set_jpegload_options);
+    case PNG:
+      return load_buffer("pngload_buffer", buf, len, params,
+                         set_pngload_options);
+    case WEBP:
+      return load_buffer("webpload_buffer", buf, len, params,
+                         set_webpload_options);
+    case HEIF:
+      return load_buffer("heifload_buffer", buf, len, params,
+                         set_heifload_options);
+    case TIFF:
+      return load_buffer("tiffload_buffer", buf, len, params,
+                         set_tiffload_options);
+    case SVG:
+      return load_buffer("svgload_buffer", buf, len, params,
+                         set_svgload_options);
+    case GIF:
+      return load_buffer("gifload_buffer", buf, len, params,
+                         set_gifload_options);
+    case PDF:
+      return load_buffer("pdfload_buffer", buf, len, params,
+                         set_pdfload_options);
+    case MAGICK:
+      return load_buffer("magickload_buffer", buf, len, params,
+                         set_magickload_options);
+    default:
+      g_warning("Unsupported input type given: %d", params->inputFormat);
+  }
+  return 1;
+}
+
+int save_to_buffer(SaveParams *params) {
+  switch (params->outputFormat) {
+    case JPEG:
+      return save_buffer("jpegsave_buffer", params, set_jpegsave_options);
+    case PNG:
+      return save_buffer("pngsave_buffer", params, set_pngsave_options);
+    case WEBP:
+      return save_buffer("webpsave_buffer", params, set_webpsave_options);
+    case HEIF:
+      return save_buffer("heifsave_buffer", params, set_heifsave_options);
+    case TIFF:
+      return save_buffer("tiffsave_buffer", params, set_tiffsave_options);
+    case GIF:
+      return save_buffer("magicksave_buffer", params, set_magicksave_options);
+    case AVIF:
+      return save_buffer("heifsave_buffer", params, set_avifsave_options);
+    default:
+      g_warning("Unsupported output type given: %d", params->outputFormat);
+  }
+  return 1;
+}
+
+#define DEFAULT_PARAM                          \
+  {                                            \
+  type:                                        \
+    PARAM_TYPE_NULL, value : 0, is_set : FALSE \
+  }
+
+static LoadParams defaultLoadParams = {
+  inputBlob : NULL,
+  outputImage : NULL,
+  autorotate : DEFAULT_PARAM,
+  fail : DEFAULT_PARAM,
+  page : DEFAULT_PARAM,
+  n : DEFAULT_PARAM,
+  dpi : DEFAULT_PARAM,
+  jpegShrink : DEFAULT_PARAM,
+  heifThumbnail : DEFAULT_PARAM,
+  svgUnlimited : DEFAULT_PARAM,
+};
 
 int save_to_buffer(SaveParams *params)
 {
@@ -233,6 +410,26 @@ int save_to_buffer(SaveParams *params)
     return -1;
   }
 }
+
+LoadParams create_load_params(ImageType inputFormat) {
+  Param defaultParam = {};
+  LoadParams p = {
+    inputFormat : inputFormat,
+    inputBlob : NULL,
+    outputImage : NULL,
+    autorotate : defaultParam,
+    fail : defaultParam,
+    page : defaultParam,
+    n : defaultParam,
+    dpi : defaultParam,
+    jpegShrink : defaultParam,
+    heifThumbnail : defaultParam,
+    svgUnlimited : defaultParam,
+  };
+  return p;
+}
+
+// TODO: Change to same pattern as ImportParams
 
 static SaveParams defaultSaveParams = {
     .inputImage = NULL,
@@ -268,17 +465,12 @@ static SaveParams defaultSaveParams = {
     .tiffXRes = 1.0,
     .tiffYRes = 1.0,
 
-    .avifSpeed = 5};
+    .avifSpeed = 5
+};
 
 SaveParams create_save_params(ImageType outputFormat)
 {
   SaveParams params = defaultSaveParams;
   params.outputFormat = outputFormat;
-  return params;
-}
-
-LoadParams create_load_params(ImageType inputFormat) {
-  LoadParams params;
-  params.inputFormat = inputFormat;
   return params;
 }

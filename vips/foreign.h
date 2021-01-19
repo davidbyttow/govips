@@ -27,19 +27,44 @@ typedef enum types {
   AVIF
 } ImageType;
 
+typedef enum ParamType {
+  PARAM_TYPE_NULL,
+  PARAM_TYPE_BOOL,
+  PARAM_TYPE_INT,
+  PARAM_TYPE_DOUBLE,
+} ParamType;
+
+typedef struct Param {
+  ParamType type;
+  
+  union Value {
+    gboolean b;
+    gint i;
+    gdouble d;
+  } value;
+
+  gboolean is_set;
+
+} Param;
+
+void set_bool_param(Param *p, gboolean b);
+void set_int_param(Param *p, gint i);
+void set_double_param(Param *p, gdouble d);
+
 typedef struct LoadParams {
-  size_t inputLen;
   ImageType inputFormat;
+  VipsBlob *inputBlob;
+  VipsImage *outputImage;
 
-  BOOL autorotate;
-  BOOL fail;
-  int page;
-  int n;
-  gdouble dpi;
+  Param autorotate;
+  Param fail;
+  Param page;
+  Param n;
+  Param dpi;
+  Param jpegShrink;
+  Param heifThumbnail;
+  Param svgUnlimited;
 
-  int jpegShrink;
-  BOOL heifThumbnail;
-  BOOL svgUnlimited;
 } LoadParams;
 
 typedef struct SaveParams {
@@ -90,3 +115,4 @@ int save_to_buffer(SaveParams *params);
 
 LoadParams create_load_params(ImageType inputFormat);
 int load_image_buffer(LoadParams *params, void *buf, size_t len, VipsImage **out);
+int load_from_buffer(LoadParams *params, void *buf, size_t len);

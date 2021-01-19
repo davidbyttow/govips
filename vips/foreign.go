@@ -231,7 +231,6 @@ func vipsLoadFromBuffer(buf []byte, params *LoadParams) (*C.VipsImage, ImageType
 	defer runtime.KeepAlive(src)
 
 	var err error
-	var out *C.VipsImage
 
 	imageType := DetermineImageType(src)
 
@@ -251,11 +250,11 @@ func vipsLoadFromBuffer(buf []byte, params *LoadParams) (*C.VipsImage, ImageType
 
 	loadParams := createLoadParams(imageType, params)
 
-	if err := C.load_image_buffer(&loadParams, unsafe.Pointer(&src[0]), C.size_t(len(src)), &out); err != 0 {
-		return nil, ImageTypeUnknown, handleImageError(out)
+	if err := C.load_from_buffer(&loadParams, unsafe.Pointer(&src[0]), C.size_t(len(src))); err != 0 {
+		return nil, ImageTypeUnknown, handleImageError(loadParams.outputImage)
 	}
 
-	return out, imageType, nil
+	return loadParams.outputImage, imageType, nil
 }
 
 func bmpToPNG(src []byte) ([]byte, error) {
@@ -278,14 +277,31 @@ func bmpToPNG(src []byte) ([]byte, error) {
 
 func createLoadParams(format ImageType, params *LoadParams) C.LoadParams {
 	p := C.create_load_params(C.ImageType(format))
-	p.autorotate = C.int(boolToInt(params.AutoRotate))
-	p.fail = C.int(boolToInt(params.FailOnError))
-	p.page = C.int(params.Page)
-	p.n = C.int(params.NumPages)
-	p.dpi = C.gdouble(params.Density)
-	p.jpegShrink = C.int(params.JpegShrinkFactor)
-	p.heifThumbnail = C.int(boolToInt(params.HeifThumbnail))
-	p.svgUnlimited = C.int(boolToInt(params.SvgUnlimited))
+
+	if params.AutoRotate.IsSet() {
+		C.set_bool_param(&p.autorotate, toGboolean(params.AutoRotate.Get()))
+	}
+	if params.FailOnError.IsSet() {
+		C.set_bool_param(&p.fail, toGboolean(params.FailOnError.Get()))
+	}
+	if params.Page.IsSet() {
+		C.set_int_param(&p.page, C.gint(params.Page.Get()))
+	}
+	if params.NumPages.IsSet() {
+		C.set_int_param(&p.page, C.gint(params.NumPages.Get()))
+	}
+	if params.Density.IsSet() {
+		C.set_int_param(&p.dpi, C.gint(params.Density.Get()))
+	}
+	if params.JpegShrinkFactor.IsSet() {
+		C.set_int_param(&p.jpegShrink, C.gint(params.JpegShrinkFactor.Get()))
+	}
+	if params.HeifThumbnail.IsSet() {
+		C.set_bool_param(&p.heifThumbnail, toGboolean(params.HeifThumbnail.Get()))
+	}
+	if params.SvgUnlimited.IsSet() {
+		C.set_bool_param(&p.svgUnlimited, toGboolean(params.SvgUnlimited.Get()))
+	}
 	return p
 }
 

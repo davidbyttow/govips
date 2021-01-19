@@ -42,28 +42,75 @@ type ImageMetadata struct {
 	Orientation int
 }
 
+type Parameter struct {
+	value interface{}
+	isSet bool
+}
+
+func (p *Parameter) IsSet() bool {
+	return p.isSet
+}
+
+func (p *Parameter) set(v interface{}) {
+	p.value = v
+	p.isSet = true
+}
+
+type BoolParameter struct {
+	Parameter
+}
+
+func (p *BoolParameter) Set(v bool) {
+	p.set(v)
+}
+
+func (p *BoolParameter) Get() bool {
+	return p.value.(bool)
+}
+
+type IntParameter struct {
+	Parameter
+}
+
+func (p *IntParameter) Set(v int) {
+	p.set(v)
+}
+
+func (p *IntParameter) Get() int {
+	return p.value.(int)
+}
+
+type Float64Parameter struct {
+	Parameter
+}
+
+func (p *Float64Parameter) Set(v float64) {
+	p.set(v)
+}
+
+func (p *Float64Parameter) Get() float64 {
+	return p.value.(float64)
+}
+
 // LoadParams are options for loading an image. Some are type-specific.
 // For default loading, use NewLoadParams() or specify nil
 type LoadParams struct {
-	AutoRotate  bool
-	FailOnError bool
-	Page        int
-	NumPages    int
-	Density     int
+	AutoRotate  BoolParameter
+	FailOnError BoolParameter
+	Page        IntParameter
+	NumPages    IntParameter
+	Density     IntParameter
 
-	JpegShrinkFactor int
-	HeifThumbnail    bool
-	SvgUnlimited     bool
+	JpegShrinkFactor IntParameter
+	HeifThumbnail    BoolParameter
+	SvgUnlimited     BoolParameter
 }
 
 // NewLoadParams creates default LoadParams
 func NewLoadParams() *LoadParams {
-	return &LoadParams{
-		FailOnError:      true,
-		NumPages:         1,
-		Density:          72,
-		JpegShrinkFactor: 1,
-	}
+	p := &LoadParams{}
+	p.FailOnError.Set(true)
+	return p
 }
 
 // ExportParams are options when exporting an image to file or buffer.
