@@ -225,7 +225,7 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
-func vipsLoadFromBuffer(buf []byte, params *LoadParams) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
@@ -248,13 +248,13 @@ func vipsLoadFromBuffer(buf []byte, params *LoadParams) (*C.VipsImage, ImageType
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	loadParams := createLoadParams(imageType, params)
+	importParams := createImportParams(imageType, params)
 
-	if err := C.load_from_buffer(&loadParams, unsafe.Pointer(&src[0]), C.size_t(len(src))); err != 0 {
-		return nil, ImageTypeUnknown, handleImageError(loadParams.outputImage)
+	if err := C.load_from_buffer(&importParams, unsafe.Pointer(&src[0]), C.size_t(len(src))); err != 0 {
+		return nil, ImageTypeUnknown, handleImageError(importParams.outputImage)
 	}
 
-	return loadParams.outputImage, imageType, nil
+	return importParams.outputImage, imageType, nil
 }
 
 func bmpToPNG(src []byte) ([]byte, error) {
@@ -275,32 +275,31 @@ func bmpToPNG(src []byte) ([]byte, error) {
 	return w.Bytes(), nil
 }
 
-func createLoadParams(format ImageType, params *LoadParams) C.LoadParams {
+func maybeSetBoolParam(p BoolParameter, cp *C.Param) {
+	if p.IsSet() {
+		C.set_bool_param(cp, toGboolean(p.Get()))
+	}
+}
+
+func maybeSetIntParam(p IntParameter, cp *C.Param) {
+	if p.IsSet() {
+		C.set_bool_param(cp, C.int(p.Get()))
+	}
+}
+
+func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
 	p := C.create_load_params(C.ImageType(format))
 
-	if params.AutoRotate.IsSet() {
-		C.set_bool_param(&p.autorotate, toGboolean(params.AutoRotate.Get()))
-	}
-	if params.FailOnError.IsSet() {
-		C.set_bool_param(&p.fail, toGboolean(params.FailOnError.Get()))
-	}
-	if params.Page.IsSet() {
-		C.set_int_param(&p.page, C.gint(params.Page.Get()))
-	}
-	if params.NumPages.IsSet() {
-		C.set_int_param(&p.page, C.gint(params.NumPages.Get()))
-	}
+	maybeSetBoolParam(params.AutoRotate, &p.autorotate)
+	maybeSetBoolParam(params.FailOnError, &p.fail)
+	maybeSetIntParam(params.Page, &p.page)
+	maybeSetIntParam(params.NumPages, &p.n)
+	maybeSetIntParam(params.JpegShrinkFactor, &p.jpegShrink)
+	maybeSetBoolParam(params.HeifThumbnail, &p.heifThumbnail)
+	maybeSetBoolParam(params.SvgUnlimited, &p.svgUnlimited)
+
 	if params.Density.IsSet() {
-		C.set_int_param(&p.dpi, C.gint(params.Density.Get()))
-	}
-	if params.JpegShrinkFactor.IsSet() {
-		C.set_int_param(&p.jpegShrink, C.gint(params.JpegShrinkFactor.Get()))
-	}
-	if params.HeifThumbnail.IsSet() {
-		C.set_bool_param(&p.heifThumbnail, toGboolean(params.HeifThumbnail.Get()))
-	}
-	if params.SvgUnlimited.IsSet() {
-		C.set_bool_param(&p.svgUnlimited, toGboolean(params.SvgUnlimited.Get()))
+		C.set_double_param(&p.dpi, C.gdouble(params.Density.Get()))
 	}
 	return p
 }

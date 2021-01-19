@@ -253,7 +253,6 @@ int set_pngsave_options(VipsOperation *operation, SaveParams *params) {
   return ret;
 }
 
-// todo: support additional params
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/webpsave.c#L524
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-webpsave-buffer
 int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
@@ -268,9 +267,17 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
   return ret;
 }
 
-// todo: support additional params
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
+int set_heifsave_options(VipsOperation *operation, SaveParams *params) {
+  vips_object_set(VIPS_OBJECT(operation), "lossless", params->heifLossless,
+                  NULL);
 
+  if (params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
+
+  return 0;
+}
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-tiffsave-buffer
 int set_tiffsave_options(VipsOperation *operation, SaveParams *params) {

@@ -67,6 +67,9 @@ typedef struct LoadParams {
 
 } LoadParams;
 
+LoadParams create_load_params(ImageType inputFormat);
+int load_from_buffer(LoadParams *params, void *buf, size_t len);
+
 typedef struct SaveParams {
   VipsImage *inputImage;
   void *outputBuffer;
@@ -113,6 +116,3 @@ typedef struct SaveParams {
 SaveParams create_save_params(ImageType outputFormat);
 int save_to_buffer(SaveParams *params);
 
-LoadParams create_load_params(ImageType inputFormat);
-int load_image_buffer(LoadParams *params, void *buf, size_t len, VipsImage **out);
-int load_from_buffer(LoadParams *params, void *buf, size_t len);

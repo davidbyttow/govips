@@ -92,9 +92,9 @@ func (p *Float64Parameter) Get() float64 {
 	return p.value.(float64)
 }
 
-// LoadParams are options for loading an image. Some are type-specific.
-// For default loading, use NewLoadParams() or specify nil
-type LoadParams struct {
+// ImportParams are options for loading an image. Some are type-specific.
+// For default loading, use NewImportParams() or specify nil
+type ImportParams struct {
 	AutoRotate  BoolParameter
 	FailOnError BoolParameter
 	Page        IntParameter
@@ -106,9 +106,9 @@ type LoadParams struct {
 	SvgUnlimited     BoolParameter
 }
 
-// NewLoadParams creates default LoadParams
-func NewLoadParams() *LoadParams {
-	p := &LoadParams{}
+// NewImportParams creates default ImportParams
+func NewImportParams() *ImportParams {
+	p := &ImportParams{}
 	p.FailOnError.Set(true)
 	return p
 }
@@ -325,11 +325,11 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 }
 
 // LoadImageFromBuffer loads an image buffer and creates a new Image
-func LoadImageFromBuffer(buf []byte, params *LoadParams) (*ImageRef, error) {
+func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	startupIfNeeded()
 
 	if params == nil {
-		params = NewLoadParams()
+		params = NewImportParams()
 	}
 
 	image, format, err := vipsLoadFromBuffer(buf, params)
