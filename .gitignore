@@ -1,6 +1,5 @@
 .DS_Store
-build/
 *.failed.*
 .vscode
 .idea
-/vips/vips.test
+node_modules/

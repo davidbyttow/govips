@@ -1,13 +1,19 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "color.h"
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // Color represents an RGB
 type Color struct {
 	R, G, B uint8
+}
+
+// ColorRGBA represents an RGB with alpha channel (A)
+type ColorRGBA struct {
+	R, G, B, A uint8
 }
 
 // Interpretation represents VIPS_INTERPRETATION type
@@ -38,7 +44,7 @@ const (
 	InterpretationHSV       Interpretation = C.VIPS_INTERPRETATION_HSV
 )
 
-// Interpretation represents VIPS_INTENT type
+// Intent represents VIPS_INTENT type
 type Intent int
 
 //Intent enum
@@ -59,7 +65,9 @@ func vipsToColorSpace(in *C.VipsImage, interpretation Interpretation) (*C.VipsIm
 	incOpCounter("to_colorspace")
 	var out *C.VipsImage
 
-	if res := C.to_colorspace(in, &out, C.VipsInterpretation(interpretation)); res != 0 {
+	inter := C.VipsInterpretation(interpretation)
+
+	if err := C.to_colorspace(in, &out, inter); err != 0 {
 		return nil, handleImageError(out)
 	}
 

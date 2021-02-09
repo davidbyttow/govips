@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "arithmetic.h"
 import "C"
 
@@ -22,6 +21,18 @@ func vipsMultiply(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
 	if err := C.multiply(left, right, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-divide
+func vipsDivide(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("divide")
+	var out *C.VipsImage
+
+	if err := C.divide(left, right, &out); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -62,4 +73,16 @@ func vipsInvert(in *C.VipsImage) (*C.VipsImage, error) {
 	}
 
 	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-avg
+func vipsAverage(in *C.VipsImage) (float64, error) {
+	incOpCounter("average")
+	var out C.double
+
+	if err := C.average(in, &out); err != 0 {
+		return 0, handleVipsError()
+	}
+
+	return float64(out), nil
 }

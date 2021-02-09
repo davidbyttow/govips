@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "resample.h"
 import "C"
 
@@ -23,6 +22,11 @@ func vipsResize(in *C.VipsImage, scale float64, kernel Kernel) (*C.VipsImage, er
 	incOpCounter("resize")
 	var out *C.VipsImage
 
+	// libvips recommends Lanczos3 as the default kernel
+	if kernel == KernelAuto {
+		kernel = KernelLanczos3
+	}
+
 	if err := C.resize_image(in, &out, C.double(scale), C.double(-1), C.int(kernel)); err != 0 {
 		return nil, handleImageError(out)
 	}
@@ -36,6 +40,41 @@ func vipsResizeWithVScale(in *C.VipsImage, scale, vscale float64, kernel Kernel)
 	var out *C.VipsImage
 
 	if err := C.resize_image(in, &out, C.double(scale), C.gdouble(vscale), C.int(kernel)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsThumbnail(in *C.VipsImage, width, height int, crop Interesting) (*C.VipsImage, error) {
+	incOpCounter("thumbnail")
+	var out *C.VipsImage
+
+	if err := C.thumbnail_image(in, &out, C.int(width), C.int(height), C.int(crop)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-mapim
+func vipsMapim(in *C.VipsImage, index *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("mapim")
+	var out *C.VipsImage
+
+	if err := C.mapim(in, &out, index); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-histogram.html#vips-maplut
+func vipsMaplut(in *C.VipsImage, lut *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("maplut")
+	var out *C.VipsImage
+
+	if err := C.maplut(in, &out, lut); err != 0 {
 		return nil, handleImageError(out)
 	}
 

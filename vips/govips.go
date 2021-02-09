@@ -1,28 +1,30 @@
+// Package vips provides go bindings for libvips, a fast image processing library.
 package vips
 
 // #cgo pkg-config: vips
 // #include <vips/vips.h>
 // #include "govips.h"
-// #include "icc_profiles.h"
 import "C"
 import (
 	"fmt"
+	"os"
 	"runtime"
 	"strings"
 	"sync"
 )
 
-//noinspection GoUnusedConst
+// Version is the full libvips version string (x.y.z)
 const Version = string(C.VIPS_VERSION)
 
-//noinspection GoUnusedConst
+// MajorVersion is the libvips major component of the version string (x in x.y.z)
 const MajorVersion = int(C.VIPS_MAJOR_VERSION)
 
-//noinspection GoUnusedConst
+// MinorVersion is the libvips minor component of the version string (y in x.y.z)
 const MinorVersion = int(C.VIPS_MINOR_VERSION)
 
-//noinspection GoUnusedConst
-const MicroVersion = int(C.VIPS_MICRO_VERSION) // A.K.A patch version
+// MicroVersion is the libvips micro component of the version string (z in x.y.z)
+// Also known as patch version
+const MicroVersion = int(C.VIPS_MICRO_VERSION)
 
 const (
 	defaultConcurrencyLevel = 1
@@ -33,6 +35,7 @@ const (
 
 var (
 	running             = false
+	hasShutdown         = false
 	initLock            sync.Mutex
 	statCollectorDone   chan struct{}
 	once                sync.Once
@@ -54,13 +57,18 @@ type Config struct {
 // Startup sets up the libvips support and ensures the versions are correct. Pass in nil for
 // default configuration.
 func Startup(config *Config) {
+	if hasShutdown {
+		panic("govips cannot be stopped and restarted")
+	}
+
 	initLock.Lock()
-	runtime.LockOSThread()
 	defer initLock.Unlock()
+
+	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
 	if running {
-		info("warning libvips already started")
+		govipsLog("govips", LogLevelInfo, "warning libvips already started")
 		return
 	}
 
@@ -68,22 +76,27 @@ func Startup(config *Config) {
 		panic("govips requires libvips version 8.10+")
 	}
 
-	if C.VIPS_MINOR_VERSION < 10 {
+	if C.VIPS_MAJOR_VERSION == 8 && C.VIPS_MINOR_VERSION < 10 {
 		panic("govips requires libvips version 8.10+")
 	}
 
 	cName := C.CString("govips")
 	defer freeCString(cName)
 
+	// Initialize govips logging handler and verbosity filter to historical default
+	if !currentLoggingOverridden {
+		govipsLoggingSettings(nil, LogLevelInfo)
+	}
+
+	// Override default glib logging handler to intercept logging messages
+	enableLogging()
+
 	err := C.vips_init(cName)
 	if err != 0 {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
-	err = C.icc_profiles_init()
-	if err != 0 {
-		panic(fmt.Sprintf("Failed to initialize icc profiles=%v", err))
-	}
+	initializeICCProfiles()
 
 	running = true
 
@@ -128,58 +141,81 @@ func Startup(config *Config) {
 		C.vips_cache_set_max_files(defaultMaxCacheFiles)
 	}
 
-	info("vips %s started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
+	govipsLog("govips", LogLevelInfo, fmt.Sprintf("vips %s started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",
 		Version,
 		int(C.vips_concurrency_get()),
 		int(C.vips_cache_get_max_files()),
 		int(C.vips_cache_get_max_mem()),
-		int(C.vips_cache_get_max()))
+		int(C.vips_cache_get_max())))
 
 	initTypes()
 }
 
+func enableLogging() {
+	C.vips_set_logging_handler()
+}
+
+func disableLogging() {
+	C.vips_unset_logging_handler()
+}
+
+// consoleLogging overrides the Govips logging handler and makes glib
+// use its default logging handler which outputs everything to console.
+// Needed for CI unit testing due to a macOS bug in Go (doesn't clean cgo callbacks on exit)
+func consoleLogging() {
+	C.vips_default_logging_handler()
+}
+
 // Shutdown libvips
 func Shutdown() {
+	hasShutdown = true
+
 	if statCollectorDone != nil {
 		statCollectorDone <- struct{}{}
 	}
 
 	initLock.Lock()
-	runtime.LockOSThread()
 	defer initLock.Unlock()
+
+	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
 	if !running {
-		info("warning libvips not started")
+		govipsLog("govips", LogLevelInfo, "warning libvips not started")
 		return
 	}
 
+	os.RemoveAll(temporaryDirectory)
+
 	C.vips_shutdown()
+	disableLogging()
 	running = false
 }
 
-// ShutdownThread clears the cache for for the given thread
+// ShutdownThread clears the cache for for the given thread. This needs to be
+// called when a thread using vips exits.
 func ShutdownThread() {
 	C.vips_thread_shutdown()
 }
 
-//noinspection GoUnusedExportedFunction
+// ClearCache drops the whole operation cache, handy for leak tracking.
 func ClearCache() {
 	C.vips_cache_drop_all()
 }
 
-//noinspection GoUnusedExportedFunction
+// PrintCache prints the whole operation cache to stdout for debugging purposes.
 func PrintCache() {
 	C.vips_cache_print()
 }
 
 // PrintObjectReport outputs all of the current internal objects in libvips
 func PrintObjectReport(label string) {
-	info("\n=======================================\nvips live objects: %s...\n", label)
+	govipsLog("govips", LogLevelInfo, fmt.Sprintf("\n=======================================\nvips live objects: %s...\n", label))
 	C.vips_object_print_all()
-	info("=======================================\n\n")
+	govipsLog("govips", LogLevelInfo, "=======================================\n\n")
 }
 
+// MemoryStats is a data structure that houses various memory statistics from ReadVipsMemStats()
 type MemoryStats struct {
 	Mem     int64
 	MemHigh int64
@@ -187,6 +223,7 @@ type MemoryStats struct {
 	Allocs  int64
 }
 
+// ReadVipsMemStats returns various memory statistics such as allocated memory and open files.
 func ReadVipsMemStats(stats *MemoryStats) {
 	stats.Mem = int64(C.vips_tracked_get_mem())
 	stats.MemHigh = int64(C.vips_tracked_get_mem_highwater())
@@ -196,7 +233,7 @@ func ReadVipsMemStats(stats *MemoryStats) {
 
 func startupIfNeeded() {
 	if !running {
-		info("libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
+		govipsLog("govips", LogLevelInfo, "libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
 		Startup(nil)
 	}
 }
@@ -220,7 +257,9 @@ func initTypes() {
 
 			supportedImageTypes[k] = int(ret) != 0
 
-			info("registered image type loader type=%s", v)
+			if supportedImageTypes[k] {
+				govipsLog("govips", LogLevelInfo, fmt.Sprintf("registered image type loader type=%s", v))
+			}
 		}
 	})
 }

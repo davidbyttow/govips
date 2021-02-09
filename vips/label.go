@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "label.h"
 import "C"
 import "unsafe"
@@ -15,6 +14,7 @@ const (
 	AlignHigh   Align = C.VIPS_ALIGN_HIGH
 )
 
+// DefaultFont is the default font to be used for label texts created by govips
 const DefaultFont = "sans 10"
 
 // LabelParams represents a text-based label

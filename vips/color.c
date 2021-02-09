@@ -1,16 +1,12 @@
 #include "color.h"
-#include "icc_profiles.h"
 #include <unistd.h>
 
-#define SRGB_PROFILE_PATH SRGB_V2_MICRO_ICC_PATH
-#define GRAY_PROFILE_PATH SGRAY_V2_MICRO_ICC_PATH
-
 int is_colorspace_supported(VipsImage *in) {
-	return vips_colourspace_issupported(in) ? 1 : 0;
+  return vips_colourspace_issupported(in) ? 1 : 0;
 }
 
 int to_colorspace(VipsImage *in, VipsImage **out, VipsInterpretation space) {
-	return vips_colourspace(in, out, space, NULL);
+  return vips_colourspace(in, out, space, NULL);
 }
 
 // https://libvips.github.io/libvips/API/8.6/libvips-colour.html#vips-icc-transform

@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "header.h"
 import "C"
 

@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "conversion.h"
 import "C"
 
@@ -22,8 +21,12 @@ const (
 	BandFormatDpComplex BandFormat = C.VIPS_FORMAT_DPCOMPLEX
 )
 
+// BlendMode gives the various Porter-Duff and PDF blend modes.
+// See https://libvips.github.io/libvips/API/current/libvips-conversion.html#VipsBlendMode
 type BlendMode int
 
+// Constants define the various Porter-Duff and PDF blend modes.
+// See https://libvips.github.io/libvips/API/current/libvips-conversion.html#VipsBlendMode
 const (
 	BlendModeClear      BlendMode = C.VIPS_BLEND_MODE_CLEAR
 	BlendModeSource     BlendMode = C.VIPS_BLEND_MODE_SOURCE
@@ -100,6 +103,22 @@ const (
 	ExtendBackground ExtendStrategy = C.VIPS_EXTEND_BACKGROUND
 )
 
+// Interesting represents VIPS_INTERESTING type
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#VipsInteresting
+type Interesting int
+
+// Interesting constants represent areas of interest which smart cropping will crop based on.
+const (
+	InterestingNone      Interesting = C.VIPS_INTERESTING_NONE
+	InterestingCentre    Interesting = C.VIPS_INTERESTING_CENTRE
+	InterestingEntropy   Interesting = C.VIPS_INTERESTING_ENTROPY
+	InterestingAttention Interesting = C.VIPS_INTERESTING_ATTENTION
+	InterestingLow       Interesting = C.VIPS_INTERESTING_LOW
+	InterestingHigh      Interesting = C.VIPS_INTERESTING_HIGH
+	InterestingAll       Interesting = C.VIPS_INTERESTING_ALL
+	InterestingLast      Interesting = C.VIPS_INTERESTING_LAST
+)
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-copy
 func vipsCopyImage(in *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
@@ -116,7 +135,7 @@ func vipsEmbed(in *C.VipsImage, left, top, width, height int, extend ExtendStrat
 	incOpCounter("embed")
 	var out *C.VipsImage
 
-	if err := C.embed_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend), 0, 0, 0); err != 0 {
+	if err := C.embed_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -153,6 +172,33 @@ func vipsExtractBand(in *C.VipsImage, band, num int) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
 	if err := C.extract_band(in, &out, C.int(band), C.int(num)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// http://libvips.github.io/libvips/API/current/libvips-resample.html#vips-similarity
+func vipsSimilarity(in *C.VipsImage, scale float64, angle float64, color *ColorRGBA,
+	idx float64, idy float64, odx float64, ody float64) (*C.VipsImage, error) {
+	incOpCounter("similarity")
+	var out *C.VipsImage
+
+	if err := C.similarity(in, &out, C.double(scale), C.double(angle),
+		C.double(color.R), C.double(color.G), C.double(color.B), C.double(color.A),
+		C.double(idx), C.double(idy), C.double(odx), C.double(ody)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-smartcrop
+func vipsSmartCrop(in *C.VipsImage, width int, height int, interesting Interesting) (*C.VipsImage, error) {
+	incOpCounter("smartcrop")
+	var out *C.VipsImage
+
+	if err := C.smartcrop(in, &out, C.int(width), C.int(height), C.int(interesting)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -201,6 +247,18 @@ func vipsBandJoin(ins []*C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
 	if err := C.bandjoin(&ins[0], &out, C.int(len(ins))); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-bandjoin-const
+func vipsBandJoinConst(in *C.VipsImage, constants []float64) (*C.VipsImage, error) {
+	incOpCounter("bandjoin_const")
+	var out *C.VipsImage
+
+	if err := C.bandjoin_const(in, &out, (*C.double)(&constants[0]), C.int(len(constants))); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -260,6 +318,18 @@ func vipsCast(in *C.VipsImage, bandFormat BandFormat) (*C.VipsImage, error) {
 	var out *C.VipsImage
 
 	if err := C.cast(in, &out, C.int(bandFormat)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite
+func vipsComposite(ins []*C.VipsImage, modes []C.int, xs, ys []C.int) (*C.VipsImage, error) {
+	incOpCounter("composite_multi")
+	var out *C.VipsImage
+
+	if err := C.composite_image(&ins[0], &out, C.int(len(ins)), &modes[0], &xs[0], &ys[0]); err != 0 {
 		return nil, handleImageError(out)
 	}
 
