@@ -2,6 +2,8 @@ github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSs
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davidbyttow/govips v0.0.0-20201026223743-b1b72c7305d9 h1:nXNjG6pGALu++DSxtrdO79AZhtU+jZnyMlq3FTkFH74=
+github.com/davidbyttow/govips/v2 v2.4.0 h1:oAr8OI6JTJEZfFfznoOgMqlChEL8TPHSuB4hvyUqQ1w=
+github.com/davidbyttow/govips/v2 v2.4.0/go.mod h1:goq38QD8XEMz2aWEeucEZqRxAWsemIN40vbUqfPfTAw=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0 h1:45sCR5RtlFHMR4UwH9sdQ5TC8v0qDQCHnXt+kaKSTVE=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=

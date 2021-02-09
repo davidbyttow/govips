@@ -2,11 +2,10 @@ package package_test
 
 import (
 	"fmt"
+	"github.com/wix-playground/govips/vips"
 	"io/ioutil"
 	"log"
 	"os"
-
-	"github.com/davidbyttow/govips/v2/vips"
 )
 
 /* govips example: how to modify logging by using your own log handler
