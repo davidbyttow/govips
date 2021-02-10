@@ -64,6 +64,7 @@ func vipsMapim(in *C.VipsImage, index *C.VipsImage, interpolate *C.VipsInterpola
 	var out *C.VipsImage
 
 	if interpolate == nil {
+		govipsLog("govips", LogLevelWarning, "could not find interpolator, defaulting to bilinear")
 		interpolate = C.interpolate_bilinear_static()
 	}
 
