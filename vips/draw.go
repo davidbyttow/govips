@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "draw.h"
 import "C"
 

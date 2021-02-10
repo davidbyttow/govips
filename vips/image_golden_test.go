@@ -604,7 +604,8 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 
 	golden, _ := ioutil.ReadFile(goldenFile)
 	if golden != nil {
-		if !assert.Equal(t, golden, buf) {
+		sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
+		if !sameAsGolden {
 			failed := prefix + "-" + getEnvironment() + ".failed" + ext
 			err := ioutil.WriteFile(failed, buf, 0666)
 			if err != nil {

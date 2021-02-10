@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "color.h"
 import "C"
 import (

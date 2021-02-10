@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "conversion.h"
 import "C"
 
