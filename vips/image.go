@@ -587,8 +587,10 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 }
 
 // Mapim resamples an image using index to look up pixels
-func (r *ImageRef) Mapim(index *ImageRef) error {
-	out, err := vipsMapim(r.image, index.image)
+func (r *ImageRef) Mapim(index *ImageRef, interpolator Interpolator) error {
+	interpolate := vipsInterpolateNew(interpolator)
+	defer C.free(unsafe.Pointer(interpolate))
+	out, err := vipsMapim(r.image, index.image, interpolate)
 	if err != nil {
 		return err
 	}

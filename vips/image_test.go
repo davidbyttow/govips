@@ -488,7 +488,7 @@ func TestImageRef_Mapim(t *testing.T) {
 	_ = index.ExtractBand(0, 2)
 	require.NoError(t, err)
 
-	err = image.Mapim(index)
+	err = image.Mapim(index, Nearest)
 	require.NoError(t, err)
 }
 
@@ -501,7 +501,7 @@ func TestImageRef_Mapim__Error(t *testing.T) {
 	index, err := NewImageFromFile(resources + "png-8bit+alpha.png")
 	require.NoError(t, err)
 
-	err = image.Mapim(index)
+	err = image.Mapim(index, Nearest)
 	assert.Error(t, err)
 }
 

@@ -24,10 +24,14 @@ int thumbnail_image(VipsImage *in, VipsImage **out, int width, int height, int c
 	return vips_thumbnail_image(in, out, width, "height", height, "crop", crop, NULL);
 }
 
-int mapim(VipsImage *in, VipsImage **out, VipsImage *index) {
-	return vips_mapim(in, out, index, NULL);
+int mapim(VipsImage *in, VipsImage **out, VipsImage *index, VipsInterpolate *interpolator) {
+	return vips_mapim(in, out, index, "interpolate", interpolator, NULL);
 }
 
 int maplut(VipsImage *in, VipsImage **out, VipsImage *lut) {
 	return vips_maplut(in, out, lut, NULL);
+}
+
+VipsInterpolate * interpolate_new(const char *nickname) {
+	return vips_interpolate_new(nickname);
 }

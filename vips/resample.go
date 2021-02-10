@@ -3,6 +3,7 @@ package vips
 // #cgo pkg-config: vips
 // #include "resample.h"
 import "C"
+import "unsafe"
 
 // Kernel represents VipsKernel type
 type Kernel int
@@ -59,11 +60,11 @@ func vipsThumbnail(in *C.VipsImage, width, height int, crop Interesting) (*C.Vip
 }
 
 // https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-mapim
-func vipsMapim(in *C.VipsImage, index *C.VipsImage) (*C.VipsImage, error) {
+func vipsMapim(in *C.VipsImage, index *C.VipsImage, interpolate *C.VipsInterpolate) (*C.VipsImage, error) {
 	incOpCounter("mapim")
 	var out *C.VipsImage
 
-	if err := C.mapim(in, &out, index); err != 0 {
+	if err := C.mapim(in, &out, index, interpolate); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -80,4 +81,21 @@ func vipsMaplut(in *C.VipsImage, lut *C.VipsImage) (*C.VipsImage, error) {
 	}
 
 	return out, nil
+}
+
+type Interpolator string
+
+const (
+	Nearest  = "nearest"  // nearest-neighbour interpolation
+	Bilinear = "bilinear" // bilinear interpolation
+	Bicubic  = "bicubic"  // bicubic interpolation (Catmull-Rom)
+	Lbb      = "lbb"      // reduced halo bicubic
+	Nohalo   = "nohalo"   // edge sharpening resampler with halo reduction
+	Vsqbs    = "vsqbs"    // B-splines with anti-aliasing
+)
+
+func vipsInterpolateNew(interpolator Interpolator) *C.VipsInterpolate {
+	nickname := C.CString(string(interpolator))
+	C.free(unsafe.Pointer(nickname))
+	return C.interpolate_new(nickname)
 }
