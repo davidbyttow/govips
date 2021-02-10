@@ -45,13 +45,19 @@ type ImageMetadata struct {
 // ExportParams are options when exporting an image to file or buffer.
 // Deprecated: Use format-specific params
 type ExportParams struct {
-	Format        ImageType
-	Quality       int
-	Compression   int
-	Interlaced    bool
-	Lossless      bool
-	Effort        int
-	StripMetadata bool
+	Format             ImageType
+	Quality            int
+	Compression        int
+	Interlaced         bool
+	Lossless           bool
+	Effort             int
+	StripMetadata      bool
+	OptimizeCoding     bool          // jpeg param
+	SubsampleMode      SubsampleMode // jpeg param
+	TrellisQuant       bool          // jpeg param
+	OvershootDeringing bool          // jpeg param
+	OptimizeScans      bool          // jpeg param
+	QuantTable         int           // jpeg param
 }
 
 // NewDefaultExportParams creates default values for an export when image type is not JPEG, PNG or WEBP.
@@ -106,9 +112,15 @@ func NewDefaultWEBPExportParams() *ExportParams {
 
 // JpegExportParams are options when exporting a JPEG to file or buffer
 type JpegExportParams struct {
-	StripMetadata bool
-	Quality       int
-	Interlace     bool
+	StripMetadata      bool
+	Quality            int
+	Interlace          bool
+	OptimizeCoding     bool
+	SubsampleMode      SubsampleMode
+	TrellisQuant       bool
+	OvershootDeringing bool
+	OptimizeScans      bool
+	QuantTable         int
 }
 
 // NewJpegExportParams creates default values for an export of a JPEG image.
@@ -470,9 +482,15 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	default:
 		format = ImageTypeJPEG
 		return r.ExportJpeg(&JpegExportParams{
-			Quality:       params.Quality,
-			StripMetadata: params.StripMetadata,
-			Interlace:     params.Interlaced,
+			Quality:            params.Quality,
+			StripMetadata:      params.StripMetadata,
+			Interlace:          params.Interlaced,
+			OptimizeCoding:     params.OptimizeCoding,
+			SubsampleMode:      params.SubsampleMode,
+			TrellisQuant:       params.TrellisQuant,
+			OvershootDeringing: params.OvershootDeringing,
+			OptimizeScans:      params.OptimizeScans,
+			QuantTable:         params.QuantTable,
 		})
 	}
 }
