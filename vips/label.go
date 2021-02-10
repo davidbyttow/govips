@@ -1,6 +1,5 @@
 package vips
 
-// #cgo pkg-config: vips
 // #include "label.h"
 import "C"
 import "unsafe"

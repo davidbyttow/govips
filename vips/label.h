@@ -3,18 +3,19 @@
 
 typedef struct {
   const char *Text;
-	const char *Font;
-	int Width;
+  const char *Font;
+  int Width;
   int Height;
   int OffsetX;
   int OffsetY;
   VipsAlign Align;
-	int DPI;
+  int DPI;
   int Margin;
-	float Opacity;
+  float Opacity;
   double Color[3];
 } LabelOptions;
 
 int label(VipsImage *in, VipsImage **out, LabelOptions *o);
 
-int text(VipsImage **out, const char *text, const char *font, int width, int height, VipsAlign align, int dpi);
+int text(VipsImage **out, const char *text, const char *font, int width,
+         int height, VipsAlign align, int dpi);

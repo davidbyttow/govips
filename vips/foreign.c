@@ -30,65 +30,118 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out) {
   return code;
 }
 
+typedef int (*VipsBuildOperationFn)(VipsOperation *operation,
+                                    SaveParams *params);
+
+int save_buffer(const char *operationName, SaveParams *params,
+                VipsBuildOperationFn buildFn) {
+  VipsBlob *blob;
+  VipsOperation *operation = vips_operation_new(operationName);
+  if (!operation) {
+    return -1;
+  }
+
+  if (vips_object_set(VIPS_OBJECT(operation), "in", params->inputImage, NULL)) {
+    return -1;
+  }
+
+  if (buildFn(operation, params)) {
+    g_object_unref(operation);
+    return -1;
+  }
+
+  if (vips_cache_operation_buildp(&operation)) {
+    vips_object_unref_outputs(VIPS_OBJECT(operation));
+    g_object_unref(operation);
+    return -1;
+  }
+
+  g_object_get(VIPS_OBJECT(operation), "buffer", &blob, NULL);
+  g_object_unref(operation);
+
+  VipsArea *area = VIPS_AREA(blob);
+
+  params->outputBuffer = (char *)(area->data);
+  params->outputLen = area->length;
+  area->free_fn = NULL;
+  vips_area_unref(area);
+
+  return 0;
+}
+
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer
-int save_jpeg_buffer(SaveParams *params) {
-  return vips_jpegsave_buffer(
-      params->inputImage, &params->outputBuffer, &params->outputLen, "strip",
-      params->stripMetadata, "Q", params->quality, "optimize_coding",
-      params->jpegOptimizeCoding, "interlace", params->interlace,
-      "subsample_mode", params->jpegSubsample, NULL);
+int set_jpeg_options(VipsOperation *operation, SaveParams *params) {
+  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+                  "optimize_coding", params->jpegOptimizeCoding, "interlace",
+                  params->interlace, "subsample_mode", params->jpegSubsample,
+                  NULL);
+
+  if (params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-pngsave-buffer
-int save_png_buffer(SaveParams *params) {
-  return vips_pngsave_buffer(
-      params->inputImage, &params->outputBuffer, &params->outputLen, "strip",
-      params->stripMetadata, "compression", params->pngCompression, "interlace",
-      params->interlace, "filter", params->pngFilter, NULL);
+int set_png_options(VipsOperation *operation, SaveParams *params) {
+  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+                  "compression", params->pngCompression, "interlace",
+                  params->interlace, "filter", params->pngFilter, NULL);
+
+  if (params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
 }
 
 // todo: support additional params
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/webpsave.c#L524
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-webpsave-buffer
-int save_webp_buffer(SaveParams *params) {
-  return vips_webpsave_buffer(
-      params->inputImage, &params->outputBuffer, &params->outputLen, "strip",
-      params->stripMetadata, "Q", params->quality, "lossless",
-      params->webpLossless, "reduction_effort", params->webpReductionEffort,
-      NULL);
+int set_webp_options(VipsOperation *operation, SaveParams *params) {
+  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+                  "lossless", params->webpLossless, "reduction_effort",
+                  params->webpReductionEffort, NULL);
+
+  if (params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
 }
 
 // todo: support additional params
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
-int save_heif_buffer(SaveParams *params) {
-  return vips_heifsave_buffer(params->inputImage, &params->outputBuffer,
-                              &params->outputLen, "Q", params->quality,
-                              "lossless", params->heifLossless, NULL);
+int set_heif_options(VipsOperation *operation, SaveParams *params) {
+  vips_object_set(VIPS_OBJECT(operation), "lossless", params->heifLossless,
+                  NULL);
+
+  if (params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-tiffsave-buffer
-int save_tiff_buffer(SaveParams *params) {
-  return vips_tiffsave_buffer(
-      params->inputImage, &params->outputBuffer, &params->outputLen, "strip",
-      params->stripMetadata, "Q", params->quality, "compression",
-      params->tiffCompression, "predictor", params->tiffPredictor, "pyramid",
-      params->tiffPyramid, "tile_height", params->tiffTileHeight, "tile_width",
-      params->tiffTileWidth, "tile", params->tiffTile, "xres", params->tiffXRes,
-      "yres", params->tiffYRes, NULL);
+int set_tiff_options(VipsOperation *operation, SaveParams *params) {
+  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+                  "compression", params->tiffCompression, "predictor",
+                  params->tiffPredictor, "pyramid", params->tiffPyramid,
+                  "tile_height", params->tiffTileHeight, "tile_width",
+                  params->tiffTileWidth, "tile", params->tiffTile, "xres",
+                  params->tiffXRes, "yres", params->tiffYRes, NULL);
+
+  if (params->quality) {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
 }
 
 int save_to_buffer(SaveParams *params) {
   switch (params->outputFormat) {
     case JPEG:
-      return save_jpeg_buffer(params);
+      return save_buffer("jpegsave_buffer", params, set_jpeg_options);
     case PNG:
-      return save_png_buffer(params);
+      return save_buffer("pngsave_buffer", params, set_png_options);
     case WEBP:
-      return save_webp_buffer(params);
+      return save_buffer("webpsave_buffer", params, set_webp_options);
     case HEIF:
-      return save_heif_buffer(params);
+      return save_buffer("heifsave_buffer", params, set_heif_options);
     case TIFF:
-      return save_tiff_buffer(params);
+      return save_buffer("tiffsave_buffer", params, set_tiff_options);
     default:
       g_warning("Unsupported output type given: %d", params->outputFormat);
       return -1;
