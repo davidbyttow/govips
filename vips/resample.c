@@ -42,3 +42,7 @@ int maplut(VipsImage *in, VipsImage **out, VipsImage *lut) {
 VipsInterpolate * interpolate_new(const char *nickname) {
 	return vips_interpolate_new(nickname);
 }
+
+VipsInterpolate * interpolate_bilinear_static(void) {
+	return vips_interpolate_bilinear_static();
+}

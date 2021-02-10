@@ -17,3 +17,4 @@ int mapim(VipsImage *in, VipsImage **out, VipsImage *index,
           VipsInterpolate *interpolator);
 int maplut(VipsImage *in, VipsImage **out, VipsImage *lut);
 VipsInterpolate * interpolate_new(const char *nickname);
+VipsInterpolate * interpolate_bilinear_static (void);

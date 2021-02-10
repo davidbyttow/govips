@@ -63,6 +63,10 @@ func vipsMapim(in *C.VipsImage, index *C.VipsImage, interpolate *C.VipsInterpola
 	incOpCounter("mapim")
 	var out *C.VipsImage
 
+	if interpolate == nil {
+		interpolate = C.interpolate_bilinear_static()
+	}
+
 	if err := C.mapim(in, &out, index, interpolate); err != 0 {
 		return nil, handleImageError(out)
 	}

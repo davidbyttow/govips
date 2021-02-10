@@ -490,6 +490,9 @@ func TestImageRef_Mapim(t *testing.T) {
 
 	err = image.Mapim(index, Nearest)
 	require.NoError(t, err)
+
+	err = image.Mapim(index, "")
+	require.NoError(t, err)
 }
 
 func TestImageRef_Mapim__Error(t *testing.T) {
