@@ -71,10 +71,16 @@ int save_buffer(const char *operationName, SaveParams *params,
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer
 int set_jpeg_options(VipsOperation *operation, SaveParams *params) {
-  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
-                  "optimize_coding", params->jpegOptimizeCoding, "interlace",
-                  params->interlace, "subsample_mode", params->jpegSubsample,
-                  NULL);
+  vips_object_set(VIPS_OBJECT(operation),
+      "strip", params->stripMetadata,
+      "optimize_coding", params->jpegOptimizeCoding,
+      "interlace", params->interlace,
+      "subsample_mode", params->jpegSubsample,
+      "trellis_quant", params->jpegTrellisQuant,
+      "overshoot_deringing", params->jpegOvershootDeringing,
+      "optimize_scans", params->jpegOptimizeScans,
+      "quant_table", params->jpegQuantTable,
+      NULL);
 
   if (params->quality) {
     vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
@@ -160,6 +166,10 @@ static SaveParams defaultSaveParams = {
 
   jpegOptimizeCoding : FALSE,
   jpegSubsample : VIPS_FOREIGN_JPEG_SUBSAMPLE_ON,
+  jpegTrellisQuant : FALSE,
+  jpegOvershootDeringing: FALSE,
+  jpegOptimizeScans: FALSE,
+  jpegQuantTable: 0,
 
   pngCompression : 6,
   pngFilter : VIPS_FOREIGN_PNG_FILTER_NONE,

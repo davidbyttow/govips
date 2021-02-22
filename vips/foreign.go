@@ -15,6 +15,17 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+// SubsampleMode correlates to a libvips subsample mode
+type SubsampleMode int
+
+// SubsampleMode enum correlating to libvips subsample modes
+const (
+	VipsForeignSubsampleAuto SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO
+	VipsForeignSubsampleOn   SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_ON
+	VipsForeignSubsampleOff  SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF
+	VipsForeignSubsampleLast SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_LAST
+)
+
 // ImageType represents an image type
 type ImageType int
 
@@ -259,6 +270,12 @@ func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, err
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.quality = C.int(params.Quality)
 	p.interlace = C.int(boolToInt(params.Interlace))
+	p.jpegOptimizeCoding = C.int(boolToInt(params.OptimizeCoding))
+	p.jpegSubsample = C.VipsForeignJpegSubsample(params.SubsampleMode)
+	p.jpegTrellisQuant = C.int(boolToInt(params.TrellisQuant))
+	p.jpegOvershootDeringing = C.int(boolToInt(params.OvershootDeringing))
+	p.jpegOptimizeScans = C.int(boolToInt(params.OptimizeScans))
+	p.jpegQuantTable = C.int(params.QuantTable)
 
 	return vipsSaveToBuffer(p)
 }
