@@ -555,11 +555,7 @@ func TestImage_OptimizeCoding(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		func(result *ImageRef) {
-			assert.Equal(t, 486809, len(result.buf))
-		},
-		ep,
-	)
+		nil, ep,)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=on
@@ -572,11 +568,7 @@ func TestImage_SubsampleMode(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		func(result *ImageRef) {
-			assert.Equal(t, 542772, len(result.buf))
-		},
-		ep,
-	)
+		nil, ep,)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --trellis-quant
@@ -590,11 +582,7 @@ func TestImage_TrellisQuant(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		func(result *ImageRef) {
-			assert.Equal(t, 482582, len(result.buf))
-		},
-		ep,
-	)
+		nil, ep,)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --overshoot-deringing
@@ -608,11 +596,7 @@ func TestImage_OvershootDeringing(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		func(result *ImageRef) {
-			assert.Equal(t, 542772, len(result.buf))
-		},
-		ep,
-	)
+		nil, ep,)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --interlace --optimize-scans
@@ -627,11 +611,7 @@ func TestImage_OptimizeScans(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		func(result *ImageRef) {
-			assert.Equal(t, 479492, len(result.buf))
-		},
-		ep,
-	)
+		nil, ep,)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --quant-table=3
@@ -645,11 +625,7 @@ func TestImage_QuantTable(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		func(result *ImageRef) {
-			assert.Equal(t, 506386, len(result.buf))
-		},
-		ep,
-	)
+		nil, ep,)
 }
 
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
