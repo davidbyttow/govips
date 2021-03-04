@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image/png"
 	"math"
+	"os"
 	"runtime"
 	"unsafe"
 
@@ -229,7 +230,12 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), &out); err != 0 {
+	var unlimitedSvgLoad C.gboolean = C.FALSE
+	if _, exists := os.LookupEnv("UNLIMITED_SVG_LOAD"); exists {
+		unlimitedSvgLoad = C.TRUE
+	}
+
+	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), unlimitedSvgLoad, &out); err != 0 {
 		return nil, ImageTypeUnknown, handleImageError(out)
 	}
 
