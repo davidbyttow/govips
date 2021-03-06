@@ -768,6 +768,42 @@ func TestImageRef_Average(t *testing.T) {
 	assert.NotEqual(t, 0, average)
 }
 
+func TestImageRef_FindTrim_White(t *testing.T) {
+	image, err := NewImageFromFile(resources + "find_trim.png")
+	assert.NoError(t, err)
+	left, top, width, height, err := image.FindTrim(0, &Color{R: 255, G: 255, B: 255})
+	assert.NoError(t, err)
+
+	assert.Equal(t, 0, left)
+	assert.Equal(t, 0, top)
+	assert.Equal(t, 432, width)
+	assert.Equal(t, 320, height)
+}
+
+func TestImageRef_FindTrim_Gray(t *testing.T) {
+	image, err := NewImageFromFile(resources + "find_trim.png")
+	assert.NoError(t, err)
+	left, top, width, height, err := image.FindTrim(0, &Color{R: 238, G: 238, B: 238})
+	assert.NoError(t, err)
+
+	assert.Equal(t, 32, left)
+	assert.Equal(t, 0, top)
+	assert.Equal(t, 480, width)
+	assert.Equal(t, 320, height)
+}
+
+func TestImageRef_FindTrim_Threshold(t *testing.T) {
+	image, err := NewImageFromFile(resources + "find_trim.png")
+	assert.NoError(t, err)
+	left, top, width, height, err := image.FindTrim(17, &Color{R: 255, G: 255, B: 255})
+	assert.NoError(t, err)
+
+	assert.Equal(t, 80, left)
+	assert.Equal(t, 32, top)
+	assert.Equal(t, 352, width)
+	assert.Equal(t, 256, height)
+}
+
 func TestImageRef_Linear_Fails(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)

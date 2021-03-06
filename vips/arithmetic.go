@@ -86,3 +86,16 @@ func vipsAverage(in *C.VipsImage) (float64, error) {
 
 	return float64(out), nil
 }
+
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-find-trim
+func vipsFindTrim(in *C.VipsImage, threshold float64, backgroundColor *Color) (int, int, int, int, error) {
+	incOpCounter("findTrim")
+	var left, top, width, height C.int
+
+	if err := C.find_trim(in, &left, &top, &width, &height, C.double(threshold), C.double(backgroundColor.R),
+		C.double(backgroundColor.G), C.double(backgroundColor.B)); err != 0 {
+		return -1, -1, -1, -1, handleVipsError()
+	}
+
+	return int(left), int(top), int(width), int(height), nil
+}
