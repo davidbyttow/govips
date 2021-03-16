@@ -1007,6 +1007,12 @@ func (r *ImageRef) Average() (float64, error) {
 	return out, nil
 }
 
+// FindTrim returns the bounding box of the non-border part of the image
+// Returned values are left, top, width, height
+func (r *ImageRef) FindTrim(threshold float64, backgroundColor *Color) (int, int, int, int, error) {
+	return vipsFindTrim(r.image, threshold, backgroundColor)
+}
+
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)

@@ -27,3 +27,19 @@ int invert_image(VipsImage *in, VipsImage **out) {
 int average(VipsImage *in, double *out) {
 	return vips_avg(in, out, NULL);
 }
+
+int find_trim(VipsImage *in, int *left, int *top, int *width, int *height,
+              double threshold, double r, double g, double b) {
+
+  if (in->Type == VIPS_INTERPRETATION_RGB16 || in->Type == VIPS_INTERPRETATION_GREY16) {
+    r = 65535 * r / 255;
+    g = 65535 * g / 255;
+    b = 65535 * b / 255;
+  }
+
+  double background[3] = {r, g, b};
+
+  VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
+
+  return vips_find_trim(in, left, top, width, height, "threshold", threshold, "background", vipsBackground, NULL);
+}
