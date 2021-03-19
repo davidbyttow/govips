@@ -586,6 +586,21 @@ func BenchmarkExportImage(b *testing.B) {
 	b.ReportAllocs()
 }
 
+func BenchmarkOpenBMPImage(b *testing.B) {
+	Startup(nil)
+
+	fileBuf, err := ioutil.ReadFile(resources + "large.bmp")
+	require.NoError(b, err)
+
+	b.SetParallelism(100)
+	b.ResetTimer()
+	for n := 0; n < b.N; n++ {
+		_, err := NewImageFromBuffer(fileBuf)
+		require.NoError(b, err)
+	}
+	b.ReportAllocs()
+}
+
 func TestMemstats(t *testing.T) {
 	var stats MemoryStats
 	ReadVipsMemStats(&stats)
