@@ -254,7 +254,10 @@ func bmpToPNG(src []byte) ([]byte, error) {
 	}
 
 	var w bytes.Buffer
-	err = png.Encode(&w, i)
+	pngEnc := png.Encoder{
+		CompressionLevel: png.NoCompression,
+	}
+	err = pngEnc.Encode(&w, i)
 	if err != nil {
 		return nil, err
 	}
