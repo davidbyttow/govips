@@ -38,7 +38,6 @@ const (
 	InterpretationSRGB      Interpretation = C.VIPS_INTERPRETATION_sRGB
 	InterpretationYXY       Interpretation = C.VIPS_INTERPRETATION_YXY
 	InterpretationFourier   Interpretation = C.VIPS_INTERPRETATION_FOURIER
-	InterpretationGB16      Interpretation = C.VIPS_INTERPRETATION_RGB16
 	InterpretationGrey16    Interpretation = C.VIPS_INTERPRETATION_GREY16
 	InterpretationMatrix    Interpretation = C.VIPS_INTERPRETATION_MATRIX
 	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
