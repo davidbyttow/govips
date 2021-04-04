@@ -603,7 +603,7 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 	return nil
 }
 
-// Composite composites the given overlay image on top of the associated image with provided blending mode.
+// Insert draws the image on top of the associated image at the given coordinates.
 func (r *ImageRef) Insert(sub *ImageRef, x, y, expand, background int) error {
 	out, err := vipsInsert(r.image, sub.image, x, y, InsertOptionalArgs{Expand: expand, Background: background})
 	if err != nil {
