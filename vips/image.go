@@ -603,6 +603,16 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 	return nil
 }
 
+// Composite composites the given overlay image on top of the associated image with provided blending mode.
+func (r *ImageRef) Insert(sub *ImageRef, x, y, expand, background int) error {
+	out, err := vipsInsert(r.image, sub.image, x, y, InsertOptionalArgs{Expand: expand, Background: background})
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Mapim resamples an image using index to look up pixels
 func (r *ImageRef) Mapim(index *ImageRef) error {
 	out, err := vipsMapim(r.image, index.image)

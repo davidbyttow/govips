@@ -148,3 +148,14 @@ int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out,
                      int mode, gint x, gint y) {
   return vips_composite2(base, overlay, out, mode, "x", x, "y", y, NULL);
 }
+
+int insert_image(VipsImage *main, VipsImage *sub, VipsImage **out, int x, int y, int expand, int background) {
+  VipsArrayDouble *vipsBackground;
+  double r = (background & 0xff0000) >> 16;
+  double g = (background & 0x00ff00) >> 8;
+  double b = (background & 0x0000ff) >> 0;
+  double background_arr[3] = {r, g, b};
+  vipsBackground = vips_array_double_new(background_arr, 3);
+
+  return vips_insert(main, sub, out, x, y, "expand", 0, "background", vipsBackground, NULL);
+}

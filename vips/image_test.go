@@ -476,6 +476,19 @@ func TestImageRef_Composite(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Insert(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	imageOverlay, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.Insert(imageOverlay, 10, 20, 0, 0)
+	require.NoError(t, err)
+}
+
 func TestImageRef_Mapim(t *testing.T) {
 	Startup(nil)
 

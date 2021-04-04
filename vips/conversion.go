@@ -119,6 +119,11 @@ const (
 	InterestingLast      Interesting = C.VIPS_INTERESTING_LAST
 )
 
+type InsertOptionalArgs struct {
+	Expand     int
+	Background int
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-copy
 func vipsCopyImage(in *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
@@ -342,6 +347,17 @@ func vipsComposite2(base *C.VipsImage, overlay *C.VipsImage, mode BlendMode, x, 
 	var out *C.VipsImage
 
 	if err := C.composite2_image(base, overlay, &out, C.int(mode), C.gint(x), C.gint(y)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsInsert(main *C.VipsImage, sub *C.VipsImage, x, y int, opts InsertOptionalArgs) (*C.VipsImage, error) {
+	incOpCounter("insert")
+	var out *C.VipsImage
+
+	if err := C.insert_image(main, sub, &out, C.int(x), C.int(y), C.int(opts.Expand), C.int(opts.Background)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
