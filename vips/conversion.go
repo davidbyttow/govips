@@ -119,9 +119,9 @@ const (
 	InterestingLast      Interesting = C.VIPS_INTERESTING_LAST
 )
 
-type InsertOptionalArgs struct {
-	Expand     int
-	Background int
+type InsertOptionalArguments struct {
+	Expand     bool
+	Background ColorRGBA
 }
 
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-copy
@@ -353,11 +353,18 @@ func vipsComposite2(base *C.VipsImage, overlay *C.VipsImage, mode BlendMode, x, 
 	return out, nil
 }
 
-func vipsInsert(main *C.VipsImage, sub *C.VipsImage, x, y int, opts InsertOptionalArgs) (*C.VipsImage, error) {
+func vipsInsert(main *C.VipsImage, sub *C.VipsImage, x, y int, opts *InsertOptionalArguments) (*C.VipsImage, error) {
 	incOpCounter("insert")
 	var out *C.VipsImage
 
-	if err := C.insert_image(main, sub, &out, C.int(x), C.int(y), C.int(opts.Expand), C.int(opts.Background)); err != 0 {
+	background := opts.Background
+
+	expandInt := 0
+	if opts.Expand {
+		expandInt = 1
+	}
+
+	if err := C.insert_image(main, sub, &out, C.int(x), C.int(y), C.int(expandInt), C.double(background.R), C.double(background.G), C.double(background.B), C.double(background.A)); err != 0 {
 		return nil, handleImageError(out)
 	}
 

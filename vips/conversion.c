@@ -149,13 +149,28 @@ int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out,
   return vips_composite2(base, overlay, out, mode, "x", x, "y", y, NULL);
 }
 
-int insert_image(VipsImage *main, VipsImage *sub, VipsImage **out, int x, int y, int expand, int background) {
-  VipsArrayDouble *vipsBackground;
-  double r = (background & 0xff0000) >> 16;
-  double g = (background & 0x00ff00) >> 8;
-  double b = (background & 0x0000ff) >> 0;
-  double background_arr[3] = {r, g, b};
-  vipsBackground = vips_array_double_new(background_arr, 3);
+int insert_image(VipsImage *main, VipsImage *sub, VipsImage **out, int x, int y, int expand, double r, double g, double b, double a) {
+  if (is_16bit(main->Type)) {
+    r = 65535 * r / 255;
+    g = 65535 * g / 255;
+    b = 65535 * b / 255;
+    a = 65535 * a / 255;
+  }
 
-  return vips_insert(main, sub, out, x, y, "expand", 0, "background", vipsBackground, NULL);
+  double background[3] = {r, g, b};
+  double backgroundRGBA[4] = {r, g, b, a};
+
+  VipsArrayDouble *vipsBackground;
+
+  // Ignore the alpha channel if the image doesn't have one
+  if (main->Bands <= 3) {
+    vipsBackground = vips_array_double_new(background, 3);
+  } else {
+    vipsBackground = vips_array_double_new(backgroundRGBA, 4);
+  }
+  int code = vips_insert(main, sub, out, x, y, "expand", expand, "background", vipsBackground, NULL);
+
+  vips_area_unref(VIPS_AREA(vipsBackground));
+
+  return code;
 }
