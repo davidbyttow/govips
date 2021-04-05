@@ -485,10 +485,7 @@ func TestImageRef_Insert(t *testing.T) {
 	imageOverlay, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
-	err = image.Insert(imageOverlay, 100, 200, &InsertOptionalArguments{
-		Background: ColorRGBA{R: 255.0, G: 0.0, B: 255.0, A: 255.0},
-		Expand:     false,
-	})
+	err = image.Insert(imageOverlay, 100, 200, false, nil)
 	require.NoError(t, err)
 }
 

@@ -604,8 +604,8 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 }
 
 // Insert draws the image on top of the associated image at the given coordinates.
-func (r *ImageRef) Insert(sub *ImageRef, x, y int, opts *InsertOptionalArguments) error {
-	out, err := vipsInsert(r.image, sub.image, x, y, opts)
+func (r *ImageRef) Insert(sub *ImageRef, x, y int, expand bool, background *ColorRGBA) error {
+	out, err := vipsInsert(r.image, sub.image, x, y, expand, background)
 	if err != nil {
 		return err
 	}
