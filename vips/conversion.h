@@ -39,4 +39,7 @@ int composite_image(VipsImage **in, VipsImage **out, int n, int *mode, int *x,
 int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out,
                      int mode, gint x, gint y);
 
+int insert_image(VipsImage *main, VipsImage *sub, VipsImage **out, int x, int y,
+                 int expand, double r, double g, double b, double a);
+
 int is_16bit(VipsInterpretation interpretation);

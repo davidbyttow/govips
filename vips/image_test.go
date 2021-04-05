@@ -476,6 +476,19 @@ func TestImageRef_Composite(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Insert(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	imageOverlay, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.Insert(imageOverlay, 100, 200, false, nil)
+	require.NoError(t, err)
+}
+
 func TestImageRef_Mapim(t *testing.T) {
 	Startup(nil)
 
@@ -822,7 +835,7 @@ func TestImageRef_FindTrim_Threshold(t *testing.T) {
 func TestImageRef_Linear_Fails(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
-	err = image.Linear([]float64{1,2}, []float64{1,2,3})
+	err = image.Linear([]float64{1, 2}, []float64{1, 2, 3})
 	assert.Error(t, err)
 }
 
