@@ -289,6 +289,7 @@ func finalizeImage(ref *ImageRef) {
 // Deprecated: Please remove all Close() functions from your code as superfluous.
 func (r *ImageRef) Close() {
 	govipsLog("govips", LogLevelInfo, "Close() is a deprecated function. You can remove it from your code as unnecessary.")
+	r.close()
 }
 
 // close closes an image and frees internal memory associated with it.
