@@ -423,7 +423,7 @@ func TestImage_DrawRectRGBA(t *testing.T) {
 }
 
 func TestImage_Rank(t *testing.T) {
-	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+	goldenTest(t, resources+"png-24bit.png", func(img *ImageRef) error {
 		return img.Rank(15, 15, 224)
 	}, nil, nil)
 }
