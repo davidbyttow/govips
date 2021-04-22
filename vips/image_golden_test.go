@@ -422,6 +422,12 @@ func TestImage_DrawRectRGBA(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Rank(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Rank(15, 15, 224)
+	}, nil, nil)
+}
+
 func TestImage_SimilarityRGB(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
