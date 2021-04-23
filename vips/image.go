@@ -1032,6 +1032,18 @@ func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height 
 	return nil
 }
 
+// Rank does rank filtering on an image. A window of size width by height is passed over the image.
+// At each position, the pixels inside the window are sorted into ascending order and the pixel at position
+// index is output. index numbers from 0.
+func (r *ImageRef) Rank(width int, height int, index int) error {
+	out, err := vipsRank(r.image, width, height, index)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Resize resizes the image based on the scale, maintaining aspect ratio
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 	err := r.PremultiplyAlpha()
