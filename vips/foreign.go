@@ -42,6 +42,7 @@ const (
 	ImageTypeWEBP    ImageType = C.WEBP
 	ImageTypeHEIF    ImageType = C.HEIF
 	ImageTypeBMP     ImageType = C.BMP
+	ImageTypeAVIF    ImageType = C.AVIF
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -55,6 +56,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeWEBP:   ".webp",
 	ImageTypeHEIF:   ".heic",
 	ImageTypeBMP:    ".bmp",
+	ImageTypeAVIF:   ".avif",
 }
 
 // ImageTypes defines the various image types supported by govips
@@ -69,6 +71,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeWEBP:   "webp",
 	ImageTypeHEIF:   "heif",
 	ImageTypeBMP:    "bmp",
+	ImageTypeAVIF:   "heif",
 }
 
 // TiffCompression represents method for compressing a tiff at export
@@ -125,6 +128,8 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypeTIFF
 	} else if isWEBP(buf) {
 		return ImageTypeWEBP
+	} else if isAVIF(buf) {
+		return ImageTypeAVIF
 	} else if isHEIF(buf) {
 		return ImageTypeHEIF
 	} else if isSVG(buf) {
@@ -178,9 +183,13 @@ var avif = []byte("avif")
 
 func isHEIF(buf []byte) bool {
 	return bytes.Equal(buf[4:8], ftyp) && (bytes.Equal(buf[8:12], heic) ||
-		bytes.Equal(buf[8:12], avif) ||
 		bytes.Equal(buf[8:12], mif1) ||
-		bytes.Equal(buf[8:12], msf1))
+		bytes.Equal(buf[8:12], msf1)) ||
+		isAVIF(buf)
+}
+
+func isAVIF(buf []byte) bool {
+	return bytes.Equal(buf[4:8], ftyp) && bytes.Equal(buf[8:12], avif)
 }
 
 var svg = []byte("<svg")
@@ -328,6 +337,19 @@ func vipsSaveHEIFToBuffer(in *C.VipsImage, params HeifExportParams) ([]byte, err
 	p.outputFormat = C.HEIF
 	p.quality = C.int(params.Quality)
 	p.heifLossless = C.int(boolToInt(params.Lossless))
+
+	return vipsSaveToBuffer(p)
+}
+
+func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, error) {
+	incOpCounter("save_heif_buffer")
+
+	p := C.create_save_params(C.AVIF)
+	p.inputImage = in
+	p.outputFormat = C.AVIF
+	p.quality = C.int(params.Quality)
+	p.heifLossless = C.int(boolToInt(params.Lossless))
+	p.avifSpeed = C.int(params.Speed)
 
 	return vipsSaveToBuffer(p)
 }
