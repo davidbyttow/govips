@@ -43,3 +43,7 @@ int find_trim(VipsImage *in, int *left, int *top, int *width, int *height,
 
   return vips_find_trim(in, left, top, width, height, "threshold", threshold, "background", vipsBackground, NULL);
 }
+
+int getpoint(VipsImage *in, double **vector, int n, int x, int y) {
+  return vips_getpoint(in, vector, &n, x, y, NULL);
+}

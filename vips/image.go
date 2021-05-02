@@ -1023,6 +1023,12 @@ func (r *ImageRef) FindTrim(threshold float64, backgroundColor *Color) (int, int
 	return vipsFindTrim(r.image, threshold, backgroundColor)
 }
 
+// GetPoint reads a single pixel on an image.
+// The pixel values are returned in a slice of length n.
+func (r *ImageRef) GetPoint(n int, x int, y int) ([]float64, error) {
+	return vipsGetPoint(r.image, n, x, y)
+}
+
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)

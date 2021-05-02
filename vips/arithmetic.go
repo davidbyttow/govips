@@ -2,6 +2,7 @@ package vips
 
 // #include "arithmetic.h"
 import "C"
+import "unsafe"
 
 // https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-add
 func vipsAdd(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
@@ -98,4 +99,17 @@ func vipsFindTrim(in *C.VipsImage, threshold float64, backgroundColor *Color) (i
 	}
 
 	return int(left), int(top), int(width), int(height), nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-getpoint
+func vipsGetPoint(in *C.VipsImage, n int, x int, y int) ([]float64, error) {
+	incOpCounter("getpoint")
+	var out *C.double
+	defer gFreePointer(unsafe.Pointer(out))
+
+	if err := C.getpoint(in, &out, C.int(n), C.int(x), C.int(y)); err != 0 {
+		return []float64{}, handleVipsError()
+	}
+
+	return (*[1 << 30]float64)(unsafe.Pointer(out))[:n:n], nil
 }
