@@ -446,6 +446,11 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 	}
 }
 
+// GetImageGetPages returns the number of Image
+func (r *ImageRef) GetImageGetPages() int {
+	return vipsImageGetPages(r.image)
+}
+
 // Export creates a byte array of the image for use.
 // The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
