@@ -446,8 +446,8 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 	}
 }
 
-// GetImageGetPages returns the number of Image
-func (r *ImageRef) GetImageGetPages() int {
+// GetPages returns the number of Image
+func (r *ImageRef) GetPages() int {
 	return vipsImageGetPages(r.image)
 }
 
