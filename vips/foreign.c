@@ -95,7 +95,7 @@ int save_buffer(const char *operationName, SaveParams *params,
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer
 int set_jpeg_options(VipsOperation *operation, SaveParams *params)
 {
-  vips_object_set(VIPS_OBJECT(operation),
+  int ret = vips_object_set(VIPS_OBJECT(operation),
                   "strip", params->stripMetadata,
                   "optimize_coding", params->jpegOptimizeCoding,
                   "interlace", params->interlace,
@@ -106,27 +106,27 @@ int set_jpeg_options(VipsOperation *operation, SaveParams *params)
                   "quant_table", params->jpegQuantTable,
                   NULL);
 
-  if (params->quality)
+  if (!ret && params->quality)
   {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
-  // TODO add return value or change function to void
+  return ret;
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-pngsave-buffer
 int set_png_options(VipsOperation *operation, SaveParams *params)
 {
-  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+  int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
                   "compression", params->pngCompression, "interlace",
                   params->interlace, "filter", params->pngFilter, NULL);
 
-  if (params->quality)
+  if (!ret && params->quality)
   {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
-  // TODO add return value or change function to void
+  return ret;
 }
 
 // todo: support additional params
@@ -134,49 +134,49 @@ int set_png_options(VipsOperation *operation, SaveParams *params)
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-webpsave-buffer
 int set_webp_options(VipsOperation *operation, SaveParams *params)
 {
-  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+  int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
                   "lossless", params->webpLossless, "reduction_effort",
                   params->webpReductionEffort, NULL);
 
-  if (params->quality)
+  if (!ret && params->quality)
   {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
-  // TODO add return value or change function to void
+  return ret;
 }
 
 // todo: support additional params
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
 int set_heif_options(VipsOperation *operation, SaveParams *params)
 {
-  vips_object_set(VIPS_OBJECT(operation), "lossless", params->heifLossless,
+  int ret = vips_object_set(VIPS_OBJECT(operation), "lossless", params->heifLossless,
                   NULL);
 
-  if (params->quality)
+  if (!ret && params->quality)
   {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
-  // TODO add return value or change function to void
+  return ret;
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-tiffsave-buffer
 int set_tiff_options(VipsOperation *operation, SaveParams *params)
 {
-  vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
+  int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
                   "compression", params->tiffCompression, "predictor",
                   params->tiffPredictor, "pyramid", params->tiffPyramid,
                   "tile_height", params->tiffTileHeight, "tile_width",
                   params->tiffTileWidth, "tile", params->tiffTile, "xres",
                   params->tiffXRes, "yres", params->tiffYRes, NULL);
 
-  if (params->quality)
+  if (!ret && params->quality)
   {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
-  // TODO add return value or change function to void
+  return ret;
 }
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave-buffer
