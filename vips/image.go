@@ -197,6 +197,18 @@ func NewTiffExportParams() *TiffExportParams {
 	}
 }
 
+type GifExportParams struct {
+	StripMetadata bool
+	Quality       int
+}
+
+// NewGifExportParams creates default values for an export of a GIF image.
+func NewGifExportParams() *GifExportParams {
+	return &GifExportParams{
+		Quality: 75,
+	}
+}
+
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
@@ -434,6 +446,11 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 	}
 }
 
+// GetPages returns the number of Image
+func (r *ImageRef) GetPages() int {
+	return vipsImageGetPages(r.image)
+}
+
 // Export creates a byte array of the image for use.
 // The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
@@ -451,6 +468,10 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	}
 
 	switch format {
+	case ImageTypeGIF:
+		return r.ExportGIF(&GifExportParams{
+			Quality: params.Quality,
+		})
 	case ImageTypeWEBP:
 		return r.ExportWebp(&WebpExportParams{
 			StripMetadata:   params.StripMetadata,
@@ -581,6 +602,20 @@ func (r *ImageRef) ExportTiff(params *TiffExportParams) ([]byte, *ImageMetadata,
 	}
 
 	return buf, r.newMetadata(ImageTypeTIFF), nil
+}
+
+// ExportGIF exports the image as GIF to a buffer.
+func (r *ImageRef) ExportGIF(params *GifExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewGifExportParams()
+	}
+
+	buf, err := vipsSaveGIFToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeGIF), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.

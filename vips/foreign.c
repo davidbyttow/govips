@@ -16,7 +16,7 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out)
   }
   else if (imageType == WEBP)
   {
-    code = vips_webpload_buffer(buf, len, out, NULL);
+    code = vips_webpload_buffer(buf, len, out, "n", -1, NULL);
   }
   else if (imageType == TIFF)
   {
@@ -24,7 +24,7 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out)
   }
   else if (imageType == GIF)
   {
-    code = vips_gifload_buffer(buf, len, out, NULL);
+    code = vips_gifload_buffer(buf, len, out, "n", -1, NULL);
   }
   else if (imageType == PDF)
   {
@@ -179,6 +179,17 @@ int set_tiff_options(VipsOperation *operation, SaveParams *params)
   // TODO add return value or change function to void
 }
 
+// https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave-buffer
+int set_magick_options(VipsOperation *operation, SaveParams *params)
+{
+  vips_object_set(VIPS_OBJECT(operation),"format" ,"GIF" , NULL);
+
+  if (params->quality)
+  {
+   return vips_object_set(VIPS_OBJECT(operation), "quality", params->quality, NULL);
+  }
+}
+
 int save_to_buffer(SaveParams *params)
 {
   switch (params->outputFormat)
@@ -193,6 +204,8 @@ int save_to_buffer(SaveParams *params)
     return save_buffer("heifsave_buffer", params, set_heif_options);
   case TIFF:
     return save_buffer("tiffsave_buffer", params, set_tiff_options);
+  case GIF:
+    return save_buffer("magicksave_buffer", params, set_magick_options);
   default:
     g_warning("Unsupported output type given: %d", params->outputFormat);
     return -1;

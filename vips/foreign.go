@@ -332,6 +332,16 @@ func vipsSaveHEIFToBuffer(in *C.VipsImage, params HeifExportParams) ([]byte, err
 	return vipsSaveToBuffer(p)
 }
 
+func vipsSaveGIFToBuffer(in *C.VipsImage, params GifExportParams) ([]byte, error) {
+	incOpCounter("save_gif_buffer")
+
+	p := C.create_save_params(C.GIF)
+	p.inputImage = in
+	p.quality = C.int(params.Quality)
+
+	return vipsSaveToBuffer(p)
+}
+
 func vipsSaveToBuffer(params C.struct_SaveParams) ([]byte, error) {
 	if err := C.save_to_buffer(&params); err != 0 {
 		return nil, handleSaveBufferError(params.outputBuffer)
