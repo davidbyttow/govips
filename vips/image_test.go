@@ -722,6 +722,24 @@ func TestIsColorSpaceSupport(t *testing.T) {
 	assert.Error(t, err)
 }
 
+func TestGetPages_gif(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	pages := image.GetPages()
+	assert.Equal(t, pages, 8)
+}
+
+func TestGetPages_webp(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "webp-animated.webp")
+	require.NoError(t, err)
+
+	pages := image.GetPages()
+	assert.Equal(t, pages, 8)
+}
+
 func TestImageRef_Divide__Error(t *testing.T) {
 	Startup(nil)
 
