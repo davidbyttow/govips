@@ -561,7 +561,7 @@ func TestImage_OptimizeCoding(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		nil, ep,)
+		nil, ep)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=on
@@ -574,7 +574,7 @@ func TestImage_SubsampleMode(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		nil, ep,)
+		nil, ep)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --trellis-quant
@@ -588,7 +588,7 @@ func TestImage_TrellisQuant(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		nil, ep,)
+		nil, ep)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --overshoot-deringing
@@ -602,7 +602,7 @@ func TestImage_OvershootDeringing(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		nil, ep,)
+		nil, ep)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --interlace --optimize-scans
@@ -617,7 +617,7 @@ func TestImage_OptimizeScans(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		nil, ep,)
+		nil, ep)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --quant-table=3
@@ -631,7 +631,27 @@ func TestImage_QuantTable(t *testing.T) {
 	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error { return nil },
-		nil, ep,)
+		nil, ep)
+}
+
+func TestImage_animationGIF(t *testing.T) {
+	ep := &ExportParams{
+		Format:  ImageTypeGIF,
+		Quality: 75,
+	}
+	goldenTest(t, resources+"gif-animated.gif",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
+}
+
+func TestImage_animationWebP(t *testing.T) {
+	ep := &ExportParams{
+		Format:  ImageTypeWEBP,
+		Quality: 75,
+	}
+	goldenTest(t, resources+"webp-animated.webp",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
 }
 
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
