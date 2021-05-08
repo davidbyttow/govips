@@ -418,9 +418,6 @@ func TestImageRef_Close(t *testing.T) {
 	assert.NoError(t, err)
 
 	image.Close()
-	assert.NotNil(t, image.image)
-
-	image.close()
 	assert.Nil(t, image.image)
 
 	PrintObjectReport("Final")
@@ -432,12 +429,12 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
-	go image.close()
-	go image.close()
-	go image.close()
-	go image.close()
-	defer image.close()
-	image.close()
+	go image.Close()
+	go image.Close()
+	go image.Close()
+	go image.Close()
+	defer image.Close()
+	image.Close()
 
 	assert.Nil(t, image.image)
 	runtime.GC()

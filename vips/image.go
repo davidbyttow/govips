@@ -296,18 +296,13 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 
 func finalizeImage(ref *ImageRef) {
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("closing image %p", ref))
-	ref.close()
+	ref.Close()
 }
 
-// Close is an empty function that does nothing. Images are automatically closed by GC.
-// Deprecated: Please remove all Close() functions from your code as superfluous.
+// Close manually closes the image and frees the memory. Calling Close() is optional.
+// Images are automatically closed by GC. However, in high volume applications the GC
+// can't keep up with the amount of memory so you might want to manually close the images.
 func (r *ImageRef) Close() {
-	govipsLog("govips", LogLevelInfo, "Close() is a deprecated function. You can remove it from your code as unnecessary.")
-}
-
-// close closes an image and frees internal memory associated with it.
-// This function is automatically called via GC.
-func (r *ImageRef) close() {
 	r.lock.Lock()
 
 	if r.image != nil {
