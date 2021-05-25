@@ -116,3 +116,14 @@ func Test_DetermineImageType__BMP(t *testing.T) {
 	imageType := DetermineImageType(buf)
 	assert.Equal(t, ImageTypeBMP, imageType)
 }
+
+func Test_DetermineImageType__AVIF(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := ioutil.ReadFile(resources + "avif.avif")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypeAVIF, imageType)
+}

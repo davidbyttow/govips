@@ -23,7 +23,8 @@ typedef enum types {
   SVG,
   MAGICK,
   HEIF,
-  BMP
+  BMP,
+  AVIF
 } ImageType;
 
 int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out);
@@ -67,6 +68,8 @@ typedef struct SaveParams {
   double tiffXRes;
   double tiffYRes;
 
+  // AVIF
+  int avifSpeed;
 } SaveParams;
 
 SaveParams create_save_params(ImageType outputFormat);

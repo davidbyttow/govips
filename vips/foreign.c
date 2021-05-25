@@ -40,6 +40,10 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out)
     // https://github.com/libvips/libvips/pull/1680
     code = vips_heifload_buffer(buf, len, out, "autorotate", TRUE, NULL);
   }
+  else if (imageType == AVIF)
+  {
+    code = vips_heifload_buffer(buf, len, out, NULL);
+  }
   else if (imageType == MAGICK)
   {
     code = vips_magickload_buffer(buf, len, out, NULL);
@@ -190,6 +194,19 @@ int set_magick_options(VipsOperation *operation, SaveParams *params)
   }
 }
 
+int set_avif_options(VipsOperation *operation, SaveParams *params)
+{
+  vips_object_set(VIPS_OBJECT(operation), "compression", VIPS_FOREIGN_HEIF_COMPRESSION_AV1,
+                  "lossless", params->heifLossless, "speed", params->avifSpeed, NULL);
+
+  if (params->quality)
+  {
+    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
+
+  // TODO add return value or change function to void
+}
+
 int save_to_buffer(SaveParams *params)
 {
   switch (params->outputFormat)
@@ -206,6 +223,8 @@ int save_to_buffer(SaveParams *params)
     return save_buffer("tiffsave_buffer", params, set_tiff_options);
   case GIF:
     return save_buffer("magicksave_buffer", params, set_magick_options);
+  case AVIF:
+    return save_buffer("heifsave_buffer", params, set_avif_options);
   default:
     g_warning("Unsupported output type given: %d", params->outputFormat);
     return -1;
@@ -244,7 +263,10 @@ static SaveParams defaultSaveParams = {
     .tiffTileHeight = 256,
     .tiffTileWidth = 256,
     .tiffXRes = 1.0,
-    .tiffYRes = 1.0};
+    .tiffYRes = 1.0,
+
+    .avifSpeed = 5
+    };
 
 SaveParams create_save_params(ImageType outputFormat)
 {

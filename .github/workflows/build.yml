@@ -25,6 +25,8 @@ jobs:
         if: matrix.os == 'ubuntu-18.04' || matrix.os == 'ubuntu-20.04'
         run: |
           sudo add-apt-repository -y ppa:tonimelisma/ppa
+          sudo add-apt-repository -y ppa:strukturag/libheif
+          sudo add-apt-repository -y ppa:strukturag/libde265
           sudo apt-get -y install libvips-dev
 
       - name: Install macos deps

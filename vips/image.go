@@ -58,6 +58,7 @@ type ExportParams struct {
 	OvershootDeringing bool          // jpeg param
 	OptimizeScans      bool          // jpeg param
 	QuantTable         int           // jpeg param
+	Speed              int           // avif param
 }
 
 // NewDefaultExportParams creates default values for an export when image type is not JPEG, PNG or WEBP.
@@ -206,6 +207,23 @@ type GifExportParams struct {
 func NewGifExportParams() *GifExportParams {
 	return &GifExportParams{
 		Quality: 75,
+	}
+}
+
+// AvifExportParams are options when exporting an AVIF to file or buffer.
+type AvifExportParams struct {
+	StripMetadata bool
+	Quality       int
+	Lossless      bool
+	Speed         int
+}
+
+// NewAvifExportParams creates default values for an export of an AVIF image.
+func NewAvifExportParams() *AvifExportParams {
+	return &AvifExportParams{
+		Quality:  80,
+		Lossless: false,
+		Speed:    5,
 	}
 }
 
@@ -495,6 +513,13 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 			Quality:  params.Quality,
 			Lossless: params.Lossless,
 		})
+	case ImageTypeAVIF:
+		return r.ExportAvif(&AvifExportParams{
+			StripMetadata: params.StripMetadata,
+			Quality:       params.Quality,
+			Lossless:      params.Lossless,
+			Speed:         params.Speed,
+		})
 	default:
 		format = ImageTypeJPEG
 		return r.ExportJpeg(&JpegExportParams{
@@ -524,6 +549,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportHeif(NewHeifExportParams())
 	case ImageTypeTIFF:
 		return r.ExportTiff(NewTiffExportParams())
+	case ImageTypeAVIF:
+		return r.ExportAvif(NewAvifExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -611,6 +638,20 @@ func (r *ImageRef) ExportGIF(params *GifExportParams) ([]byte, *ImageMetadata, e
 	}
 
 	return buf, r.newMetadata(ImageTypeGIF), nil
+}
+
+// ExportAvif exports the image as AVIF to a buffer.
+func (r *ImageRef) ExportAvif(params *AvifExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewAvifExportParams()
+	}
+
+	buf, err := vipsSaveAVIFToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeAVIF), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.

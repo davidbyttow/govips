@@ -10,6 +10,8 @@ RUN apt-get -y --no-install-recommends install software-properties-common gpg-ag
 RUN apt-get -y --no-install-recommends install \
     build-essential devscripts lsb-release dput wget git golang nvi
 RUN add-apt-repository -y ppa:tonimelisma/ppa
+RUN add-apt-repository -y ppa:strukturag/libheif
+RUN add-apt-repository -y ppa:strukturag/libde265
 RUN apt-get -y install --no-install-recommends libvips-dev
 RUN go get golang.org/dl/go1.15.4
 RUN ~/go/bin/go1.15.4 download
