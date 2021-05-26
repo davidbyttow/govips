@@ -847,6 +847,13 @@ func TestImageRef_FindTrim_Threshold(t *testing.T) {
 	assert.Equal(t, 256, height)
 }
 
+func TestImageRef_Width(t *testing.T) {
+	image, err := NewImageFromFile(resources + "gif-animated-2.gif")
+	assert.NoError(t, err)
+	width := image.Width()
+	assert.Equal(t, 90, width)
+}
+
 func TestImageRef_Linear_Fails(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
