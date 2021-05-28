@@ -690,6 +690,7 @@ func TestToBytes(t *testing.T) {
 	require.NoError(t, err)
 
 	buf1, err := image.ToBytes()
+	assert.NoError(t, err)
 	assert.Equal(t, 6220800, len(buf1))
 }
 

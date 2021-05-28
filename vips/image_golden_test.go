@@ -637,26 +637,6 @@ func TestImage_QuantTable(t *testing.T) {
 		nil, ep)
 }
 
-func TestImage_animationGIF(t *testing.T) {
-	ep := &ExportParams{
-		Format:  ImageTypeGIF,
-		Quality: 75,
-	}
-	goldenTest(t, resources+"gif-animated.gif",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
-}
-
-func TestImage_animationWebP(t *testing.T) {
-	ep := &ExportParams{
-		Format:  ImageTypeWEBP,
-		Quality: 75,
-	}
-	goldenTest(t, resources+"webp-animated.webp",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
-}
-
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 
