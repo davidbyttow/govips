@@ -16,7 +16,7 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out)
   }
   else if (imageType == WEBP)
   {
-    code = vips_webpload_buffer(buf, len, out, "n", -1, NULL);
+    code = vips_webpload_buffer(buf, len, out, NULL);
   }
   else if (imageType == TIFF)
   {
@@ -24,7 +24,7 @@ int load_image_buffer(void *buf, size_t len, int imageType, VipsImage **out)
   }
   else if (imageType == GIF)
   {
-    code = vips_gifload_buffer(buf, len, out, "n", -1, NULL);
+    code = vips_gifload_buffer(buf, len, out, NULL);
   }
   else if (imageType == PDF)
   {
@@ -100,15 +100,15 @@ int save_buffer(const char *operationName, SaveParams *params,
 int set_jpeg_options(VipsOperation *operation, SaveParams *params)
 {
   int ret = vips_object_set(VIPS_OBJECT(operation),
-                  "strip", params->stripMetadata,
-                  "optimize_coding", params->jpegOptimizeCoding,
-                  "interlace", params->interlace,
-                  "subsample_mode", params->jpegSubsample,
-                  "trellis_quant", params->jpegTrellisQuant,
-                  "overshoot_deringing", params->jpegOvershootDeringing,
-                  "optimize_scans", params->jpegOptimizeScans,
-                  "quant_table", params->jpegQuantTable,
-                  NULL);
+                            "strip", params->stripMetadata,
+                            "optimize_coding", params->jpegOptimizeCoding,
+                            "interlace", params->interlace,
+                            "subsample_mode", params->jpegSubsample,
+                            "trellis_quant", params->jpegTrellisQuant,
+                            "overshoot_deringing", params->jpegOvershootDeringing,
+                            "optimize_scans", params->jpegOptimizeScans,
+                            "quant_table", params->jpegQuantTable,
+                            NULL);
 
   if (!ret && params->quality)
   {
@@ -122,8 +122,8 @@ int set_jpeg_options(VipsOperation *operation, SaveParams *params)
 int set_png_options(VipsOperation *operation, SaveParams *params)
 {
   int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
-                  "compression", params->pngCompression, "interlace",
-                  params->interlace, "filter", params->pngFilter, NULL);
+                            "compression", params->pngCompression, "interlace",
+                            params->interlace, "filter", params->pngFilter, NULL);
 
   if (!ret && params->quality)
   {
@@ -139,8 +139,8 @@ int set_png_options(VipsOperation *operation, SaveParams *params)
 int set_webp_options(VipsOperation *operation, SaveParams *params)
 {
   int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
-                  "lossless", params->webpLossless, "reduction_effort",
-                  params->webpReductionEffort, NULL);
+                            "lossless", params->webpLossless, "reduction_effort",
+                            params->webpReductionEffort, NULL);
 
   if (!ret && params->quality)
   {
@@ -155,7 +155,7 @@ int set_webp_options(VipsOperation *operation, SaveParams *params)
 int set_heif_options(VipsOperation *operation, SaveParams *params)
 {
   int ret = vips_object_set(VIPS_OBJECT(operation), "lossless", params->heifLossless,
-                  NULL);
+                            NULL);
 
   if (!ret && params->quality)
   {
@@ -169,11 +169,11 @@ int set_heif_options(VipsOperation *operation, SaveParams *params)
 int set_tiff_options(VipsOperation *operation, SaveParams *params)
 {
   int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
-                  "compression", params->tiffCompression, "predictor",
-                  params->tiffPredictor, "pyramid", params->tiffPyramid,
-                  "tile_height", params->tiffTileHeight, "tile_width",
-                  params->tiffTileWidth, "tile", params->tiffTile, "xres",
-                  params->tiffXRes, "yres", params->tiffYRes, NULL);
+                            "compression", params->tiffCompression, "predictor",
+                            params->tiffPredictor, "pyramid", params->tiffPyramid,
+                            "tile_height", params->tiffTileHeight, "tile_width",
+                            params->tiffTileWidth, "tile", params->tiffTile, "xres",
+                            params->tiffXRes, "yres", params->tiffYRes, NULL);
 
   if (!ret && params->quality)
   {
@@ -186,11 +186,11 @@ int set_tiff_options(VipsOperation *operation, SaveParams *params)
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-magicksave-buffer
 int set_magick_options(VipsOperation *operation, SaveParams *params)
 {
-  vips_object_set(VIPS_OBJECT(operation),"format" ,"GIF" , NULL);
+  vips_object_set(VIPS_OBJECT(operation), "format", "GIF", NULL);
 
   if (params->quality)
   {
-   return vips_object_set(VIPS_OBJECT(operation), "quality", params->quality, NULL);
+    return vips_object_set(VIPS_OBJECT(operation), "quality", params->quality, NULL);
   }
 }
 
@@ -265,8 +265,7 @@ static SaveParams defaultSaveParams = {
     .tiffXRes = 1.0,
     .tiffYRes = 1.0,
 
-    .avifSpeed = 5
-    };
+    .avifSpeed = 5};
 
 SaveParams create_save_params(ImageType outputFormat)
 {

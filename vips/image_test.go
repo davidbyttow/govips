@@ -725,7 +725,7 @@ func TestGetPages_gif(t *testing.T) {
 	require.NoError(t, err)
 
 	pages := image.GetPages()
-	assert.Equal(t, pages, 8)
+	assert.Equal(t, 8, pages)
 }
 
 func TestGetPages_webp(t *testing.T) {
@@ -734,7 +734,7 @@ func TestGetPages_webp(t *testing.T) {
 	require.NoError(t, err)
 
 	pages := image.GetPages()
-	assert.Equal(t, pages, 8)
+	assert.Equal(t, 8, pages)
 }
 
 func TestImageRef_Divide__Error(t *testing.T) {
@@ -847,10 +847,10 @@ func TestImageRef_FindTrim_Threshold(t *testing.T) {
 	assert.Equal(t, 256, height)
 }
 
-func TestImageRef_Width(t *testing.T) {
+func TestImageRef_Height(t *testing.T) {
 	image, err := NewImageFromFile(resources + "gif-animated-2.gif")
 	assert.NoError(t, err)
-	width := image.Width()
+	width := image.Height()
 	assert.Equal(t, 90, width)
 }
 

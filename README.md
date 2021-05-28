@@ -26,9 +26,11 @@ brew install vips pkg-config
 
 ### Ubuntu
 
-You need at least libvips 8.10.2 to work with govips. Groovy (20.10) and Hirsute (21.04) repositories have the latest version. However on Bionic (18.04) and Focal (20.04), you need to install libvips and dependencies from a backports repository:
+You need a recent libvips to work with govips. New govips functionality is continuously added which takes advantage of new libvips functionality. Groovy (20.10) and Hirsute (21.04) repositories have working versions. However on Focal (20.04), you need to install libvips and dependencies from a backports repository:
 
 ```bash
+sudo add-apt-repository -y ppa:strukturag/libde265
+sudo add-apt-repository -y ppa:strukturag/libheif
 sudo add-apt-repository ppa:tonimelisma/ppa
 ```
 
