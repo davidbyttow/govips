@@ -225,13 +225,12 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
 	var err error
-	var out *C.VipsImage
 
 	imageType := DetermineImageType(src)
 
@@ -249,11 +248,13 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), &out); err != 0 {
-		return nil, ImageTypeUnknown, handleImageError(out)
+	importParams := createImportParams(imageType, params)
+
+	if err := C.load_from_buffer(&importParams, unsafe.Pointer(&src[0]), C.size_t(len(src))); err != 0 {
+		return nil, ImageTypeUnknown, handleImageError(importParams.outputImage)
 	}
 
-	return out, imageType, nil
+	return importParams.outputImage, imageType, nil
 }
 
 func bmpToPNG(src []byte) ([]byte, error) {
@@ -272,6 +273,35 @@ func bmpToPNG(src []byte) ([]byte, error) {
 	}
 
 	return w.Bytes(), nil
+}
+
+func maybeSetBoolParam(p BoolParameter, cp *C.Param) {
+	if p.IsSet() {
+		C.set_bool_param(cp, toGboolean(p.Get()))
+	}
+}
+
+func maybeSetIntParam(p IntParameter, cp *C.Param) {
+	if p.IsSet() {
+		C.set_int_param(cp, C.int(p.Get()))
+	}
+}
+
+func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
+	p := C.create_load_params(C.ImageType(format))
+
+	maybeSetBoolParam(params.AutoRotate, &p.autorotate)
+	maybeSetBoolParam(params.FailOnError, &p.fail)
+	maybeSetIntParam(params.Page, &p.page)
+	maybeSetIntParam(params.NumPages, &p.n)
+	maybeSetIntParam(params.JpegShrinkFactor, &p.jpegShrink)
+	maybeSetBoolParam(params.HeifThumbnail, &p.heifThumbnail)
+	maybeSetBoolParam(params.SvgUnlimited, &p.svgUnlimited)
+
+	if params.Density.IsSet() {
+		C.set_double_param(&p.dpi, C.gdouble(params.Density.Get()))
+	}
+	return p
 }
 
 func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, error) {

@@ -42,6 +42,77 @@ type ImageMetadata struct {
 	Orientation int
 }
 
+type Parameter struct {
+	value interface{}
+	isSet bool
+}
+
+func (p *Parameter) IsSet() bool {
+	return p.isSet
+}
+
+func (p *Parameter) set(v interface{}) {
+	p.value = v
+	p.isSet = true
+}
+
+type BoolParameter struct {
+	Parameter
+}
+
+func (p *BoolParameter) Set(v bool) {
+	p.set(v)
+}
+
+func (p *BoolParameter) Get() bool {
+	return p.value.(bool)
+}
+
+type IntParameter struct {
+	Parameter
+}
+
+func (p *IntParameter) Set(v int) {
+	p.set(v)
+}
+
+func (p *IntParameter) Get() int {
+	return p.value.(int)
+}
+
+type Float64Parameter struct {
+	Parameter
+}
+
+func (p *Float64Parameter) Set(v float64) {
+	p.set(v)
+}
+
+func (p *Float64Parameter) Get() float64 {
+	return p.value.(float64)
+}
+
+// ImportParams are options for loading an image. Some are type-specific.
+// For default loading, use NewImportParams() or specify nil
+type ImportParams struct {
+	AutoRotate  BoolParameter
+	FailOnError BoolParameter
+	Page        IntParameter
+	NumPages    IntParameter
+	Density     IntParameter
+
+	JpegShrinkFactor IntParameter
+	HeifThumbnail    BoolParameter
+	SvgUnlimited     BoolParameter
+}
+
+// NewImportParams creates default ImportParams
+func NewImportParams() *ImportParams {
+	p := &ImportParams{}
+	p.FailOnError.Set(true)
+	return p
+}
+
 // ExportParams are options when exporting an image to file or buffer.
 // Deprecated: Use format-specific params
 type ExportParams struct {
@@ -250,9 +321,18 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+	return LoadImageFromBuffer(buf, nil)
+}
+
+// LoadImageFromBuffer loads an image buffer and creates a new Image
+func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	if params == nil {
+		params = NewImportParams()
+	}
+
+	image, format, err := vipsLoadFromBuffer(buf, params)
 	if err != nil {
 		return nil, err
 	}
