@@ -371,39 +371,20 @@ int save_to_buffer(SaveParams *params) {
   return 1;
 }
 
-#define DEFAULT_PARAM                          \
-  {                                            \
-  type:                                        \
-    PARAM_TYPE_NULL, value : 0, is_set : FALSE \
-  }
-
-static LoadParams defaultLoadParams = {
-  inputBlob : NULL,
-  outputImage : NULL,
-  autorotate : DEFAULT_PARAM,
-  fail : DEFAULT_PARAM,
-  page : DEFAULT_PARAM,
-  n : DEFAULT_PARAM,
-  dpi : DEFAULT_PARAM,
-  jpegShrink : DEFAULT_PARAM,
-  heifThumbnail : DEFAULT_PARAM,
-  svgUnlimited : DEFAULT_PARAM,
-};
-
 LoadParams create_load_params(ImageType inputFormat) {
   Param defaultParam = {};
   LoadParams p = {
-    inputFormat : inputFormat,
-    inputBlob : NULL,
-    outputImage : NULL,
-    autorotate : defaultParam,
-    fail : defaultParam,
-    page : defaultParam,
-    n : defaultParam,
-    dpi : defaultParam,
-    jpegShrink : defaultParam,
-    heifThumbnail : defaultParam,
-    svgUnlimited : defaultParam,
+      .inputFormat = inputFormat,
+      .inputBlob = NULL,
+      .outputImage = NULL,
+      .autorotate = defaultParam,
+      .fail = defaultParam,
+      .page = defaultParam,
+      .n = defaultParam,
+      .dpi = defaultParam,
+      .jpegShrink = defaultParam,
+      .heifThumbnail = defaultParam,
+      .svgUnlimited = defaultParam,
   };
   return p;
 }
