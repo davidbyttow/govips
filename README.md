@@ -109,6 +109,20 @@ See _examples/_ folder for more examples.
 $ make test
 ```
 
+## Memory usage note
+### MALLOC_ARENA_MAX
+`libvips` uses GLib for memory management, and it brings GLib memory fragmentation
+issues to heavily multi-threaded programs. First thing you can try if you noticed
+constantly growing RSS usage without Go's sys memory growth is set `MALLOC_ARENA_MAX`:
+
+```
+MALLOC_ARENA_MAX=2 application
+```
+
+This will reduce GLib memory appetites by reducing the number of malloc arenas
+that it can create. By default GLib creates one are per thread, and this would
+follow to a memory fragmentation.
+
 ## Contributing
 
 Feel free to file issues or create pull requests. See this [guide on contributing](https://github.com/davidbyttow/govips/blob/master/CONTRIBUTING.md) for more information.
