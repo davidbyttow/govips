@@ -93,6 +93,7 @@ int set_jpegload_options(VipsOperation *operation, LoadParams *params) {
 }
 
 int set_pngload_options(VipsOperation *operation, LoadParams *params) {
+  MAYBE_SET_BOOL(operation, params->fail, "fail");
   return 0;
 }
 
