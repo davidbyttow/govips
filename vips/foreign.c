@@ -173,6 +173,7 @@ int load_buffer(const char *operationName, void *buf, size_t len,
 
   g_object_get(VIPS_OBJECT(operation), "out", &params->outputImage, NULL);
 
+  vips_object_unref_outputs(VIPS_OBJECT(operation));
   g_object_unref(operation);
 
   return 0;
