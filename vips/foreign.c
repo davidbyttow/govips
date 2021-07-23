@@ -239,11 +239,22 @@ int set_pngsave_options(VipsOperation *operation, SaveParams *params) {
   int ret =
       vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
                       "compression", params->pngCompression, "interlace",
-                      params->interlace, "filter", params->pngFilter, NULL);
+                      params->interlace, "filter", params->pngFilter, "palette",
+                      params->pngPalette, NULL);
 
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
+
+  if (!ret && params->pngDither) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "dither", params->pngDither, NULL);
+  }
+
+  if (!ret && params->pngBitdepth) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "bitdepth", params->pngBitdepth, NULL);
+  }
+
+  // TODO: Handle `profile` param.
 
   return ret;
 }
@@ -411,6 +422,9 @@ static SaveParams defaultSaveParams = {
     .jpegQuantTable = 0,
 
     .pngCompression = 6,
+    .pngPalette = FALSE,
+    .pngBitdepth = 0,
+    .pngDither = 0,
     .pngFilter = VIPS_FOREIGN_PNG_FILTER_NONE,
 
     .webpLossless = FALSE,

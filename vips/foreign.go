@@ -327,9 +327,13 @@ func vipsSavePNGToBuffer(in *C.VipsImage, params PngExportParams) ([]byte, error
 
 	p := C.create_save_params(C.PNG)
 	p.inputImage = in
+	p.quality = C.int(params.Quality)
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.interlace = C.int(boolToInt(params.Interlace))
 	p.pngCompression = C.int(params.Compression)
+	p.pngPalette = C.int(boolToInt(params.Palette))
+	p.pngDither = C.double(params.Dither)
+	p.pngBitdepth = C.int(params.Bitdepth)
 
 	return vipsSaveToBuffer(p)
 }

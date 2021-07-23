@@ -209,6 +209,11 @@ type PngExportParams struct {
 	StripMetadata bool
 	Compression   int
 	Interlace     bool
+	Quality       int
+	Palette       bool
+	Dither        float64
+	Bitdepth      int
+	Profile       string // TODO: Use this param during save
 }
 
 // NewPngExportParams creates default values for an export of a PNG image.
@@ -217,6 +222,7 @@ func NewPngExportParams() *PngExportParams {
 	return &PngExportParams{
 		Compression: 6,
 		Interlace:   false,
+		Palette:     false,
 	}
 }
 
