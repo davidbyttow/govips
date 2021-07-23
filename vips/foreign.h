@@ -36,7 +36,7 @@ typedef enum ParamType {
 
 typedef struct Param {
   ParamType type;
-  
+
   union Value {
     gboolean b;
     gint i;
@@ -91,6 +91,9 @@ typedef struct SaveParams {
   // PNG
   int pngCompression;
   VipsForeignPngFilter pngFilter;
+  BOOL pngPalette;
+  double pngDither;
+  int pngBitdepth;
 
   // WEBP
   BOOL webpLossless;
