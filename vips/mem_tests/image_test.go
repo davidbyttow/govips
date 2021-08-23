@@ -2,13 +2,14 @@ package mem_tests
 
 import (
 	"fmt"
-	"github.com/davidbyttow/govips/v2/vips"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"os"
 	"runtime"
 	"testing"
+
+	"github.com/davidbyttow/govips/v2/vips"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func Startup() {
