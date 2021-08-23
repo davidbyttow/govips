@@ -770,6 +770,31 @@ func (r *ImageRef) Insert(sub *ImageRef, x, y int, expand bool, background *Colo
 	return nil
 }
 
+// Join joins this image with another in the direction specified
+func (r *ImageRef) Join(in *ImageRef, dir Direction) error {
+	out, err := vipsJoin(r.image, in.image, dir)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// ArrayJoin joins an array of images together wrapping at each n images
+func (r *ImageRef) ArrayJoin(images []*ImageRef, across int) error {
+	allImages := append([]*ImageRef{r}, images...)
+	inputs := make([]*C.VipsImage, len(allImages))
+	for i := range inputs {
+		inputs[i] = allImages[i].image
+	}
+	out, err := vipsArrayJoin(inputs, across)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Mapim resamples an image using index to look up pixels
 func (r *ImageRef) Mapim(index *ImageRef) error {
 	out, err := vipsMapim(r.image, index.image)

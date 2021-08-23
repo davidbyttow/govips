@@ -174,3 +174,11 @@ int insert_image(VipsImage *main, VipsImage *sub, VipsImage **out, int x, int y,
 
   return code;
 }
+
+int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction) {
+  return vips_join(in1, in2, out, direction, NULL);
+}
+
+int arrayjoin(VipsImage **in, VipsImage **out, int n, int across) {
+  return vips_arrayjoin(in, out, n, "across", across, NULL);
+}

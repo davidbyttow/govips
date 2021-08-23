@@ -486,6 +486,53 @@ func TestImageRef_Insert(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Join(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	joinImage, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	width := image.Width() + joinImage.Width()
+	height := joinImage.Height() // join appears to use the second image's height
+
+	err = image.Join(joinImage, DirectionHorizontal)
+	require.NoError(t, err)
+
+	assert.True(t, width == image.Width(), "Join image width is incorrect: %d != %d", width, image.Width())
+	assert.True(t, height == image.Height(), "Join image height is incorrect: %d != %d", height, image.Height())
+}
+
+func TestImageRef_ArrayJoin(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	joinImage1, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	joinImage2, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	joinImage3, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	joinImage4, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	images := []*ImageRef{image, joinImage1, joinImage2, joinImage3, joinImage4}
+	width := image.Width() * 2 // arrayjoin appears to size based on the image's width and height
+	height := image.Height() * 3
+
+	err = image.ArrayJoin(images, 2)
+	require.NoError(t, err)
+
+	assert.True(t, width == image.Width(), "ArrayJoin image width is incorrect: %d != %d", width, image.Width())
+	assert.True(t, height == image.Height(), "ArrayJoin image height is incorrect: %d != %d", height, image.Height())
+}
+
 func TestImageRef_Mapim(t *testing.T) {
 	Startup(nil)
 
