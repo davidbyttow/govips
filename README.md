@@ -47,7 +47,7 @@ If you need to run Govips natively on Windows, it's not difficult but will requi
 ## Installation
 
 ```bash
-go get -u github.com/davidbyttow/govips/v2/vips
+go get -u github.com/wix-playground/govips/vips
 ```
 
 ### MacOS note
@@ -68,7 +68,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/davidbyttow/govips/v2/vips"
+	"github.com/wix-playground/govips/vips"
 )
 
 func checkError(err error) {
