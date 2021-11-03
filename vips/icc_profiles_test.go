@@ -2,6 +2,7 @@ package vips
 
 import (
 	"io/ioutil"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -17,19 +18,19 @@ func Test_ICCProfileLengths(t *testing.T) {
 func Test_ICCProfileInitialisation(t *testing.T) {
 	initializeICCProfiles()
 
-	srgbProfile, err := ioutil.ReadFile(SRGBV2MicroICCProfilePath)
+	srgbProfile, err := ioutil.ReadFile(filepath.Join(temporaryDirectory, sRGBV2MicroICCProfilePath))
 	assert.NoError(t, err)
 	assert.Equal(t, sRGBV2MicroICCProfile, srgbProfile)
 
-	grayProfile, err := ioutil.ReadFile(SGrayV2MicroICCProfilePath)
+	grayProfile, err := ioutil.ReadFile(filepath.Join(temporaryDirectory, sGrayV2MicroICCProfilePath))
 	assert.NoError(t, err)
 	assert.Equal(t, sGrayV2MicroICCProfile, grayProfile)
 
-	srgbProfile2, err := ioutil.ReadFile(SRGBIEC6196621ICCProfilePath)
+	srgbProfile2, err := ioutil.ReadFile(filepath.Join(temporaryDirectory, sRGBIEC6196621ICCProfilePath))
 	assert.NoError(t, err)
 	assert.Equal(t, sRGBIEC6196621ICCProfile, srgbProfile2)
 
-	grayProfile2, err := ioutil.ReadFile(GenericGrayGamma22ICCProfilePath)
+	grayProfile2, err := ioutil.ReadFile(filepath.Join(temporaryDirectory, genericGrayGamma22ICCProfilePath))
 	assert.NoError(t, err)
 	assert.Equal(t, genericGrayGamma22ICCProfile, grayProfile2)
 }

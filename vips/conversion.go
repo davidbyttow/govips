@@ -347,3 +347,47 @@ func vipsComposite2(base *C.VipsImage, overlay *C.VipsImage, mode BlendMode, x, 
 
 	return out, nil
 }
+
+func vipsInsert(main *C.VipsImage, sub *C.VipsImage, x, y int, expand bool, background *ColorRGBA) (*C.VipsImage, error) {
+	incOpCounter("insert")
+	var out *C.VipsImage
+
+	if background == nil {
+		background = &ColorRGBA{R: 0.0, G: 0.0, B: 0.0, A: 255.0}
+	}
+
+	expandInt := 0
+	if expand {
+		expandInt = 1
+	}
+
+	if err := C.insert_image(main, sub, &out, C.int(x), C.int(y), C.int(expandInt), C.double(background.R), C.double(background.G), C.double(background.B), C.double(background.A)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-join
+func vipsJoin(input1 *C.VipsImage, input2 *C.VipsImage, dir Direction) (*C.VipsImage, error) {
+	incOpCounter("join")
+	var out *C.VipsImage
+
+	defer C.g_object_unref(C.gpointer(input1))
+	defer C.g_object_unref(C.gpointer(input2))
+	if err := C.join(input1, input2, &out, C.int(dir)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-arrayjoin
+func vipsArrayJoin(inputs []*C.VipsImage, across int) (*C.VipsImage, error) {
+	incOpCounter("arrayjoin")
+	var out *C.VipsImage
+
+	if err := C.arrayjoin(&inputs[0], &out, C.int(len(inputs)), C.int(across)); err != 0 {
+		return nil, handleVipsError()
+	}
+	return out, nil
+}

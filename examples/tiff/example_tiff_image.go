@@ -4,9 +4,10 @@ package package_test
 
 import (
 	"fmt"
-	"github.com/wix-playground/govips/vips"
 	"io/ioutil"
 	"os"
+
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 func checkError(err error) {

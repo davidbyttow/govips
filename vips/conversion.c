@@ -148,3 +148,37 @@ int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out,
                      int mode, gint x, gint y) {
   return vips_composite2(base, overlay, out, mode, "x", x, "y", y, NULL);
 }
+
+int insert_image(VipsImage *main, VipsImage *sub, VipsImage **out, int x, int y, int expand, double r, double g, double b, double a) {
+  if (is_16bit(main->Type)) {
+    r = 65535 * r / 255;
+    g = 65535 * g / 255;
+    b = 65535 * b / 255;
+    a = 65535 * a / 255;
+  }
+
+  double background[3] = {r, g, b};
+  double backgroundRGBA[4] = {r, g, b, a};
+
+  VipsArrayDouble *vipsBackground;
+
+  // Ignore the alpha channel if the image doesn't have one
+  if (main->Bands <= 3) {
+    vipsBackground = vips_array_double_new(background, 3);
+  } else {
+    vipsBackground = vips_array_double_new(backgroundRGBA, 4);
+  }
+  int code = vips_insert(main, sub, out, x, y, "expand", expand, "background", vipsBackground, NULL);
+
+  vips_area_unref(VIPS_AREA(vipsBackground));
+
+  return code;
+}
+
+int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction) {
+  return vips_join(in1, in2, out, direction, NULL);
+}
+
+int arrayjoin(VipsImage **in, VipsImage **out, int n, int across) {
+  return vips_arrayjoin(in, out, n, "across", across, NULL);
+}

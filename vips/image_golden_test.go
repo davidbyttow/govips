@@ -127,8 +127,7 @@ func TestImageRef_RemoveMetadata_Leave_Orientation(t *testing.T) {
 		}, nil)
 }
 
-//This test is disabled until this issue is resolved: https://github.com/libvips/libvips/pull/1745
-func _TestImageRef_Orientation_Issue(t *testing.T) {
+func TestImageRef_Orientation_Issue(t *testing.T) {
 	goldenTest(t, resources+"orientation-issue-1.jpg",
 		func(img *ImageRef) error {
 			return img.Resize(0.9, KernelLanczos3)
@@ -423,6 +422,12 @@ func TestImage_DrawRectRGBA(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Rank(t *testing.T) {
+	goldenTest(t, resources+"png-24bit.png", func(img *ImageRef) error {
+		return img.Rank(15, 15, 224)
+	}, nil, nil)
+}
+
 func TestImage_SimilarityRGB(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
@@ -447,6 +452,7 @@ func TestImage_SimilarityRGBA(t *testing.T) {
 func TestImage_Decode_JPG(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		goImg, err := img.ToImage(nil)
+		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)
 		err = jpeg2.Encode(buf, goImg, nil)
@@ -465,6 +471,7 @@ func TestImage_Decode_JPG(t *testing.T) {
 func TestImage_Decode_BMP(t *testing.T) {
 	goldenTest(t, resources+"bmp.bmp", func(img *ImageRef) error {
 		goImg, err := img.ToImage(nil)
+		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)
 		err = bmp.Encode(buf, goImg)
@@ -483,6 +490,7 @@ func TestImage_Decode_BMP(t *testing.T) {
 func TestImage_Decode_PNG(t *testing.T) {
 	goldenTest(t, resources+"png-8bit.png", func(img *ImageRef) error {
 		goImg, err := img.ToImage(nil)
+		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)
 		err = png.Encode(buf, goImg)
@@ -542,6 +550,91 @@ func TestImage_Black(t *testing.T) {
 	require.NoError(t, err)
 
 	assertGoldenMatch(t, resources+"jpg-24bit.jpg", buf, metadata.Format)
+}
+
+//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=auto --interlace --optimize-coding
+func TestImage_OptimizeCoding(t *testing.T) {
+	ep := &ExportParams{
+		Format:         ImageTypeJPEG,
+		SubsampleMode:  VipsForeignSubsampleAuto,
+		StripMetadata:  true,
+		Quality:        75,
+		Interlaced:     true,
+		OptimizeCoding: true,
+	}
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
+}
+
+//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=on
+func TestImage_SubsampleMode(t *testing.T) {
+	ep := &ExportParams{
+		Format:        ImageTypeJPEG,
+		SubsampleMode: VipsForeignSubsampleOn,
+		StripMetadata: true,
+		Quality:       75,
+	}
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
+}
+
+//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --trellis-quant
+func TestImage_TrellisQuant(t *testing.T) {
+	ep := &ExportParams{
+		Format:        ImageTypeJPEG,
+		SubsampleMode: VipsForeignSubsampleAuto,
+		StripMetadata: true,
+		Quality:       75,
+		TrellisQuant:  true,
+	}
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
+}
+
+//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --overshoot-deringing
+func TestImage_OvershootDeringing(t *testing.T) {
+	ep := &ExportParams{
+		Format:             ImageTypeJPEG,
+		SubsampleMode:      VipsForeignSubsampleAuto,
+		StripMetadata:      true,
+		Quality:            75,
+		OvershootDeringing: true,
+	}
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
+}
+
+//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --interlace --optimize-scans
+func TestImage_OptimizeScans(t *testing.T) {
+	ep := &ExportParams{
+		Format:        ImageTypeJPEG,
+		SubsampleMode: VipsForeignSubsampleAuto,
+		StripMetadata: true,
+		Quality:       75,
+		Interlaced:    true,
+		OptimizeScans: true,
+	}
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
+}
+
+//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --quant-table=3
+func TestImage_QuantTable(t *testing.T) {
+	ep := &ExportParams{
+		Format:        ImageTypeJPEG,
+		SubsampleMode: VipsForeignSubsampleAuto,
+		StripMetadata: true,
+		Quality:       75,
+		QuantTable:    3,
+	}
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error { return nil },
+		nil, ep)
 }
 
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {

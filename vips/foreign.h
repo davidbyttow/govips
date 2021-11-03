@@ -23,10 +23,52 @@ typedef enum types {
   SVG,
   MAGICK,
   HEIF,
-  BMP
+  BMP,
+  AVIF
 } ImageType;
 
-int load_image_buffer(void *buf, size_t len, int imageType, gboolean unlimitedSvgSize, VipsImage **out);
+typedef enum ParamType {
+  PARAM_TYPE_NULL,
+  PARAM_TYPE_BOOL,
+  PARAM_TYPE_INT,
+  PARAM_TYPE_DOUBLE,
+} ParamType;
+
+typedef struct Param {
+  ParamType type;
+
+  union Value {
+    gboolean b;
+    gint i;
+    gdouble d;
+  } value;
+
+  gboolean is_set;
+
+} Param;
+
+void set_bool_param(Param *p, gboolean b);
+void set_int_param(Param *p, gint i);
+void set_double_param(Param *p, gdouble d);
+
+typedef struct LoadParams {
+  ImageType inputFormat;
+  VipsBlob *inputBlob;
+  VipsImage *outputImage;
+
+  Param autorotate;
+  Param fail;
+  Param page;
+  Param n;
+  Param dpi;
+  Param jpegShrink;
+  Param heifThumbnail;
+  Param svgUnlimited;
+
+} LoadParams;
+
+LoadParams create_load_params(ImageType inputFormat);
+int load_from_buffer(LoadParams *params, void *buf, size_t len);
 
 typedef struct SaveParams {
   VipsImage *inputImage;
@@ -41,10 +83,17 @@ typedef struct SaveParams {
   // JPEG
   BOOL jpegOptimizeCoding;
   VipsForeignJpegSubsample jpegSubsample;
+  BOOL jpegTrellisQuant;
+  BOOL jpegOvershootDeringing;
+  BOOL jpegOptimizeScans;
+  int jpegQuantTable;
 
   // PNG
   int pngCompression;
   VipsForeignPngFilter pngFilter;
+  BOOL pngPalette;
+  double pngDither;
+  int pngBitdepth;
 
   // WEBP
   BOOL webpLossless;
@@ -65,9 +114,10 @@ typedef struct SaveParams {
   double tiffXRes;
   double tiffYRes;
 
+  // AVIF
+  int avifSpeed;
 } SaveParams;
 
 SaveParams create_save_params(ImageType outputFormat);
-void init_save_params(SaveParams *params);
-
 int save_to_buffer(SaveParams *params);
+

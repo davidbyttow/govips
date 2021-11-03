@@ -651,32 +651,37 @@ var genericGrayGamma22ICCProfile = []byte{
 
 const genericGrayGamma22ICCProfileLength = 3588
 
-var temporaryDirectory = temporaryDirectoryOrPanic()
+const sRGBV2MicroICCProfilePath = "srgb_v2_micro.icc"
+const sGrayV2MicroICCProfilePath = "sgray_v2_micro.icc"
+const sRGBIEC6196621ICCProfilePath = "srgb_iec61966_2_1.icc"
+const genericGrayGamma22ICCProfilePath = "generic_gray_gamma_2_2.icc"
 
-var SRGBV2MicroICCProfilePath = filepath.Join(temporaryDirectory, "srgb_v2_micro.icc")
-var SGrayV2MicroICCProfilePath = filepath.Join(temporaryDirectory, "sgray_v2_micro.icc")
-var SRGBIEC6196621ICCProfilePath = filepath.Join(temporaryDirectory, "srgb_iec61966_2_1.icc")
-var GenericGrayGamma22ICCProfilePath = filepath.Join(temporaryDirectory, "generic_gray_gamma_2_2.icc")
+var temporaryDirectory string
 
 func initializeICCProfiles() {
-	storeIccProfile(SRGBV2MicroICCProfilePath, sRGBV2MicroICCProfile)
-	storeIccProfile(SGrayV2MicroICCProfilePath, sGrayV2MicroICCProfile)
-	storeIccProfile(SRGBIEC6196621ICCProfilePath, sRGBIEC6196621ICCProfile)
-	storeIccProfile(GenericGrayGamma22ICCProfilePath, genericGrayGamma22ICCProfile)
-}
-
-func storeIccProfile(path string, data []byte) {
-	err := ioutil.WriteFile(path, data, 0600)
-	if err != nil {
-		panic(fmt.Sprintf("Couldn't store temporary file for ICC profile in '%v': %v", path, err.Error()))
-	}
-}
-
-func temporaryDirectoryOrPanic() string {
-	temporaryDirectory, err := ioutil.TempDir("", "govips-")
+	var err error
+	temporaryDirectory, err = ioutil.TempDir("", "govips-")
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't create temporary directory: %v", err.Error()))
 	}
 
-	return temporaryDirectory
+	err = ioutil.WriteFile(filepath.Join(temporaryDirectory, sRGBV2MicroICCProfilePath), sRGBV2MicroICCProfile, 0600)
+	if err != nil {
+		panic(fmt.Sprintf("Couldn't store temporary file for ICC profile 1: %v", err.Error()))
+	}
+
+	err = ioutil.WriteFile(filepath.Join(temporaryDirectory, sGrayV2MicroICCProfilePath), sGrayV2MicroICCProfile, 0600)
+	if err != nil {
+		panic(fmt.Sprintf("Couldn't store temporary file for ICC profile 2: %v", err.Error()))
+	}
+
+	err = ioutil.WriteFile(filepath.Join(temporaryDirectory, sRGBIEC6196621ICCProfilePath), sRGBIEC6196621ICCProfile, 0600)
+	if err != nil {
+		panic(fmt.Sprintf("Couldn't store temporary file for ICC profile 3: %v", err.Error()))
+	}
+
+	err = ioutil.WriteFile(filepath.Join(temporaryDirectory, genericGrayGamma22ICCProfilePath), genericGrayGamma22ICCProfile, 0600)
+	if err != nil {
+		panic(fmt.Sprintf("Couldn't store temporary file for ICC profile 4: %v", err.Error()))
+	}
 }
