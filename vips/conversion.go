@@ -7,6 +7,7 @@ import "C"
 type BandFormat int
 
 // BandFormat enum
+// https://www.libvips.org/API/current/VipsImage.html#VipsBandFormat
 const (
 	BandFormatNotSet    BandFormat = C.VIPS_FORMAT_NOTSET
 	BandFormatUchar     BandFormat = C.VIPS_FORMAT_UCHAR

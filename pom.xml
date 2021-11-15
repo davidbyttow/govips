@@ -78,14 +78,5 @@
 		</plugins>
 	</build>
 	<dependencies>
-		<!--        <dependency>-->
-		<!--            <groupId>com.wixpress.prospero</groupId>-->
-		<!--            <artifactId>mcloud-go-framework</artifactId>-->
-		<!--        </dependency>-->
-
-		<!--        <dependency>-->
-		<!--            <groupId>com.wixpress.vips-base-image</groupId>-->
-		<!--            <artifactId>vips-base-image</artifactId>-->
-		<!--        </dependency>-->
 	</dependencies>
 </project>
