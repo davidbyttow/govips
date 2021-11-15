@@ -7,6 +7,7 @@ unsigned long has_icc_profile(VipsImage *in);
 int remove_icc_profile(VipsImage *in);
 
 unsigned long has_iptc(VipsImage *in);
+char** image_get_fields(VipsImage *in);
 
 // won't remove the ICC profile
 void remove_metadata(VipsImage *in);
@@ -14,3 +15,4 @@ void remove_metadata(VipsImage *in);
 int get_meta_orientation(VipsImage *in);
 void remove_meta_orientation(VipsImage *in);
 void set_meta_orientation(VipsImage *in, int orientation);
+int get_image_get_n_pages(VipsImage *in);
