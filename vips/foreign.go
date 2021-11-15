@@ -348,6 +348,11 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 	p.webpLossless = C.int(boolToInt(params.Lossless))
 	p.webpReductionEffort = C.int(params.ReductionEffort)
 
+	if params.IccProfile != "" {
+		p.webpIccProfile = C.CString(params.IccProfile)
+		defer C.free(unsafe.Pointer(p.webpIccProfile))
+	}
+
 	return vipsSaveToBuffer(p)
 }
 

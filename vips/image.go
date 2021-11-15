@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"runtime"
+	"strings"
 	"sync"
 	"unsafe"
 )
@@ -26,11 +27,12 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf               []byte
-	image             *C.VipsImage
-	format            ImageType
-	lock              sync.Mutex
-	preMultiplication *PreMultiplicationState
+	buf                 []byte
+	image               *C.VipsImage
+	format              ImageType
+	lock                sync.Mutex
+	preMultiplication   *PreMultiplicationState
+	optimizedIccProfile string
 }
 
 // ImageMetadata is a data structure holding the width, height, orientation and other metadata of the picture.
@@ -231,7 +233,9 @@ type WebpExportParams struct {
 	StripMetadata   bool
 	Quality         int
 	Lossless        bool
+	NearLossless    bool
 	ReductionEffort int
+	IccProfile      string
 }
 
 // NewWebpExportParams creates default values for an export of a WEBP image.
@@ -240,6 +244,7 @@ func NewWebpExportParams() *WebpExportParams {
 	return &WebpExportParams{
 		Quality:         75,
 		Lossless:        false,
+		NearLossless:    false,
 		ReductionEffort: 4,
 	}
 }
@@ -676,7 +681,10 @@ func (r *ImageRef) ExportWebp(params *WebpExportParams) ([]byte, *ImageMetadata,
 		params = NewWebpExportParams()
 	}
 
-	buf, err := vipsSaveWebPToBuffer(r.image, *params)
+	paramsWithIccProfile := *params
+	paramsWithIccProfile.IccProfile = r.optimizedIccProfile
+
+	buf, err := vipsSaveWebPToBuffer(r.image, paramsWithIccProfile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1034,16 +1042,25 @@ func (r *ImageRef) RemoveICCProfile() error {
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
 func (r *ImageRef) OptimizeICCProfile() error {
-	isCMYK := 0
-	if r.Interpretation() == InterpretationCMYK {
-		isCMYK = 1
+	inputProfile := r.determineInputICCProfile()
+	if !r.HasICCProfile() && (inputProfile == "") {
+		//No embedded ICC profile in the input image and no input profile determined, nothing to do.
+		return nil
 	}
 
-	out, err := vipsOptimizeICCProfile(r.image, isCMYK)
+	r.optimizedIccProfile = SRGBV2MicroICCProfilePath
+	if r.Bands() <= 2 {
+		r.optimizedIccProfile = SGrayV2MicroICCProfilePath
+	}
+
+	embedded := r.HasICCProfile() && (inputProfile == "")
+
+	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, 0, embedded)
 	if err != nil {
-		govipsLog("govips", LogLevelError, err.Error())
+		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
 	}
+
 	r.setImage(out)
 	return nil
 }
@@ -1060,10 +1077,25 @@ func (r *ImageRef) RemoveMetadata() error {
 	vipsRemoveMetadata(out)
 
 	r.setImage(out)
+
 	return nil
 }
 
-// ToColorSpace changes the color space of the image to the interpreptation supplied as the parameter.
+func (r *ImageRef) ImageFields() []string {
+	return vipsImageGetFields(r.image)
+}
+
+func (r *ImageRef) HasExif() bool {
+	for _, field := range r.ImageFields() {
+		if strings.HasPrefix(field, "exif-") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ToColorSpace changes the color space of the image to the interpretation supplied as the parameter.
 func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
 	out, err := vipsToColorSpace(r.image, interpretation)
 	if err != nil {
@@ -1350,6 +1382,13 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
+}
+
+func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
+	if r.Interpretation() == InterpretationCMYK {
+		inputProfile = "cmyk"
+	}
+	return
 }
 
 // ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries

@@ -14,6 +14,10 @@ unsigned long has_iptc(VipsImage *in) {
   return vips_image_get_typeof(in, VIPS_META_IPTC_NAME);
 }
 
+char** image_get_fields(VipsImage *in) {
+    return vips_image_get_fields(in);
+}
+
 // won't remove the ICC profile and orientation
 void remove_metadata(VipsImage *in) {
   gchar **fields = vips_image_get_fields(in);
