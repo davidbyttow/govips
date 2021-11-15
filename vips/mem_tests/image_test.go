@@ -58,4 +58,6 @@ func TestMemoryLeak(t *testing.T) {
 	delta := after.Mem - before.Mem
 	t.Log(fmt.Sprintf("Memory usage: before %d, after %d, delta %d", before.Mem, after.Mem, delta))
 	assert.True(t, delta < 10*1024*1024, "Memory usage delta too big: %d", delta)
+
+	vips.Shutdown()
 }
