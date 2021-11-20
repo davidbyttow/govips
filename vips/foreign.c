@@ -264,8 +264,8 @@ int set_pngsave_options(VipsOperation *operation, SaveParams *params) {
 int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
   int ret =
       vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata,
-                      "lossless", params->webpLossless, "reduction_effort",
-                      params->webpReductionEffort, NULL);
+                      "lossless", params->webpLossless, "near_lossless", params->webpNearLossless,
+                      "reduction_effort", params->webpReductionEffort, NULL);
 
   if (!ret && params->quality) {
     vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);

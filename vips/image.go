@@ -231,6 +231,7 @@ type WebpExportParams struct {
 	StripMetadata   bool
 	Quality         int
 	Lossless        bool
+	NearLossless    bool
 	ReductionEffort int
 }
 
@@ -240,6 +241,7 @@ func NewWebpExportParams() *WebpExportParams {
 	return &WebpExportParams{
 		Quality:         75,
 		Lossless:        false,
+		NearLossless:    false,
 		ReductionEffort: 4,
 	}
 }
