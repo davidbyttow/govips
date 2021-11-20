@@ -43,6 +43,7 @@ const (
 	ImageTypeHEIF    ImageType = C.HEIF
 	ImageTypeBMP     ImageType = C.BMP
 	ImageTypeAVIF    ImageType = C.AVIF
+	ImageTypeJP2K    ImageType = C.JP2K
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -57,6 +58,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeHEIF:   ".heic",
 	ImageTypeBMP:    ".bmp",
 	ImageTypeAVIF:   ".avif",
+	ImageTypeJP2K:   ".jp2",
 }
 
 // ImageTypes defines the various image types supported by govips
@@ -72,6 +74,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeHEIF:   "heif",
 	ImageTypeBMP:    "bmp",
 	ImageTypeAVIF:   "heif",
+	ImageTypeJP2K:   "jp2k",
 }
 
 // TiffCompression represents method for compressing a tiff at export
@@ -138,6 +141,8 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypePDF
 	} else if isBMP(buf) {
 		return ImageTypeBMP
+	} else if isJP2K(buf) {
+		return ImageTypeJP2K
 	} else {
 		return ImageTypeUnknown
 	}
@@ -223,6 +228,14 @@ var bmpHeader = []byte("BM")
 
 func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
+}
+
+//X'0000 000C 6A50 2020 0D0A 870A'
+var jp2kHeader = []byte("\x00\x00\x00\x0C\x6A\x50\x20\x20\x0D\x0A\x87\x0A")
+
+// https://datatracker.ietf.org/doc/html/rfc3745
+func isJP2K(buf []byte) bool {
+	return bytes.HasPrefix(buf, jp2kHeader)
 }
 
 func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, error) {

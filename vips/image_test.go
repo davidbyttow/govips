@@ -924,6 +924,21 @@ func TestImageRef_AVIF(t *testing.T) {
 	assert.Equal(t, ImageTypeAVIF, metadata.Format)
 }
 
+func TestImageRef_JP2K(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "jp2k-orientation-6.jp2")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, metadata, err := img.ExportJpeg(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, ImageTypeJPEG, metadata.Format)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

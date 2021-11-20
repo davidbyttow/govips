@@ -68,6 +68,8 @@ int load_image_buffer(LoadParams *params, void *buf, size_t len,
     code = vips_heifload_buffer(buf, len, out, "page", params->page, "n",
                                 params->n, "thumbnail", params->heifThumbnail,
                                 "autorotate", params->autorotate, NULL);
+  } else if (imageType == JP2K) {
+       code = vips_jp2kload_buffer(buf, len, out, "page", params->page, NULL);
   }
 
   return code;
@@ -134,6 +136,11 @@ int set_heifload_options(VipsOperation *operation, LoadParams *params) {
   MAYBE_SET_BOOL(operation, params->heifThumbnail, "thumbnail");
   MAYBE_SET_INT(operation, params->page, "page");
   MAYBE_SET_INT(operation, params->n, "n");
+  return 0;
+}
+
+int set_jp2kload_options(VipsOperation *operation, LoadParams *params) {
+  MAYBE_SET_INT(operation, params->page, "page");
   return 0;
 }
 
@@ -356,6 +363,9 @@ int load_from_buffer(LoadParams *params, void *buf, size_t len) {
     case AVIF:
       return load_buffer("heifload_buffer", buf, len, params,
                          set_heifload_options);
+   case JP2K:
+      return load_buffer("jp2kload_buffer", buf, len, params,
+                          set_jp2kload_options);
     default:
       g_warning("Unsupported input type given: %d", params->inputFormat);
   }

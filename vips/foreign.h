@@ -24,7 +24,8 @@ typedef enum types {
   MAGICK,
   HEIF,
   BMP,
-  AVIF
+  AVIF,
+  JP2K
 } ImageType;
 
 typedef enum ParamType {
