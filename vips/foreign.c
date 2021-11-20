@@ -331,6 +331,19 @@ int set_avifsave_options(VipsOperation *operation, SaveParams *params) {
   return ret;
 }
 
+int set_jp2ksave_options(VipsOperation *operation, SaveParams *params) {
+  int ret = vips_object_set(
+      VIPS_OBJECT(operation), "subsample_mode", params->jpegSubsample,
+      "tile_height", params->jp2kTileHeight, "tile_width", params->jp2kTileWidth,
+      "lossless", params->jp2kLossless, NULL);
+
+  if (!ret && params->quality) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
+
+  return ret;
+}
+
 int load_from_buffer(LoadParams *params, void *buf, size_t len) {
   switch (params->inputFormat) {
     case JPEG:
@@ -388,6 +401,8 @@ int save_to_buffer(SaveParams *params) {
       return save_buffer("magicksave_buffer", params, set_magicksave_options);
     case AVIF:
       return save_buffer("heifsave_buffer", params, set_avifsave_options);
+    case JP2K:
+      return save_buffer("jp2ksave_buffer", params, set_jp2ksave_options);
     default:
       g_warning("Unsupported output type given: %d", params->outputFormat);
   }
@@ -451,7 +466,11 @@ static SaveParams defaultSaveParams = {
     .tiffXRes = 1.0,
     .tiffYRes = 1.0,
 
-    .avifSpeed = 5};
+    .avifSpeed = 5,
+
+    .jp2kLossless = FALSE,
+    .jp2kTileHeight = 512,
+    .jp2kTileWidth = 512};
 
 SaveParams create_save_params(ImageType outputFormat) {
   SaveParams params = defaultSaveParams;

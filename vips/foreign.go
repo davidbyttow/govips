@@ -401,6 +401,21 @@ func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, err
 	return vipsSaveToBuffer(p)
 }
 
+func vipsSaveJP2KToBuffer(in *C.VipsImage, params Jp2kExportParams) ([]byte, error) {
+	incOpCounter("save_jp2k_buffer")
+
+	p := C.create_save_params(C.JP2K)
+	p.inputImage = in
+	p.outputFormat = C.JP2K
+	p.quality = C.int(params.Quality)
+	p.jp2kLossless = C.int(boolToInt(params.Lossless))
+	p.jp2kTileWidth = C.int(params.TileWidth)
+	p.jp2kTileHeight = C.int(params.TileHeight)
+	p.jpegSubsample = C.VipsForeignJpegSubsample(params.SubsampleMode)
+
+	return vipsSaveToBuffer(p)
+}
+
 func vipsSaveGIFToBuffer(in *C.VipsImage, params GifExportParams) ([]byte, error) {
 	incOpCounter("save_gif_buffer")
 

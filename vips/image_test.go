@@ -934,9 +934,9 @@ func TestImageRef_JP2K(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.ExportJpeg(nil)
+	_, metadata, err := img.ExportJp2k(nil)
 	assert.NoError(t, err)
-	assert.Equal(t, ImageTypeJPEG, metadata.Format)
+	assert.Equal(t, ImageTypeJP2K, metadata.Format)
 }
 
 // TODO unit tests to cover:

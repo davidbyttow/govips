@@ -304,6 +304,25 @@ func NewAvifExportParams() *AvifExportParams {
 	}
 }
 
+// Jp2kExportParams are options when exporting an JPEG2000 to file or buffer.
+type Jp2kExportParams struct {
+	Quality       int
+	Lossless      bool
+	TileWidth     int
+	TileHeight    int
+	SubsampleMode SubsampleMode
+}
+
+// NewJp2kExportParams creates default values for an export of an JPEG2000 image.
+func NewJp2kExportParams() *Jp2kExportParams {
+	return &Jp2kExportParams{
+		Quality:    80,
+		Lossless:   false,
+		TileWidth:  512,
+		TileHeight: 512,
+	}
+}
+
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
@@ -338,12 +357,12 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 		params = NewImportParams()
 	}
 
-	image, format, err := vipsLoadFromBuffer(buf, params)
+	vipsImage, format, err := vipsLoadFromBuffer(buf, params)
 	if err != nil {
 		return nil, err
 	}
 
-	ref := newImageRef(image, format, buf)
+	ref := newImageRef(vipsImage, format, buf)
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
 	return ref, nil
@@ -637,6 +656,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportTiff(NewTiffExportParams())
 	case ImageTypeAVIF:
 		return r.ExportAvif(NewAvifExportParams())
+	case ImageTypeJP2K:
+		return r.ExportJp2k(NewJp2kExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -740,6 +761,20 @@ func (r *ImageRef) ExportAvif(params *AvifExportParams) ([]byte, *ImageMetadata,
 	return buf, r.newMetadata(ImageTypeAVIF), nil
 }
 
+// ExportJp2k exports the image as JPEG2000 to a buffer.
+func (r *ImageRef) ExportJp2k(params *Jp2kExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewJp2kExportParams()
+	}
+
+	buf, err := vipsSaveJP2KToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeJP2K), nil
+}
+
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
 func (r *ImageRef) CompositeMulti(ins []*ImageComposite) error {
 	out, err := vipsComposite(toVipsCompositeStructs(r, ins))
@@ -828,8 +863,8 @@ func (r *ImageRef) ExtractBand(band int, num int) error {
 // BandJoin joins a set of images together, bandwise.
 func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	vipsImages := []*C.VipsImage{r.image}
-	for _, image := range images {
-		vipsImages = append(vipsImages, image.image)
+	for _, vipsImage := range images {
+		vipsImages = append(vipsImages, vipsImage.image)
 	}
 
 	out, err := vipsBandJoin(vipsImages)
@@ -1348,8 +1383,8 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 	}
 	defer C.free(cData)
 
-	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
-	return bytes, nil
+	data := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
+	return data, nil
 }
 
 // ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries
