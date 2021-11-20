@@ -428,6 +428,7 @@ static SaveParams defaultSaveParams = {
     .pngFilter = VIPS_FOREIGN_PNG_FILTER_NONE,
 
     .webpLossless = FALSE,
+    .webpNearLossless = FALSE,
     .webpReductionEffort = 4,
 
     .heifLossless = FALSE,
