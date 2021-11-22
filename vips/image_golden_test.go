@@ -131,7 +131,7 @@ func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
 		}, nil)
 }
 
-func TestImageRef_RemoveMetadata_Leaves_Orientation(t *testing.T) {
+func TestImageRef_RemoveMetadata_Leave_Orientation(t *testing.T) {
 	goldenTest(t, resources+"jpg-orientation-5.jpg",
 		func(img *ImageRef) error {
 			return img.RemoveMetadata()
