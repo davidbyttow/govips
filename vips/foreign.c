@@ -68,9 +68,13 @@ int load_image_buffer(LoadParams *params, void *buf, size_t len,
     code = vips_heifload_buffer(buf, len, out, "page", params->page, "n",
                                 params->n, "thumbnail", params->heifThumbnail,
                                 "autorotate", params->autorotate, NULL);
-  } else if (imageType == JP2K) {
+
+  }
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 11)
+  else if (imageType == JP2K) {
        code = vips_jp2kload_buffer(buf, len, out, "page", params->page, NULL);
   }
+  #endif
 
   return code;
 }

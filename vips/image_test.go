@@ -925,6 +925,9 @@ func TestImageRef_AVIF(t *testing.T) {
 }
 
 func TestImageRef_JP2K(t *testing.T) {
+	if MajorVersion == 8 && MinorVersion < 11 {
+		t.Skip("JPEG2000 is only supported in vips 8.11+")
+	}
 	Startup(nil)
 
 	raw, err := ioutil.ReadFile(resources + "jp2k-orientation-6.jp2")
