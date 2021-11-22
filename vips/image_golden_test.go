@@ -90,23 +90,6 @@ func TestImage_OptimizeICCProfile_RGB_Embedded(t *testing.T) {
 		}, nil)
 }
 
-func TestImageRef_PngToWebp_OptimizeICCProfile_NearLossless_HasProfile(t *testing.T) {
-	exportParams := NewWebpExportParams()
-	exportParams.Quality = 90
-	exportParams.NearLossless = true
-
-	testWebpOptimizeIccProfile(t, exportParams)
-}
-
-func TestImageRef_PngToWebp_OptimizeICCProfile_LosslessAndNearLossless(t *testing.T) {
-	exportParams := NewWebpExportParams()
-	exportParams.Quality = 90
-	exportParams.Lossless = true
-	exportParams.NearLossless = true
-
-	testWebpOptimizeIccProfile(t, exportParams)
-}
-
 func TestImageRef_PngToWebp_OptimizeICCProfile_Lossless(t *testing.T) {
 	exportParams := NewWebpExportParams()
 	exportParams.Quality = 90
