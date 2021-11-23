@@ -1180,6 +1180,40 @@ func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
 	return nil
 }
 
+// Pixelate applies a simple pixelate filter to the image
+func (r *ImageRef) Pixelate(factor float64) error {
+	err := r.PremultiplyAlpha()
+	if err != nil {
+		return err
+	}
+
+	width := r.Width()
+	height := r.Height()
+
+	downscaled, err := vipsResize(r.image, 1/factor, KernelAuto)
+	if err != nil {
+		return err
+	}
+	defer clearImage(downscaled)
+
+	pixelated, err := vipsResize(downscaled, factor, KernelNearest)
+	if err != nil {
+		return err
+	}
+	defer clearImage(pixelated)
+
+	hscale := float64(width) / float64(pixelated.Xsize)
+	vscale := float64(height) / float64(pixelated.Ysize)
+	adjusted, err := vipsResizeWithVScale(pixelated, hscale, vscale, KernelAuto)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(adjusted)
+
+	return r.UnpremultiplyAlpha()
+}
+
 // Invert inverts the image
 func (r *ImageRef) Invert() error {
 	out, err := vipsInvert(r.image)
@@ -1242,7 +1276,7 @@ func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 	return r.UnpremultiplyAlpha()
 }
 
-// ResizeWithVScale resizes the image with both horizontal as well as vertical scaling.
+// ResizeWithVScale resizes the image with both horizontal and vertical scaling.
 // The parameters are the scaling factors.
 func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
 	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)

@@ -637,6 +637,14 @@ func TestImage_QuantTable(t *testing.T) {
 		nil, ep)
 }
 
+func TestImage_Pixelate(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error {
+			return img.Pixelate(24)
+		},
+		nil, nil)
+}
+
 func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
 	Startup(nil)
 
