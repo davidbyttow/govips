@@ -3,7 +3,6 @@ package vips
 // #include "color.h"
 import "C"
 import (
-	"path/filepath"
 	"unsafe"
 )
 
@@ -38,10 +37,23 @@ const (
 	InterpretationSRGB      Interpretation = C.VIPS_INTERPRETATION_sRGB
 	InterpretationYXY       Interpretation = C.VIPS_INTERPRETATION_YXY
 	InterpretationFourier   Interpretation = C.VIPS_INTERPRETATION_FOURIER
+	InterpretationGB16      Interpretation = C.VIPS_INTERPRETATION_RGB16
 	InterpretationGrey16    Interpretation = C.VIPS_INTERPRETATION_GREY16
 	InterpretationMatrix    Interpretation = C.VIPS_INTERPRETATION_MATRIX
 	InterpretationScRGB     Interpretation = C.VIPS_INTERPRETATION_scRGB
 	InterpretationHSV       Interpretation = C.VIPS_INTERPRETATION_HSV
+)
+
+// Intent represents VIPS_INTENT type
+type Intent int
+
+//Intent enum
+const (
+	IntentPerceptual Intent = C.VIPS_INTENT_PERCEPTUAL
+	IntentRelative   Intent = C.VIPS_INTENT_RELATIVE
+	IntentSaturation Intent = C.VIPS_INTENT_SATURATION
+	IntentAbsolute   Intent = C.VIPS_INTENT_ABSOLUTE
+	IntentLast       Intent = C.VIPS_INTENT_LAST
 )
 
 func vipsIsColorSpaceSupported(in *C.VipsImage) bool {
@@ -62,18 +74,27 @@ func vipsToColorSpace(in *C.VipsImage, interpretation Interpretation) (*C.VipsIm
 	return out, nil
 }
 
-func vipsOptimizeICCProfile(in *C.VipsImage, isCmyk int) (*C.VipsImage, error) {
+func vipsICCTransform(in *C.VipsImage, outputProfile string, inputProfile string, intent Intent, depth int,
+	embedded bool) (*C.VipsImage, error) {
 	var out *C.VipsImage
+	var cInputProfile *C.char
+	var cEmbedded C.gboolean
 
-	srgbProfilePath := C.CString(filepath.Join(temporaryDirectory, sRGBV2MicroICCProfilePath))
-	grayProfilePath := C.CString(filepath.Join(temporaryDirectory, sGrayV2MicroICCProfilePath))
+	cOutputProfile := C.CString(outputProfile)
+	defer C.free(unsafe.Pointer(cOutputProfile))
 
-	if res := int(C.optimize_icc_profile(in, &out, C.int(isCmyk), srgbProfilePath, grayProfilePath)); res != 0 {
-		return nil, handleImageError(out)
+	if inputProfile != "" {
+		cInputProfile = C.CString(inputProfile)
+		defer C.free(unsafe.Pointer(cInputProfile))
 	}
 
-	C.free(unsafe.Pointer(srgbProfilePath))
-	C.free(unsafe.Pointer(grayProfilePath))
+	if embedded {
+		cEmbedded = C.TRUE
+	}
+
+	if res := C.icc_transform(in, &out, cOutputProfile, cInputProfile, C.VipsIntent(intent), C.int(depth), cEmbedded); res != 0 {
+		return nil, handleImageError(out)
+	}
 
 	return out, nil
 }
