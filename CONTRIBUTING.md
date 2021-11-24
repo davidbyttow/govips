@@ -14,7 +14,8 @@ The CI/CD currently checks strict format and linting, so be sure to add comments
 
 ## Run the tests
 
-```make test
+```bash
+$ make test
 ```
 
 ## Get in touch
