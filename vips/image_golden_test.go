@@ -90,6 +90,14 @@ func TestImage_OptimizeICCProfile_RGB_Embedded(t *testing.T) {
 		}, nil)
 }
 
+func TestImageRef_PngToWebp_OptimizeICCProfile_Lossless(t *testing.T) {
+	exportParams := NewWebpExportParams()
+	exportParams.Quality = 90
+	exportParams.Lossless = true
+
+	testWebpOptimizeIccProfile(t, exportParams)
+}
+
 func TestImage_OptimizeICCProfile_Grey(t *testing.T) {
 	goldenTest(t, resources+"jpg-8bit-gray-scale-with-icc-profile.jpg",
 		func(img *ImageRef) error {
@@ -104,6 +112,7 @@ func TestImage_OptimizeICCProfile_Grey(t *testing.T) {
 func TestImage_RemoveICCProfile(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-smpte.jpg",
 		func(img *ImageRef) error {
+			assert.True(t, img.HasICCProfile())
 			return img.RemoveICCProfile()
 		},
 		func(result *ImageRef) {
@@ -111,10 +120,15 @@ func TestImage_RemoveICCProfile(t *testing.T) {
 		}, nil)
 }
 
-func TestImage_RemoveMetadata(t *testing.T) {
-	goldenTest(t, resources+"heic-24bit-exif.heic", func(img *ImageRef) error {
-		return img.RemoveMetadata()
-	}, nil, nil)
+func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
+	goldenTest(t, resources+"heic-24bit-exif.heic",
+		func(img *ImageRef) error {
+			assert.True(t, img.HasExif())
+			return img.RemoveMetadata()
+		},
+		func(img *ImageRef) {
+			assert.False(t, img.HasExif())
+		}, nil)
 }
 
 func TestImageRef_RemoveMetadata_Leave_Orientation(t *testing.T) {
@@ -135,7 +149,8 @@ func TestImageRef_Orientation_Issue(t *testing.T) {
 		func(result *ImageRef) {
 			assert.Equal(t, 6, result.GetOrientation())
 		},
-		NewDefaultWEBPExportParams())
+		exportWebp(nil),
+	)
 }
 
 func TestImageRef_RemoveMetadata_Leave_Profile(t *testing.T) {
@@ -144,7 +159,7 @@ func TestImageRef_RemoveMetadata_Leave_Profile(t *testing.T) {
 			return img.RemoveMetadata()
 		},
 		func(result *ImageRef) {
-			assert.True(t, result.HasICCProfile())
+			assert.True(t, result.HasICCProfile(), "should have an ICC profile")
 		}, nil)
 }
 
@@ -198,7 +213,9 @@ func TestImage_AutoRotate_6__jpeg_to_webp(t *testing.T) {
 			// Known issue: libvips does not write EXIF into WebP:
 			// https://github.com/libvips/libvips/pull/1745
 			//assert.Equal(t, 0, result.GetOrientation())
-		}, NewDefaultWEBPExportParams())
+		},
+		exportWebp(nil),
+	)
 }
 
 func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
@@ -208,7 +225,8 @@ func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
 		},
 		func(result *ImageRef) {
 			assert.Equal(t, 1, result.GetOrientation())
-		}, NewDefaultJPEGExportParams())
+		}, exportJpeg(nil),
+	)
 }
 
 func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
@@ -546,7 +564,7 @@ func TestImage_Black(t *testing.T) {
 	Startup(nil)
 	i, err := Black(10, 20)
 	require.NoError(t, err)
-	buf, metadata, err := i.Export(nil)
+	buf, metadata, err := i.ExportNative()
 	require.NoError(t, err)
 
 	assertGoldenMatch(t, resources+"jpg-24bit.jpg", buf, metadata.Format)
@@ -554,109 +572,149 @@ func TestImage_Black(t *testing.T) {
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=auto --interlace --optimize-coding
 func TestImage_OptimizeCoding(t *testing.T) {
-	ep := &ExportParams{
-		Format:         ImageTypeJPEG,
-		SubsampleMode:  VipsForeignSubsampleAuto,
-		StripMetadata:  true,
-		Quality:        75,
-		Interlaced:     true,
-		OptimizeCoding: true,
-	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
+		nil,
+		nil,
+		exportJpeg(&JpegExportParams{
+			SubsampleMode:  VipsForeignSubsampleAuto,
+			StripMetadata:  true,
+			Quality:        75,
+			Interlace:      true,
+			OptimizeCoding: true,
+		}),
+	)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=on
 func TestImage_SubsampleMode(t *testing.T) {
-	ep := &ExportParams{
-		Format:        ImageTypeJPEG,
-		SubsampleMode: VipsForeignSubsampleOn,
-		StripMetadata: true,
-		Quality:       75,
-	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
+		nil,
+		nil,
+		exportJpeg(&JpegExportParams{
+			SubsampleMode: VipsForeignSubsampleOn,
+			StripMetadata: true,
+			Quality:       75,
+		}),
+	)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --trellis-quant
 func TestImage_TrellisQuant(t *testing.T) {
-	ep := &ExportParams{
-		Format:        ImageTypeJPEG,
-		SubsampleMode: VipsForeignSubsampleAuto,
-		StripMetadata: true,
-		Quality:       75,
-		TrellisQuant:  true,
-	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
+		nil,
+		nil,
+		exportJpeg(&JpegExportParams{
+			SubsampleMode: VipsForeignSubsampleAuto,
+			StripMetadata: true,
+			Quality:       75,
+			TrellisQuant:  true,
+		}),
+	)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --overshoot-deringing
 func TestImage_OvershootDeringing(t *testing.T) {
-	ep := &ExportParams{
-		Format:             ImageTypeJPEG,
-		SubsampleMode:      VipsForeignSubsampleAuto,
-		StripMetadata:      true,
-		Quality:            75,
-		OvershootDeringing: true,
-	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
+		nil,
+		nil,
+		exportJpeg(&JpegExportParams{
+			SubsampleMode:      VipsForeignSubsampleAuto,
+			StripMetadata:      true,
+			Quality:            75,
+			OvershootDeringing: true,
+		}),
+	)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --interlace --optimize-scans
 func TestImage_OptimizeScans(t *testing.T) {
-	ep := &ExportParams{
-		Format:        ImageTypeJPEG,
-		SubsampleMode: VipsForeignSubsampleAuto,
-		StripMetadata: true,
-		Quality:       75,
-		Interlaced:    true,
-		OptimizeScans: true,
-	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
+		nil,
+		nil,
+		exportJpeg(&JpegExportParams{
+			SubsampleMode: VipsForeignSubsampleAuto,
+			StripMetadata: true,
+			Quality:       75,
+			Interlace:     true,
+			OptimizeScans: true,
+		}),
+	)
 }
 
 //vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --quant-table=3
 func TestImage_QuantTable(t *testing.T) {
-	ep := &ExportParams{
-		Format:        ImageTypeJPEG,
-		SubsampleMode: VipsForeignSubsampleAuto,
-		StripMetadata: true,
-		Quality:       75,
-		QuantTable:    3,
-	}
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
-		func(img *ImageRef) error { return nil },
-		nil, ep)
+		nil,
+		nil,
+		exportJpeg(&JpegExportParams{
+			SubsampleMode: VipsForeignSubsampleAuto,
+			StripMetadata: true,
+			Quality:       75,
+			QuantTable:    3,
+		}),
+	)
 }
 
-func goldenTest(t *testing.T, file string, exec func(img *ImageRef) error, validate func(img *ImageRef), params *ExportParams) []byte {
-	Startup(nil)
+func testWebpOptimizeIccProfile(t *testing.T, exportParams *WebpExportParams) []byte {
+	return goldenTest(t, resources+"has-icc-profile.png",
+		func(img *ImageRef) error {
+			return img.OptimizeICCProfile()
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile(), "should have an ICC profile")
+		},
+		exportWebp(exportParams),
+	)
+}
 
-	i, err := NewImageFromFile(file)
-	require.NoError(t, err)
+func exportWebp(exportParams *WebpExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+		return img.ExportWebp(exportParams)
+	}
+}
 
-	err = exec(i)
-	require.NoError(t, err)
+func exportJpeg(exportParams *JpegExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+		return img.ExportJpeg(exportParams)
+	}
+}
 
-	buf, metadata, err := i.Export(params)
-	require.NoError(t, err)
-
-	if validate != nil {
-		result, err := NewImageFromBuffer(buf)
-		require.NoError(t, err)
-
-		validate(result)
+func goldenTest(
+	t *testing.T,
+	path string,
+	exec func(img *ImageRef) error,
+	validate func(img *ImageRef),
+	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
+) []byte {
+	if exec == nil {
+		exec = func(*ImageRef) error { return nil }
 	}
 
-	assertGoldenMatch(t, file, buf, metadata.Format)
+	if validate == nil {
+		validate = func(*ImageRef) {}
+	}
+
+	if export == nil {
+		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
+	}
+
+	Startup(nil)
+
+	img, err := NewImageFromFile(path)
+	require.NoError(t, err)
+
+	err = exec(img)
+	require.NoError(t, err)
+
+	buf, metadata, err := export(img)
+	require.NoError(t, err)
+
+	result, err := NewImageFromBuffer(buf)
+	require.NoError(t, err)
+
+	validate(result)
+
+	assertGoldenMatch(t, path, buf, metadata.Format)
 
 	return buf
 }

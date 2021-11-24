@@ -2,6 +2,7 @@ package vips
 
 // #include "header.h"
 import "C"
+import "unsafe"
 
 func vipsHasICCProfile(in *C.VipsImage) bool {
 	return int(C.has_icc_profile(in)) != 0
@@ -13,6 +14,23 @@ func vipsRemoveICCProfile(in *C.VipsImage) bool {
 
 func vipsHasIPTC(in *C.VipsImage) bool {
 	return int(C.has_iptc(in)) != 0
+}
+
+func vipsImageGetFields(in *C.VipsImage) (fields []string) {
+	const maxFields = 256
+
+	rawFields := C.image_get_fields(in)
+	defer C.g_strfreev(rawFields)
+
+	cFields := (*[maxFields]*C.char)(unsafe.Pointer(rawFields))[:maxFields:maxFields]
+
+	for _, field := range cFields {
+		if field == nil {
+			break
+		}
+		fields = append(fields, C.GoString(field))
+	}
+	return
 }
 
 func vipsRemoveMetadata(in *C.VipsImage) {
