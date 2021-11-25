@@ -17,6 +17,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestImage_PNG_64bit_OptimizeICCProfile(t *testing.T) {
+	goldenTest(t, resources+"png-alpha-64bit.png",
+		func(img *ImageRef) error {
+			return img.OptimizeICCProfile()
+		},
+		nil,
+		exportPng(NewPngExportParams()))
+}
+
 func TestImage_Resize_Downscale(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg",
 		func(img *ImageRef) error {
@@ -676,6 +685,12 @@ func exportWebp(exportParams *WebpExportParams) func(img *ImageRef) ([]byte, *Im
 func exportJpeg(exportParams *JpegExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
 	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
 		return img.ExportJpeg(exportParams)
+	}
+}
+
+func exportPng(exportParams *PngExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+		return img.ExportPng(exportParams)
 	}
 }
 
