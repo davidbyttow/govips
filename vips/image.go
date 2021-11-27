@@ -1025,7 +1025,11 @@ func (r *ImageRef) FindTrim(threshold float64, backgroundColor *Color) (int, int
 
 // GetPoint reads a single pixel on an image.
 // The pixel values are returned in a slice of length n.
-func (r *ImageRef) GetPoint(n int, x int, y int) ([]float64, error) {
+func (r *ImageRef) GetPoint(x int, y int) ([]float64, error) {
+	n := 3
+	if vipsHasAlpha(r.image) {
+		n = 4
+	}
 	return vipsGetPoint(r.image, n, x, y)
 }
 
