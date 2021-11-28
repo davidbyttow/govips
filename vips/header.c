@@ -14,6 +14,10 @@ unsigned long has_iptc(VipsImage *in) {
   return vips_image_get_typeof(in, VIPS_META_IPTC_NAME);
 }
 
+char** image_get_fields(VipsImage *in) {
+    return vips_image_get_fields(in);
+}
+
 // won't remove the ICC profile and orientation
 void remove_metadata(VipsImage *in) {
   gchar **fields = vips_image_get_fields(in);
@@ -44,4 +48,11 @@ void remove_meta_orientation(VipsImage *in) {
 
 void set_meta_orientation(VipsImage *in, int orientation) {
   vips_image_set_int(in, VIPS_META_ORIENTATION, orientation);
+}
+
+//https://libvips.github.io/libvips/API/current/libvips-header.html#vips-image-get-n-pages
+int get_image_get_n_pages(VipsImage *in) {
+  int page = 0;
+  page = vips_image_get_n_pages(in);
+  return page;
 }

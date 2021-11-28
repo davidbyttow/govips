@@ -42,6 +42,7 @@ const (
 	ImageTypeWEBP    ImageType = C.WEBP
 	ImageTypeHEIF    ImageType = C.HEIF
 	ImageTypeBMP     ImageType = C.BMP
+	ImageTypeAVIF    ImageType = C.AVIF
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -55,6 +56,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeWEBP:   ".webp",
 	ImageTypeHEIF:   ".heic",
 	ImageTypeBMP:    ".bmp",
+	ImageTypeAVIF:   ".avif",
 }
 
 // ImageTypes defines the various image types supported by govips
@@ -69,6 +71,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeWEBP:   "webp",
 	ImageTypeHEIF:   "heif",
 	ImageTypeBMP:    "bmp",
+	ImageTypeAVIF:   "heif",
 }
 
 // TiffCompression represents method for compressing a tiff at export
@@ -125,6 +128,8 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypeTIFF
 	} else if isWEBP(buf) {
 		return ImageTypeWEBP
+	} else if isAVIF(buf) {
+		return ImageTypeAVIF
 	} else if isHEIF(buf) {
 		return ImageTypeHEIF
 	} else if isSVG(buf) {
@@ -178,9 +183,13 @@ var avif = []byte("avif")
 
 func isHEIF(buf []byte) bool {
 	return bytes.Equal(buf[4:8], ftyp) && (bytes.Equal(buf[8:12], heic) ||
-		bytes.Equal(buf[8:12], avif) ||
 		bytes.Equal(buf[8:12], mif1) ||
-		bytes.Equal(buf[8:12], msf1))
+		bytes.Equal(buf[8:12], msf1)) ||
+		isAVIF(buf)
+}
+
+func isAVIF(buf []byte) bool {
+	return bytes.Equal(buf[4:8], ftyp) && bytes.Equal(buf[8:12], avif)
 }
 
 var svg = []byte("<svg")
@@ -216,13 +225,12 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
-func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
 	var err error
-	var out *C.VipsImage
 
 	imageType := DetermineImageType(src)
 
@@ -240,11 +248,13 @@ func vipsLoadFromBuffer(buf []byte) (*C.VipsImage, ImageType, error) {
 		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
 	}
 
-	if err := C.load_image_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), C.int(imageType), &out); err != 0 {
-		return nil, ImageTypeUnknown, handleImageError(out)
+	importParams := createImportParams(imageType, params)
+
+	if err := C.load_from_buffer(&importParams, unsafe.Pointer(&src[0]), C.size_t(len(src))); err != 0 {
+		return nil, ImageTypeUnknown, handleImageError(importParams.outputImage)
 	}
 
-	return out, imageType, nil
+	return importParams.outputImage, imageType, nil
 }
 
 func bmpToPNG(src []byte) ([]byte, error) {
@@ -263,6 +273,35 @@ func bmpToPNG(src []byte) ([]byte, error) {
 	}
 
 	return w.Bytes(), nil
+}
+
+func maybeSetBoolParam(p BoolParameter, cp *C.Param) {
+	if p.IsSet() {
+		C.set_bool_param(cp, toGboolean(p.Get()))
+	}
+}
+
+func maybeSetIntParam(p IntParameter, cp *C.Param) {
+	if p.IsSet() {
+		C.set_int_param(cp, C.int(p.Get()))
+	}
+}
+
+func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
+	p := C.create_load_params(C.ImageType(format))
+
+	maybeSetBoolParam(params.AutoRotate, &p.autorotate)
+	maybeSetBoolParam(params.FailOnError, &p.fail)
+	maybeSetIntParam(params.Page, &p.page)
+	maybeSetIntParam(params.NumPages, &p.n)
+	maybeSetIntParam(params.JpegShrinkFactor, &p.jpegShrink)
+	maybeSetBoolParam(params.HeifThumbnail, &p.heifThumbnail)
+	maybeSetBoolParam(params.SvgUnlimited, &p.svgUnlimited)
+
+	if params.Density.IsSet() {
+		C.set_double_param(&p.dpi, C.gdouble(params.Density.Get()))
+	}
+	return p
 }
 
 func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, error) {
@@ -288,9 +327,13 @@ func vipsSavePNGToBuffer(in *C.VipsImage, params PngExportParams) ([]byte, error
 
 	p := C.create_save_params(C.PNG)
 	p.inputImage = in
+	p.quality = C.int(params.Quality)
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.interlace = C.int(boolToInt(params.Interlace))
 	p.pngCompression = C.int(params.Compression)
+	p.pngPalette = C.int(boolToInt(params.Palette))
+	p.pngDither = C.double(params.Dither)
+	p.pngBitdepth = C.int(params.Bitdepth)
 
 	return vipsSaveToBuffer(p)
 }
@@ -304,6 +347,11 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 	p.quality = C.int(params.Quality)
 	p.webpLossless = C.int(boolToInt(params.Lossless))
 	p.webpReductionEffort = C.int(params.ReductionEffort)
+
+	if params.IccProfile != "" {
+		p.webpIccProfile = C.CString(params.IccProfile)
+		defer C.free(unsafe.Pointer(p.webpIccProfile))
+	}
 
 	return vipsSaveToBuffer(p)
 }
@@ -328,6 +376,29 @@ func vipsSaveHEIFToBuffer(in *C.VipsImage, params HeifExportParams) ([]byte, err
 	p.outputFormat = C.HEIF
 	p.quality = C.int(params.Quality)
 	p.heifLossless = C.int(boolToInt(params.Lossless))
+
+	return vipsSaveToBuffer(p)
+}
+
+func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, error) {
+	incOpCounter("save_heif_buffer")
+
+	p := C.create_save_params(C.AVIF)
+	p.inputImage = in
+	p.outputFormat = C.AVIF
+	p.quality = C.int(params.Quality)
+	p.heifLossless = C.int(boolToInt(params.Lossless))
+	p.avifSpeed = C.int(params.Speed)
+
+	return vipsSaveToBuffer(p)
+}
+
+func vipsSaveGIFToBuffer(in *C.VipsImage, params GifExportParams) ([]byte, error) {
+	incOpCounter("save_gif_buffer")
+
+	p := C.create_save_params(C.GIF)
+	p.inputImage = in
+	p.quality = C.int(params.Quality)
 
 	return vipsSaveToBuffer(p)
 }

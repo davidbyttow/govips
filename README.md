@@ -1,5 +1,7 @@
 # <img src="https://raw.githubusercontent.com/davidbyttow/govips/master/assets/SVG/govips.svg" width="90" height="90"> <span style="font-size: 4em;">govips</span>
+
 [![GoDoc](https://godoc.org/github.com/davidbyttow/govips?status.svg)](https://pkg.go.dev/mod/github.com/davidbyttow/govips/v2) [![Go Report Card](http://goreportcard.com/badge/davidbyttow/govips)](http://goreportcard.com/report/davidbyttow/govips) ![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/davidbyttow/govips) ![License](https://img.shields.io/badge/license-MIT-blue.svg) [![Build Status](https://github.com/davidbyttow/govips/workflows/build/badge.svg)](https://github.com/davidbyttow/govips/actions) [![Coverage Status](https://img.shields.io/coveralls/github/davidbyttow/govips)](https://coveralls.io/github/davidbyttow/govips?branch=master)
+
 ## A lightning fast image processing and resizing library for Go
 
 This package wraps the core functionality of [libvips](https://github.com/libvips/libvips) image processing library by exposing all image operations on first-class types in Go.
@@ -26,9 +28,11 @@ brew install vips pkg-config
 
 ### Ubuntu
 
-You need at least libvips 8.10.2 to work with govips. Groovy (20.10) repositories have the latest version. However on Bionic (18.04) and Focal (20.04), you need to install libvips and dependencies from a backports repository:
+You need a recent libvips to work with govips. New govips functionality is continuously added which takes advantage of new libvips functionality. Groovy (20.10) and Hirsute (21.04) repositories have working versions. However on Focal (20.04), you need to install libvips and dependencies from a backports repository:
 
 ```bash
+sudo add-apt-repository -y ppa:strukturag/libde265
+sudo add-apt-repository -y ppa:strukturag/libheif
 sudo add-apt-repository ppa:tonimelisma/ppa
 ```
 
@@ -97,13 +101,27 @@ func main() {
 }
 ```
 
-See *examples/* folder for more examples.
+See _examples/_ folder for more examples.
 
 ## Running tests
 
 ```bash
 $ make test
 ```
+
+## Memory usage note
+### MALLOC_ARENA_MAX
+`libvips` uses GLib for memory management, and it brings GLib memory fragmentation
+issues to heavily multi-threaded programs. First thing you can try if you noticed
+constantly growing RSS usage without Go's sys memory growth is set `MALLOC_ARENA_MAX`:
+
+```
+MALLOC_ARENA_MAX=2 application
+```
+
+This will reduce GLib memory appetites by reducing the number of malloc arenas
+that it can create. By default GLib creates one are per thread, and this would
+follow to a memory fragmentation.
 
 ## Contributing
 
@@ -120,4 +138,4 @@ Thanks to:
 
 ## License
 
-MIT - David Byttow
+MIT

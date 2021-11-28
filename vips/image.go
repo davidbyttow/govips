@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"runtime"
+	"strings"
 	"sync"
 	"unsafe"
 )
@@ -26,11 +27,12 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf               []byte
-	image             *C.VipsImage
-	format            ImageType
-	lock              sync.Mutex
-	preMultiplication *PreMultiplicationState
+	buf                 []byte
+	image               *C.VipsImage
+	format              ImageType
+	lock                sync.Mutex
+	preMultiplication   *PreMultiplicationState
+	optimizedIccProfile string
 }
 
 // ImageMetadata is a data structure holding the width, height, orientation and other metadata of the picture.
@@ -40,6 +42,77 @@ type ImageMetadata struct {
 	Height      int
 	Colorspace  Interpretation
 	Orientation int
+}
+
+type Parameter struct {
+	value interface{}
+	isSet bool
+}
+
+func (p *Parameter) IsSet() bool {
+	return p.isSet
+}
+
+func (p *Parameter) set(v interface{}) {
+	p.value = v
+	p.isSet = true
+}
+
+type BoolParameter struct {
+	Parameter
+}
+
+func (p *BoolParameter) Set(v bool) {
+	p.set(v)
+}
+
+func (p *BoolParameter) Get() bool {
+	return p.value.(bool)
+}
+
+type IntParameter struct {
+	Parameter
+}
+
+func (p *IntParameter) Set(v int) {
+	p.set(v)
+}
+
+func (p *IntParameter) Get() int {
+	return p.value.(int)
+}
+
+type Float64Parameter struct {
+	Parameter
+}
+
+func (p *Float64Parameter) Set(v float64) {
+	p.set(v)
+}
+
+func (p *Float64Parameter) Get() float64 {
+	return p.value.(float64)
+}
+
+// ImportParams are options for loading an image. Some are type-specific.
+// For default loading, use NewImportParams() or specify nil
+type ImportParams struct {
+	AutoRotate  BoolParameter
+	FailOnError BoolParameter
+	Page        IntParameter
+	NumPages    IntParameter
+	Density     IntParameter
+
+	JpegShrinkFactor IntParameter
+	HeifThumbnail    BoolParameter
+	SvgUnlimited     BoolParameter
+}
+
+// NewImportParams creates default ImportParams
+func NewImportParams() *ImportParams {
+	p := &ImportParams{}
+	p.FailOnError.Set(true)
+	return p
 }
 
 // ExportParams are options when exporting an image to file or buffer.
@@ -58,6 +131,7 @@ type ExportParams struct {
 	OvershootDeringing bool          // jpeg param
 	OptimizeScans      bool          // jpeg param
 	QuantTable         int           // jpeg param
+	Speed              int           // avif param
 }
 
 // NewDefaultExportParams creates default values for an export when image type is not JPEG, PNG or WEBP.
@@ -137,6 +211,11 @@ type PngExportParams struct {
 	StripMetadata bool
 	Compression   int
 	Interlace     bool
+	Quality       int
+	Palette       bool
+	Dither        float64
+	Bitdepth      int
+	Profile       string // TODO: Use this param during save
 }
 
 // NewPngExportParams creates default values for an export of a PNG image.
@@ -145,6 +224,7 @@ func NewPngExportParams() *PngExportParams {
 	return &PngExportParams{
 		Compression: 6,
 		Interlace:   false,
+		Palette:     false,
 	}
 }
 
@@ -154,6 +234,7 @@ type WebpExportParams struct {
 	Quality         int
 	Lossless        bool
 	ReductionEffort int
+	IccProfile      string
 }
 
 // NewWebpExportParams creates default values for an export of a WEBP image.
@@ -197,6 +278,35 @@ func NewTiffExportParams() *TiffExportParams {
 	}
 }
 
+type GifExportParams struct {
+	StripMetadata bool
+	Quality       int
+}
+
+// NewGifExportParams creates default values for an export of a GIF image.
+func NewGifExportParams() *GifExportParams {
+	return &GifExportParams{
+		Quality: 75,
+	}
+}
+
+// AvifExportParams are options when exporting an AVIF to file or buffer.
+type AvifExportParams struct {
+	StripMetadata bool
+	Quality       int
+	Lossless      bool
+	Speed         int
+}
+
+// NewAvifExportParams creates default values for an export of an AVIF image.
+func NewAvifExportParams() *AvifExportParams {
+	return &AvifExportParams{
+		Quality:  80,
+		Lossless: false,
+		Speed:    5,
+	}
+}
+
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
@@ -220,9 +330,18 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
 func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
+	return LoadImageFromBuffer(buf, nil)
+}
+
+// LoadImageFromBuffer loads an image buffer and creates a new Image
+func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	startupIfNeeded()
 
-	image, format, err := vipsLoadFromBuffer(buf)
+	if params == nil {
+		params = NewImportParams()
+	}
+
+	image, format, err := vipsLoadFromBuffer(buf, params)
 	if err != nil {
 		return nil, err
 	}
@@ -284,18 +403,13 @@ func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef
 
 func finalizeImage(ref *ImageRef) {
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("closing image %p", ref))
-	ref.close()
+	ref.Close()
 }
 
-// Close is an empty function that does nothing. Images are automatically closed by GC.
-// Deprecated: Please remove all Close() functions from your code as superfluous.
+// Close manually closes the image and frees the memory. Calling Close() is optional.
+// Images are automatically closed by GC. However, in high volume applications the GC
+// can't keep up with the amount of memory so you might want to manually close the images.
 func (r *ImageRef) Close() {
-	govipsLog("govips", LogLevelInfo, "Close() is a deprecated function. You can remove it from your code as unnecessary.")
-}
-
-// close closes an image and frees internal memory associated with it.
-// This function is automatically called via GC.
-func (r *ImageRef) close() {
 	r.lock.Lock()
 
 	if r.image != nil {
@@ -434,6 +548,11 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 	}
 }
 
+// GetPages returns the number of Image
+func (r *ImageRef) GetPages() int {
+	return vipsImageGetPages(r.image)
+}
+
 // Export creates a byte array of the image for use.
 // The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
@@ -451,6 +570,10 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	}
 
 	switch format {
+	case ImageTypeGIF:
+		return r.ExportGIF(&GifExportParams{
+			Quality: params.Quality,
+		})
 	case ImageTypeWEBP:
 		return r.ExportWebp(&WebpExportParams{
 			StripMetadata:   params.StripMetadata,
@@ -478,6 +601,13 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 		return r.ExportHeif(&HeifExportParams{
 			Quality:  params.Quality,
 			Lossless: params.Lossless,
+		})
+	case ImageTypeAVIF:
+		return r.ExportAvif(&AvifExportParams{
+			StripMetadata: params.StripMetadata,
+			Quality:       params.Quality,
+			Lossless:      params.Lossless,
+			Speed:         params.Speed,
 		})
 	default:
 		format = ImageTypeJPEG
@@ -508,6 +638,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportHeif(NewHeifExportParams())
 	case ImageTypeTIFF:
 		return r.ExportTiff(NewTiffExportParams())
+	case ImageTypeAVIF:
+		return r.ExportAvif(NewAvifExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -547,7 +679,10 @@ func (r *ImageRef) ExportWebp(params *WebpExportParams) ([]byte, *ImageMetadata,
 		params = NewWebpExportParams()
 	}
 
-	buf, err := vipsSaveWebPToBuffer(r.image, *params)
+	paramsWithIccProfile := *params
+	paramsWithIccProfile.IccProfile = r.optimizedIccProfile
+
+	buf, err := vipsSaveWebPToBuffer(r.image, paramsWithIccProfile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -583,6 +718,34 @@ func (r *ImageRef) ExportTiff(params *TiffExportParams) ([]byte, *ImageMetadata,
 	return buf, r.newMetadata(ImageTypeTIFF), nil
 }
 
+// ExportGIF exports the image as GIF to a buffer.
+func (r *ImageRef) ExportGIF(params *GifExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewGifExportParams()
+	}
+
+	buf, err := vipsSaveGIFToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeGIF), nil
+}
+
+// ExportAvif exports the image as AVIF to a buffer.
+func (r *ImageRef) ExportAvif(params *AvifExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewAvifExportParams()
+	}
+
+	buf, err := vipsSaveAVIFToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeAVIF), nil
+}
+
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
 func (r *ImageRef) CompositeMulti(ins []*ImageComposite) error {
 	out, err := vipsComposite(toVipsCompositeStructs(r, ins))
@@ -606,6 +769,31 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 // Insert draws the image on top of the associated image at the given coordinates.
 func (r *ImageRef) Insert(sub *ImageRef, x, y int, expand bool, background *ColorRGBA) error {
 	out, err := vipsInsert(r.image, sub.image, x, y, expand, background)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Join joins this image with another in the direction specified
+func (r *ImageRef) Join(in *ImageRef, dir Direction) error {
+	out, err := vipsJoin(r.image, in.image, dir)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// ArrayJoin joins an array of images together wrapping at each n images
+func (r *ImageRef) ArrayJoin(images []*ImageRef, across int) error {
+	allImages := append([]*ImageRef{r}, images...)
+	inputs := make([]*C.VipsImage, len(allImages))
+	for i := range inputs {
+		inputs[i] = allImages[i].image
+	}
+	out, err := vipsArrayJoin(inputs, across)
 	if err != nil {
 		return err
 	}
@@ -852,16 +1040,25 @@ func (r *ImageRef) RemoveICCProfile() error {
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
 func (r *ImageRef) OptimizeICCProfile() error {
-	isCMYK := 0
-	if r.Interpretation() == InterpretationCMYK {
-		isCMYK = 1
+	inputProfile := r.determineInputICCProfile()
+	if !r.HasICCProfile() && (inputProfile == "") {
+		//No embedded ICC profile in the input image and no input profile determined, nothing to do.
+		return nil
 	}
 
-	out, err := vipsOptimizeICCProfile(r.image, isCMYK)
+	r.optimizedIccProfile = SRGBV2MicroICCProfilePath
+	if r.Bands() <= 2 {
+		r.optimizedIccProfile = SGrayV2MicroICCProfilePath
+	}
+
+	embedded := r.HasICCProfile() && (inputProfile == "")
+
+	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, 0, embedded)
 	if err != nil {
-		govipsLog("govips", LogLevelError, err.Error())
+		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
 	}
+
 	r.setImage(out)
 	return nil
 }
@@ -878,10 +1075,25 @@ func (r *ImageRef) RemoveMetadata() error {
 	vipsRemoveMetadata(out)
 
 	r.setImage(out)
+
 	return nil
 }
 
-// ToColorSpace changes the color space of the image to the interpreptation supplied as the parameter.
+func (r *ImageRef) ImageFields() []string {
+	return vipsImageGetFields(r.image)
+}
+
+func (r *ImageRef) HasExif() bool {
+	for _, field := range r.ImageFields() {
+		if strings.HasPrefix(field, "exif-") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ToColorSpace changes the color space of the image to the interpretation supplied as the parameter.
 func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
 	out, err := vipsToColorSpace(r.image, interpretation)
 	if err != nil {
@@ -1178,6 +1390,13 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
 	return bytes, nil
+}
+
+func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
+	if r.Interpretation() == InterpretationCMYK {
+		inputProfile = "cmyk"
+	}
+	return
 }
 
 // ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries

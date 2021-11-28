@@ -418,9 +418,6 @@ func TestImageRef_Close(t *testing.T) {
 	assert.NoError(t, err)
 
 	image.Close()
-	assert.NotNil(t, image.image)
-
-	image.close()
 	assert.Nil(t, image.image)
 
 	PrintObjectReport("Final")
@@ -432,12 +429,12 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 
-	go image.close()
-	go image.close()
-	go image.close()
-	go image.close()
-	defer image.close()
-	image.close()
+	go image.Close()
+	go image.Close()
+	go image.Close()
+	go image.Close()
+	defer image.Close()
+	image.Close()
 
 	assert.Nil(t, image.image)
 	runtime.GC()
@@ -487,6 +484,53 @@ func TestImageRef_Insert(t *testing.T) {
 
 	err = image.Insert(imageOverlay, 100, 200, false, nil)
 	require.NoError(t, err)
+}
+
+func TestImageRef_Join(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	joinImage, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	width := image.Width() + joinImage.Width()
+	height := joinImage.Height() // join appears to use the second image's height
+
+	err = image.Join(joinImage, DirectionHorizontal)
+	require.NoError(t, err)
+
+	assert.True(t, width == image.Width(), "Join image width is incorrect: %d != %d", width, image.Width())
+	assert.True(t, height == image.Height(), "Join image height is incorrect: %d != %d", height, image.Height())
+}
+
+func TestImageRef_ArrayJoin(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	joinImage1, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	joinImage2, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	joinImage3, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	joinImage4, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	images := []*ImageRef{image, joinImage1, joinImage2, joinImage3, joinImage4}
+	width := image.Width() * 2 // arrayjoin appears to size based on the image's width and height
+	height := image.Height() * 3
+
+	err = image.ArrayJoin(images, 2)
+	require.NoError(t, err)
+
+	assert.True(t, width == image.Width(), "ArrayJoin image width is incorrect: %d != %d", width, image.Width())
+	assert.True(t, height == image.Height(), "ArrayJoin image height is incorrect: %d != %d", height, image.Height())
 }
 
 func TestImageRef_Mapim(t *testing.T) {
@@ -693,6 +737,7 @@ func TestToBytes(t *testing.T) {
 	require.NoError(t, err)
 
 	buf1, err := image.ToBytes()
+	assert.NoError(t, err)
 	assert.Equal(t, 6220800, len(buf1))
 }
 
@@ -720,6 +765,24 @@ func TestIsColorSpaceSupport(t *testing.T) {
 
 	err = image.ToColorSpace(InterpretationError)
 	assert.Error(t, err)
+}
+
+func TestGetPages_gif(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	pages := image.GetPages()
+	assert.Equal(t, 8, pages)
+}
+
+func TestGetPages_webp(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "webp-animated.webp")
+	require.NoError(t, err)
+
+	pages := image.GetPages()
+	assert.Equal(t, 8, pages)
 }
 
 func TestImageRef_Divide__Error(t *testing.T) {
@@ -832,11 +895,33 @@ func TestImageRef_FindTrim_Threshold(t *testing.T) {
 	assert.Equal(t, 256, height)
 }
 
+func TestImageRef_Height(t *testing.T) {
+	image, err := NewImageFromFile(resources + "gif-animated-2.gif")
+	assert.NoError(t, err)
+	width := image.Height()
+	assert.Equal(t, 90, width)
+}
+
 func TestImageRef_Linear_Fails(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
 	err = image.Linear([]float64{1, 2}, []float64{1, 2, 3})
 	assert.Error(t, err)
+}
+
+func TestImageRef_AVIF(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "avif.avif")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, metadata, err := img.Export(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, ImageTypeAVIF, metadata.Format)
 }
 
 // TODO unit tests to cover:

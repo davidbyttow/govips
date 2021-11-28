@@ -42,4 +42,7 @@ int composite2_image(VipsImage *base, VipsImage *overlay, VipsImage **out,
 int insert_image(VipsImage *main, VipsImage *sub, VipsImage **out, int x, int y,
                  int expand, double r, double g, double b, double a);
 
+int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction);
+int arrayjoin(VipsImage **in, VipsImage **out, int n, int across);
+
 int is_16bit(VipsInterpretation interpretation);
