@@ -108,8 +108,9 @@ func vipsGetPoint(in *C.VipsImage, n int, x int, y int) ([]float64, error) {
 	defer gFreePointer(unsafe.Pointer(out))
 
 	if err := C.getpoint(in, &out, C.int(n), C.int(x), C.int(y)); err != 0 {
-		return []float64{}, handleVipsError()
+		return nil, handleVipsError()
 	}
 
-	return (*[1 << 30]float64)(unsafe.Pointer(out))[:n:n], nil
+	// maximum n is 4
+	return (*[4]float64)(unsafe.Pointer(out))[:n:n], nil
 }
