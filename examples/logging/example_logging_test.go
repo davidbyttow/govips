@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/davidbyttow/govips/v2/vips"
+	"github.com/cshum/govips/v2/vips"
 )
 
 /* govips example: how to modify logging by using your own log handler
