@@ -52,6 +52,23 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestImageRef_WebP__NearLossless(t *testing.T) {
+	Startup(nil)
+
+	srcBytes, err := ioutil.ReadFile(resources + "webp+alpha.webp")
+	require.NoError(t, err)
+
+	src := bytes.NewReader(srcBytes)
+	img, err := NewImageFromReader(src)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	params := NewWebpExportParams()
+	params.NearLossless = true
+	_, _, err = img.ExportWebp(params)
+	assert.NoError(t, err)
+}
+
 func TestImageRef_PNG(t *testing.T) {
 	Startup(nil)
 

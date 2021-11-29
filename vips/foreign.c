@@ -266,6 +266,7 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
       vips_object_set(VIPS_OBJECT(operation),
                       "strip", params->stripMetadata,
                       "lossless", params->webpLossless,
+                      "near_lossless", params->webpNearLossless,
                       "reduction_effort", params->webpReductionEffort,
                       "profile", params->webpIccProfile ? params->webpIccProfile : "none",
                       NULL);
@@ -431,6 +432,7 @@ static SaveParams defaultSaveParams = {
     .pngFilter = VIPS_FOREIGN_PNG_FILTER_NONE,
 
     .webpLossless = FALSE,
+    .webpNearLossless = FALSE,
     .webpReductionEffort = 4,
     .webpIccProfile = NULL,
 
