@@ -24,7 +24,8 @@ typedef enum types {
   MAGICK,
   HEIF,
   BMP,
-  AVIF
+  AVIF,
+  JP2K
 } ImageType;
 
 typedef enum ParamType {
@@ -116,6 +117,11 @@ typedef struct SaveParams {
 
   // AVIF
   int avifSpeed;
+
+  // JPEG2000
+  BOOL jp2kLossless;
+  int jp2kTileWidth;
+  int	jp2kTileHeight;
 } SaveParams;
 
 SaveParams create_save_params(ImageType outputFormat);
