@@ -52,6 +52,23 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestImageRef_WebP__NearLossless(t *testing.T) {
+	Startup(nil)
+
+	srcBytes, err := ioutil.ReadFile(resources + "webp+alpha.webp")
+	require.NoError(t, err)
+
+	src := bytes.NewReader(srcBytes)
+	img, err := NewImageFromReader(src)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	params := NewWebpExportParams()
+	params.NearLossless = true
+	_, _, err = img.ExportWebp(params)
+	assert.NoError(t, err)
+}
+
 func TestImageRef_PNG(t *testing.T) {
 	Startup(nil)
 
@@ -922,6 +939,24 @@ func TestImageRef_AVIF(t *testing.T) {
 	_, metadata, err := img.Export(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeAVIF, metadata.Format)
+}
+
+func TestImageRef_JP2K(t *testing.T) {
+	if MajorVersion == 8 && MinorVersion < 11 {
+		t.Skip("JPEG2000 is only supported in vips 8.11+")
+	}
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "jp2k-orientation-6.jp2")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, metadata, err := img.ExportJp2k(nil)
+	assert.NoError(t, err)
+	assert.Equal(t, ImageTypeJP2K, metadata.Format)
 }
 
 func TestImageRef_AVIF_ExportNative(t *testing.T) {
