@@ -31,8 +31,8 @@ func TestImageRef_WebP(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, _, err = img.Export(nil)
-	assert.NoError(t, err)
+	_, _, err = img.ExportWebp(nil)
+	require.NoError(t, err)
 }
 
 func TestImageRef_WebP__ReducedEffort(t *testing.T) {
@@ -46,10 +46,10 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	params := NewDefaultWEBPExportParams()
-	params.Effort = 2
-	_, _, err = img.Export(params)
-	assert.NoError(t, err)
+	params := NewWebpExportParams()
+	params.ReductionEffort = 2
+	_, _, err = img.ExportWebp(params)
+	require.NoError(t, err)
 }
 
 func TestImageRef_WebP__NearLossless(t *testing.T) {
@@ -66,7 +66,7 @@ func TestImageRef_WebP__NearLossless(t *testing.T) {
 	params := NewWebpExportParams()
 	params.NearLossless = true
 	_, _, err = img.ExportWebp(params)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 }
 
 func TestImageRef_PNG(t *testing.T) {
@@ -81,10 +81,10 @@ func TestImageRef_PNG(t *testing.T) {
 	require.NotNil(t, img)
 
 	// check random access by encoding twice
-	_, _, err = img.Export(nil)
-	assert.NoError(t, err)
-	_, _, err = img.Export(nil)
-	assert.NoError(t, err)
+	_, _, err = img.ExportNative()
+	require.NoError(t, err)
+	_, _, err = img.ExportNative()
+	require.NoError(t, err)
 }
 
 func TestImageRef_HEIF(t *testing.T) {
@@ -97,8 +97,8 @@ func TestImageRef_HEIF(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
-	assert.NoError(t, err)
+	_, metadata, err := img.ExportHeif(nil)
+	require.NoError(t, err)
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
@@ -112,12 +112,12 @@ func TestImageRef_HEIF_MIF1(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
-	assert.NoError(t, err)
+	_, metadata, err := img.ExportHeif(nil)
+	require.NoError(t, err)
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
-func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
+func TestImageRef_HEIF_ftyp_msf1(t *testing.T) {
 	Startup(nil)
 
 	raw, err := ioutil.ReadFile(resources + "heic-ftypmsf1.heic")
@@ -127,8 +127,8 @@ func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
-	assert.NoError(t, err)
+	_, metadata, err := img.ExportHeif(nil)
+	require.NoError(t, err)
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
@@ -142,8 +142,8 @@ func TestImageRef_BMP(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	exported, metadata, err := img.Export(nil)
-	assert.NoError(t, err)
+	exported, metadata, err := img.ExportNative()
+	require.NoError(t, err)
 	assert.Equal(t, ImageTypePNG, metadata.Format)
 	assert.NotNil(t, exported)
 }
@@ -195,7 +195,7 @@ func TestImageRef_OverSizedMetadata(t *testing.T) {
 
 	src := bytes.NewReader(srcBytes)
 	img, err := NewImageFromReader(src)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotNil(t, img)
 }
 
@@ -245,11 +245,11 @@ func TestImageRef_AddAlpha(t *testing.T) {
 	require.NotNil(t, img)
 
 	err = img.AddAlpha()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.True(t, img.HasAlpha(), "has alpha")
 
-	_, _, err = img.Export(nil)
-	assert.NoError(t, err)
+	_, _, err = img.ExportNative()
+	require.NoError(t, err)
 }
 
 func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
@@ -260,11 +260,11 @@ func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
 	require.NotNil(t, img)
 
 	err = img.AddAlpha()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.True(t, img.HasAlpha(), "has alpha")
-	_, _, err = img.Export(nil)
-	assert.NoError(t, err)
+	_, _, err = img.ExportNative()
+	require.NoError(t, err)
 }
 
 func TestImageRef_HasProfile__True(t *testing.T) {
@@ -432,7 +432,7 @@ func TestImageRef_Close(t *testing.T) {
 	Startup(nil)
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	image.Close()
 	assert.Nil(t, image.image)
@@ -444,7 +444,7 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	Startup(nil)
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	go image.Close()
 	go image.Close()
@@ -588,7 +588,7 @@ func TestImageRef_Maplut(t *testing.T) {
 	lut, err := XYZ(1, 1)
 	require.NoError(t, err)
 
-	_ = image.ExtractBand(0, 2)
+	err = image.ExtractBand(0, 2)
 	require.NoError(t, err)
 
 	err = image.Maplut(lut)
@@ -611,22 +611,23 @@ func TestImageRef_Maplut_Error(t *testing.T) {
 func TestImageRef_CompositeMulti(t *testing.T) {
 	Startup(nil)
 
-	image, err := NewImageFromFile(resources + "png-24bit.png")
+	canvas, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
-	images := []*ImageComposite{}
-	for i, uri := range []string{"png-8bit+alpha.png", "png-24bit+alpha.png"} {
-		image, err := NewImageFromFile(resources + uri)
+	sources := []string{"png-8bit+alpha.png", "png-24bit+alpha.png"}
+	overlays := make([]*ImageComposite, len(sources))
+	for i, uri := range sources {
+		overlay, err := NewImageFromFile(resources + uri)
 		require.NoError(t, err)
 
 		//add offset test
-		images = append(images, &ImageComposite{image, BlendModeOver, (i + 1) * 20, (i + 2) * 20})
+		overlays[i] = &ImageComposite{overlay, BlendModeOver, (i + 1) * 20, (i + 2) * 20}
 	}
 
-	err = image.CompositeMulti(images)
+	err = canvas.CompositeMulti(overlays)
 	require.NoError(t, err)
 
-	_, _, err = image.Export(nil)
+	_, _, err = canvas.ExportNative()
 	require.NoError(t, err)
 }
 
@@ -654,7 +655,7 @@ func BenchmarkExportImage(b *testing.B) {
 	b.SetParallelism(100)
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _, err = img.Export(NewDefaultJPEGExportParams())
+		_, _, err = img.ExportJpeg(nil)
 		require.NoError(b, err)
 	}
 	b.ReportAllocs()
@@ -738,13 +739,13 @@ func TestResOffset(t *testing.T) {
 
 	x := image.ResX()
 	y := image.ResY()
-	offx := image.OffsetX()
-	offy := image.OffsetY()
+	offsetX := image.OffsetX()
+	offsetY := image.OffsetY()
 
-	assert.Equal(t, x, float64(2.835))
-	assert.Equal(t, y, float64(2.835))
-	assert.Equal(t, offx, 0)
-	assert.Equal(t, offy, 0)
+	assert.Equal(t, x, 2.835)
+	assert.Equal(t, y, 2.835)
+	assert.Equal(t, offsetX, 0)
+	assert.Equal(t, offsetY, 0)
 }
 
 func TestToBytes(t *testing.T) {
@@ -754,7 +755,7 @@ func TestToBytes(t *testing.T) {
 	require.NoError(t, err)
 
 	buf1, err := image.ToBytes()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 6220800, len(buf1))
 }
 
@@ -834,16 +835,6 @@ func TestIdentity(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestDeprecatedExportParams(t *testing.T) {
-	Startup(nil)
-
-	defaultExportParams := NewDefaultExportParams()
-	assert.Equal(t, ImageTypeUnknown, defaultExportParams.Format)
-
-	pngExportParams := NewPngExportParams()
-	assert.Equal(t, 6, pngExportParams.Compression)
-}
-
 func TestNewImageFromReaderFail(t *testing.T) {
 	r := strings.NewReader("")
 	buf, err := NewImageFromReader(r)
@@ -861,26 +852,26 @@ func TestNewImageFromFileFail(t *testing.T) {
 
 func TestImageRef_Cast(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = image.Cast(BandFormatUchar)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = image.Cast(math.MaxInt8)
 	assert.Error(t, err)
 }
 
 func TestImageRef_Average(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	average, err := image.Average()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.NotEqual(t, 0, average)
 }
 
 func TestImageRef_FindTrim_White(t *testing.T) {
 	image, err := NewImageFromFile(resources + "find_trim.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	left, top, width, height, err := image.FindTrim(0, &Color{R: 255, G: 255, B: 255})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 0, left)
 	assert.Equal(t, 0, top)
@@ -890,9 +881,9 @@ func TestImageRef_FindTrim_White(t *testing.T) {
 
 func TestImageRef_FindTrim_Gray(t *testing.T) {
 	image, err := NewImageFromFile(resources + "find_trim.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	left, top, width, height, err := image.FindTrim(0, &Color{R: 238, G: 238, B: 238})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 32, left)
 	assert.Equal(t, 0, top)
@@ -902,9 +893,9 @@ func TestImageRef_FindTrim_Gray(t *testing.T) {
 
 func TestImageRef_FindTrim_Threshold(t *testing.T) {
 	image, err := NewImageFromFile(resources + "find_trim.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	left, top, width, height, err := image.FindTrim(17, &Color{R: 255, G: 255, B: 255})
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, 80, left)
 	assert.Equal(t, 32, top)
@@ -914,14 +905,14 @@ func TestImageRef_FindTrim_Threshold(t *testing.T) {
 
 func TestImageRef_Height(t *testing.T) {
 	image, err := NewImageFromFile(resources + "gif-animated-2.gif")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	width := image.Height()
 	assert.Equal(t, 90, width)
 }
 
 func TestImageRef_Linear_Fails(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	err = image.Linear([]float64{1, 2}, []float64{1, 2, 3})
 	assert.Error(t, err)
 }
@@ -936,8 +927,8 @@ func TestImageRef_AVIF(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
-	assert.NoError(t, err)
+	_, metadata, err := img.ExportAvif(nil)
+	require.NoError(t, err)
 	assert.Equal(t, ImageTypeAVIF, metadata.Format)
 }
 
@@ -952,7 +943,7 @@ func TestImageRef_AVIF_ExportNative(t *testing.T) {
 	require.NotNil(t, img)
 
 	_, metadata, err := img.ExportNative()
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, ImageTypeAVIF, metadata.Format)
 }
 
@@ -970,7 +961,7 @@ func TestImageRef_JP2K(t *testing.T) {
 	require.NotNil(t, img)
 
 	_, metadata, err := img.ExportJp2k(nil)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, ImageTypeJP2K, metadata.Format)
 }
 
