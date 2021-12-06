@@ -38,8 +38,10 @@ int find_trim(VipsImage *in, int *left, int *top, int *width, int *height,
   }
 
   double background[3] = {r, g, b};
-
   VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
 
-  return vips_find_trim(in, left, top, width, height, "threshold", threshold, "background", vipsBackground, NULL);
+  int code = vips_find_trim(in, left, top, width, height, "threshold", threshold, "background", vipsBackground, NULL);
+
+  vips_area_unref(VIPS_AREA(vipsBackground));
+  return code;
 }
