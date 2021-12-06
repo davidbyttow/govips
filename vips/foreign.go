@@ -43,6 +43,7 @@ const (
 	ImageTypeHEIF    ImageType = C.HEIF
 	ImageTypeBMP     ImageType = C.BMP
 	ImageTypeAVIF    ImageType = C.AVIF
+	ImageTypeJP2K    ImageType = C.JP2K
 )
 
 var imageTypeExtensionMap = map[ImageType]string{
@@ -57,6 +58,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeHEIF:   ".heic",
 	ImageTypeBMP:    ".bmp",
 	ImageTypeAVIF:   ".avif",
+	ImageTypeJP2K:   ".jp2",
 }
 
 // ImageTypes defines the various image types supported by govips
@@ -72,6 +74,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeHEIF:   "heif",
 	ImageTypeBMP:    "bmp",
 	ImageTypeAVIF:   "heif",
+	ImageTypeJP2K:   "jp2k",
 }
 
 // TiffCompression represents method for compressing a tiff at export
@@ -138,6 +141,8 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypePDF
 	} else if isBMP(buf) {
 		return ImageTypeBMP
+	} else if isJP2K(buf) {
+		return ImageTypeJP2K
 	} else {
 		return ImageTypeUnknown
 	}
@@ -223,6 +228,14 @@ var bmpHeader = []byte("BM")
 
 func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
+}
+
+//X'0000 000C 6A50 2020 0D0A 870A'
+var jp2kHeader = []byte("\x00\x00\x00\x0C\x6A\x50\x20\x20\x0D\x0A\x87\x0A")
+
+// https://datatracker.ietf.org/doc/html/rfc3745
+func isJP2K(buf []byte) bool {
+	return bytes.HasPrefix(buf, jp2kHeader)
 }
 
 func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, error) {
@@ -346,7 +359,13 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.quality = C.int(params.Quality)
 	p.webpLossless = C.int(boolToInt(params.Lossless))
+	p.webpNearLossless = C.int(boolToInt(params.NearLossless))
 	p.webpReductionEffort = C.int(params.ReductionEffort)
+
+	if params.IccProfile != "" {
+		p.webpIccProfile = C.CString(params.IccProfile)
+		defer C.free(unsafe.Pointer(p.webpIccProfile))
+	}
 
 	return vipsSaveToBuffer(p)
 }
@@ -384,6 +403,21 @@ func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, err
 	p.quality = C.int(params.Quality)
 	p.heifLossless = C.int(boolToInt(params.Lossless))
 	p.avifSpeed = C.int(params.Speed)
+
+	return vipsSaveToBuffer(p)
+}
+
+func vipsSaveJP2KToBuffer(in *C.VipsImage, params Jp2kExportParams) ([]byte, error) {
+	incOpCounter("save_jp2k_buffer")
+
+	p := C.create_save_params(C.JP2K)
+	p.inputImage = in
+	p.outputFormat = C.JP2K
+	p.quality = C.int(params.Quality)
+	p.jp2kLossless = C.int(boolToInt(params.Lossless))
+	p.jp2kTileWidth = C.int(params.TileWidth)
+	p.jp2kTileHeight = C.int(params.TileHeight)
+	p.jpegSubsample = C.VipsForeignJpegSubsample(params.SubsampleMode)
 
 	return vipsSaveToBuffer(p)
 }

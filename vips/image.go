@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"runtime"
+	"strings"
 	"sync"
 	"unsafe"
 )
@@ -26,11 +27,12 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf               []byte
-	image             *C.VipsImage
-	format            ImageType
-	lock              sync.Mutex
-	preMultiplication *PreMultiplicationState
+	buf                 []byte
+	image               *C.VipsImage
+	format              ImageType
+	lock                sync.Mutex
+	preMultiplication   *PreMultiplicationState
+	optimizedIccProfile string
 }
 
 // ImageMetadata is a data structure holding the width, height, orientation and other metadata of the picture.
@@ -231,7 +233,9 @@ type WebpExportParams struct {
 	StripMetadata   bool
 	Quality         int
 	Lossless        bool
+	NearLossless    bool
 	ReductionEffort int
+	IccProfile      string
 }
 
 // NewWebpExportParams creates default values for an export of a WEBP image.
@@ -240,6 +244,7 @@ func NewWebpExportParams() *WebpExportParams {
 	return &WebpExportParams{
 		Quality:         75,
 		Lossless:        false,
+		NearLossless:    false,
 		ReductionEffort: 4,
 	}
 }
@@ -304,6 +309,25 @@ func NewAvifExportParams() *AvifExportParams {
 	}
 }
 
+// Jp2kExportParams are options when exporting an JPEG2000 to file or buffer.
+type Jp2kExportParams struct {
+	Quality       int
+	Lossless      bool
+	TileWidth     int
+	TileHeight    int
+	SubsampleMode SubsampleMode
+}
+
+// NewJp2kExportParams creates default values for an export of an JPEG2000 image.
+func NewJp2kExportParams() *Jp2kExportParams {
+	return &Jp2kExportParams{
+		Quality:    80,
+		Lossless:   false,
+		TileWidth:  512,
+		TileHeight: 512,
+	}
+}
+
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
@@ -338,12 +362,12 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 		params = NewImportParams()
 	}
 
-	image, format, err := vipsLoadFromBuffer(buf, params)
+	vipsImage, format, err := vipsLoadFromBuffer(buf, params)
 	if err != nil {
 		return nil, err
 	}
 
-	ref := newImageRef(image, format, buf)
+	ref := newImageRef(vipsImage, format, buf)
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
 	return ref, nil
@@ -637,6 +661,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportTiff(NewTiffExportParams())
 	case ImageTypeAVIF:
 		return r.ExportAvif(NewAvifExportParams())
+	case ImageTypeJP2K:
+		return r.ExportJp2k(NewJp2kExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -676,7 +702,10 @@ func (r *ImageRef) ExportWebp(params *WebpExportParams) ([]byte, *ImageMetadata,
 		params = NewWebpExportParams()
 	}
 
-	buf, err := vipsSaveWebPToBuffer(r.image, *params)
+	paramsWithIccProfile := *params
+	paramsWithIccProfile.IccProfile = r.optimizedIccProfile
+
+	buf, err := vipsSaveWebPToBuffer(r.image, paramsWithIccProfile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -738,6 +767,20 @@ func (r *ImageRef) ExportAvif(params *AvifExportParams) ([]byte, *ImageMetadata,
 	}
 
 	return buf, r.newMetadata(ImageTypeAVIF), nil
+}
+
+// ExportJp2k exports the image as JPEG2000 to a buffer.
+func (r *ImageRef) ExportJp2k(params *Jp2kExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewJp2kExportParams()
+	}
+
+	buf, err := vipsSaveJP2KToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeJP2K), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
@@ -828,8 +871,8 @@ func (r *ImageRef) ExtractBand(band int, num int) error {
 // BandJoin joins a set of images together, bandwise.
 func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	vipsImages := []*C.VipsImage{r.image}
-	for _, image := range images {
-		vipsImages = append(vipsImages, image.image)
+	for _, vipsImage := range images {
+		vipsImages = append(vipsImages, vipsImage.image)
 	}
 
 	out, err := vipsBandJoin(vipsImages)
@@ -1034,16 +1077,25 @@ func (r *ImageRef) RemoveICCProfile() error {
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
 func (r *ImageRef) OptimizeICCProfile() error {
-	isCMYK := 0
-	if r.Interpretation() == InterpretationCMYK {
-		isCMYK = 1
+	inputProfile := r.determineInputICCProfile()
+	if !r.HasICCProfile() && (inputProfile == "") {
+		//No embedded ICC profile in the input image and no input profile determined, nothing to do.
+		return nil
 	}
 
-	out, err := vipsOptimizeICCProfile(r.image, isCMYK)
+	r.optimizedIccProfile = SRGBV2MicroICCProfilePath
+	if r.Bands() <= 2 {
+		r.optimizedIccProfile = SGrayV2MicroICCProfilePath
+	}
+
+	embedded := r.HasICCProfile() && (inputProfile == "")
+
+	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, 0, embedded)
 	if err != nil {
-		govipsLog("govips", LogLevelError, err.Error())
+		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
 	}
+
 	r.setImage(out)
 	return nil
 }
@@ -1060,10 +1112,25 @@ func (r *ImageRef) RemoveMetadata() error {
 	vipsRemoveMetadata(out)
 
 	r.setImage(out)
+
 	return nil
 }
 
-// ToColorSpace changes the color space of the image to the interpreptation supplied as the parameter.
+func (r *ImageRef) ImageFields() []string {
+	return vipsImageGetFields(r.image)
+}
+
+func (r *ImageRef) HasExif() bool {
+	for _, field := range r.ImageFields() {
+		if strings.HasPrefix(field, "exif-") {
+			return true
+		}
+	}
+
+	return false
+}
+
+// ToColorSpace changes the color space of the image to the interpretation supplied as the parameter.
 func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
 	out, err := vipsToColorSpace(r.image, interpretation)
 	if err != nil {
@@ -1382,8 +1449,15 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 	}
 	defer C.free(cData)
 
-	bytes := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
-	return bytes, nil
+	data := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
+	return data, nil
+}
+
+func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
+	if r.Interpretation() == InterpretationCMYK {
+		inputProfile = "cmyk"
+	}
+	return
 }
 
 // ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries
