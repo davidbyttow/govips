@@ -1133,6 +1133,21 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
+// TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
+func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
+	inputProfile := r.determineInputICCProfile()
+	embedded := r.HasICCProfile() && (inputProfile == "")
+
+	out, err := vipsICCTransform(r.image, outputProfilePath, inputProfile, IntentPerceptual, 0, embedded)
+	if err != nil {
+		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
 // OptimizeICCProfile optimizes the ICC color profile of the image.
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
