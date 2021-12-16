@@ -455,6 +455,73 @@ func TestImage_Rank(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_GetPointWhite(t *testing.T) {
+	goldenTest(t, resources+"png-24bit.png", func(img *ImageRef) error {
+		point, err := img.GetPoint(10, 10)
+
+		assert.Equal(t, 3, len(point))
+		assert.Equal(t, 255.0, point[0])
+		assert.Equal(t, 255.0, point[1])
+		assert.Equal(t, 255.0, point[2])
+
+		return err
+	}, nil, nil)
+}
+
+func TestImage_GetPointYellow(t *testing.T) {
+	goldenTest(t, resources+"png-24bit.png", func(img *ImageRef) error {
+		point, err := img.GetPoint(400, 10)
+
+		assert.Equal(t, 3, len(point))
+		assert.Equal(t, 255.0, point[0])
+		assert.Equal(t, 255.0, point[1])
+		assert.Equal(t, 0.0, point[2])
+
+		return err
+	}, nil, nil)
+}
+
+func TestImage_GetPointWhiteR(t *testing.T) {
+	goldenTest(t, resources+"png-24bit.png", func(img *ImageRef) error {
+		point, err := img.GetPoint(10, 10)
+
+		assert.Equal(t, 3, len(point))
+		assert.Equal(t, 255.0, point[0])
+		assert.Equal(t, 255.0, point[1])
+		assert.Equal(t, 255.0, point[2])
+
+		return err
+	}, nil, nil)
+}
+
+func TestImage_GetPoint_WithAlpha(t *testing.T) {
+	goldenTest(t, resources+"with_alpha.png", func(img *ImageRef) error {
+		point, err := img.GetPoint(10, 10)
+
+		assert.Equal(t, 4, len(point))
+		assert.Equal(t, 0.0, point[0])
+		assert.Equal(t, 0.0, point[1])
+		assert.Equal(t, 0.0, point[2])
+		assert.Equal(t, 255.0, point[3])
+
+		return err
+	}, nil, nil)
+}
+
+func TestImage_GetPoint_WithAlpha2(t *testing.T) {
+	goldenTest(t, resources+"with_alpha.png", func(img *ImageRef) error {
+		point, err := img.GetPoint(0, 0)
+
+		assert.Equal(t, 4, len(point))
+		assert.Equal(t, 0.0, point[0])
+		assert.Equal(t, 0.0, point[1])
+		assert.Equal(t, 0.0, point[2])
+		assert.Equal(t, 0.0, point[3])
+
+		return err
+	}, nil, nil)
+}
+
 func TestImage_SimilarityRGB(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Similarity(0.5, 5, &ColorRGBA{R: 127, G: 127, B: 127, A: 127},
