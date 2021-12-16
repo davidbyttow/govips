@@ -479,7 +479,7 @@ func (r *ImageRef) Interpretation() Interpretation {
 	return Interpretation(int(r.image.Type))
 }
 
-// ColorSpace returns the interpreptation of the current color space. Alias to Interpretation().
+// ColorSpace returns the interpretation of the current color space. Alias to Interpretation().
 func (r *ImageRef) ColorSpace() Interpretation {
 	return r.Interpretation()
 }
