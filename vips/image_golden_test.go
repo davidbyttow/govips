@@ -92,6 +92,28 @@ func TestImage_EmbedBackground_NoAlpha(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_TransformICCProfile_RGB_No_Profile(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.TransformICCProfile(SRGBIEC6196621ICCProfilePath)
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile())
+			assert.Equal(t, InterpretationSRGB, result.Interpretation())
+		}, nil)
+}
+
+func TestImage_TransformICCProfile_RGB_Embedded(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit-icc-adobe-rgb.jpg",
+		func(img *ImageRef) error {
+			return img.TransformICCProfile(SRGBIEC6196621ICCProfilePath)
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile())
+			assert.Equal(t, InterpretationSRGB, result.Interpretation())
+		}, nil)
+}
+
 func TestImage_OptimizeICCProfile_CMYK(t *testing.T) {
 	goldenTest(t, resources+"jpg-32bit-cmyk-icc-swop.jpg",
 		func(img *ImageRef) error {
