@@ -373,6 +373,21 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	return ref, nil
 }
 
+// NewThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail ops
+func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, buf)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
 // Metadata returns the metadata (ImageMetadata struct) of the associated ImageRef
 func (r *ImageRef) Metadata() *ImageMetadata {
 	return &ImageMetadata{
