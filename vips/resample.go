@@ -2,6 +2,11 @@ package vips
 
 // #include "resample.h"
 import "C"
+import (
+	"fmt"
+	"runtime"
+	"unsafe"
+)
 
 // Kernel represents VipsKernel type
 type Kernel int
@@ -55,6 +60,38 @@ func vipsThumbnail(in *C.VipsImage, width, height int, crop Interesting) (*C.Vip
 	}
 
 	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-resample.html#vips-thumbnail-buffer
+func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*C.VipsImage, ImageType, error) {
+	src := buf
+	// Reference src here so it's not garbage collected during image initialization.
+	defer runtime.KeepAlive(src)
+
+	var err error
+
+	imageType := DetermineImageType(src)
+
+	if imageType == ImageTypeBMP {
+		src, err = bmpToPNG(src)
+		if err != nil {
+			return nil, ImageTypeUnknown, err
+		}
+		imageType = ImageTypePNG
+	}
+
+	if !IsTypeSupported(imageType) {
+		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format size=%d", len(src)))
+		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
+	}
+
+	var out *C.VipsImage
+
+	if err := C.thumbnail_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out, C.int(width), C.int(height), C.int(crop)); err != 0 {
+		return nil, ImageTypeUnknown, handleImageError(out)
+	}
+
+	return out, imageType, nil
 }
 
 // https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-mapim

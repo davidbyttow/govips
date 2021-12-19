@@ -351,6 +351,30 @@ func TestImage_Thumbnail_CropCentered(t *testing.T) {
 		}, nil)
 }
 
+func TestThumbnail_NoCrop(t *testing.T) {
+	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailFromFile(path, 36, 36, InterestingNone)
+		},
+		nil,
+		func(result *ImageRef) {
+			assert.Equal(t, 36, result.Width())
+			assert.Equal(t, 24, result.Height())
+		}, nil)
+}
+
+func TestThumbnail_CropCentered(t *testing.T) {
+	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
+		},
+		nil,
+		func(result *ImageRef) {
+			assert.Equal(t, 25, result.Width())
+			assert.Equal(t, 25, result.Height())
+		}, nil)
+}
+
 func TestImage_ResizeWithVScale(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg",
 		func(img *ImageRef) error {
@@ -783,6 +807,51 @@ func goldenTest(
 	Startup(nil)
 
 	img, err := NewImageFromFile(path)
+	require.NoError(t, err)
+
+	err = exec(img)
+	require.NoError(t, err)
+
+	buf, metadata, err := export(img)
+	require.NoError(t, err)
+
+	result, err := NewImageFromBuffer(buf)
+	require.NoError(t, err)
+
+	validate(result)
+
+	assertGoldenMatch(t, path, buf, metadata.Format)
+
+	return buf
+}
+
+func goldenCreateTest(
+	t *testing.T,
+	path string,
+	create func(path string) (*ImageRef, error),
+	exec func(img *ImageRef) error,
+	validate func(img *ImageRef),
+	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
+) []byte {
+	if create == nil {
+		create = NewImageFromFile
+	}
+
+	if exec == nil {
+		exec = func(*ImageRef) error { return nil }
+	}
+
+	if validate == nil {
+		validate = func(*ImageRef) {}
+	}
+
+	if export == nil {
+		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
+	}
+
+	Startup(nil)
+
+	img, err := create(path)
 	require.NoError(t, err)
 
 	err = exec(img)
