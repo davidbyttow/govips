@@ -32,7 +32,7 @@ int thumbnail_image(VipsImage *in, VipsImage **out, int width, int height,
 }
 
 int thumbnail_buffer(void *buf, size_t len, VipsImage **out,
-                    int width, height, int crop) {
+                    int width, int height, int crop) {
   return vips_thumbnail_buffer(buf, len, out, width, "height", height,
                               "crop", crop, NULL);
 }
