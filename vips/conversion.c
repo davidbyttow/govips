@@ -13,18 +13,18 @@ int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, in
                 int height, double r, double g, double b) {
 
 
-  if (in->Bands <= 3) {
-    double background[3] = {r, g, b};
-    VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
+  double background[3] = {r, g, b};
+  VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
 
+  double backgroundRGBA[4] = {r, g, b, 255};
+  VipsArrayDouble *vipsBackgroundRGBA = vips_array_double_new(backgroundRGBA, 4);
+
+  if (in->Bands <= 3) {
     return vips_embed(in, out, left, top, width, height,
     "extend", VIPS_EXTEND_BACKGROUND, "background", vipsBackground, NULL);
   } else {
-    double background[4] = {r, g, b, 255};
-    VipsArrayDouble *vipsBackground = vips_array_double_new(background, 4);
-
     return vips_embed(in, out, left, top, width, height,
-    "extend", VIPS_EXTEND_BACKGROUND, "background", vipsBackground, NULL);
+    "extend", VIPS_EXTEND_BACKGROUND, "background", vipsBackgroundRGBA, NULL);
   }
 }
 
