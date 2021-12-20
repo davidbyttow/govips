@@ -9,6 +9,17 @@ int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width,
   return vips_embed(in, out, left, top, width, height, "extend", extend, NULL);
 }
 
+int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
+                int height, double r, double g, double b) {
+
+  double background[3] = {r, g, b};
+  VipsArrayDouble *vipsBackground = vips_array_double_new(background, 3);
+
+  return vips_embed(in, out, left, top, width, height,
+  "extend", VIPS_EXTEND_BACKGROUND, "background", vipsBackground, NULL);
+}
+
+
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
   return vips_flip(in, out, direction, NULL);
 }
