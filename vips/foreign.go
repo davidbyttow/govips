@@ -7,7 +7,6 @@ import (
 	"encoding/xml"
 	"fmt"
 	"image/png"
-	"math"
 	"runtime"
 	"unsafe"
 
@@ -117,8 +116,14 @@ func IsTypeSupported(imageType ImageType) bool {
 	return supportedImageTypes[imageType]
 }
 
+// uses at most sniffLen bytes to make its decision.
+const sniffLen = 1024
+
 // DetermineImageType attempts to determine the image type of the given buffer
 func DetermineImageType(buf []byte) ImageType {
+	if len(buf) > sniffLen {
+		buf = buf[:sniffLen]
+	}
 	if len(buf) < 12 {
 		return ImageTypeUnknown
 	} else if isJPEG(buf) {
@@ -200,8 +205,7 @@ func isAVIF(buf []byte) bool {
 var svg = []byte("<svg")
 
 func isSVG(buf []byte) bool {
-	sub := buf[:int(math.Min(1024.0, float64(len(buf))))]
-	if bytes.Contains(sub, svg) {
+	if bytes.Contains(buf, svg) {
 		data := &struct {
 			XMLName xml.Name `xml:"svg"`
 		}{}
