@@ -66,7 +66,7 @@ func TestImage_Embed_ExtendWhite_Alpha(t *testing.T) {
 	}, func(img *ImageRef) {
 		point, err := img.GetPoint(999, 0)
 		assert.NoError(t, err)
-		assert.Equal(t, point, []float64{255, 255, 255})
+		assert.Equal(t, point, []float64{255, 255, 255, 255})
 	}, nil)
 }
 
@@ -76,7 +76,7 @@ func TestImage_EmbedBackground_Alpha(t *testing.T) {
 	}, func(img *ImageRef) {
 		point, err := img.GetPoint(999, 0)
 		assert.NoError(t, err)
-		assert.Equal(t, point, []float64{238, 238, 238})
+		assert.Equal(t, point, []float64{238, 238, 238, 255})
 	}, nil)
 }
 
