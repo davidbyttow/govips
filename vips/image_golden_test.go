@@ -340,6 +340,17 @@ func TestImage_Thumbnail_NoCrop(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_Thumbnail_NoUpscale(t *testing.T) {
+	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(img *ImageRef) error {
+			return img.ThumbnailWithSize(9999, 9999, InterestingNone, SizeDown)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 715, result.Width())
+			assert.Equal(t, 483, result.Height())
+		}, nil)
+}
+
 func TestImage_Thumbnail_CropCentered(t *testing.T) {
 	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
 		func(img *ImageRef) error {
@@ -360,6 +371,18 @@ func TestThumbnail_NoCrop(t *testing.T) {
 		func(result *ImageRef) {
 			assert.Equal(t, 36, result.Width())
 			assert.Equal(t, 24, result.Height())
+		}, nil)
+}
+
+func TestThumbnail_NoUpscale(t *testing.T) {
+	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
+		},
+		nil,
+		func(result *ImageRef) {
+			assert.Equal(t, 715, result.Width())
+			assert.Equal(t, 483, result.Height())
 		}, nil)
 }
 

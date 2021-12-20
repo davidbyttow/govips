@@ -373,7 +373,7 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	return ref, nil
 }
 
-// NewThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail ops
+// NewThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail crop
 func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*ImageRef, error) {
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -384,11 +384,37 @@ func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*Im
 	return NewThumbnailFromBuffer(buf, width, height, crop)
 }
 
-// NewThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail ops
+// NewThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail crop
 func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop)
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, SizeBoth)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, buf)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
+// NewThumbnailWithSizeFromFile loads an image from file and creates a new ImageRef with thumbnail crop and size
+func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	buf, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
+	return NewThumbnailWithSizeFromBuffer(buf, width, height, crop, size)
+}
+
+// NewThumbnailWithSizeFromBuffer loads an image buffer and creates a new Image with thumbnail crop and size
+func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size)
 	if err != nil {
 		return nil, err
 	}
@@ -1362,10 +1388,21 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 }
 
 // Thumbnail resizes the image to the given width and height.
-// If crop is true the returned image size will be exactly the given height and width,
-// otherwise the width and height will be within the given parameters.
+// crop decides algorithm vips uses to shrink and crop to fill target,
 func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
-	out, err := vipsThumbnail(r.image, width, height, crop)
+	out, err := vipsThumbnail(r.image, width, height, crop, SizeBoth)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// ThumbnailWithSize resizes the image to the given width and height.
+// crop decides algorithm vips uses to shrink and crop to fill target,
+// size controls upsize, downsize, both or force
+func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size Size) error {
+	out, err := vipsThumbnail(r.image, width, height, crop, size)
 	if err != nil {
 		return err
 	}
