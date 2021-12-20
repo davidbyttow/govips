@@ -80,6 +80,18 @@ func TestImage_EmbedBackground_Alpha(t *testing.T) {
 	}, nil)
 }
 
+func TestImage_EmbedBackground_NoAlpha(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.EmbedBackground(0, 0, 500, 300, &Color{R: 238, G: 238, B: 238})
+		},
+		func(result *ImageRef) {
+			point, err := result.GetPoint(499, 0)
+			assert.NoError(t, err)
+			assert.Equal(t, point, []float64{238, 238, 238})
+		}, nil)
+}
+
 func TestImage_OptimizeICCProfile_CMYK(t *testing.T) {
 	goldenTest(t, resources+"jpg-32bit-cmyk-icc-swop.jpg",
 		func(img *ImageRef) error {
