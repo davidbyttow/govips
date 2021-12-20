@@ -4,14 +4,13 @@ package vips
 import "C"
 import (
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"image/png"
 	"runtime"
+	"unicode/utf8"
 	"unsafe"
 
 	"golang.org/x/image/bmp"
-	"golang.org/x/net/html/charset"
 )
 
 // SubsampleMode correlates to a libvips subsample mode
@@ -117,7 +116,7 @@ func IsTypeSupported(imageType ImageType) bool {
 }
 
 // uses at most sniffLen bytes to make its decision.
-const sniffLen = 1024
+const sniffLen = 512
 
 // DetermineImageType attempts to determine the image type of the given buffer
 func DetermineImageType(buf []byte) ImageType {
@@ -140,14 +139,14 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypeAVIF
 	} else if isHEIF(buf) {
 		return ImageTypeHEIF
-	} else if isSVG(buf) {
-		return ImageTypeSVG
 	} else if isPDF(buf) {
 		return ImageTypePDF
 	} else if isBMP(buf) {
 		return ImageTypeBMP
 	} else if isJP2K(buf) {
 		return ImageTypeJP2K
+	} else if isSVG(buf) {
+		return ImageTypeSVG
 	} else {
 		return ImageTypeUnknown
 	}
@@ -202,24 +201,24 @@ func isAVIF(buf []byte) bool {
 	return bytes.Equal(buf[4:8], ftyp) && bytes.Equal(buf[8:12], avif)
 }
 
+// isBinary checks if the given buffer is a binary file.
+func isBinary(buf []byte) bool {
+	if len(buf) < 24 {
+		return false
+	}
+	for i := 0; i < 24; i++ {
+		charCode, _ := utf8.DecodeRuneInString(string(buf[i]))
+		if charCode == 65533 || charCode <= 8 {
+			return true
+		}
+	}
+	return false
+}
+
 var svg = []byte("<svg")
 
 func isSVG(buf []byte) bool {
-	if bytes.Contains(buf, svg) {
-		data := &struct {
-			XMLName xml.Name `xml:"svg"`
-		}{}
-		reader := bytes.NewReader(buf)
-		decoder := xml.NewDecoder(reader)
-		decoder.Strict = false
-		decoder.CharsetReader = charset.NewReaderLabel
-
-		err := decoder.Decode(data)
-
-		return err == nil && data.XMLName.Local == "svg"
-	}
-
-	return false
+	return !isBinary(buf) && bytes.Contains(buf, svg)
 }
 
 var pdf = []byte("\x25\x50\x44\x46")
@@ -256,7 +255,6 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 		if err != nil {
 			return nil, ImageTypeUnknown, err
 		}
-
 		imageType = ImageTypePNG
 	}
 
