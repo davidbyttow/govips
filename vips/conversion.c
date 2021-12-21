@@ -27,6 +27,7 @@ int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, in
     "extend", VIPS_EXTEND_BACKGROUND, "background", vipsBackground, NULL);
 
   vips_area_unref(VIPS_AREA(vipsBackground));
+  return code
 }
 
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
