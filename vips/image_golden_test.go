@@ -371,6 +371,7 @@ func TestThumbnail_NoCrop(t *testing.T) {
 		func(result *ImageRef) {
 			assert.Equal(t, 36, result.Width())
 			assert.Equal(t, 24, result.Height())
+			assert.Equal(t, ImageTypeJPEG, result.Format())
 		}, nil)
 }
 
@@ -383,6 +384,7 @@ func TestThumbnail_NoUpscale(t *testing.T) {
 		func(result *ImageRef) {
 			assert.Equal(t, 715, result.Width())
 			assert.Equal(t, 483, result.Height())
+			assert.Equal(t, ImageTypeJPEG, result.Format())
 		}, nil)
 }
 
@@ -395,6 +397,31 @@ func TestThumbnail_CropCentered(t *testing.T) {
 		func(result *ImageRef) {
 			assert.Equal(t, 25, result.Width())
 			assert.Equal(t, 25, result.Height())
+			assert.Equal(t, ImageTypeJPEG, result.Format())
+		}, nil)
+}
+
+func TestThumbnail_PNG_CropCentered(t *testing.T) {
+	goldenCreateTest(t, resources+"png-24bit.png",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
+		},
+		nil,
+		func(result *ImageRef) {
+			assert.Equal(t, 25, result.Width())
+			assert.Equal(t, 25, result.Height())
+			assert.Equal(t, ImageTypePNG, result.Format())
+		}, nil)
+}
+
+func TestThumbnail_Decode_BMP(t *testing.T) {
+	goldenCreateTest(t, resources+"bmp.bmp",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
+		},
+		nil, func(img *ImageRef) {
+			assert.Equal(t, 164, img.Width())
+			assert.Equal(t, 211, img.Height())
 		}, nil)
 }
 

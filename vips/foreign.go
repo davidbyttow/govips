@@ -149,45 +149,40 @@ func DetermineImageType(buf []byte) ImageType {
 	}
 }
 
-// DetermineImageTypeFromFields determine the image type from the metadata fields
-func DetermineImageTypeFromFields(fields []string) ImageType {
-	var vipsLoader string
-	for i, field := range fields {
-		if strings.Contains(field, "vips-loader") && len(fields) > i+1 {
-			vipsLoader = fields[i+1]
-		}
-	}
+// DetermineImageTypeFromLoader determine the image type from vips-loader metadata
+func DetermineImageTypeFromLoader(in *C.VipsImage) ImageType {
+	vipsLoader, _ := vipsImageGetString(in, C.VIPS_META_LOADER)
 	if vipsLoader == "" {
 		return ImageTypeUnknown
 	}
-	if strings.Contains(vipsLoader, "jpeg") {
+	if strings.HasPrefix(vipsLoader, "jpeg") {
 		return ImageTypeJPEG
 	}
-	if strings.Contains(vipsLoader, "png") {
+	if strings.HasPrefix(vipsLoader, "png") {
 		return ImageTypePNG
 	}
-	if strings.Contains(vipsLoader, "gif") {
+	if strings.HasPrefix(vipsLoader, "gif") {
 		return ImageTypeGIF
 	}
-	if strings.Contains(vipsLoader, "svg") {
+	if strings.HasPrefix(vipsLoader, "svg") {
 		return ImageTypeSVG
 	}
-	if strings.Contains(vipsLoader, "webp") {
+	if strings.HasPrefix(vipsLoader, "webp") {
 		return ImageTypeWEBP
 	}
-	if strings.Contains(vipsLoader, "jp2k") {
+	if strings.HasPrefix(vipsLoader, "jp2k") {
 		return ImageTypeJP2K
 	}
-	if strings.Contains(vipsLoader, "magick") {
+	if strings.HasPrefix(vipsLoader, "magick") {
 		return ImageTypeMagick
 	}
-	if strings.Contains(vipsLoader, "tiff") {
+	if strings.HasPrefix(vipsLoader, "tiff") {
 		return ImageTypeTIFF
 	}
-	if strings.Contains(vipsLoader, "heif") {
+	if strings.HasPrefix(vipsLoader, "heif") {
 		return ImageTypeHEIF
 	}
-	if strings.Contains(vipsLoader, "pdf") {
+	if strings.HasPrefix(vipsLoader, "pdf") {
 		return ImageTypePDF
 	}
 	return ImageTypeUnknown

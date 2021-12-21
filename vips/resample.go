@@ -90,7 +90,7 @@ func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 		return nil, ImageTypeUnknown, err
 	}
 
-	imageType := DetermineImageTypeFromFields(vipsImageGetFields(out))
+	imageType := DetermineImageTypeFromLoader(out)
 	return out, imageType, nil
 }
 

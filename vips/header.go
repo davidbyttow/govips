@@ -52,3 +52,12 @@ func vipsSetMetaOrientation(in *C.VipsImage, orientation int) {
 func vipsImageGetPages(in *C.VipsImage) int {
 	return int(C.get_image_get_n_pages(in))
 }
+
+func vipsImageGetString(in *C.VipsImage, name string) (string, bool) {
+	var out *C.char
+	defer gFreePointer(unsafe.Pointer(out))
+	cName := C.CString(name)
+	defer freeCString(cName)
+	code := int(C.image_get_string(in, cName, &out))
+	return C.GoString(out), code == 0
+}

@@ -56,3 +56,7 @@ int get_image_get_n_pages(VipsImage *in) {
   page = vips_image_get_n_pages(in);
   return page;
 }
+
+int image_get_string(const VipsImage *in, const char *name, const char **out) {
+  return vips_image_get_string(in, name, out);
+}
