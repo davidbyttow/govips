@@ -9,6 +9,7 @@ import (
 	"image/png"
 	"math"
 	"runtime"
+	"strings"
 	"unsafe"
 
 	"golang.org/x/image/bmp"
@@ -146,6 +147,50 @@ func DetermineImageType(buf []byte) ImageType {
 	} else {
 		return ImageTypeUnknown
 	}
+}
+
+// DetermineImageTypeFromFields determine the image type from the metadata fields
+func DetermineImageTypeFromFields(fields []string) ImageType {
+	var vipsLoader string
+	for i, field := range fields {
+		if strings.Contains(field, "vips-loader") && len(fields) > i+1 {
+			vipsLoader = fields[i+1]
+		}
+	}
+	if vipsLoader == "" {
+		return ImageTypeUnknown
+	}
+	if strings.Contains(vipsLoader, "jpeg") {
+		return ImageTypeJPEG
+	}
+	if strings.Contains(vipsLoader, "png") {
+		return ImageTypePNG
+	}
+	if strings.Contains(vipsLoader, "gif") {
+		return ImageTypeGIF
+	}
+	if strings.Contains(vipsLoader, "svg") {
+		return ImageTypeSVG
+	}
+	if strings.Contains(vipsLoader, "webp") {
+		return ImageTypeWEBP
+	}
+	if strings.Contains(vipsLoader, "jp2k") {
+		return ImageTypeJP2K
+	}
+	if strings.Contains(vipsLoader, "magick") {
+		return ImageTypeMagick
+	}
+	if strings.Contains(vipsLoader, "tiff") {
+		return ImageTypeTIFF
+	}
+	if strings.Contains(vipsLoader, "heif") {
+		return ImageTypeHEIF
+	}
+	if strings.Contains(vipsLoader, "pdf") {
+		return ImageTypePDF
+	}
+	return ImageTypeUnknown
 }
 
 var jpeg = []byte("\xFF\xD8\xFF")

@@ -3,7 +3,6 @@ package vips
 // #include "resample.h"
 import "C"
 import (
-	"fmt"
 	"runtime"
 	"unsafe"
 )
@@ -79,28 +78,13 @@ func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
-	var err error
-
-	imageType := DetermineImageType(src)
-
-	if imageType == ImageTypeBMP {
-		src, err = bmpToPNG(src)
-		if err != nil {
-			return nil, ImageTypeUnknown, err
-		}
-		imageType = ImageTypePNG
-	}
-
-	if !IsTypeSupported(imageType) {
-		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format size=%d", len(src)))
-		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
-	}
-
 	var out *C.VipsImage
 
 	if err := C.thumbnail_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out, C.int(width), C.int(height), C.int(crop), C.int(size)); err != 0 {
 		return nil, ImageTypeUnknown, handleImageError(out)
 	}
+
+	imageType := DetermineImageTypeFromFields(vipsImageGetFields(out))
 
 	return out, imageType, nil
 }
