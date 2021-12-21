@@ -78,13 +78,25 @@ func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
+	var err error
+
+	imageType := ImageTypeUnknown
+
+	if isBMP(src) {
+		src, err = bmpToPNG(src)
+		if err != nil {
+			return nil, ImageTypeUnknown, err
+		}
+		imageType = ImageTypePNG
+	}
+
 	var out *C.VipsImage
 
 	if err := C.thumbnail_buffer(unsafe.Pointer(&src[0]), C.size_t(len(src)), &out, C.int(width), C.int(height), C.int(crop), C.int(size)); err != 0 {
 		return nil, ImageTypeUnknown, handleImageError(out)
 	}
 
-	imageType := DetermineImageTypeFromFields(vipsImageGetFields(out))
+	imageType = DetermineImageTypeFromFields(vipsImageGetFields(out))
 
 	return out, imageType, nil
 }
