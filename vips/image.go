@@ -405,13 +405,17 @@ func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*I
 
 // NewThumbnailWithSizeFromFile loads an image from file and creates a new ImageRef with thumbnail crop and size
 func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesting, size Size) (*ImageRef, error) {
-	buf, err := ioutil.ReadFile(file)
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size)
 	if err != nil {
 		return nil, err
 	}
 
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
-	return NewThumbnailWithSizeFromBuffer(buf, width, height, crop, size)
+	ref := newImageRef(vipsImage, format, nil)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
 }
 
 // NewThumbnailWithSizeFromBuffer loads an image buffer and creates a new Image with thumbnail crop and size
