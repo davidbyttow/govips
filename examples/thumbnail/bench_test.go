@@ -98,7 +98,7 @@ func BenchmarkNewThumbnailFromBuffer(b *testing.B) {
 		if err != nil {
 			panic(err)
 		}
-		image, err := vips.NewThumbnailWithSizeFromBuffer(buf, size*100, size*100, vips.InterestingCentre, vips.SizeBoth)
+		image, err := vips.NewThumbnailFromBuffer(buf, size*100, size*100, vips.InterestingCentre)
 		if err != nil {
 			panic(err)
 		}
