@@ -13,5 +13,7 @@ int resize_image(VipsImage *in, VipsImage **out, double scale, gdouble vscale,
                  int kernel);
 int thumbnail_image(VipsImage *in, VipsImage **out, int width, int height,
                     int crop);
+int thumbnail_buffer(void *buf, size_t len, VipsImage **out, int width, int height,
+                    int crop);
 int mapim(VipsImage *in, VipsImage **out, VipsImage *index);
 int maplut(VipsImage *in, VipsImage **out, VipsImage *lut);
