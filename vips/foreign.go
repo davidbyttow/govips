@@ -103,6 +103,10 @@ const (
 	TiffPredictorFloat      TiffPredictor = C.VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT
 )
 
+const (
+	MetaLoader = C.VIPS_META_LOADER
+)
+
 // FileExt returns the canonical extension for the ImageType
 func (i ImageType) FileExt() string {
 	if ext, ok := imageTypeExtensionMap[i]; ok {
@@ -151,7 +155,7 @@ func DetermineImageType(buf []byte) ImageType {
 
 // DetermineImageTypeFromLoader determine the image type from vips-loader metadata
 func DetermineImageTypeFromLoader(in *C.VipsImage) ImageType {
-	vipsLoader, _ := vipsImageGetString(in, C.VIPS_META_LOADER)
+	vipsLoader, _ := vipsImageGetString(in, MetaLoader)
 	if vipsLoader == "" {
 		return ImageTypeUnknown
 	}
