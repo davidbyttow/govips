@@ -390,13 +390,16 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // LoadImageFromFile loads an image from file and creates a new ImageRef
 func LoadImageFromFile(file string, params *ImportParams) (*ImageRef, error) {
-	buf, err := ioutil.ReadFile(file)
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsImageFromFile(file, params)
 	if err != nil {
 		return nil, err
 	}
 
+	ref := newImageRef(vipsImage, format, nil)
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageRef from file %s", file))
-	return LoadImageFromBuffer(buf, params)
+	return ref, nil
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
