@@ -367,6 +367,9 @@ func TestThumbnail_NoCrop(t *testing.T) {
 		func(path string) (*ImageRef, error) {
 			return NewThumbnailFromFile(path, 36, 36, InterestingNone)
 		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailFromBuffer(buf, 36, 36, InterestingNone)
+		},
 		nil,
 		func(result *ImageRef) {
 			assert.Equal(t, 36, result.Width())
@@ -379,6 +382,9 @@ func TestThumbnail_NoUpscale(t *testing.T) {
 	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
 		func(path string) (*ImageRef, error) {
 			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
+		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromBuffer(buf, 9999, 9999, InterestingNone, SizeDown)
 		},
 		nil,
 		func(result *ImageRef) {
@@ -393,6 +399,9 @@ func TestThumbnail_CropCentered(t *testing.T) {
 		func(path string) (*ImageRef, error) {
 			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
 		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailFromBuffer(buf, 25, 25, InterestingCentre)
+		},
 		nil,
 		func(result *ImageRef) {
 			assert.Equal(t, 25, result.Width())
@@ -405,6 +414,9 @@ func TestThumbnail_PNG_CropCentered(t *testing.T) {
 	goldenCreateTest(t, resources+"png-24bit.png",
 		func(path string) (*ImageRef, error) {
 			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
+		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailFromBuffer(buf, 25, 25, InterestingCentre)
 		},
 		nil,
 		func(result *ImageRef) {
@@ -419,7 +431,11 @@ func TestThumbnail_Decode_BMP(t *testing.T) {
 		func(path string) (*ImageRef, error) {
 			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
 		},
-		nil, func(img *ImageRef) {
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromBuffer(buf, 9999, 9999, InterestingNone, SizeDown)
+		},
+		nil,
+		func(img *ImageRef) {
 			assert.Equal(t, 164, img.Width())
 			assert.Equal(t, 211, img.Height())
 		}, nil)
@@ -878,15 +894,15 @@ func goldenTest(
 func goldenCreateTest(
 	t *testing.T,
 	path string,
-	create func(path string) (*ImageRef, error),
+	createFromFile func(path string) (*ImageRef, error),
+	createFromBuffer func(buf []byte) (*ImageRef, error),
 	exec func(img *ImageRef) error,
 	validate func(img *ImageRef),
 	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
 ) []byte {
-	if create == nil {
-		create = NewImageFromFile
+	if createFromFile == nil {
+		createFromFile = NewImageFromFile
 	}
-
 	if exec == nil {
 		exec = func(*ImageRef) error { return nil }
 	}
@@ -901,7 +917,7 @@ func goldenCreateTest(
 
 	Startup(nil)
 
-	img, err := create(path)
+	img, err := createFromFile(path)
 	require.NoError(t, err)
 
 	err = exec(img)
@@ -916,6 +932,24 @@ func goldenCreateTest(
 	validate(result)
 
 	assertGoldenMatch(t, path, buf, metadata.Format)
+
+	buf2, err := ioutil.ReadFile(path)
+	require.NoError(t, err)
+
+	img2, err := createFromBuffer(buf2)
+
+	err = exec(img2)
+	require.NoError(t, err)
+
+	buf2, metadata2, err := export(img2)
+	require.NoError(t, err)
+
+	result2, err := NewImageFromBuffer(buf2)
+	require.NoError(t, err)
+
+	validate(result2)
+
+	assertGoldenMatch(t, path, buf2, metadata2.Format)
 
 	return buf
 }
