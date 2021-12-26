@@ -2,7 +2,14 @@ package vips
 
 // #include "header.h"
 import "C"
-import "unsafe"
+import (
+	"strings"
+	"unsafe"
+)
+
+const (
+	MetaLoader = C.VIPS_META_LOADER
+)
 
 func vipsHasICCProfile(in *C.VipsImage) bool {
 	return int(C.has_icc_profile(in)) != 0
@@ -60,4 +67,43 @@ func vipsImageGetString(in *C.VipsImage, name string) (string, bool) {
 	defer freeCString(cName)
 	code := int(C.image_get_string(in, cName, &out))
 	return C.GoString(out), code == 0
+}
+
+// vipsDetermineImageTypeFromMetaLoader determine the image type from vips-loader metadata
+func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
+	vipsLoader, _ := vipsImageGetString(in, MetaLoader)
+	if vipsLoader == "" {
+		return ImageTypeUnknown
+	}
+	if strings.HasPrefix(vipsLoader, "jpeg") {
+		return ImageTypeJPEG
+	}
+	if strings.HasPrefix(vipsLoader, "png") {
+		return ImageTypePNG
+	}
+	if strings.HasPrefix(vipsLoader, "gif") {
+		return ImageTypeGIF
+	}
+	if strings.HasPrefix(vipsLoader, "svg") {
+		return ImageTypeSVG
+	}
+	if strings.HasPrefix(vipsLoader, "webp") {
+		return ImageTypeWEBP
+	}
+	if strings.HasPrefix(vipsLoader, "jp2k") {
+		return ImageTypeJP2K
+	}
+	if strings.HasPrefix(vipsLoader, "magick") {
+		return ImageTypeMagick
+	}
+	if strings.HasPrefix(vipsLoader, "tiff") {
+		return ImageTypeTIFF
+	}
+	if strings.HasPrefix(vipsLoader, "heif") {
+		return ImageTypeHEIF
+	}
+	if strings.HasPrefix(vipsLoader, "pdf") {
+		return ImageTypePDF
+	}
+	return ImageTypeUnknown
 }

@@ -93,7 +93,7 @@ func vipsThumbnailFromFile(filename string, width, height int, crop Interesting,
 		return nil, ImageTypeUnknown, err
 	}
 
-	imageType := DetermineImageTypeFromLoader(out)
+	imageType := vipsDetermineImageTypeFromMetaLoader(out)
 	return out, imageType, nil
 }
 
@@ -115,7 +115,7 @@ func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 		return nil, ImageTypeUnknown, err
 	}
 
-	imageType := DetermineImageTypeFromLoader(out)
+	imageType := vipsDetermineImageTypeFromMetaLoader(out)
 	return out, imageType, nil
 }
 

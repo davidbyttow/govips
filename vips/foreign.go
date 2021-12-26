@@ -9,7 +9,6 @@ import (
 	"image/png"
 	"math"
 	"runtime"
-	"strings"
 	"unsafe"
 
 	"golang.org/x/image/bmp"
@@ -103,10 +102,6 @@ const (
 	TiffPredictorFloat      TiffPredictor = C.VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT
 )
 
-const (
-	MetaLoader = C.VIPS_META_LOADER
-)
-
 // FileExt returns the canonical extension for the ImageType
 func (i ImageType) FileExt() string {
 	if ext, ok := imageTypeExtensionMap[i]; ok {
@@ -151,45 +146,6 @@ func DetermineImageType(buf []byte) ImageType {
 	} else {
 		return ImageTypeUnknown
 	}
-}
-
-// DetermineImageTypeFromLoader determine the image type from vips-loader metadata
-func DetermineImageTypeFromLoader(in *C.VipsImage) ImageType {
-	vipsLoader, _ := vipsImageGetString(in, MetaLoader)
-	if vipsLoader == "" {
-		return ImageTypeUnknown
-	}
-	if strings.HasPrefix(vipsLoader, "jpeg") {
-		return ImageTypeJPEG
-	}
-	if strings.HasPrefix(vipsLoader, "png") {
-		return ImageTypePNG
-	}
-	if strings.HasPrefix(vipsLoader, "gif") {
-		return ImageTypeGIF
-	}
-	if strings.HasPrefix(vipsLoader, "svg") {
-		return ImageTypeSVG
-	}
-	if strings.HasPrefix(vipsLoader, "webp") {
-		return ImageTypeWEBP
-	}
-	if strings.HasPrefix(vipsLoader, "jp2k") {
-		return ImageTypeJP2K
-	}
-	if strings.HasPrefix(vipsLoader, "magick") {
-		return ImageTypeMagick
-	}
-	if strings.HasPrefix(vipsLoader, "tiff") {
-		return ImageTypeTIFF
-	}
-	if strings.HasPrefix(vipsLoader, "heif") {
-		return ImageTypeHEIF
-	}
-	if strings.HasPrefix(vipsLoader, "pdf") {
-		return ImageTypePDF
-	}
-	return ImageTypeUnknown
 }
 
 var jpeg = []byte("\xFF\xD8\xFF")
