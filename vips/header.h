@@ -16,4 +16,4 @@ int get_meta_orientation(VipsImage *in);
 void remove_meta_orientation(VipsImage *in);
 void set_meta_orientation(VipsImage *in, int orientation);
 int get_image_get_n_pages(VipsImage *in);
-int image_get_string(const VipsImage *image, const char *name, const char **out);
+int get_meta_loader(const VipsImage *in, const char **out);

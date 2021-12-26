@@ -7,10 +7,6 @@ import (
 	"unsafe"
 )
 
-const (
-	MetaLoader = C.VIPS_META_LOADER
-)
-
 func vipsHasICCProfile(in *C.VipsImage) bool {
 	return int(C.has_icc_profile(in)) != 0
 }
@@ -60,19 +56,17 @@ func vipsImageGetPages(in *C.VipsImage) int {
 	return int(C.get_image_get_n_pages(in))
 }
 
-func vipsImageGetString(in *C.VipsImage, name string) (string, bool) {
+func vipsImageGetMetaLoader(in *C.VipsImage) (string, bool) {
 	var out *C.char
 	defer gFreePointer(unsafe.Pointer(out))
-	cName := C.CString(name)
-	defer freeCString(cName)
-	code := int(C.image_get_string(in, cName, &out))
+	code := int(C.get_meta_loader(in, &out))
 	return C.GoString(out), code == 0
 }
 
 // vipsDetermineImageTypeFromMetaLoader determine the image type from vips-loader metadata
 func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
-	vipsLoader, _ := vipsImageGetString(in, MetaLoader)
-	if vipsLoader == "" {
+	vipsLoader, ok := vipsImageGetMetaLoader(in)
+	if vipsLoader == "" || !ok {
 		return ImageTypeUnknown
 	}
 	if strings.HasPrefix(vipsLoader, "jpeg") {
