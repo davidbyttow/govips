@@ -23,7 +23,7 @@ const (
 )
 
 // https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-resize
-func vipsResize(in *C.VipsImage, scale float64, kernel Kernel) (*C.VipsImage, error) {
+func vipsResizeWithVScale(in *C.VipsImage, hscale, vscale float64, kernel Kernel) (*C.VipsImage, error) {
 	incOpCounter("resize")
 	var out *C.VipsImage
 
@@ -32,19 +32,7 @@ func vipsResize(in *C.VipsImage, scale float64, kernel Kernel) (*C.VipsImage, er
 		kernel = KernelLanczos3
 	}
 
-	if err := C.resize_image(in, &out, C.double(scale), C.double(-1), C.int(kernel)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-resize
-func vipsResizeWithVScale(in *C.VipsImage, scale, vscale float64, kernel Kernel) (*C.VipsImage, error) {
-	incOpCounter("resize")
-	var out *C.VipsImage
-
-	if err := C.resize_image(in, &out, C.double(scale), C.gdouble(vscale), C.int(kernel)); err != 0 {
+	if err := C.resize_image(in, &out, C.double(hscale), C.double(vscale), C.int(kernel)); err != 0 {
 		return nil, handleImageError(out)
 	}
 

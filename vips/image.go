@@ -1336,29 +1336,24 @@ func (r *ImageRef) Rank(width int, height int, index int) error {
 
 // Resize resizes the image based on the scale, maintaining aspect ratio
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
+	return r.ResizeWithVScale(scale, -1, kernel)
+}
+
+// ResizeWithVScale resizes the image with both horizontal as well as vertical scaling.
+// The parameters are the scaling factors.
+func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
 	err := r.PremultiplyAlpha()
 	if err != nil {
 		return err
 	}
 
-	out, err := vipsResize(r.image, scale, kernel)
+	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
 		return err
 	}
 	r.setImage(out)
 
 	return r.UnpremultiplyAlpha()
-}
-
-// ResizeWithVScale resizes the image with both horizontal as well as vertical scaling.
-// The parameters are the scaling factors.
-func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
-	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
-	return nil
 }
 
 // Thumbnail resizes the image to the given width and height.
