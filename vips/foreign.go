@@ -120,12 +120,14 @@ const sniffLen = 512
 
 // DetermineImageType attempts to determine the image type of the given buffer
 func DetermineImageType(buf []byte) ImageType {
-	if len(buf) > sniffLen {
+	ln := len(buf)
+	if ln < 12 {
+		return ImageTypeUnknown
+	}
+	if ln > sniffLen {
 		buf = buf[:sniffLen]
 	}
-	if len(buf) < 12 {
-		return ImageTypeUnknown
-	} else if isJPEG(buf) {
+	if isJPEG(buf) {
 		return ImageTypeJPEG
 	} else if isPNG(buf) {
 		return ImageTypePNG
