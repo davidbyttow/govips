@@ -1378,6 +1378,16 @@ func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) er
 	return nil
 }
 
+// EmbedBackground embeds the given picture with a background color
+func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor *Color) error {
+	out, err := vipsEmbedBackground(r.image, left, top, width, height, backgroundColor)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Zoom zooms the image by repeating pixels (fast nearest-neighbour)
 func (r *ImageRef) Zoom(xFactor int, yFactor int) error {
 	out, err := vipsZoom(r.image, xFactor, yFactor)
