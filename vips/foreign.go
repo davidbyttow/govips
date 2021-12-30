@@ -139,14 +139,14 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypeAVIF
 	} else if isHEIF(buf) {
 		return ImageTypeHEIF
+	} else if isSVG(buf) {
+		return ImageTypeSVG
 	} else if isPDF(buf) {
 		return ImageTypePDF
 	} else if isBMP(buf) {
 		return ImageTypeBMP
 	} else if isJP2K(buf) {
 		return ImageTypeJP2K
-	} else if isSVG(buf) {
-		return ImageTypeSVG
 	} else {
 		return ImageTypeUnknown
 	}
