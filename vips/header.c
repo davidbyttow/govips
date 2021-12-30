@@ -56,3 +56,7 @@ int get_image_get_n_pages(VipsImage *in) {
   page = vips_image_get_n_pages(in);
   return page;
 }
+
+int get_meta_loader(const VipsImage *in, const char **out) {
+  return vips_image_get_string(in, VIPS_META_LOADER, out);
+}
