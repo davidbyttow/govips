@@ -60,10 +60,58 @@ func TestImage_Resize_Upscale_Alpha(t *testing.T) {
 	}, nil, nil)
 }
 
-func TestImage_Embed_ExtendBackground_Alpha(t *testing.T) {
+func TestImage_Embed_ExtendWhite_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
-		return img.Embed(0, 0, 1000, 500, ExtendBackground)
-	}, nil, nil)
+		return img.Embed(0, 0, 1000, 500, ExtendWhite)
+	}, func(img *ImageRef) {
+		point, err := img.GetPoint(999, 0)
+		assert.NoError(t, err)
+		assert.Equal(t, point, []float64{255, 255, 255, 255})
+	}, nil)
+}
+
+func TestImage_EmbedBackground_Alpha(t *testing.T) {
+	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
+		return img.EmbedBackground(0, 0, 1000, 500, &Color{R: 238, G: 238, B: 238})
+	}, func(img *ImageRef) {
+		point, err := img.GetPoint(999, 0)
+		assert.NoError(t, err)
+		assert.Equal(t, point, []float64{238, 238, 238, 255})
+	}, nil)
+}
+
+func TestImage_EmbedBackground_NoAlpha(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.EmbedBackground(0, 0, 500, 300, &Color{R: 238, G: 238, B: 238})
+		},
+		func(result *ImageRef) {
+			point, err := result.GetPoint(499, 0)
+			assert.NoError(t, err)
+			assert.Equal(t, point, []float64{238, 238, 238})
+		}, nil)
+}
+
+func TestImage_TransformICCProfile_RGB_No_Profile(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.TransformICCProfile(SRGBIEC6196621ICCProfilePath)
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile())
+			assert.Equal(t, InterpretationSRGB, result.Interpretation())
+		}, nil)
+}
+
+func TestImage_TransformICCProfile_RGB_Embedded(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit-icc-adobe-rgb.jpg",
+		func(img *ImageRef) error {
+			return img.TransformICCProfile(SRGBIEC6196621ICCProfilePath)
+		},
+		func(result *ImageRef) {
+			assert.True(t, result.HasICCProfile())
+			assert.Equal(t, InterpretationSRGB, result.Interpretation())
+		}, nil)
 }
 
 func TestImage_OptimizeICCProfile_CMYK(t *testing.T) {
@@ -340,6 +388,17 @@ func TestImage_Thumbnail_NoCrop(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_Thumbnail_NoUpscale(t *testing.T) {
+	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(img *ImageRef) error {
+			return img.ThumbnailWithSize(9999, 9999, InterestingNone, SizeDown)
+		},
+		func(result *ImageRef) {
+			assert.Equal(t, 715, result.Width())
+			assert.Equal(t, 483, result.Height())
+		}, nil)
+}
+
 func TestImage_Thumbnail_CropCentered(t *testing.T) {
 	goldenTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
 		func(img *ImageRef) error {
@@ -356,10 +415,30 @@ func TestThumbnail_NoCrop(t *testing.T) {
 		func(path string) (*ImageRef, error) {
 			return NewThumbnailFromFile(path, 36, 36, InterestingNone)
 		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailFromBuffer(buf, 36, 36, InterestingNone)
+		},
 		nil,
 		func(result *ImageRef) {
 			assert.Equal(t, 36, result.Width())
 			assert.Equal(t, 24, result.Height())
+			assert.Equal(t, ImageTypeJPEG, result.Format())
+		}, nil)
+}
+
+func TestThumbnail_NoUpscale(t *testing.T) {
+	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
+		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromBuffer(buf, 9999, 9999, InterestingNone, SizeDown)
+		},
+		nil,
+		func(result *ImageRef) {
+			assert.Equal(t, 715, result.Width())
+			assert.Equal(t, 483, result.Height())
+			assert.Equal(t, ImageTypeJPEG, result.Format())
 		}, nil)
 }
 
@@ -368,10 +447,45 @@ func TestThumbnail_CropCentered(t *testing.T) {
 		func(path string) (*ImageRef, error) {
 			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
 		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailFromBuffer(buf, 25, 25, InterestingCentre)
+		},
 		nil,
 		func(result *ImageRef) {
 			assert.Equal(t, 25, result.Width())
 			assert.Equal(t, 25, result.Height())
+			assert.Equal(t, ImageTypeJPEG, result.Format())
+		}, nil)
+}
+
+func TestThumbnail_PNG_CropCentered(t *testing.T) {
+	goldenCreateTest(t, resources+"png-24bit.png",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
+		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailFromBuffer(buf, 25, 25, InterestingCentre)
+		},
+		nil,
+		func(result *ImageRef) {
+			assert.Equal(t, 25, result.Width())
+			assert.Equal(t, 25, result.Height())
+			assert.Equal(t, ImageTypePNG, result.Format())
+		}, nil)
+}
+
+func TestThumbnail_Decode_BMP(t *testing.T) {
+	goldenCreateTest(t, resources+"bmp.bmp",
+		func(path string) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
+		},
+		func(buf []byte) (*ImageRef, error) {
+			return NewThumbnailWithSizeFromBuffer(buf, 9999, 9999, InterestingNone, SizeDown)
+		},
+		nil,
+		func(img *ImageRef) {
+			assert.Equal(t, 164, img.Width())
+			assert.Equal(t, 211, img.Height())
 		}, nil)
 }
 
@@ -828,15 +942,15 @@ func goldenTest(
 func goldenCreateTest(
 	t *testing.T,
 	path string,
-	create func(path string) (*ImageRef, error),
+	createFromFile func(path string) (*ImageRef, error),
+	createFromBuffer func(buf []byte) (*ImageRef, error),
 	exec func(img *ImageRef) error,
 	validate func(img *ImageRef),
 	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
 ) []byte {
-	if create == nil {
-		create = NewImageFromFile
+	if createFromFile == nil {
+		createFromFile = NewImageFromFile
 	}
-
 	if exec == nil {
 		exec = func(*ImageRef) error { return nil }
 	}
@@ -851,7 +965,7 @@ func goldenCreateTest(
 
 	Startup(nil)
 
-	img, err := create(path)
+	img, err := createFromFile(path)
 	require.NoError(t, err)
 
 	err = exec(img)
@@ -866,6 +980,24 @@ func goldenCreateTest(
 	validate(result)
 
 	assertGoldenMatch(t, path, buf, metadata.Format)
+
+	buf2, err := ioutil.ReadFile(path)
+	require.NoError(t, err)
+
+	img2, err := createFromBuffer(buf2)
+
+	err = exec(img2)
+	require.NoError(t, err)
+
+	buf2, metadata2, err := export(img2)
+	require.NoError(t, err)
+
+	result2, err := NewImageFromBuffer(buf2)
+	require.NoError(t, err)
+
+	validate(result2)
+
+	assertGoldenMatch(t, path, buf2, metadata2.Format)
 
 	return buf
 }

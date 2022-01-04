@@ -303,22 +303,56 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	return ref, nil
 }
 
-// NewThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail ops
+// NewThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail crop
 func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*ImageRef, error) {
-	buf, err := ioutil.ReadFile(file)
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, SizeBoth)
 	if err != nil {
 		return nil, err
 	}
 
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
-	return NewThumbnailFromBuffer(buf, width, height, crop)
+	ref := newImageRef(vipsImage, format, nil)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
 }
 
-// NewThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail ops
+// NewThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail crop
 func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop)
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, SizeBoth)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, buf)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
+// NewThumbnailWithSizeFromFile loads an image from file and creates a new ImageRef with thumbnail crop and size
+func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, nil)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
+// NewThumbnailWithSizeFromBuffer loads an image buffer and creates a new Image with thumbnail crop and size
+func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size)
 	if err != nil {
 		return nil, err
 	}
@@ -957,6 +991,24 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
+// TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
+func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
+
+	// If the image has an embedded profile, that will be used and the input profile ignored.
+	// Otherwise, images without an input profile are assumed to use a standard RGB profile.
+	embedded := r.HasICCProfile()
+	inputProfile := SRGBIEC6196621ICCProfilePath
+
+	out, err := vipsICCTransform(r.image, outputProfilePath, inputProfile, IntentPerceptual, 0, embedded)
+	if err != nil {
+		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
 // OptimizeICCProfile optimizes the ICC color profile of the image.
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
@@ -1215,10 +1267,21 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 }
 
 // Thumbnail resizes the image to the given width and height.
-// If crop is true the returned image size will be exactly the given height and width,
-// otherwise the width and height will be within the given parameters.
+// crop decides algorithm vips uses to shrink and crop to fill target,
 func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
-	out, err := vipsThumbnail(r.image, width, height, crop)
+	out, err := vipsThumbnail(r.image, width, height, crop, SizeBoth)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// ThumbnailWithSize resizes the image to the given width and height.
+// crop decides algorithm vips uses to shrink and crop to fill target,
+// size controls upsize, downsize, both or force
+func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size Size) error {
+	out, err := vipsThumbnail(r.image, width, height, crop, size)
 	if err != nil {
 		return err
 	}
@@ -1229,6 +1292,16 @@ func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
 // Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
 	out, err := vipsEmbed(r.image, left, top, width, height, extend)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// EmbedBackground embeds the given picture with a background color
+func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor *Color) error {
+	out, err := vipsEmbedBackground(r.image, left, top, width, height, backgroundColor)
 	if err != nil {
 		return err
 	}

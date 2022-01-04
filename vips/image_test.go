@@ -428,6 +428,22 @@ func TestImageRef_RemoveICCProfile(t *testing.T) {
 	assert.True(t, image.HasIPTC())
 }
 
+func TestImageRef_TransformICCProfile(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
+	require.NoError(t, err)
+
+	require.True(t, image.HasIPTC())
+	require.True(t, image.HasICCProfile())
+
+	err = image.TransformICCProfile(SRGBIEC6196621ICCProfilePath)
+	require.NoError(t, err)
+
+	assert.True(t, image.HasIPTC())
+	assert.True(t, image.HasICCProfile())
+}
+
 func TestImageRef_Close(t *testing.T) {
 	Startup(nil)
 
