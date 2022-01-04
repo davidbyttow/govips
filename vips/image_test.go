@@ -31,7 +31,7 @@ func TestImageRef_WebP(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, _, err = img.Export(nil)
+	_, _, err = img.ExportWebp(nil)
 	assert.NoError(t, err)
 }
 
@@ -46,9 +46,9 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	params := NewDefaultWEBPExportParams()
-	params.Effort = 2
-	_, _, err = img.Export(params)
+	params := NewWebpExportParams()
+	params.ReductionEffort = 2
+	_, _, err = img.ExportWebp(params)
 	assert.NoError(t, err)
 }
 
@@ -81,9 +81,9 @@ func TestImageRef_PNG(t *testing.T) {
 	require.NotNil(t, img)
 
 	// check random access by encoding twice
-	_, _, err = img.Export(nil)
+	_, _, err = img.ExportNative()
 	assert.NoError(t, err)
-	_, _, err = img.Export(nil)
+	_, _, err = img.ExportNative()
 	assert.NoError(t, err)
 }
 
@@ -97,7 +97,7 @@ func TestImageRef_HEIF(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
+	_, metadata, err := img.ExportNative()
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
@@ -112,7 +112,7 @@ func TestImageRef_HEIF_MIF1(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
+	_, metadata, err := img.ExportNative()
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
@@ -127,12 +127,12 @@ func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
+	_, metadata, err := img.ExportNative()
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
-func TestImageRef_BMP(t *testing.T) {
+func TestImageRef_BMP__ImplicitConversionToPNG(t *testing.T) {
 	Startup(nil)
 
 	raw, err := ioutil.ReadFile(resources + "bmp.bmp")
@@ -142,7 +142,7 @@ func TestImageRef_BMP(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	exported, metadata, err := img.Export(nil)
+	exported, metadata, err := img.ExportNative()
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypePNG, metadata.Format)
 	assert.NotNil(t, exported)
@@ -248,7 +248,7 @@ func TestImageRef_AddAlpha(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, img.HasAlpha(), "has alpha")
 
-	_, _, err = img.Export(nil)
+	_, _, err = img.ExportNative()
 	assert.NoError(t, err)
 }
 
@@ -263,7 +263,7 @@ func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.True(t, img.HasAlpha(), "has alpha")
-	_, _, err = img.Export(nil)
+	_, _, err = img.ExportNative()
 	assert.NoError(t, err)
 }
 
@@ -630,19 +630,20 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
-	images := []*ImageComposite{}
-	for i, uri := range []string{"png-8bit+alpha.png", "png-24bit+alpha.png"} {
+	sources := []string{"png-8bit+alpha.png", "png-24bit+alpha.png"}
+	images := make([]*ImageComposite, len(sources))
+	for i, uri := range sources {
 		image, err := NewImageFromFile(resources + uri)
 		require.NoError(t, err)
 
 		//add offset test
-		images = append(images, &ImageComposite{image, BlendModeOver, (i + 1) * 20, (i + 2) * 20})
+		images[i] = &ImageComposite{image, BlendModeOver, (i + 1) * 20, (i + 2) * 20}
 	}
 
 	err = image.CompositeMulti(images)
 	require.NoError(t, err)
 
-	_, _, err = image.Export(nil)
+	_, _, err = image.ExportNative()
 	require.NoError(t, err)
 }
 
@@ -670,7 +671,7 @@ func BenchmarkExportImage(b *testing.B) {
 	b.SetParallelism(100)
 	b.ResetTimer()
 	for n := 0; n < b.N; n++ {
-		_, _, err = img.Export(NewDefaultJPEGExportParams())
+		_, _, err = img.ExportJpeg(nil)
 		require.NoError(b, err)
 	}
 	b.ReportAllocs()
@@ -754,13 +755,13 @@ func TestResOffset(t *testing.T) {
 
 	x := image.ResX()
 	y := image.ResY()
-	offx := image.OffsetX()
-	offy := image.OffsetY()
+	offsetX := image.OffsetX()
+	offsetY := image.OffsetY()
 
-	assert.Equal(t, x, float64(2.835))
-	assert.Equal(t, y, float64(2.835))
-	assert.Equal(t, offx, 0)
-	assert.Equal(t, offy, 0)
+	assert.Equal(t, x, 2.835)
+	assert.Equal(t, y, 2.835)
+	assert.Equal(t, offsetX, 0)
+	assert.Equal(t, offsetY, 0)
 }
 
 func TestToBytes(t *testing.T) {
@@ -848,16 +849,6 @@ func TestIdentity(t *testing.T) {
 	require.NoError(t, err)
 	_, err = Identity(true)
 	require.NoError(t, err)
-}
-
-func TestDeprecatedExportParams(t *testing.T) {
-	Startup(nil)
-
-	defaultExportParams := NewDefaultExportParams()
-	assert.Equal(t, ImageTypeUnknown, defaultExportParams.Format)
-
-	pngExportParams := NewPngExportParams()
-	assert.Equal(t, 6, pngExportParams.Compression)
 }
 
 func TestNewImageFromReaderFail(t *testing.T) {
@@ -952,7 +943,7 @@ func TestImageRef_AVIF(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, img)
 
-	_, metadata, err := img.Export(nil)
+	_, metadata, err := img.ExportNative()
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeAVIF, metadata.Format)
 }
