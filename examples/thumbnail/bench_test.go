@@ -2,9 +2,10 @@ package thumbnail
 
 import (
 	"fmt"
-	"github.com/davidbyttow/govips/v2/vips"
 	"io/ioutil"
 	"testing"
+
+	"github.com/wix-playground/govips/v2/vips"
 )
 
 var file = "../../resources/jpg-24bit-icc-iec.jpg"
