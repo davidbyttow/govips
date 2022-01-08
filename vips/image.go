@@ -16,13 +16,12 @@ import (
 	"unsafe"
 )
 
-// PreMultiplicationState stores the premultiplication band format of the image
+// PreMultiplicationState stores the pre-multiplication band format of the image
 type PreMultiplicationState struct {
 	bandFormat BandFormat
 }
 
-// ImageRef contains a libvips image and manages its lifecycle. You need to
-// close an image when done or it will leak
+// ImageRef contains a libvips image and manages its lifecycle.
 type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
@@ -420,7 +419,7 @@ func finalizeImage(ref *ImageRef) {
 
 // Close manually closes the image and frees the memory. Calling Close() is optional.
 // Images are automatically closed by GC. However, in high volume applications the GC
-// can't keep up with the amount of memory so you might want to manually close the images.
+// can't keep up with the amount of memory, so you might want to manually close the images.
 func (r *ImageRef) Close() {
 	r.lock.Lock()
 
@@ -540,7 +539,7 @@ func (r *ImageRef) Interpretation() Interpretation {
 	return Interpretation(int(r.image.Type))
 }
 
-// ColorSpace returns the interpreptation of the current color space. Alias to Interpretation().
+// ColorSpace returns the interpretation of the current color space. Alias to Interpretation().
 func (r *ImageRef) ColorSpace() Interpretation {
 	return r.Interpretation()
 }
@@ -909,7 +908,7 @@ func (r *ImageRef) Divide(denominator *ImageRef) error {
 	return nil
 }
 
-// Linear passes an image through a linear transformation (ie. output = input * a + b).
+// Linear passes an image through a linear transformation (i.e. output = input * a + b).
 // See https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func (r *ImageRef) Linear(a, b []float64) error {
 	if len(a) != len(b) {
@@ -979,7 +978,7 @@ func (r *ImageRef) ExtractArea(left, top, width, height int) error {
 }
 
 // RemoveICCProfile removes the ICC Profile information from the image.
-// Typically browsers and other software assume images without profile to be in the sRGB color space.
+// Typically, browsers and other software assume images without profile to be in the sRGB color space.
 func (r *ImageRef) RemoveICCProfile() error {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
@@ -1250,7 +1249,7 @@ func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 	return r.ResizeWithVScale(scale, -1, kernel)
 }
 
-// ResizeWithVScale resizes the image with both horizontal as well as vertical scaling.
+// ResizeWithVScale resizes the image with both horizontal and vertical scaling.
 // The parameters are the scaling factors.
 func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
 	err := r.PremultiplyAlpha()
@@ -1354,7 +1353,7 @@ func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *Col
 	return nil
 }
 
-// SmartCrop will crop the image based on interestingness factor
+// SmartCrop will crop the image based on interesting factor
 func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) error {
 	out, err := vipsSmartCrop(r.image, width, height, interesting)
 	if err != nil {
