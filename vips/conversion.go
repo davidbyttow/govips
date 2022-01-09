@@ -406,3 +406,14 @@ func vipsArrayJoin(inputs []*C.VipsImage, across int) (*C.VipsImage, error) {
 	}
 	return out, nil
 }
+
+// https://www.libvips.org/API/current/libvips-conversion.html#vips-replicate
+func vipsReplicate(in *C.VipsImage, across int, down int) (*C.VipsImage, error) {
+	incOpCounter("replicate")
+	var out *C.VipsImage
+
+	if err := C.replicate(in, &out, C.int(across), C.int(down)); err != 0 {
+		return nil, handleImageError(out)
+	}
+	return out, nil
+}

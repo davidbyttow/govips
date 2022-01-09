@@ -48,3 +48,5 @@ int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction);
 int arrayjoin(VipsImage **in, VipsImage **out, int n, int across);
 
 int is_16bit(VipsInterpretation interpretation);
+
+int replicate(VipsImage *in, VipsImage **out, int across, int down);

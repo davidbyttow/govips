@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/wix-playground/govips/v2/vips"
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 func checkError(err error) {
@@ -30,9 +30,9 @@ func main() {
 	checkError(err)
 	fmt.Println(inputImage.Height(), inputImage.Width())
 
-	ep := vips.NewTiffExportParams()
-	ep.Quality = 100
-	imageBytes, _, err := inputImage.ExportTiff(ep)
+	exportParams := vips.NewTiffExportParams()
+	exportParams.Quality = 100
+	imageBytes, _, err := inputImage.ExportTiff(exportParams)
 	err = ioutil.WriteFile("examples/tiff/output-govips.tiff", imageBytes, 0644)
 	checkError(err)
 }
