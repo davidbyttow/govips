@@ -114,6 +114,75 @@ func NewImportParams() *ImportParams {
 	return p
 }
 
+// ExportParams are options when exporting an image to file or buffer.
+// Deprecated: Use format-specific params
+type ExportParams struct {
+	Format             ImageType
+	Quality            int
+	Compression        int
+	Interlaced         bool
+	Lossless           bool
+	Effort             int
+	StripMetadata      bool
+	OptimizeCoding     bool          // jpeg param
+	SubsampleMode      SubsampleMode // jpeg param
+	TrellisQuant       bool          // jpeg param
+	OvershootDeringing bool          // jpeg param
+	OptimizeScans      bool          // jpeg param
+	QuantTable         int           // jpeg param
+	Speed              int           // avif param
+}
+
+// NewDefaultExportParams creates default values for an export when image type is not JPEG, PNG or WEBP.
+// By default, govips creates interlaced, lossy images with a quality of 80/100 and compression of 6/10.
+// As these are default values for a wide variety of image formats, their application varies.
+// Some formats use the quality parameters, some compression, etc.
+// Deprecated: Use format-specific params
+func NewDefaultExportParams() *ExportParams {
+	return &ExportParams{
+		Format:      ImageTypeUnknown, // defaults to the starting encoder
+		Quality:     80,
+		Compression: 6,
+		Interlaced:  true,
+		Lossless:    false,
+		Effort:      4,
+	}
+}
+
+// NewDefaultJPEGExportParams creates default values for an export of a JPEG image.
+// By default, govips creates interlaced JPEGs with a quality of 80/100.
+// Deprecated: Use NewJpegExportParams
+func NewDefaultJPEGExportParams() *ExportParams {
+	return &ExportParams{
+		Format:     ImageTypeJPEG,
+		Quality:    80,
+		Interlaced: true,
+	}
+}
+
+// NewDefaultPNGExportParams creates default values for an export of a PNG image.
+// By default, govips creates non-interlaced PNGs with a compression of 6/10.
+// Deprecated: Use NewPngExportParams
+func NewDefaultPNGExportParams() *ExportParams {
+	return &ExportParams{
+		Format:      ImageTypePNG,
+		Compression: 6,
+		Interlaced:  false,
+	}
+}
+
+// NewDefaultWEBPExportParams creates default values for an export of a WEBP image.
+// By default, govips creates lossy images with a quality of 75/100.
+// Deprecated: Use NewWebpExportParams
+func NewDefaultWEBPExportParams() *ExportParams {
+	return &ExportParams{
+		Format:   ImageTypeWEBP,
+		Quality:  75,
+		Lossless: false,
+		Effort:   4,
+	}
+}
+
 // JpegExportParams are options when exporting a JPEG to file or buffer
 type JpegExportParams struct {
 	StripMetadata      bool
@@ -385,8 +454,8 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 // XYZ creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
-	vipsImage, err := vipsXYZ(width, height)
-	return &ImageRef{image: vipsImage}, err
+	image, err := vipsXYZ(width, height)
+	return &ImageRef{image: image}, err
 }
 
 // Identity creates an identity lookup table, which will leave an image unchanged when applied with Maplut.
@@ -398,18 +467,18 @@ func Identity(ushort bool) (*ImageRef, error) {
 
 // Black creates a new black image of the specified size
 func Black(width, height int) (*ImageRef, error) {
-	vipsImage, err := vipsBlack(width, height)
-	return &ImageRef{image: vipsImage}, err
+	image, err := vipsBlack(width, height)
+	return &ImageRef{image: image}, err
 }
 
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
-	imageRef := &ImageRef{
+	image := &ImageRef{
 		image:  vipsImage,
 		format: format,
 		buf:    buf,
 	}
-	runtime.SetFinalizer(imageRef, finalizeImage)
-	return imageRef
+	runtime.SetFinalizer(image, finalizeImage)
+	return image
 }
 
 func finalizeImage(ref *ImageRef) {
@@ -562,6 +631,78 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 // GetPages returns the number of Image
 func (r *ImageRef) GetPages() int {
 	return vipsImageGetPages(r.image)
+}
+
+// Export creates a byte array of the image for use.
+// The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
+// N.B. govips does not currently have built-in support for directly exporting to a file.
+// The function also returns a copy of the image metadata as well as an error.
+// Deprecated: Use ExportNative or format-specific Export methods
+func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil || params.Format == ImageTypeUnknown {
+		return r.ExportNative()
+	}
+
+	format := params.Format
+
+	if !IsTypeSupported(format) {
+		return nil, r.newMetadata(ImageTypeUnknown), fmt.Errorf("cannot save to %#v", ImageTypes[format])
+	}
+
+	switch format {
+	case ImageTypeGIF:
+		return r.ExportGIF(&GifExportParams{
+			Quality: params.Quality,
+		})
+	case ImageTypeWEBP:
+		return r.ExportWebp(&WebpExportParams{
+			StripMetadata:   params.StripMetadata,
+			Quality:         params.Quality,
+			Lossless:        params.Lossless,
+			ReductionEffort: params.Effort,
+		})
+	case ImageTypePNG:
+		return r.ExportPng(&PngExportParams{
+			StripMetadata: params.StripMetadata,
+			Compression:   params.Compression,
+			Interlace:     params.Interlaced,
+		})
+	case ImageTypeTIFF:
+		compression := TiffCompressionLzw
+		if params.Lossless {
+			compression = TiffCompressionNone
+		}
+		return r.ExportTiff(&TiffExportParams{
+			StripMetadata: params.StripMetadata,
+			Quality:       params.Quality,
+			Compression:   compression,
+		})
+	case ImageTypeHEIF:
+		return r.ExportHeif(&HeifExportParams{
+			Quality:  params.Quality,
+			Lossless: params.Lossless,
+		})
+	case ImageTypeAVIF:
+		return r.ExportAvif(&AvifExportParams{
+			StripMetadata: params.StripMetadata,
+			Quality:       params.Quality,
+			Lossless:      params.Lossless,
+			Speed:         params.Speed,
+		})
+	default:
+		format = ImageTypeJPEG
+		return r.ExportJpeg(&JpegExportParams{
+			Quality:            params.Quality,
+			StripMetadata:      params.StripMetadata,
+			Interlace:          params.Interlaced,
+			OptimizeCoding:     params.OptimizeCoding,
+			SubsampleMode:      params.SubsampleMode,
+			TrellisQuant:       params.TrellisQuant,
+			OvershootDeringing: params.OvershootDeringing,
+			OptimizeScans:      params.OptimizeScans,
+			QuantTable:         params.QuantTable,
+		})
+	}
 }
 
 // ExportNative exports the image to a buffer based on its native format with default parameters.
@@ -1404,11 +1545,8 @@ func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
 }
 
 // ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries
-func (r *ImageRef) ToImage() (image.Image, error) {
-	// export to lossless PNG - PNG is guaranteed to be supported natively in Go
-	params := NewPngExportParams()
-	params.Compression = 0
-	imageBytes, _, err := r.ExportPng(params)
+func (r *ImageRef) ToImage(params *ExportParams) (image.Image, error) {
+	imageBytes, _, err := r.Export(params)
 	if err != nil {
 		return nil, err
 	}

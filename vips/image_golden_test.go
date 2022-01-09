@@ -692,7 +692,7 @@ func TestImage_SimilarityRGBA(t *testing.T) {
 
 func TestImage_Decode_JPG(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
-		goImg, err := img.ToImage()
+		goImg, err := img.ToImage(nil)
 		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)
@@ -711,7 +711,7 @@ func TestImage_Decode_JPG(t *testing.T) {
 
 func TestImage_Decode_BMP(t *testing.T) {
 	goldenTest(t, resources+"bmp.bmp", func(img *ImageRef) error {
-		goImg, err := img.ToImage()
+		goImg, err := img.ToImage(nil)
 		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)
@@ -730,7 +730,7 @@ func TestImage_Decode_BMP(t *testing.T) {
 
 func TestImage_Decode_PNG(t *testing.T) {
 	goldenTest(t, resources+"png-8bit.png", func(img *ImageRef) error {
-		goImg, err := img.ToImage()
+		goImg, err := img.ToImage(nil)
 		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)

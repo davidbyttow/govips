@@ -30,9 +30,10 @@ func main() {
 	checkError(err)
 	fmt.Println(inputImage.Height(), inputImage.Width())
 
-	exportParams := vips.NewTiffExportParams()
-	exportParams.Quality = 100
-	imageBytes, _, err := inputImage.ExportTiff(exportParams)
+	ep := vips.NewDefaultExportParams()
+	ep.Format = vips.ImageTypeTIFF
+	ep.Quality = 100
+	imageBytes, _, err := inputImage.Export(ep)
 	err = ioutil.WriteFile("examples/tiff/output-govips.tiff", imageBytes, 0644)
 	checkError(err)
 }
