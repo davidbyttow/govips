@@ -454,8 +454,8 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 // XYZ creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
-	image, err := vipsXYZ(width, height)
-	return &ImageRef{image: image}, err
+	vipsImage, err := vipsXYZ(width, height)
+	return &ImageRef{image: vipsImage}, err
 }
 
 // Identity creates an identity lookup table, which will leave an image unchanged when applied with Maplut.
@@ -467,18 +467,18 @@ func Identity(ushort bool) (*ImageRef, error) {
 
 // Black creates a new black image of the specified size
 func Black(width, height int) (*ImageRef, error) {
-	image, err := vipsBlack(width, height)
-	return &ImageRef{image: image}, err
+	vipsImage, err := vipsBlack(width, height)
+	return &ImageRef{image: vipsImage}, err
 }
 
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
-	image := &ImageRef{
+	imageRef := &ImageRef{
 		image:  vipsImage,
 		format: format,
 		buf:    buf,
 	}
-	runtime.SetFinalizer(image, finalizeImage)
-	return image
+	runtime.SetFinalizer(imageRef, finalizeImage)
+	return imageRef
 }
 
 func finalizeImage(ref *ImageRef) {
