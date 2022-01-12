@@ -881,7 +881,7 @@ func TestImage_QuantTable(t *testing.T) {
 func TestImage_Pixelate(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		func(img *ImageRef) error {
-			return img.Pixelate(24)
+			return Pixelate(img, 24)
 		},
 		nil, nil)
 }
