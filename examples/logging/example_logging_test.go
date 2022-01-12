@@ -62,8 +62,7 @@ func main() {
 	checkError(err)
 	myLogger("loggingExample", vips.LogLevelInfo, fmt.Sprintf("Before: %v x %v", image1.Height(), image1.Width()))
 
-	ep := vips.NewDefaultJPEGExportParams()
-	image1bytes, _, err := image1.Export(ep)
+	image1bytes, _, err := image1.ExportJpeg(nil)
 	checkError(err)
 	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
 	checkError(err)

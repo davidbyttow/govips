@@ -16,13 +16,12 @@ import (
 	"unsafe"
 )
 
-// PreMultiplicationState stores the premultiplication band format of the image
+// PreMultiplicationState stores the pre-multiplication band format of the image
 type PreMultiplicationState struct {
 	bandFormat BandFormat
 }
 
-// ImageRef contains a libvips image and manages its lifecycle. You need to
-// close an image when done or it will leak
+// ImageRef contains a libvips image and manages its lifecycle.
 type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
@@ -373,6 +372,66 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	return ref, nil
 }
 
+// NewThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail crop
+func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, SizeBoth)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, nil)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
+// NewThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail crop
+func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, SizeBoth)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, buf)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
+// NewThumbnailWithSizeFromFile loads an image from file and creates a new ImageRef with thumbnail crop and size
+func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, nil)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
+// NewThumbnailWithSizeFromBuffer loads an image buffer and creates a new Image with thumbnail crop and size
+func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size)
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, format, buf)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
 // Metadata returns the metadata (ImageMetadata struct) of the associated ImageRef
 func (r *ImageRef) Metadata() *ImageMetadata {
 	return &ImageMetadata{
@@ -395,8 +454,8 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 // XYZ creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
-	image, err := vipsXYZ(width, height)
-	return &ImageRef{image: image}, err
+	vipsImage, err := vipsXYZ(width, height)
+	return &ImageRef{image: vipsImage}, err
 }
 
 // Identity creates an identity lookup table, which will leave an image unchanged when applied with Maplut.
@@ -408,18 +467,18 @@ func Identity(ushort bool) (*ImageRef, error) {
 
 // Black creates a new black image of the specified size
 func Black(width, height int) (*ImageRef, error) {
-	image, err := vipsBlack(width, height)
-	return &ImageRef{image: image}, err
+	vipsImage, err := vipsBlack(width, height)
+	return &ImageRef{image: vipsImage}, err
 }
 
 func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
-	image := &ImageRef{
+	imageRef := &ImageRef{
 		image:  vipsImage,
 		format: format,
 		buf:    buf,
 	}
-	runtime.SetFinalizer(image, finalizeImage)
-	return image
+	runtime.SetFinalizer(imageRef, finalizeImage)
+	return imageRef
 }
 
 func finalizeImage(ref *ImageRef) {
@@ -429,7 +488,7 @@ func finalizeImage(ref *ImageRef) {
 
 // Close manually closes the image and frees the memory. Calling Close() is optional.
 // Images are automatically closed by GC. However, in high volume applications the GC
-// can't keep up with the amount of memory so you might want to manually close the images.
+// can't keep up with the amount of memory, so you might want to manually close the images.
 func (r *ImageRef) Close() {
 	r.lock.Lock()
 
@@ -549,7 +608,7 @@ func (r *ImageRef) Interpretation() Interpretation {
 	return Interpretation(int(r.image.Type))
 }
 
-// ColorSpace returns the interpreptation of the current color space. Alias to Interpretation().
+// ColorSpace returns the interpretation of the current color space. Alias to Interpretation().
 func (r *ImageRef) ColorSpace() Interpretation {
 	return r.Interpretation()
 }
@@ -990,7 +1049,7 @@ func (r *ImageRef) Divide(denominator *ImageRef) error {
 	return nil
 }
 
-// Linear passes an image through a linear transformation (ie. output = input * a + b).
+// Linear passes an image through a linear transformation (i.e. output = input * a + b).
 // See https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func (r *ImageRef) Linear(a, b []float64) error {
 	if len(a) != len(b) {
@@ -1060,7 +1119,7 @@ func (r *ImageRef) ExtractArea(left, top, width, height int) error {
 }
 
 // RemoveICCProfile removes the ICC Profile information from the image.
-// Typically browsers and other software assume images without profile to be in the sRGB color space.
+// Typically, browsers and other software assume images without profile to be in the sRGB color space.
 func (r *ImageRef) RemoveICCProfile() error {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
@@ -1068,6 +1127,24 @@ func (r *ImageRef) RemoveICCProfile() error {
 	}
 
 	vipsRemoveICCProfile(out)
+
+	r.setImage(out)
+	return nil
+}
+
+// TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
+func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
+
+	// If the image has an embedded profile, that will be used and the input profile ignored.
+	// Otherwise, images without an input profile are assumed to use a standard RGB profile.
+	embedded := r.HasICCProfile()
+	inputProfile := SRGBIEC6196621ICCProfilePath
+
+	out, err := vipsICCTransform(r.image, outputProfilePath, inputProfile, IntentPerceptual, 0, embedded)
+	if err != nil {
+		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
+		return err
+	}
 
 	r.setImage(out)
 	return nil
@@ -1090,7 +1167,12 @@ func (r *ImageRef) OptimizeICCProfile() error {
 
 	embedded := r.HasICCProfile() && (inputProfile == "")
 
-	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, 0, embedded)
+	depth := 16
+	if r.BandFormat() == BandFormatUchar || r.BandFormat() == BandFormatChar || r.BandFormat() == BandFormatNotSet {
+		depth = 8
+	}
+
+	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, depth, embedded)
 	if err != nil {
 		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
@@ -1247,40 +1329,6 @@ func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
 	return nil
 }
 
-// Pixelate applies a simple pixelate filter to the image
-func (r *ImageRef) Pixelate(factor float64) error {
-	err := r.PremultiplyAlpha()
-	if err != nil {
-		return err
-	}
-
-	width := r.Width()
-	height := r.Height()
-
-	downscaled, err := vipsResize(r.image, 1/factor, KernelAuto)
-	if err != nil {
-		return err
-	}
-	defer clearImage(downscaled)
-
-	pixelated, err := vipsResize(downscaled, factor, KernelNearest)
-	if err != nil {
-		return err
-	}
-	defer clearImage(pixelated)
-
-	hscale := float64(width) / float64(pixelated.Xsize)
-	vscale := float64(height) / float64(pixelated.Ysize)
-	adjusted, err := vipsResizeWithVScale(pixelated, hscale, vscale, KernelAuto)
-	if err != nil {
-		return err
-	}
-
-	r.setImage(adjusted)
-
-	return r.UnpremultiplyAlpha()
-}
-
 // Invert inverts the image
 func (r *ImageRef) Invert() error {
 	out, err := vipsInvert(r.image)
@@ -1306,6 +1354,16 @@ func (r *ImageRef) FindTrim(threshold float64, backgroundColor *Color) (int, int
 	return vipsFindTrim(r.image, threshold, backgroundColor)
 }
 
+// GetPoint reads a single pixel on an image.
+// The pixel values are returned in a slice of length n.
+func (r *ImageRef) GetPoint(x int, y int) ([]float64, error) {
+	n := 3
+	if vipsHasAlpha(r.image) {
+		n = 4
+	}
+	return vipsGetPoint(r.image, n, x, y)
+}
+
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)
@@ -1329,12 +1387,18 @@ func (r *ImageRef) Rank(width int, height int, index int) error {
 
 // Resize resizes the image based on the scale, maintaining aspect ratio
 func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
+	return r.ResizeWithVScale(scale, -1, kernel)
+}
+
+// ResizeWithVScale resizes the image with both horizontal and vertical scaling.
+// The parameters are the scaling factors.
+func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
 	err := r.PremultiplyAlpha()
 	if err != nil {
 		return err
 	}
 
-	out, err := vipsResize(r.image, scale, kernel)
+	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
 		return err
 	}
@@ -1343,10 +1407,10 @@ func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 	return r.UnpremultiplyAlpha()
 }
 
-// ResizeWithVScale resizes the image with both horizontal and vertical scaling.
-// The parameters are the scaling factors.
-func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
-	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
+// Thumbnail resizes the image to the given width and height.
+// crop decides algorithm vips uses to shrink and crop to fill target,
+func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
+	out, err := vipsThumbnail(r.image, width, height, crop, SizeBoth)
 	if err != nil {
 		return err
 	}
@@ -1354,11 +1418,11 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 	return nil
 }
 
-// Thumbnail resizes the image to the given width and height.
-// If crop is true the returned image size will be exactly the given height and width,
-// otherwise the width and height will be within the given parameters.
-func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
-	out, err := vipsThumbnail(r.image, width, height, crop)
+// ThumbnailWithSize resizes the image to the given width and height.
+// crop decides algorithm vips uses to shrink and crop to fill target,
+// size controls upsize, downsize, both or force
+func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size Size) error {
+	out, err := vipsThumbnail(r.image, width, height, crop, size)
 	if err != nil {
 		return err
 	}
@@ -1369,6 +1433,16 @@ func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
 // Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
 	out, err := vipsEmbed(r.image, left, top, width, height, extend)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// EmbedBackground embeds the given picture with a background color
+func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor *Color) error {
+	out, err := vipsEmbedBackground(r.image, left, top, width, height, backgroundColor)
 	if err != nil {
 		return err
 	}
@@ -1420,7 +1494,7 @@ func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *Col
 	return nil
 }
 
-// SmartCrop will crop the image based on interestingness factor
+// SmartCrop will crop the image based on interesting factor
 func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) error {
 	out, err := vipsSmartCrop(r.image, width, height, interesting)
 	if err != nil {
@@ -1433,6 +1507,16 @@ func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) err
 // Label overlays a label on top of the image
 func (r *ImageRef) Label(labelParams *LabelParams) error {
 	out, err := labelImage(r.image, labelParams)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Replicate repeats an image many times across and down
+func (r *ImageRef) Replicate(across int, down int) error {
+	out, err := vipsReplicate(r.image, across, down)
 	if err != nil {
 		return err
 	}

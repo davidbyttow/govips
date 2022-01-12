@@ -9,6 +9,27 @@ int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width,
   return vips_embed(in, out, left, top, width, height, "extend", extend, NULL);
 }
 
+int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
+                int height, double r, double g, double b) {
+
+  double background[3] = {r, g, b};
+  double backgroundRGBA[4] = {r, g, b, 255};
+
+  VipsArrayDouble *vipsBackground;
+
+  if (in->Bands <= 3) {
+    vipsBackground = vips_array_double_new(background, 3);
+  } else {
+    vipsBackground = vips_array_double_new(backgroundRGBA, 4);
+  }
+
+  int code = vips_embed(in, out, left, top, width, height,
+    "extend", VIPS_EXTEND_BACKGROUND, "background", vipsBackground, NULL);
+
+  vips_area_unref(VIPS_AREA(vipsBackground));
+  return code;
+}
+
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
   return vips_flip(in, out, direction, NULL);
 }
@@ -181,4 +202,8 @@ int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction) {
 
 int arrayjoin(VipsImage **in, VipsImage **out, int n, int across) {
   return vips_arrayjoin(in, out, n, "across", across, NULL);
+}
+
+int replicate(VipsImage *in, VipsImage **out, int across, int down) {
+  return vips_replicate(in, out, across, down, NULL);
 }

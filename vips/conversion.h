@@ -7,6 +7,8 @@ int copy_image(VipsImage *in, VipsImage **out);
 
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width,
                 int height, int extend);
+int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
+                int height, double r, double g, double b);
 
 int flip_image(VipsImage *in, VipsImage **out, int direction);
 
@@ -46,3 +48,5 @@ int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction);
 int arrayjoin(VipsImage **in, VipsImage **out, int n, int across);
 
 int is_16bit(VipsInterpretation interpretation);
+
+int replicate(VipsImage *in, VipsImage **out, int across, int down);

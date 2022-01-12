@@ -25,10 +25,22 @@ int resize_image(VipsImage *in, VipsImage **out, double scale, gdouble vscale,
   return vips_resize(in, out, scale, "kernel", kernel, NULL);
 }
 
+int thumbnail(const char *filename, VipsImage **out,
+                    int width, int height, int crop, int size) {
+  return vips_thumbnail(filename, out, width, "height", height,
+                              "crop", crop, "size", size, NULL);
+}
+
 int thumbnail_image(VipsImage *in, VipsImage **out, int width, int height,
-                    int crop) {
+                    int crop, int size) {
   return vips_thumbnail_image(in, out, width, "height", height, "crop", crop,
-                              NULL);
+                              "size", size, NULL);
+}
+
+int thumbnail_buffer(void *buf, size_t len, VipsImage **out,
+                    int width, int height, int crop, int size) {
+  return vips_thumbnail_buffer(buf, len, out, width, "height", height,
+                              "crop", crop, "size", size, NULL);
 }
 
 int mapim(VipsImage *in, VipsImage **out, VipsImage *index) {
@@ -38,3 +50,4 @@ int mapim(VipsImage *in, VipsImage **out, VipsImage *index) {
 int maplut(VipsImage *in, VipsImage **out, VipsImage *lut) {
   return vips_maplut(in, out, lut, NULL);
 }
+

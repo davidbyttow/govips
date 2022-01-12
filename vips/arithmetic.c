@@ -45,3 +45,7 @@ int find_trim(VipsImage *in, int *left, int *top, int *width, int *height,
   vips_area_unref(VIPS_AREA(vipsBackground));
   return code;
 }
+
+int getpoint(VipsImage *in, double **vector, int n, int x, int y) {
+  return vips_getpoint(in, vector, &n, x, y, NULL);
+}
