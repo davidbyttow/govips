@@ -630,7 +630,21 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 // GetPages returns the number of pages in the Image
 // For animated images this corresponds to the number of frames
 func (r *ImageRef) GetPages() int {
-	return vipsGetImageGetNPages(r.image)
+	return vipsGetImageNPages(r.image)
+}
+
+// SetPages sets the number of pages in the Image
+// For animated images this corresponds to the number of frames
+func (r *ImageRef) SetPages(pages int) error {
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsSetImageNPages(r.image, pages)
+
+	r.setImage(out)
+	return nil
 }
 
 // GetPageHeight return the height of a single page
@@ -1506,11 +1520,25 @@ func (r *ImageRef) Flip(direction Direction) error {
 
 // Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
+	width := r.Width()
+
+	if r.GetPages() > 1 && (angle == Angle90 || angle == Angle270) {
+		if err := r.Grid(r.GetPageHeight(), r.GetPages(), 1); err != nil {
+			return err
+		}
+	}
+
 	out, err := vipsRotate(r.image, angle)
 	if err != nil {
 		return err
 	}
 	r.setImage(out)
+
+	if r.GetPages() > 1 && (angle == Angle90 || angle == Angle270) {
+		if err := r.SetPageHeight(width); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1521,6 +1549,16 @@ func (r *ImageRef) Rotate(angle Angle) error {
 func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *ColorRGBA,
 	idx float64, idy float64, odx float64, ody float64) error {
 	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Grid tiles the image into a matrix across*down
+func (r *ImageRef) Grid(tileHeight, across, down int) error {
+	out, err := vipsGrid(r.image, tileHeight, across, down)
 	if err != nil {
 		return err
 	}

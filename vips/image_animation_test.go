@@ -40,6 +40,27 @@ func TestImage_Animated_GIF_Resize(t *testing.T) {
 		nil)
 }
 
+func TestImage_Animated_GIF_Rotate90(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.Rotate(Angle90)
+		},
+		nil,
+		nil)
+}
+
+// todo: verify that frame order is maintained!
+func TestImage_Animated_GIF_Rotate270(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.Rotate(Angle270)
+		},
+		nil,
+		nil)
+}
+
 func goldenAnimatedTest(
 	t *testing.T,
 	path string,

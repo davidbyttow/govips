@@ -50,3 +50,5 @@ int arrayjoin(VipsImage **in, VipsImage **out, int n, int across);
 int is_16bit(VipsInterpretation interpretation);
 
 int replicate(VipsImage *in, VipsImage **out, int across, int down);
+
+int grid(VipsImage *in, VipsImage **out, int tileHeight, int across, int down);
