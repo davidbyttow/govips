@@ -41,6 +41,7 @@ type ImageMetadata struct {
 	Height      int
 	Colorspace  Interpretation
 	Orientation int
+	Pages       int
 }
 
 type Parameter struct {
@@ -440,9 +441,12 @@ func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interest
 // Metadata returns the metadata (ImageMetadata struct) of the associated ImageRef
 func (r *ImageRef) Metadata() *ImageMetadata {
 	return &ImageMetadata{
-		Format: r.Format(),
-		Width:  r.Width(),
-		Height: r.Height(),
+		Format:      r.Format(),
+		Width:       r.Width(),
+		Height:      r.Height(),
+		Orientation: r.GetOrientation(),
+		Colorspace:  r.ColorSpace(),
+		Pages:       r.GetPages(),
 	}
 }
 
@@ -1632,5 +1636,6 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 		Height:      r.Height(),
 		Colorspace:  r.ColorSpace(),
 		Orientation: r.GetOrientation(),
+		Pages:       r.GetPages(),
 	}
 }
