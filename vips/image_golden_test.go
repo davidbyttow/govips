@@ -908,6 +908,12 @@ func exportPng(exportParams *PngExportParams) func(img *ImageRef) ([]byte, *Imag
 	}
 }
 
+func exportGif(exportParams *GifExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+		return img.ExportGIF(exportParams)
+	}
+}
+
 func goldenTest(
 	t *testing.T,
 	path string,

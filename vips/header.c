@@ -57,6 +57,17 @@ int get_image_get_n_pages(VipsImage *in) {
   return page;
 }
 
+//https://www.libvips.org/API/current/libvips-header.html#vips-image-get-page-height
+int get_page_height(VipsImage *in) {
+  int page_height = 0;
+  page_height = vips_image_get_page_height(in);
+  return page_height;
+}
+
+void set_page_height(VipsImage *in, int height) {
+  vips_image_set_int(in, VIPS_META_PAGE_HEIGHT, height);
+}
+
 int get_meta_loader(const VipsImage *in, const char **out) {
   return vips_image_get_string(in, VIPS_META_LOADER, out);
 }

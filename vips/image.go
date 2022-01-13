@@ -339,13 +339,18 @@ func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
 func NewImageFromFile(file string) (*ImageRef, error) {
+	return LoadImageFromFile(file, nil)
+}
+
+// LoadImageFromFile loads an image from file and creates a new ImageRef
+func LoadImageFromFile(file string, params *ImportParams) (*ImageRef, error) {
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
-	return NewImageFromBuffer(buf)
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageRef from file %s", file))
+	return LoadImageFromBuffer(buf, params)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
@@ -368,7 +373,7 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 
 	ref := newImageRef(vipsImage, format, buf)
 
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageRef %p", ref))
 	return ref, nil
 }
 
@@ -618,19 +623,29 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 	return vipsIsColorSpaceSupported(r.image)
 }
 
-func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
-	return &ImageMetadata{
-		Format:      format,
-		Width:       r.Width(),
-		Height:      r.Height(),
-		Colorspace:  r.ColorSpace(),
-		Orientation: r.GetOrientation(),
-	}
+// GetPages returns the number of pages in the Image
+// For animated images this corresponds to the number of frames
+func (r *ImageRef) GetPages() int {
+	return vipsGetImageGetNPages(r.image)
 }
 
-// GetPages returns the number of Image
-func (r *ImageRef) GetPages() int {
-	return vipsImageGetPages(r.image)
+// GetPageHeight return the height of a single page
+func (r *ImageRef) GetPageHeight() int {
+	return vipsGetPageHeight(r.image)
+}
+
+// SetPageHeight set the height of a page
+// For animated images this is used when "unrolling" back to frames
+func (r *ImageRef) SetPageHeight(height int) error {
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsSetPageHeight(out, height)
+
+	r.setImage(out)
+	return nil
 }
 
 // Export creates a byte array of the image for use.
@@ -722,6 +737,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportAvif(NewAvifExportParams())
 	case ImageTypeJP2K:
 		return r.ExportJp2k(NewJp2kExportParams())
+	case ImageTypeGIF:
+		return r.ExportGIF(NewGifExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -1393,16 +1410,29 @@ func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 // ResizeWithVScale resizes the image with both horizontal and vertical scaling.
 // The parameters are the scaling factors.
 func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
-	err := r.PremultiplyAlpha()
-	if err != nil {
+	if err := r.PremultiplyAlpha(); err != nil {
 		return err
 	}
+
+	pages := r.GetPages()
+	pageHeight := r.GetPageHeight()
 
 	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
 		return err
 	}
 	r.setImage(out)
+
+	if pages > 1 {
+		scale := hScale
+		if vScale != -1 {
+			scale = vScale
+		}
+		newPageHeight := int(float64(pageHeight) * scale)
+		if err := r.SetPageHeight(newPageHeight); err != nil {
+			return err
+		}
+	}
 
 	return r.UnpremultiplyAlpha()
 }
@@ -1594,3 +1624,13 @@ const (
 	CodingLABQ  Coding = C.VIPS_CODING_LABQ
 	CodingRAD   Coding = C.VIPS_CODING_RAD
 )
+
+func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
+	return &ImageMetadata{
+		Format:      format,
+		Width:       r.Width(),
+		Height:      r.Height(),
+		Colorspace:  r.ColorSpace(),
+		Orientation: r.GetOrientation(),
+	}
+}
