@@ -444,9 +444,9 @@ func (r *ImageRef) Metadata() *ImageMetadata {
 		Format:      r.Format(),
 		Width:       r.Width(),
 		Height:      r.Height(),
-		Orientation: r.GetOrientation(),
+		Orientation: r.Orientation(),
 		Colorspace:  r.ColorSpace(),
-		Pages:       r.GetPages(),
+		Pages:       r.Pages(),
 	}
 }
 
@@ -551,9 +551,14 @@ func (r *ImageRef) HasAlpha() bool {
 	return vipsHasAlpha(r.image)
 }
 
-// GetOrientation returns the orientation number as it appears in the EXIF, if present
-func (r *ImageRef) GetOrientation() int {
+// Orientation returns the orientation number as it appears in the EXIF, if present
+func (r *ImageRef) Orientation() int {
 	return vipsGetMetaOrientation(r.image)
+}
+
+// Deprecated: use Orientation() instead
+func (r *ImageRef) GetOrientation() int {
+	return r.Orientation()
 }
 
 // SetOrientation sets the orientation in the EXIF header of the associated image.
@@ -627,10 +632,15 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 	return vipsIsColorSpaceSupported(r.image)
 }
 
-// GetPages returns the number of pages in the Image
+// Pages returns the number of pages in the Image
 // For animated images this corresponds to the number of frames
-func (r *ImageRef) GetPages() int {
+func (r *ImageRef) Pages() int {
 	return vipsGetImageNPages(r.image)
+}
+
+// Deprecated: use Pages() instead
+func (r *ImageRef) GetPages() int {
+	return r.Pages()
 }
 
 // SetPages sets the number of pages in the Image
@@ -647,7 +657,13 @@ func (r *ImageRef) SetPages(pages int) error {
 	return nil
 }
 
+// PageHeight return the height of a single page
+func (r *ImageRef) PageHeight() int {
+	return vipsGetPageHeight(r.image)
+}
+
 // GetPageHeight return the height of a single page
+// Deprecated use PageHeight() instead
 func (r *ImageRef) GetPageHeight() int {
 	return vipsGetPageHeight(r.image)
 }
@@ -1134,6 +1150,7 @@ func GetRotationAngleFromExif(orientation int) (Angle, bool) {
 // N.B. libvips does not flip images currently (i.e. no support for orientations 2, 4, 5 and 7).
 // N.B. due to the HEIF image standard, HEIF images are always autorotated by default on load.
 // Thus, calling AutoRotate for HEIF images is not needed.
+// todo: use https://www.libvips.org/API/current/libvips-conversion.html#vips-autorot-remove-angle
 func (r *ImageRef) AutoRotate() error {
 	out, err := vipsAutoRotate(r.image)
 	if err != nil {
@@ -1145,6 +1162,10 @@ func (r *ImageRef) AutoRotate() error {
 
 // ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
+	if err := r.multiPageNotSupported(); err != nil {
+		return err
+	}
+
 	out, err := vipsExtractArea(r.image, left, top, width, height)
 	if err != nil {
 		return err
@@ -1169,7 +1190,6 @@ func (r *ImageRef) RemoveICCProfile() error {
 
 // TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
 func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
-
 	// If the image has an embedded profile, that will be used and the input profile ignored.
 	// Otherwise, images without an input profile are assumed to use a standard RGB profile.
 	embedded := r.HasICCProfile()
@@ -1432,7 +1452,7 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 		return err
 	}
 
-	pages := r.GetPages()
+	pages := r.Pages()
 	pageHeight := r.GetPageHeight()
 
 	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
@@ -1522,8 +1542,14 @@ func (r *ImageRef) Flip(direction Direction) error {
 func (r *ImageRef) Rotate(angle Angle) error {
 	width := r.Width()
 
-	if r.GetPages() > 1 && (angle == Angle90 || angle == Angle270) {
-		if err := r.Grid(r.GetPageHeight(), r.GetPages(), 1); err != nil {
+	if r.Pages() > 1 && (angle == Angle90 || angle == Angle270) {
+		if angle == Angle270 {
+			if err := r.Flip(DirectionHorizontal); err != nil {
+				return err
+			}
+		}
+
+		if err := r.Grid(r.GetPageHeight(), r.Pages(), 1); err != nil {
 			return err
 		}
 
@@ -1532,6 +1558,7 @@ func (r *ImageRef) Rotate(angle Angle) error {
 				return err
 			}
 		}
+
 	}
 
 	out, err := vipsRotate(r.image, angle)
@@ -1540,7 +1567,7 @@ func (r *ImageRef) Rotate(angle Angle) error {
 	}
 	r.setImage(out)
 
-	if r.GetPages() > 1 && (angle == Angle90 || angle == Angle270) {
+	if r.Pages() > 1 && (angle == Angle90 || angle == Angle270) {
 		if err := r.SetPageHeight(width); err != nil {
 			return err
 		}
@@ -1679,7 +1706,15 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 		Width:       r.Width(),
 		Height:      r.Height(),
 		Colorspace:  r.ColorSpace(),
-		Orientation: r.GetOrientation(),
-		Pages:       r.GetPages(),
+		Orientation: r.Orientation(),
+		Pages:       r.Pages(),
 	}
+}
+
+func (r *ImageRef) multiPageNotSupported() error {
+	if r.Pages() > 1 {
+		return ErrUnsupportedMultiPageOperation
+	}
+
+	return nil
 }

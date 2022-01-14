@@ -194,7 +194,7 @@ func TestImageRef_RemoveMetadata_Leave_Orientation(t *testing.T) {
 			return img.RemoveMetadata()
 		},
 		func(result *ImageRef) {
-			assert.Equal(t, 5, result.GetOrientation())
+			assert.Equal(t, 5, result.Orientation())
 		}, nil)
 }
 
@@ -204,7 +204,7 @@ func TestImageRef_Orientation_Issue(t *testing.T) {
 			return img.Resize(0.9, KernelLanczos3)
 		},
 		func(result *ImageRef) {
-			assert.Equal(t, 6, result.GetOrientation())
+			assert.Equal(t, 6, result.Orientation())
 		},
 		exportWebp(nil),
 	)
@@ -226,7 +226,7 @@ func TestImage_AutoRotate_0(t *testing.T) {
 			return img.AutoRotate()
 		},
 		func(result *ImageRef) {
-			assert.Equal(t, 0, result.GetOrientation())
+			assert.Equal(t, 0, result.Orientation())
 		}, nil)
 }
 
@@ -236,7 +236,7 @@ func TestImage_AutoRotate_1(t *testing.T) {
 			return img.AutoRotate()
 		},
 		func(result *ImageRef) {
-			assert.Equal(t, 1, result.GetOrientation())
+			assert.Equal(t, 1, result.Orientation())
 		}, nil)
 }
 
@@ -246,7 +246,7 @@ func TestImage_AutoRotate_5(t *testing.T) {
 			return img.AutoRotate()
 		},
 		func(result *ImageRef) {
-			assert.Equal(t, 1, result.GetOrientation())
+			assert.Equal(t, 1, result.Orientation())
 		}, nil)
 }
 
@@ -256,7 +256,7 @@ func TestImage_AutoRotate_6(t *testing.T) {
 			return img.AutoRotate()
 		},
 		func(result *ImageRef) {
-			assert.Equal(t, 1, result.GetOrientation())
+			assert.Equal(t, 1, result.Orientation())
 		}, nil)
 }
 
@@ -269,7 +269,7 @@ func TestImage_AutoRotate_6__jpeg_to_webp(t *testing.T) {
 			// expected should be 1
 			// Known issue: libvips does not write EXIF into WebP:
 			// https://github.com/libvips/libvips/pull/1745
-			//assert.Equal(t, 0, result.GetOrientation())
+			//assert.Equal(t, 0, result.Orientation())
 		},
 		exportWebp(nil),
 	)
@@ -281,7 +281,7 @@ func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
 			return img.AutoRotate()
 		},
 		func(result *ImageRef) {
-			assert.Equal(t, 1, result.GetOrientation())
+			assert.Equal(t, 1, result.Orientation())
 		}, exportJpeg(nil),
 	)
 }
@@ -1068,4 +1068,48 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 	t.Log("writing golden file: " + goldenFile)
 	err := ioutil.WriteFile(goldenFile, buf, 0644)
 	assert.NoError(t, err)
+}
+
+func goldenAnimatedTest(
+	t *testing.T,
+	path string,
+	pages int,
+	exec func(img *ImageRef) error,
+	validate func(img *ImageRef),
+	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
+) []byte {
+	if exec == nil {
+		exec = func(*ImageRef) error { return nil }
+	}
+
+	if validate == nil {
+		validate = func(*ImageRef) {}
+	}
+
+	if export == nil {
+		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
+	}
+
+	Startup(nil)
+
+	importParams := NewImportParams()
+	importParams.NumPages.Set(pages)
+
+	img, err := LoadImageFromFile(path, importParams)
+	require.NoError(t, err)
+
+	err = exec(img)
+	require.NoError(t, err)
+
+	buf, metadata, err := export(img)
+	require.NoError(t, err)
+
+	result, err := NewImageFromBuffer(buf)
+	require.NoError(t, err)
+
+	validate(result)
+
+	assertGoldenMatch(t, path, buf, metadata.Format)
+
+	return buf
 }
