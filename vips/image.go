@@ -1526,6 +1526,12 @@ func (r *ImageRef) Rotate(angle Angle) error {
 		if err := r.Grid(r.GetPageHeight(), r.GetPages(), 1); err != nil {
 			return err
 		}
+
+		if angle == Angle270 {
+			if err := r.Flip(DirectionHorizontal); err != nil {
+				return err
+			}
+		}
 	}
 
 	out, err := vipsRotate(r.image, angle)
@@ -1556,7 +1562,7 @@ func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *Col
 	return nil
 }
 
-// Grid tiles the image into a matrix across*down
+// Grid tiles the image pages into a matrix across*down
 func (r *ImageRef) Grid(tileHeight, across, down int) error {
 	out, err := vipsGrid(r.image, tileHeight, across, down)
 	if err != nil {

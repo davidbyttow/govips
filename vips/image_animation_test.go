@@ -50,7 +50,6 @@ func TestImage_Animated_GIF_Rotate90(t *testing.T) {
 		nil)
 }
 
-// todo: verify that frame order is maintained!
 func TestImage_Animated_GIF_Rotate270(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		-1,
