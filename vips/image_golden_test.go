@@ -878,6 +878,14 @@ func TestImage_QuantTable(t *testing.T) {
 	)
 }
 
+func TestImage_Pixelate(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
+		func(img *ImageRef) error {
+			return Pixelate(img, 24)
+		},
+		nil, nil)
+}
+
 func testWebpOptimizeIccProfile(t *testing.T, exportParams *WebpExportParams) []byte {
 	return goldenTest(t, resources+"has-icc-profile.png",
 		func(img *ImageRef) error {
