@@ -1594,3 +1594,25 @@ const (
 	CodingLABQ  Coding = C.VIPS_CODING_LABQ
 	CodingRAD   Coding = C.VIPS_CODING_RAD
 )
+
+// Pixelate applies a simple pixelate filter to the image
+func Pixelate(imageRef *ImageRef, factor float64) (err error) {
+	if factor < 1 {
+		return errors.New("factor must be greater then 1")
+	}
+
+	width := imageRef.Width()
+	height := imageRef.Height()
+
+	if err = imageRef.Resize(1/factor, KernelAuto); err != nil {
+		return
+	}
+
+	hScale := float64(width) / float64(imageRef.Width())
+	vScale := float64(height) / float64(imageRef.Height())
+	if err = imageRef.ResizeWithVScale(hScale, vScale, KernelNearest); err != nil {
+		return
+	}
+
+	return
+}
