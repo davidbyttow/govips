@@ -50,11 +50,26 @@ void set_meta_orientation(VipsImage *in, int orientation) {
   vips_image_set_int(in, VIPS_META_ORIENTATION, orientation);
 }
 
-//https://libvips.github.io/libvips/API/current/libvips-header.html#vips-image-get-n-pages
-int get_image_get_n_pages(VipsImage *in) {
-  int page = 0;
-  page = vips_image_get_n_pages(in);
-  return page;
+// https://libvips.github.io/libvips/API/current/libvips-header.html#vips-image-get-n-pages
+int get_image_n_pages(VipsImage *in) {
+  int n_pages = 0;
+  n_pages = vips_image_get_n_pages(in);
+  return n_pages;
+}
+
+void set_image_n_pages(VipsImage *in, int n_pages) {
+  vips_image_set_int(in, VIPS_META_N_PAGES, n_pages);
+}
+
+// https://www.libvips.org/API/current/libvips-header.html#vips-image-get-page-height
+int get_page_height(VipsImage *in) {
+  int page_height = 0;
+  page_height = vips_image_get_page_height(in);
+  return page_height;
+}
+
+void set_page_height(VipsImage *in, int height) {
+  vips_image_set_int(in, VIPS_META_PAGE_HEIGHT, height);
 }
 
 int get_meta_loader(const VipsImage *in, const char **out) {

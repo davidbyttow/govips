@@ -41,6 +41,7 @@ type ImageMetadata struct {
 	Height      int
 	Colorspace  Interpretation
 	Orientation int
+	Pages       int
 }
 
 type Parameter struct {
@@ -339,13 +340,18 @@ func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
 func NewImageFromFile(file string) (*ImageRef, error) {
+	return LoadImageFromFile(file, nil)
+}
+
+// LoadImageFromFile loads an image from file and creates a new ImageRef
+func LoadImageFromFile(file string, params *ImportParams) (*ImageRef, error) {
 	buf, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
 
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageref from file %s", file))
-	return NewImageFromBuffer(buf)
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageRef from file %s", file))
+	return LoadImageFromBuffer(buf, params)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
@@ -368,7 +374,7 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 
 	ref := newImageRef(vipsImage, format, buf)
 
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageRef %p", ref))
 	return ref, nil
 }
 
@@ -435,9 +441,12 @@ func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interest
 // Metadata returns the metadata (ImageMetadata struct) of the associated ImageRef
 func (r *ImageRef) Metadata() *ImageMetadata {
 	return &ImageMetadata{
-		Format: r.Format(),
-		Width:  r.Width(),
-		Height: r.Height(),
+		Format:      r.Format(),
+		Width:       r.Width(),
+		Height:      r.Height(),
+		Orientation: r.Orientation(),
+		Colorspace:  r.ColorSpace(),
+		Pages:       r.Pages(),
 	}
 }
 
@@ -542,9 +551,14 @@ func (r *ImageRef) HasAlpha() bool {
 	return vipsHasAlpha(r.image)
 }
 
-// GetOrientation returns the orientation number as it appears in the EXIF, if present
-func (r *ImageRef) GetOrientation() int {
+// Orientation returns the orientation number as it appears in the EXIF, if present
+func (r *ImageRef) Orientation() int {
 	return vipsGetMetaOrientation(r.image)
+}
+
+// Deprecated: use Orientation() instead
+func (r *ImageRef) GetOrientation() int {
+	return r.Orientation()
 }
 
 // SetOrientation sets the orientation in the EXIF header of the associated image.
@@ -618,19 +632,54 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 	return vipsIsColorSpaceSupported(r.image)
 }
 
-func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
-	return &ImageMetadata{
-		Format:      format,
-		Width:       r.Width(),
-		Height:      r.Height(),
-		Colorspace:  r.ColorSpace(),
-		Orientation: r.GetOrientation(),
-	}
+// Pages returns the number of pages in the Image
+// For animated images this corresponds to the number of frames
+func (r *ImageRef) Pages() int {
+	return vipsGetImageNPages(r.image)
 }
 
-// GetPages returns the number of Image
+// Deprecated: use Pages() instead
 func (r *ImageRef) GetPages() int {
-	return vipsImageGetPages(r.image)
+	return r.Pages()
+}
+
+// SetPages sets the number of pages in the Image
+// For animated images this corresponds to the number of frames
+func (r *ImageRef) SetPages(pages int) error {
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsSetImageNPages(r.image, pages)
+
+	r.setImage(out)
+	return nil
+}
+
+// PageHeight return the height of a single page
+func (r *ImageRef) PageHeight() int {
+	return vipsGetPageHeight(r.image)
+}
+
+// GetPageHeight return the height of a single page
+// Deprecated use PageHeight() instead
+func (r *ImageRef) GetPageHeight() int {
+	return vipsGetPageHeight(r.image)
+}
+
+// SetPageHeight set the height of a page
+// For animated images this is used when "unrolling" back to frames
+func (r *ImageRef) SetPageHeight(height int) error {
+	out, err := vipsCopyImage(r.image)
+	if err != nil {
+		return err
+	}
+
+	vipsSetPageHeight(out, height)
+
+	r.setImage(out)
+	return nil
 }
 
 // Export creates a byte array of the image for use.
@@ -722,6 +771,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportAvif(NewAvifExportParams())
 	case ImageTypeJP2K:
 		return r.ExportJp2k(NewJp2kExportParams())
+	case ImageTypeGIF:
+		return r.ExportGIF(NewGifExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -1099,6 +1150,7 @@ func GetRotationAngleFromExif(orientation int) (Angle, bool) {
 // N.B. libvips does not flip images currently (i.e. no support for orientations 2, 4, 5 and 7).
 // N.B. due to the HEIF image standard, HEIF images are always autorotated by default on load.
 // Thus, calling AutoRotate for HEIF images is not needed.
+// todo: use https://www.libvips.org/API/current/libvips-conversion.html#vips-autorot-remove-angle
 func (r *ImageRef) AutoRotate() error {
 	out, err := vipsAutoRotate(r.image)
 	if err != nil {
@@ -1110,6 +1162,10 @@ func (r *ImageRef) AutoRotate() error {
 
 // ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
+	if err := r.multiPageNotSupported(); err != nil {
+		return err
+	}
+
 	out, err := vipsExtractArea(r.image, left, top, width, height)
 	if err != nil {
 		return err
@@ -1134,7 +1190,6 @@ func (r *ImageRef) RemoveICCProfile() error {
 
 // TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
 func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
-
 	// If the image has an embedded profile, that will be used and the input profile ignored.
 	// Otherwise, images without an input profile are assumed to use a standard RGB profile.
 	embedded := r.HasICCProfile()
@@ -1393,16 +1448,29 @@ func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 // ResizeWithVScale resizes the image with both horizontal and vertical scaling.
 // The parameters are the scaling factors.
 func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
-	err := r.PremultiplyAlpha()
-	if err != nil {
+	if err := r.PremultiplyAlpha(); err != nil {
 		return err
 	}
+
+	pages := r.Pages()
+	pageHeight := r.GetPageHeight()
 
 	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
 		return err
 	}
 	r.setImage(out)
+
+	if pages > 1 {
+		scale := hScale
+		if vScale != -1 {
+			scale = vScale
+		}
+		newPageHeight := int(float64(pageHeight) * scale)
+		if err := r.SetPageHeight(newPageHeight); err != nil {
+			return err
+		}
+	}
 
 	return r.UnpremultiplyAlpha()
 }
@@ -1472,11 +1540,38 @@ func (r *ImageRef) Flip(direction Direction) error {
 
 // Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
+	width := r.Width()
+
+	if r.Pages() > 1 && (angle == Angle90 || angle == Angle270) {
+		if angle == Angle270 {
+			if err := r.Flip(DirectionHorizontal); err != nil {
+				return err
+			}
+		}
+
+		if err := r.Grid(r.GetPageHeight(), r.Pages(), 1); err != nil {
+			return err
+		}
+
+		if angle == Angle270 {
+			if err := r.Flip(DirectionHorizontal); err != nil {
+				return err
+			}
+		}
+
+	}
+
 	out, err := vipsRotate(r.image, angle)
 	if err != nil {
 		return err
 	}
 	r.setImage(out)
+
+	if r.Pages() > 1 && (angle == Angle90 || angle == Angle270) {
+		if err := r.SetPageHeight(width); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1487,6 +1582,16 @@ func (r *ImageRef) Rotate(angle Angle) error {
 func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *ColorRGBA,
 	idx float64, idy float64, odx float64, ody float64) error {
 	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Grid tiles the image pages into a matrix across*down
+func (r *ImageRef) Grid(tileHeight, across, down int) error {
+	out, err := vipsGrid(r.image, tileHeight, across, down)
 	if err != nil {
 		return err
 	}
@@ -1594,6 +1699,25 @@ const (
 	CodingLABQ  Coding = C.VIPS_CODING_LABQ
 	CodingRAD   Coding = C.VIPS_CODING_RAD
 )
+
+func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
+	return &ImageMetadata{
+		Format:      format,
+		Width:       r.Width(),
+		Height:      r.Height(),
+		Colorspace:  r.ColorSpace(),
+		Orientation: r.Orientation(),
+		Pages:       r.Pages(),
+	}
+}
+
+func (r *ImageRef) multiPageNotSupported() error {
+	if r.Pages() > 1 {
+		return ErrUnsupportedMultiPageOperation
+	}
+
+	return nil
+}
 
 // Pixelate applies a simple pixelate filter to the image
 func Pixelate(imageRef *ImageRef, factor float64) (err error) {
