@@ -416,3 +416,14 @@ func vipsReplicate(in *C.VipsImage, across int, down int) (*C.VipsImage, error) 
 	}
 	return out, nil
 }
+
+// https://www.libvips.org/API/current/libvips-conversion.html#vips-grid
+func vipsGrid(in *C.VipsImage, tileHeight, across, down int) (*C.VipsImage, error) {
+	incOpCounter("grid")
+	var out *C.VipsImage
+
+	if err := C.grid(in, &out, C.int(tileHeight), C.int(across), C.int(down)); err != 0 {
+		return nil, handleImageError(out)
+	}
+	return out, nil
+}

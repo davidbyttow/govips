@@ -312,7 +312,7 @@ func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
 
-	assert.Equal(t, 6, image.GetOrientation())
+	assert.Equal(t, 6, image.Orientation())
 }
 
 func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
@@ -321,7 +321,7 @@ func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
-	assert.Equal(t, 0, image.GetOrientation())
+	assert.Equal(t, 0, image.Orientation())
 }
 
 func TestImageRef_SetOrientation__HasEXIF(t *testing.T) {
@@ -333,7 +333,7 @@ func TestImageRef_SetOrientation__HasEXIF(t *testing.T) {
 	err = image.SetOrientation(5)
 	require.NoError(t, err)
 
-	assert.Equal(t, 5, image.GetOrientation())
+	assert.Equal(t, 5, image.Orientation())
 }
 
 func TestImageRef_SetOrientation__NoEXIF(t *testing.T) {
@@ -345,7 +345,7 @@ func TestImageRef_SetOrientation__NoEXIF(t *testing.T) {
 	err = image.SetOrientation(5)
 	require.NoError(t, err)
 
-	assert.Equal(t, 5, image.GetOrientation())
+	assert.Equal(t, 5, image.Orientation())
 }
 
 func TestImageRef_RemoveOrientation__HasEXIF(t *testing.T) {
@@ -357,7 +357,7 @@ func TestImageRef_RemoveOrientation__HasEXIF(t *testing.T) {
 	err = image.RemoveOrientation()
 	require.NoError(t, err)
 
-	assert.Equal(t, 0, image.GetOrientation())
+	assert.Equal(t, 0, image.Orientation())
 }
 
 func TestImageRef_RemoveOrientation__NoEXIF(t *testing.T) {
@@ -369,7 +369,7 @@ func TestImageRef_RemoveOrientation__NoEXIF(t *testing.T) {
 	err = image.RemoveOrientation()
 	require.NoError(t, err)
 
-	assert.Equal(t, 0, image.GetOrientation())
+	assert.Equal(t, 0, image.Orientation())
 }
 
 func TestImageRef_RemoveMetadata__RetainsProfile(t *testing.T) {
@@ -396,7 +396,7 @@ func TestImageRef_RemoveMetadata__RetainsOrientation(t *testing.T) {
 	err = image.RemoveMetadata()
 	require.NoError(t, err)
 
-	assert.Equal(t, 5, image.GetOrientation())
+	assert.Equal(t, 5, image.Orientation())
 }
 
 // Known issue: libvips does not write EXIF into WebP:
@@ -410,7 +410,7 @@ func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
 	err = image.RemoveMetadata()
 	require.NoError(t, err)
 
-	assert.Equal(t, 6, image.GetOrientation())
+	assert.Equal(t, 6, image.Orientation())
 }
 
 func TestImageRef_RemoveICCProfile(t *testing.T) {
@@ -801,21 +801,12 @@ func TestIsColorSpaceSupport(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestGetPages_gif(t *testing.T) {
-	Startup(nil)
-	image, err := NewImageFromFile(resources + "gif-animated.gif")
-	require.NoError(t, err)
-
-	pages := image.GetPages()
-	assert.Equal(t, 8, pages)
-}
-
-func TestGetPages_webp(t *testing.T) {
+func TestPages_webp(t *testing.T) {
 	Startup(nil)
 	image, err := NewImageFromFile(resources + "webp-animated.webp")
 	require.NoError(t, err)
 
-	pages := image.GetPages()
+	pages := image.Pages()
 	assert.Equal(t, 8, pages)
 }
 
@@ -974,6 +965,15 @@ func TestImageRef_JP2K(t *testing.T) {
 	_, metadata, err := img.ExportJp2k(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeJP2K, metadata.Format)
+}
+
+func TestImageRef_ExtractArea_MultiPage_Unsupported(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	err = image.ExtractArea(1, 2, 3, 4)
+	assert.Error(t, err)
 }
 
 // TODO unit tests to cover:

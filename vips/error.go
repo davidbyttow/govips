@@ -12,7 +12,8 @@ import (
 
 var (
 	// ErrUnsupportedImageFormat when image type is unsupported
-	ErrUnsupportedImageFormat = errors.New("unsupported image format")
+	ErrUnsupportedImageFormat        = errors.New("unsupported image format")
+	ErrUnsupportedMultiPageOperation = errors.New("unsupported operation for multi-page image")
 )
 
 func handleImageError(out *C.VipsImage) error {
