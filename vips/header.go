@@ -52,8 +52,20 @@ func vipsSetMetaOrientation(in *C.VipsImage, orientation int) {
 	C.set_meta_orientation(in, C.int(orientation))
 }
 
-func vipsImageGetPages(in *C.VipsImage) int {
-	return int(C.get_image_get_n_pages(in))
+func vipsGetImageNPages(in *C.VipsImage) int {
+	return int(C.get_image_n_pages(in))
+}
+
+func vipsSetImageNPages(in *C.VipsImage, pages int) {
+	C.set_image_n_pages(in, C.int(pages))
+}
+
+func vipsGetPageHeight(in *C.VipsImage) int {
+	return int(C.get_page_height(in))
+}
+
+func vipsSetPageHeight(in *C.VipsImage, height int) {
+	C.set_page_height(in, C.int(height))
 }
 
 func vipsImageGetMetaLoader(in *C.VipsImage) (string, bool) {

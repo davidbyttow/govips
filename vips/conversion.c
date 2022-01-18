@@ -207,3 +207,7 @@ int arrayjoin(VipsImage **in, VipsImage **out, int n, int across) {
 int replicate(VipsImage *in, VipsImage **out, int across, int down) {
   return vips_replicate(in, out, across, down, NULL);
 }
+
+int grid(VipsImage *in, VipsImage **out, int tileHeight, int across, int down){
+  return vips_grid(in, out, tileHeight, across, down, NULL);
+}
