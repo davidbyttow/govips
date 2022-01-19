@@ -965,6 +965,7 @@ func TestImageRef_JP2K(t *testing.T) {
 	_, metadata, err := img.ExportJp2k(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeJP2K, metadata.Format)
+	assert.Equal(t, 1, metadata.Pages)
 }
 
 func TestImageRef_ExtractArea_MultiPage_Unsupported(t *testing.T) {

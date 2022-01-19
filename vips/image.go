@@ -635,6 +635,12 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 // Pages returns the number of pages in the Image
 // For animated images this corresponds to the number of frames
 func (r *ImageRef) Pages() int {
+	// libvips uses the same attribute (n_pages) to represent the number of pyramid layers in JP2K
+	// as we interpret the attribute as frames and JP2K does not support animation we override this with 1
+	if r.format == ImageTypeJP2K {
+		return 1
+	}
+
 	return vipsGetImageNPages(r.image)
 }
 
