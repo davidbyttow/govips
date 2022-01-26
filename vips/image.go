@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"unsafe"
@@ -113,6 +114,46 @@ func NewImportParams() *ImportParams {
 	p := &ImportParams{}
 	p.FailOnError.Set(true)
 	return p
+}
+
+// OptionString convert import params to option_string
+func (i *ImportParams) OptionString() string {
+	var values []string
+	if v := i.NumPages; v.IsSet() {
+		values = append(values, "n="+strconv.Itoa(v.Get()))
+	}
+	if v := i.Page; v.IsSet() {
+		values = append(values, "page="+strconv.Itoa(v.Get()))
+	}
+	if v := i.Density; v.IsSet() {
+		values = append(values, "dpi="+strconv.Itoa(v.Get()))
+	}
+	if v := i.FailOnError; v.IsSet() {
+		values = append(values, "fail="+boolToStr(v.Get()))
+	}
+	if v := i.JpegShrinkFactor; v.IsSet() {
+		values = append(values, "shrink="+strconv.Itoa(v.Get()))
+	}
+	if v := i.AutoRotate; v.IsSet() {
+		values = append(values, "autorotate="+boolToStr(v.Get()))
+	}
+	if v := i.SvgUnlimited; v.IsSet() {
+		values = append(values, "unlimited="+boolToStr(v.Get()))
+	}
+	if v := i.HeifThumbnail; v.IsSet() {
+		values = append(values, "thumbnail="+boolToStr(v.Get()))
+	}
+	if len(values) == 0 {
+		return ""
+	}
+	return "[" + strings.Join(values, ",") + "]"
+}
+
+func boolToStr(v bool) string {
+	if v {
+		return "1"
+	}
+	return "0"
 }
 
 // ExportParams are options when exporting an image to file or buffer.
@@ -382,7 +423,7 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, SizeBoth)
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, SizeBoth, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -397,7 +438,7 @@ func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*Im
 func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, SizeBoth)
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, SizeBoth, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -412,7 +453,7 @@ func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*I
 func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesting, size Size) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size)
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -427,7 +468,7 @@ func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesti
 func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interesting, size Size) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size)
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size, nil)
 	if err != nil {
 		return nil, err
 	}
