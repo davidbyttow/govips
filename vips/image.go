@@ -148,9 +148,9 @@ func (i *ImportParams) OptionString() string {
 
 func boolToStr(v bool) string {
 	if v {
-		return "1"
+		return "TRUE"
 	}
-	return "0"
+	return "FALSE"
 }
 
 // ExportParams are options when exporting an image to file or buffer.
