@@ -67,7 +67,7 @@ func vipsThumbnailFromFile(filename string, width, height int, crop Interesting,
 
 	filenameOption := filename
 	if params != nil {
-		filenameOption += params.OptionString()
+		filenameOption += "[" + params.OptionString() + "]"
 	}
 
 	cFileName := C.CString(filenameOption)
