@@ -95,6 +95,7 @@ func TestThumbnail_GIF(t *testing.T) {
 		func(img *ImageRef) error {
 			pages := img.Pages()
 			assert.Equal(t, 8, pages)
+			assert.Equal(t, img.Format(), ImageTypeGIF)
 			return nil
 		}, func(img *ImageRef) {
 
@@ -113,8 +114,6 @@ func TestThumbnail_GIF_Animated(t *testing.T) {
 			return LoadThumbnailFromBuffer(buf, 50, 70, InterestingCentre, SizeBoth, importParams)
 		},
 		func(img *ImageRef) error {
-			pages := img.Pages()
-			assert.Equal(t, 8, pages)
 			return nil
 		}, func(img *ImageRef) {
 
