@@ -39,6 +39,35 @@ int extract_image_area(VipsImage *in, VipsImage **out, int left, int top,
   return vips_extract_area(in, out, left, top, width, height, NULL);
 }
 
+int extract_animated_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height) {
+  VipsObject *base = VIPS_OBJECT(vips_image_new());
+  int page_height = vips_image_get_page_height(in);
+  int n_pages = image->Ysize / page_height;
+
+  VipsImage **page = (VipsImage **) vips_object_local_array(base, n_pages);
+  VipsImage **copy = (VipsImage **) vips_object_local_array(base, 1);
+
+  // split image into cropped frames
+  for (int i = 0; i < n_pages; i++) {
+    if(vips_extract_area(in, &page[i], left, page_height * i + top, width, height, NULL)) {
+      g_object_unref(base);
+      return -1;
+    }
+  }
+  // reassemble frames and set page height
+  // copy before modifying metadata
+  if(
+    vips_arrayjoin(page, &copy[0], n_pages, "across", 1, NULL) ||
+    vips_copy(copy[0], out, NULL)
+  ) {
+    g_object_unref(base);
+    return -1;
+  }
+  vips_image_set_int(*out, VIPS_META_PAGE_HEIGHT, height);
+  g_object_unref(base);
+  return 0;
+}
+
 int extract_band(VipsImage *in, VipsImage **out, int band, int num) {
   if (num > 0) {
     return vips_extract_band(in, out, band, "n", num, NULL);
