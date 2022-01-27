@@ -87,19 +87,17 @@ func TestThumbnail_Decode_BMP(t *testing.T) {
 func TestThumbnail_GIF(t *testing.T) {
 	goldenCreateTest(t, resources+"gif-animated.gif",
 		func(path string) (*ImageRef, error) {
-			return NewThumbnailFromFile(path, 50, 70, InterestingCentre)
+			return NewThumbnailFromFile(path, 50, 70, InterestingNone)
 		},
 		func(buf []byte) (*ImageRef, error) {
-			return NewThumbnailFromBuffer(buf, 50, 70, InterestingCentre)
+			return NewThumbnailFromBuffer(buf, 50, 70, InterestingNone)
 		},
 		func(img *ImageRef) error {
 			pages := img.Pages()
 			assert.Equal(t, 8, pages)
 			assert.Equal(t, img.Format(), ImageTypeGIF)
 			return nil
-		}, func(img *ImageRef) {
-
-		}, exportGif(NewGifExportParams()))
+		}, nil, exportGif(NewGifExportParams()))
 }
 
 func TestThumbnail_GIF_Animated(t *testing.T) {
@@ -108,16 +106,12 @@ func TestThumbnail_GIF_Animated(t *testing.T) {
 
 	goldenCreateTest(t, resources+"gif-animated.gif",
 		func(path string) (*ImageRef, error) {
-			return LoadThumbnailFromFile(path, 50, 70, InterestingCentre, SizeBoth, importParams)
+			return LoadThumbnailFromFile(path, 50, 70, InterestingNone, SizeBoth, importParams)
 		},
 		func(buf []byte) (*ImageRef, error) {
-			return LoadThumbnailFromBuffer(buf, 50, 70, InterestingCentre, SizeBoth, importParams)
+			return LoadThumbnailFromBuffer(buf, 50, 70, InterestingNone, SizeBoth, importParams)
 		},
-		func(img *ImageRef) error {
-			return nil
-		}, func(img *ImageRef) {
-
-		}, exportGif(NewGifExportParams()))
+		nil, nil, exportGif(NewGifExportParams()))
 }
 
 func TestThumbnail_GIF_ExportNative(t *testing.T) {
@@ -126,16 +120,12 @@ func TestThumbnail_GIF_ExportNative(t *testing.T) {
 
 	goldenCreateTest(t, resources+"gif-animated.gif",
 		func(path string) (*ImageRef, error) {
-			return LoadThumbnailFromFile(path, 50, 70, InterestingCentre, SizeBoth, importParams)
+			return LoadThumbnailFromFile(path, 50, 70, InterestingNone, SizeBoth, importParams)
 		},
 		func(buf []byte) (*ImageRef, error) {
-			return LoadThumbnailFromBuffer(buf, 50, 70, InterestingCentre, SizeBoth, importParams)
+			return LoadThumbnailFromBuffer(buf, 50, 70, InterestingNone, SizeBoth, importParams)
 		},
-		func(img *ImageRef) error {
-			return nil
-		}, func(img *ImageRef) {
-
-		}, nil)
+		nil, nil, nil)
 }
 
 func TestThumbnail_GIF_ExportWebP(t *testing.T) {
@@ -144,14 +134,10 @@ func TestThumbnail_GIF_ExportWebP(t *testing.T) {
 
 	goldenCreateTest(t, resources+"gif-animated.gif",
 		func(path string) (*ImageRef, error) {
-			return LoadThumbnailFromFile(path, 50, 70, InterestingCentre, SizeBoth, importParams)
+			return LoadThumbnailFromFile(path, 50, 70, InterestingNone, SizeBoth, importParams)
 		},
 		func(buf []byte) (*ImageRef, error) {
-			return LoadThumbnailFromBuffer(buf, 50, 70, InterestingCentre, SizeBoth, importParams)
+			return LoadThumbnailFromBuffer(buf, 50, 70, InterestingNone, SizeBoth, importParams)
 		},
-		func(img *ImageRef) error {
-			return nil
-		}, func(img *ImageRef) {
-
-		}, exportWebp(NewWebpExportParams()))
+		nil, nil, exportWebp(NewWebpExportParams()))
 }
