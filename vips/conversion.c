@@ -42,7 +42,7 @@ int extract_image_area(VipsImage *in, VipsImage **out, int left, int top,
 int extract_animated_area(VipsImage *in, VipsImage **out, int left, int top, int width, int height) {
   VipsObject *base = VIPS_OBJECT(vips_image_new());
   int page_height = vips_image_get_page_height(in);
-  int n_pages = image->Ysize / page_height;
+  int n_pages = in->Ysize / page_height;
 
   VipsImage **page = (VipsImage **) vips_object_local_array(base, n_pages);
   VipsImage **copy = (VipsImage **) vips_object_local_array(base, 1);
