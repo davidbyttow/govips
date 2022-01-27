@@ -1162,15 +1162,19 @@ func (r *ImageRef) AutoRotate() error {
 
 // ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
-	if err := r.multiPageNotSupported(); err != nil {
-		return err
+	if r.Pages() > 1 {
+		out, err := vipsExtractAreaAnimated(r.image, left, top, width, height)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsExtractArea(r.image, left, top, width, height)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
 	}
-
-	out, err := vipsExtractArea(r.image, left, top, width, height)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
 	return nil
 }
 
