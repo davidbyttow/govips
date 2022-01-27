@@ -1715,14 +1715,6 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 	}
 }
 
-//func (r *ImageRef) multiPageNotSupported() error {
-//	if r.Pages() > 1 {
-//		return ErrUnsupportedMultiPageOperation
-//	}
-//
-//	return nil
-//}
-
 // Pixelate applies a simple pixelate filter to the image
 func Pixelate(imageRef *ImageRef, factor float64) (err error) {
 	if factor < 1 {
