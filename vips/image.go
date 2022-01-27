@@ -1162,7 +1162,8 @@ func (r *ImageRef) AutoRotate() error {
 
 // ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
-	if r.Pages() > 1 {
+	if r.Height() > r.PageHeight() {
+		// use animated extract area if more than 1 pages loaded
 		out, err := vipsExtractAreaAnimated(r.image, left, top, width, height)
 		if err != nil {
 			return err
