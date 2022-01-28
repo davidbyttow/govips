@@ -156,6 +156,30 @@ func vipsEmbedBackground(in *C.VipsImage, left, top, width, height int, backgrou
 	return out, nil
 }
 
+func vipsEmbedAnimated(in *C.VipsImage, left, top, width, height int, extend ExtendStrategy) (*C.VipsImage, error) {
+	incOpCounter("embed_animated")
+	var out *C.VipsImage
+
+	if err := C.embed_animated_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsEmbedAnimatedBackground(in *C.VipsImage, left, top, width, height int, backgroundColor *ColorRGBA) (*C.VipsImage, error) {
+	incOpCounter("embed_animated")
+	var out *C.VipsImage
+
+	if err := C.embed_animated_image_background(in, &out, C.int(left), C.int(top), C.int(width),
+		C.int(height), C.double(backgroundColor.R),
+		C.double(backgroundColor.G), C.double(backgroundColor.B), C.double(backgroundColor.A)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-flip
 func vipsFlip(in *C.VipsImage, direction Direction) (*C.VipsImage, error) {
 	incOpCounter("flip")

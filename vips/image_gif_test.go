@@ -69,3 +69,25 @@ func TestImage_GIF_Animated_Rotate270(t *testing.T) {
 		nil,
 		nil)
 }
+
+func TestImage_GIF_Animated_Embed(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.Embed(10, 20, 200, 250, ExtendWhite)
+		},
+		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_EmbedBackground(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.EmbedBackground(10, 20, 200, 250, &Color{
+				R: 255, G: 255, B: 0,
+			})
+		},
+		nil,
+		nil)
+}
