@@ -10,10 +10,10 @@ int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width,
 }
 
 int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
-                int height, double r, double g, double b) {
+                int height, double r, double g, double b, double a) {
 
   double background[3] = {r, g, b};
-  double backgroundRGBA[4] = {r, g, b, 255};
+  double backgroundRGBA[4] = {r, g, b, a};
 
   VipsArrayDouble *vipsBackground;
 
