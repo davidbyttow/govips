@@ -114,6 +114,20 @@ func TestThumbnail_GIF_Animated(t *testing.T) {
 		nil, nil, exportGif(NewGifExportParams()))
 }
 
+func TestThumbnail_GIF_Animated_Force(t *testing.T) {
+	importParams := NewImportParams()
+	importParams.NumPages.Set(-1)
+
+	goldenCreateTest(t, resources+"gif-animated.gif",
+		func(path string) (*ImageRef, error) {
+			return LoadThumbnailFromFile(path, 50, 100, InterestingNone, SizeForce, importParams)
+		},
+		func(buf []byte) (*ImageRef, error) {
+			return LoadThumbnailFromBuffer(buf, 50, 100, InterestingNone, SizeForce, importParams)
+		},
+		nil, nil, exportGif(NewGifExportParams()))
+}
+
 func TestThumbnail_GIF_ExportNative(t *testing.T) {
 	importParams := NewImportParams()
 	importParams.NumPages.Set(3)
