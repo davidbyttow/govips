@@ -1196,15 +1196,20 @@ func (r *ImageRef) AutoRotate() error {
 
 // ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
-	if err := r.multiPageNotSupported(); err != nil {
-		return err
+	if r.Height() > r.PageHeight() {
+		// use animated extract area if more than 1 pages loaded
+		out, err := vipsExtractAreaMultiPage(r.image, left, top, width, height)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsExtractArea(r.image, left, top, width, height)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
 	}
-
-	out, err := vipsExtractArea(r.image, left, top, width, height)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
 	return nil
 }
 
@@ -1743,14 +1748,6 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 		Orientation: r.Orientation(),
 		Pages:       r.Pages(),
 	}
-}
-
-func (r *ImageRef) multiPageNotSupported() error {
-	if r.Pages() > 1 {
-		return ErrUnsupportedMultiPageOperation
-	}
-
-	return nil
 }
 
 // Pixelate applies a simple pixelate filter to the image

@@ -992,15 +992,6 @@ func TestImageRef_JP2K(t *testing.T) {
 	assert.Equal(t, 1, metadata.Pages)
 }
 
-func TestImageRef_ExtractArea_MultiPage_Unsupported(t *testing.T) {
-	Startup(nil)
-	image, err := NewImageFromFile(resources + "gif-animated.gif")
-	require.NoError(t, err)
-
-	err = image.ExtractArea(1, 2, 3, 4)
-	assert.Error(t, err)
-}
-
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

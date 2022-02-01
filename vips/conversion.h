@@ -14,6 +14,8 @@ int flip_image(VipsImage *in, VipsImage **out, int direction);
 
 int extract_image_area(VipsImage *in, VipsImage **out, int left, int top,
                        int width, int height);
+int extract_area_multi_page(VipsImage *in, VipsImage **out, int left, int top,
+                       int width, int height);
 
 int extract_band(VipsImage *in, VipsImage **out, int band, int num);
 
