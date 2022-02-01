@@ -180,11 +180,11 @@ func vipsExtractArea(in *C.VipsImage, left, top, width, height int) (*C.VipsImag
 	return out, nil
 }
 
-func vipsExtractAreaAnimated(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
-	incOpCounter("extractAreaAnimated")
+func vipsExtractAreaMultiPage(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
+	incOpCounter("extractAreaMultiPage")
 	var out *C.VipsImage
 
-	if err := C.extract_animated_area(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
+	if err := C.extract_area_multi_page(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
