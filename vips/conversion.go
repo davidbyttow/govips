@@ -156,22 +156,22 @@ func vipsEmbedBackground(in *C.VipsImage, left, top, width, height int, backgrou
 	return out, nil
 }
 
-func vipsEmbedAnimated(in *C.VipsImage, left, top, width, height int, extend ExtendStrategy) (*C.VipsImage, error) {
-	incOpCounter("embed_animated")
+func vipsEmbedMultiPage(in *C.VipsImage, left, top, width, height int, extend ExtendStrategy) (*C.VipsImage, error) {
+	incOpCounter("embedMultiPage")
 	var out *C.VipsImage
 
-	if err := C.embed_animated_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend)); err != 0 {
+	if err := C.embed_multi_page_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
 	return out, nil
 }
 
-func vipsEmbedAnimatedBackground(in *C.VipsImage, left, top, width, height int, backgroundColor *ColorRGBA) (*C.VipsImage, error) {
-	incOpCounter("embed_animated")
+func vipsEmbedMultiPageBackground(in *C.VipsImage, left, top, width, height int, backgroundColor *ColorRGBA) (*C.VipsImage, error) {
+	incOpCounter("embedMultiPageBackground")
 	var out *C.VipsImage
 
-	if err := C.embed_animated_image_background(in, &out, C.int(left), C.int(top), C.int(width),
+	if err := C.embed_multi_page_image_background(in, &out, C.int(left), C.int(top), C.int(width),
 		C.int(height), C.double(backgroundColor.R),
 		C.double(backgroundColor.G), C.double(backgroundColor.B), C.double(backgroundColor.A)); err != 0 {
 		return nil, handleImageError(out)

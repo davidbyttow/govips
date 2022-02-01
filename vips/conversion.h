@@ -9,9 +9,9 @@ int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width,
                 int height, int extend);
 int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
                 int height, double r, double g, double b, double a);
-int embed_animated_image(VipsImage *in, VipsImage **out, int left, int top, int width,
+int embed_multi_page_image(VipsImage *in, VipsImage **out, int left, int top, int width,
                 int height, int extend);
-int embed_animated_image_background(VipsImage *in, VipsImage **out, int left, int top,
+int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, int top,
                 int width, int height, double r, double g, double b, double a);
 
 int flip_image(VipsImage *in, VipsImage **out, int direction);

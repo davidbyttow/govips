@@ -1501,7 +1501,7 @@ func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size S
 // Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
 	if r.Height() > r.PageHeight() {
-		out, err := vipsEmbedAnimated(r.image, left, top, width, height, extend)
+		out, err := vipsEmbedMultiPage(r.image, left, top, width, height, extend)
 		if err != nil {
 			return err
 		}
@@ -1525,7 +1525,7 @@ func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor
 		A: 255,
 	}
 	if r.Height() > r.PageHeight() {
-		out, err := vipsEmbedAnimatedBackground(r.image, left, top, width, height, c)
+		out, err := vipsEmbedMultiPageBackground(r.image, left, top, width, height, c)
 		if err != nil {
 			return err
 		}
@@ -1543,7 +1543,7 @@ func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor
 // EmbedBackgroundRGBA embeds the given picture with a background rgba color
 func (r *ImageRef) EmbedBackgroundRGBA(left, top, width, height int, backgroundColor *ColorRGBA) error {
 	if r.Height() > r.PageHeight() {
-		out, err := vipsEmbedAnimatedBackground(r.image, left, top, width, height, backgroundColor)
+		out, err := vipsEmbedMultiPageBackground(r.image, left, top, width, height, backgroundColor)
 		if err != nil {
 			return err
 		}

@@ -30,7 +30,7 @@ int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, in
   return code;
 }
 
-int embed_animated_image(VipsImage *in, VipsImage **out, int left, int top, int width,
+int embed_multi_page_image(VipsImage *in, VipsImage **out, int left, int top, int width,
                          int height, int extend) {
   VipsObject *base = VIPS_OBJECT(vips_image_new());
   int page_height = vips_image_get_page_height(in);
@@ -64,7 +64,7 @@ int embed_animated_image(VipsImage *in, VipsImage **out, int left, int top, int 
   return 0;
 }
 
-int embed_animated_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
+int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
                                    int height, double r, double g, double b, double a) {
   double background[3] = {r, g, b};
   double backgroundRGBA[4] = {r, g, b, a};
