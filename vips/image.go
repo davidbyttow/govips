@@ -1244,8 +1244,8 @@ func (r *ImageRef) OptimizeICCProfile() error {
 }
 
 // RemoveMetadata removes the EXIF metadata from the image.
-// N.B. this function won't remove the ICC profile and orientation because
-// govips needs it to correctly display the image.
+// N.B. this function won't remove the ICC profile, orientation and pages metadata
+// because govips needs it to correctly display the image.
 func (r *ImageRef) RemoveMetadata() error {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
