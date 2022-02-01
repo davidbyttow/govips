@@ -16,7 +16,7 @@ func TestI_GIF_Animated_Pages(t *testing.T) {
 	assert.Equal(t, 8, pages)
 }
 
-func TestImage_GIF_MultiPage(t *testing.T) {
+func TestImage_GIF_Animated(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		-1,
 		nil,
