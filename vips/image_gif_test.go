@@ -1,6 +1,7 @@
 package vips
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -44,6 +45,8 @@ func TestImage_GIF_Animated_Resize(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		3,
 		func(img *ImageRef) error {
+			arr, _ := img.PageDelay()
+			fmt.Println(arr[0])
 			return img.Resize(2, KernelCubic)
 		},
 		nil,

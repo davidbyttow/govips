@@ -5,6 +5,7 @@ package vips
 import "C"
 
 import (
+	"reflect"
 	"unsafe"
 )
 
@@ -32,4 +33,14 @@ func toGboolean(b bool) C.gboolean {
 
 func fromGboolean(b C.gboolean) bool {
 	return b != 0
+}
+
+func fromArrayInt(out *C.int, n int) []int {
+	var data []int
+	p := uintptr(unsafe.Pointer(out))
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
+	sh.Data = p
+	sh.Len = n
+	sh.Cap = n
+	return data
 }

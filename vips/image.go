@@ -682,6 +682,19 @@ func (r *ImageRef) SetPageHeight(height int) error {
 	return nil
 }
 
+func (r *ImageRef) PageDelay() ([]int, error) {
+	n := vipsGetImageNPages(r.image)
+	if n <= 1 {
+		// should not call if not multi page
+		return nil, nil
+	}
+	return vipsImageGetDelay(r.image, n)
+}
+
+func (r *ImageRef) SetPageDelay(data []int) error {
+	return vipsImageSetDelay(r.image, data)
+}
+
 // Export creates a byte array of the image for use.
 // The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
