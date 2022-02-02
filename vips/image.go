@@ -1539,21 +1539,61 @@ func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size S
 
 // Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
-	out, err := vipsEmbed(r.image, left, top, width, height, extend)
-	if err != nil {
-		return err
+	if r.Height() > r.PageHeight() {
+		out, err := vipsEmbedMultiPage(r.image, left, top, width, height, extend)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsEmbed(r.image, left, top, width, height, extend)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
 	}
-	r.setImage(out)
 	return nil
 }
 
 // EmbedBackground embeds the given picture with a background color
 func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor *Color) error {
-	out, err := vipsEmbedBackground(r.image, left, top, width, height, backgroundColor)
-	if err != nil {
-		return err
+	c := &ColorRGBA{
+		R: backgroundColor.R,
+		G: backgroundColor.G,
+		B: backgroundColor.B,
+		A: 255,
 	}
-	r.setImage(out)
+	if r.Height() > r.PageHeight() {
+		out, err := vipsEmbedMultiPageBackground(r.image, left, top, width, height, c)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsEmbedBackground(r.image, left, top, width, height, c)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	}
+	return nil
+}
+
+// EmbedBackgroundRGBA embeds the given picture with a background rgba color
+func (r *ImageRef) EmbedBackgroundRGBA(left, top, width, height int, backgroundColor *ColorRGBA) error {
+	if r.Height() > r.PageHeight() {
+		out, err := vipsEmbedMultiPageBackground(r.image, left, top, width, height, backgroundColor)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsEmbedBackground(r.image, left, top, width, height, backgroundColor)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	}
 	return nil
 }
 

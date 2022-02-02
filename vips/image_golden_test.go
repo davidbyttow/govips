@@ -70,6 +70,16 @@ func TestImage_Embed_ExtendWhite_Alpha(t *testing.T) {
 	}, nil)
 }
 
+func TestImage_EmbedBackgroundRGBA_Alpha(t *testing.T) {
+	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
+		return img.EmbedBackgroundRGBA(0, 0, 1000, 500, &ColorRGBA{R: 238, G: 238, B: 238, A: 50})
+	}, func(img *ImageRef) {
+		point, err := img.GetPoint(999, 0)
+		assert.NoError(t, err)
+		assert.Equal(t, point, []float64{238, 238, 238, 50})
+	}, nil)
+}
+
 func TestImage_EmbedBackground_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
 		return img.EmbedBackground(0, 0, 1000, 500, &Color{R: 238, G: 238, B: 238})
