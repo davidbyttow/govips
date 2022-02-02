@@ -75,3 +75,11 @@ void set_page_height(VipsImage *in, int height) {
 int get_meta_loader(const VipsImage *in, const char **out) {
   return vips_image_get_string(in, VIPS_META_LOADER, out);
 }
+
+int get_image_delay(VipsImage *in, int **out) {
+  return vips_image_get_array_int(in, "delay", out, NULL);
+}
+
+void set_image_delay(VipsImage *in, const int *array, int n) {
+  return vips_image_set_array_int(in, "delay", array, n);
+}
