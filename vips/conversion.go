@@ -204,6 +204,17 @@ func vipsExtractArea(in *C.VipsImage, left, top, width, height int) (*C.VipsImag
 	return out, nil
 }
 
+func vipsExtractAreaMultiPage(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
+	incOpCounter("extractAreaMultiPage")
+	var out *C.VipsImage
+
+	if err := C.extract_area_multi_page(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-extract-band
 func vipsExtractBand(in *C.VipsImage, band, num int) (*C.VipsImage, error) {
 	incOpCounter("extractBand")

@@ -91,3 +91,13 @@ func TestImage_GIF_Animated_EmbedBackground(t *testing.T) {
 		nil,
 		nil)
 }
+
+func TestImage_GIF_Animated_ExtractArea(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.ExtractArea(10, 20, 80, 90)
+		},
+		nil,
+		nil)
+}
