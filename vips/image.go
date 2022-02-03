@@ -716,6 +716,7 @@ func (r *ImageRef) SetPageHeight(height int) error {
 	return nil
 }
 
+// PageDelay get the page delay array for animation
 func (r *ImageRef) PageDelay() ([]int, error) {
 	n := vipsGetImageNPages(r.image)
 	if n <= 1 {
@@ -725,6 +726,7 @@ func (r *ImageRef) PageDelay() ([]int, error) {
 	return vipsImageGetDelay(r.image, n)
 }
 
+// SetPageDelay set the page delay array for animation
 func (r *ImageRef) SetPageDelay(delay []int) error {
 	var data []C.int
 	for _, d := range delay {
