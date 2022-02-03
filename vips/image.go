@@ -725,7 +725,11 @@ func (r *ImageRef) PageDelay() ([]int, error) {
 	return vipsImageGetDelay(r.image, n)
 }
 
-func (r *ImageRef) SetPageDelay(data []int) error {
+func (r *ImageRef) SetPageDelay(delay []int) error {
+	var data []C.int
+	for _, d := range delay {
+		data = append(data, C.int(d))
+	}
 	return vipsImageSetDelay(r.image, data)
 }
 

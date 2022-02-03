@@ -83,19 +83,14 @@ func vipsImageGetDelay(in *C.VipsImage, n int) ([]int, error) {
 	if err := C.get_image_delay(in, &out); err != 0 {
 		return nil, handleVipsError()
 	}
-	return fromArrayInt(out, n), nil
+	return fromCArrayInt(out, n), nil
 }
 
-func vipsImageSetDelay(in *C.VipsImage, delay []int) error {
-	//incOpCounter("imageSetDelay")
-	//data := []C.int{}
-	//n := len(delay)
-	//for _, d := range delay {
-	//	data = append(data, C.int(d))
-	//}
-	//if err := C.set_image_delay(in, data, C.int(n)); err != 0 {
-	//	return handleVipsError()
-	//}
+func vipsImageSetDelay(in *C.VipsImage, data []C.int) error {
+	incOpCounter("imageSetDelay")
+	if n := len(data); n > 0 {
+		C.set_image_delay(in, &data[0], C.int(n))
+	}
 	return nil
 }
 

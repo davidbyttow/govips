@@ -35,7 +35,7 @@ func fromGboolean(b C.gboolean) bool {
 	return b != 0
 }
 
-func fromArrayInt(out *C.int, n int) []int {
+func fromCArrayInt(out *C.int, n int) []int {
 	var data []int
 	p := uintptr(unsafe.Pointer(out))
 	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))

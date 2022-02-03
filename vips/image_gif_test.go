@@ -45,8 +45,6 @@ func TestImage_GIF_Animated_Resize(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		3,
 		func(img *ImageRef) error {
-			arr, _ := img.PageDelay()
-			fmt.Println(arr[0])
 			return img.Resize(2, KernelCubic)
 		},
 		nil,
@@ -100,6 +98,22 @@ func TestImage_GIF_Animated_ExtractArea(t *testing.T) {
 		-1,
 		func(img *ImageRef) error {
 			return img.ExtractArea(10, 20, 80, 90)
+		},
+		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_PageDelay(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			delay, err := img.PageDelay()
+			fmt.Println(delay)
+			require.NoError(t, err)
+			for i := range delay {
+				delay[i] = 200
+			}
+			return img.SetPageDelay(delay)
 		},
 		nil,
 		nil)
