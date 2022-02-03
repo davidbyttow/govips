@@ -1,7 +1,6 @@
 package vips
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -108,10 +107,10 @@ func TestImage_GIF_Animated_PageDelay(t *testing.T) {
 		-1,
 		func(img *ImageRef) error {
 			delay, err := img.PageDelay()
-			fmt.Println(delay)
 			require.NoError(t, err)
+			assert.Len(t, delay, img.Pages())
 			for i := range delay {
-				delay[i] = 200
+				delay[i] = delay[i] * 2
 			}
 			return img.SetPageDelay(delay)
 		},

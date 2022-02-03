@@ -36,11 +36,14 @@ func fromGboolean(b C.gboolean) bool {
 }
 
 func fromCArrayInt(out *C.int, n int) []int {
-	var data []int
-	p := uintptr(unsafe.Pointer(out))
+	var result = make([]int, n)
+	var data []C.int
 	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
-	sh.Data = p
+	sh.Data = uintptr(unsafe.Pointer(out))
 	sh.Len = n
 	sh.Cap = n
-	return data
+	for i := range data {
+		result[i] = int(data[i])
+	}
+	return result
 }
