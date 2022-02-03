@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"unsafe"
@@ -113,6 +114,43 @@ func NewImportParams() *ImportParams {
 	p := &ImportParams{}
 	p.FailOnError.Set(true)
 	return p
+}
+
+// OptionString convert import params to option_string
+func (i *ImportParams) OptionString() string {
+	var values []string
+	if v := i.NumPages; v.IsSet() {
+		values = append(values, "n="+strconv.Itoa(v.Get()))
+	}
+	if v := i.Page; v.IsSet() {
+		values = append(values, "page="+strconv.Itoa(v.Get()))
+	}
+	if v := i.Density; v.IsSet() {
+		values = append(values, "dpi="+strconv.Itoa(v.Get()))
+	}
+	if v := i.FailOnError; v.IsSet() {
+		values = append(values, "fail="+boolToStr(v.Get()))
+	}
+	if v := i.JpegShrinkFactor; v.IsSet() {
+		values = append(values, "shrink="+strconv.Itoa(v.Get()))
+	}
+	if v := i.AutoRotate; v.IsSet() {
+		values = append(values, "autorotate="+boolToStr(v.Get()))
+	}
+	if v := i.SvgUnlimited; v.IsSet() {
+		values = append(values, "unlimited="+boolToStr(v.Get()))
+	}
+	if v := i.HeifThumbnail; v.IsSet() {
+		values = append(values, "thumbnail="+boolToStr(v.Get()))
+	}
+	return strings.Join(values, ",")
+}
+
+func boolToStr(v bool) string {
+	if v {
+		return "TRUE"
+	}
+	return "FALSE"
 }
 
 // ExportParams are options when exporting an image to file or buffer.
@@ -380,39 +418,24 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 
 // NewThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail crop
 func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*ImageRef, error) {
-	startupIfNeeded()
-
-	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, SizeBoth)
-	if err != nil {
-		return nil, err
-	}
-
-	ref := newImageRef(vipsImage, format, nil)
-
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
-	return ref, nil
+	return LoadThumbnailFromFile(file, width, height, crop, SizeBoth, nil)
 }
 
 // NewThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail crop
 func NewThumbnailFromBuffer(buf []byte, width, height int, crop Interesting) (*ImageRef, error) {
-	startupIfNeeded()
-
-	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, SizeBoth)
-	if err != nil {
-		return nil, err
-	}
-
-	ref := newImageRef(vipsImage, format, buf)
-
-	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
-	return ref, nil
+	return LoadThumbnailFromBuffer(buf, width, height, crop, SizeBoth, nil)
 }
 
 // NewThumbnailWithSizeFromFile loads an image from file and creates a new ImageRef with thumbnail crop and size
 func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	return LoadThumbnailFromFile(file, width, height, crop, size, nil)
+}
+
+// LoadThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail crop and size
+func LoadThumbnailFromFile(file string, width, height int, crop Interesting, size Size, params *ImportParams) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size)
+	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size, params)
 	if err != nil {
 		return nil, err
 	}
@@ -425,9 +448,14 @@ func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesti
 
 // NewThumbnailWithSizeFromBuffer loads an image buffer and creates a new Image with thumbnail crop and size
 func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interesting, size Size) (*ImageRef, error) {
+	return LoadThumbnailFromBuffer(buf, width, height, crop, size, nil)
+}
+
+// LoadThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail crop and size
+func LoadThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, size Size, params *ImportParams) (*ImageRef, error) {
 	startupIfNeeded()
 
-	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size)
+	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size, params)
 	if err != nil {
 		return nil, err
 	}
@@ -635,6 +663,12 @@ func (r *ImageRef) IsColorSpaceSupported() bool {
 // Pages returns the number of pages in the Image
 // For animated images this corresponds to the number of frames
 func (r *ImageRef) Pages() int {
+	// libvips uses the same attribute (n_pages) to represent the number of pyramid layers in JP2K
+	// as we interpret the attribute as frames and JP2K does not support animation we override this with 1
+	if r.format == ImageTypeJP2K {
+		return 1
+	}
+
 	return vipsGetImageNPages(r.image)
 }
 
@@ -1175,15 +1209,20 @@ func (r *ImageRef) AutoRotate() error {
 
 // ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
-	if err := r.multiPageNotSupported(); err != nil {
-		return err
+	if r.Height() > r.PageHeight() {
+		// use animated extract area if more than 1 pages loaded
+		out, err := vipsExtractAreaMultiPage(r.image, left, top, width, height)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsExtractArea(r.image, left, top, width, height)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
 	}
-
-	out, err := vipsExtractArea(r.image, left, top, width, height)
-	if err != nil {
-		return err
-	}
-	r.setImage(out)
 	return nil
 }
 
@@ -1251,8 +1290,8 @@ func (r *ImageRef) OptimizeICCProfile() error {
 }
 
 // RemoveMetadata removes the EXIF metadata from the image.
-// N.B. this function won't remove the ICC profile and orientation because
-// govips needs it to correctly display the image.
+// N.B. this function won't remove the ICC profile, orientation and pages metadata
+// because govips needs it to correctly display the image.
 func (r *ImageRef) RemoveMetadata() error {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
@@ -1513,21 +1552,61 @@ func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size S
 
 // Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
-	out, err := vipsEmbed(r.image, left, top, width, height, extend)
-	if err != nil {
-		return err
+	if r.Height() > r.PageHeight() {
+		out, err := vipsEmbedMultiPage(r.image, left, top, width, height, extend)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsEmbed(r.image, left, top, width, height, extend)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
 	}
-	r.setImage(out)
 	return nil
 }
 
 // EmbedBackground embeds the given picture with a background color
 func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor *Color) error {
-	out, err := vipsEmbedBackground(r.image, left, top, width, height, backgroundColor)
-	if err != nil {
-		return err
+	c := &ColorRGBA{
+		R: backgroundColor.R,
+		G: backgroundColor.G,
+		B: backgroundColor.B,
+		A: 255,
 	}
-	r.setImage(out)
+	if r.Height() > r.PageHeight() {
+		out, err := vipsEmbedMultiPageBackground(r.image, left, top, width, height, c)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsEmbedBackground(r.image, left, top, width, height, c)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	}
+	return nil
+}
+
+// EmbedBackgroundRGBA embeds the given picture with a background rgba color
+func (r *ImageRef) EmbedBackgroundRGBA(left, top, width, height int, backgroundColor *ColorRGBA) error {
+	if r.Height() > r.PageHeight() {
+		out, err := vipsEmbedMultiPageBackground(r.image, left, top, width, height, backgroundColor)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	} else {
+		out, err := vipsEmbedBackground(r.image, left, top, width, height, backgroundColor)
+		if err != nil {
+			return err
+		}
+		r.setImage(out)
+	}
 	return nil
 }
 
@@ -1722,14 +1801,6 @@ func (r *ImageRef) newMetadata(format ImageType) *ImageMetadata {
 		Orientation: r.Orientation(),
 		Pages:       r.Pages(),
 	}
-}
-
-func (r *ImageRef) multiPageNotSupported() error {
-	if r.Pages() > 1 {
-		return ErrUnsupportedMultiPageOperation
-	}
-
-	return nil
 }
 
 // Pixelate applies a simple pixelate filter to the image

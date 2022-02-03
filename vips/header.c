@@ -18,14 +18,16 @@ char** image_get_fields(VipsImage *in) {
     return vips_image_get_fields(in);
 }
 
-// won't remove the ICC profile and orientation
+// won't remove the ICC profile, orientation and pages metadata
 void remove_metadata(VipsImage *in) {
   gchar **fields = vips_image_get_fields(in);
 
   for (int i = 0; fields[i] != NULL; i++) {
     if (strncmp(fields[i], VIPS_META_ICC_NAME, sizeof(VIPS_META_ICC_NAME)) &&
-        strncmp(fields[i], VIPS_META_ORIENTATION,
-                sizeof(VIPS_META_ORIENTATION))) {
+        strncmp(fields[i], VIPS_META_ORIENTATION, sizeof(VIPS_META_ORIENTATION)) &&
+        strncmp(fields[i], VIPS_META_N_PAGES, sizeof(VIPS_META_N_PAGES)) &&
+        strncmp(fields[i], VIPS_META_PAGE_HEIGHT, sizeof(VIPS_META_PAGE_HEIGHT))
+        ) {
       vips_image_remove(in, fields[i]);
     }
   }
