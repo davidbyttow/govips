@@ -101,3 +101,35 @@ func TestImage_GIF_Animated_ExtractArea(t *testing.T) {
 		nil,
 		nil)
 }
+
+func TestImage_GIF_Animated_PageDelay(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			delay, err := img.PageDelay()
+			require.NoError(t, err)
+			assert.Equal(t, delay, []int{100, 100, 100, 100, 100, 100, 100, 100})
+			for i := range delay {
+				delay[i] = delay[i] * 2
+			}
+			return img.SetPageDelay(delay)
+		},
+		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_PageDelay2(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		3,
+		func(img *ImageRef) error {
+			delay, err := img.PageDelay()
+			require.NoError(t, err)
+			assert.Equal(t, delay, []int{100, 100, 100, 100, 100, 100, 100, 100})
+			for i := range delay {
+				delay[i] = delay[i] * 2
+			}
+			return img.SetPageDelay(delay)
+		},
+		nil,
+		nil)
+}

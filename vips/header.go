@@ -75,6 +75,25 @@ func vipsImageGetMetaLoader(in *C.VipsImage) (string, bool) {
 	return C.GoString(out), code == 0
 }
 
+func vipsImageGetDelay(in *C.VipsImage, n int) ([]int, error) {
+	incOpCounter("imageGetDelay")
+	var out *C.int
+	defer gFreePointer(unsafe.Pointer(out))
+
+	if err := C.get_image_delay(in, &out); err != 0 {
+		return nil, handleVipsError()
+	}
+	return fromCArrayInt(out, n), nil
+}
+
+func vipsImageSetDelay(in *C.VipsImage, data []C.int) error {
+	incOpCounter("imageSetDelay")
+	if n := len(data); n > 0 {
+		C.set_image_delay(in, &data[0], C.int(n))
+	}
+	return nil
+}
+
 // vipsDetermineImageTypeFromMetaLoader determine the image type from vips-loader metadata
 func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
 	vipsLoader, ok := vipsImageGetMetaLoader(in)
