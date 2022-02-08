@@ -5,6 +5,7 @@ package vips
 import "C"
 
 import (
+	"reflect"
 	"unsafe"
 )
 
@@ -32,4 +33,17 @@ func toGboolean(b bool) C.gboolean {
 
 func fromGboolean(b C.gboolean) bool {
 	return b != 0
+}
+
+func fromCArrayInt(out *C.int, n int) []int {
+	var result = make([]int, n)
+	var data []C.int
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
+	sh.Data = uintptr(unsafe.Pointer(out))
+	sh.Len = n
+	sh.Cap = n
+	for i := range data {
+		result[i] = int(data[i])
+	}
+	return result
 }

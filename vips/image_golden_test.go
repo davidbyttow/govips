@@ -70,6 +70,16 @@ func TestImage_Embed_ExtendWhite_Alpha(t *testing.T) {
 	}, nil)
 }
 
+func TestImage_EmbedBackgroundRGBA_Alpha(t *testing.T) {
+	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
+		return img.EmbedBackgroundRGBA(0, 0, 1000, 500, &ColorRGBA{R: 238, G: 238, B: 238, A: 50})
+	}, func(img *ImageRef) {
+		point, err := img.GetPoint(999, 0)
+		assert.NoError(t, err)
+		assert.Equal(t, point, []float64{238, 238, 238, 50})
+	}, nil)
+}
+
 func TestImage_EmbedBackground_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
 		return img.EmbedBackground(0, 0, 1000, 500, &Color{R: 238, G: 238, B: 238})
@@ -407,85 +417,6 @@ func TestImage_Thumbnail_CropCentered(t *testing.T) {
 		func(result *ImageRef) {
 			assert.Equal(t, 25, result.Width())
 			assert.Equal(t, 25, result.Height())
-		}, nil)
-}
-
-func TestThumbnail_NoCrop(t *testing.T) {
-	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
-		func(path string) (*ImageRef, error) {
-			return NewThumbnailFromFile(path, 36, 36, InterestingNone)
-		},
-		func(buf []byte) (*ImageRef, error) {
-			return NewThumbnailFromBuffer(buf, 36, 36, InterestingNone)
-		},
-		nil,
-		func(result *ImageRef) {
-			assert.Equal(t, 36, result.Width())
-			assert.Equal(t, 24, result.Height())
-			assert.Equal(t, ImageTypeJPEG, result.Format())
-		}, nil)
-}
-
-func TestThumbnail_NoUpscale(t *testing.T) {
-	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
-		func(path string) (*ImageRef, error) {
-			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
-		},
-		func(buf []byte) (*ImageRef, error) {
-			return NewThumbnailWithSizeFromBuffer(buf, 9999, 9999, InterestingNone, SizeDown)
-		},
-		nil,
-		func(result *ImageRef) {
-			assert.Equal(t, 715, result.Width())
-			assert.Equal(t, 483, result.Height())
-			assert.Equal(t, ImageTypeJPEG, result.Format())
-		}, nil)
-}
-
-func TestThumbnail_CropCentered(t *testing.T) {
-	goldenCreateTest(t, resources+"jpg-8bit-grey-icc-dot-gain.jpg",
-		func(path string) (*ImageRef, error) {
-			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
-		},
-		func(buf []byte) (*ImageRef, error) {
-			return NewThumbnailFromBuffer(buf, 25, 25, InterestingCentre)
-		},
-		nil,
-		func(result *ImageRef) {
-			assert.Equal(t, 25, result.Width())
-			assert.Equal(t, 25, result.Height())
-			assert.Equal(t, ImageTypeJPEG, result.Format())
-		}, nil)
-}
-
-func TestThumbnail_PNG_CropCentered(t *testing.T) {
-	goldenCreateTest(t, resources+"png-24bit.png",
-		func(path string) (*ImageRef, error) {
-			return NewThumbnailFromFile(path, 25, 25, InterestingCentre)
-		},
-		func(buf []byte) (*ImageRef, error) {
-			return NewThumbnailFromBuffer(buf, 25, 25, InterestingCentre)
-		},
-		nil,
-		func(result *ImageRef) {
-			assert.Equal(t, 25, result.Width())
-			assert.Equal(t, 25, result.Height())
-			assert.Equal(t, ImageTypePNG, result.Format())
-		}, nil)
-}
-
-func TestThumbnail_Decode_BMP(t *testing.T) {
-	goldenCreateTest(t, resources+"bmp.bmp",
-		func(path string) (*ImageRef, error) {
-			return NewThumbnailWithSizeFromFile(path, 9999, 9999, InterestingNone, SizeDown)
-		},
-		func(buf []byte) (*ImageRef, error) {
-			return NewThumbnailWithSizeFromBuffer(buf, 9999, 9999, InterestingNone, SizeDown)
-		},
-		nil,
-		func(img *ImageRef) {
-			assert.Equal(t, 164, img.Width())
-			assert.Equal(t, 211, img.Height())
 		}, nil)
 }
 
