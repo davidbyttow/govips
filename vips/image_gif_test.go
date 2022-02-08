@@ -69,3 +69,67 @@ func TestImage_GIF_Animated_Rotate270(t *testing.T) {
 		nil,
 		nil)
 }
+
+func TestImage_GIF_Animated_Embed(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.Embed(10, 20, 200, 250, ExtendWhite)
+		},
+		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_EmbedBackground(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.EmbedBackground(10, 20, 200, 250, &Color{
+				R: 255, G: 255, B: 0,
+			})
+		},
+		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_ExtractArea(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.ExtractArea(10, 20, 80, 90)
+		},
+		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_PageDelay(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			delay, err := img.PageDelay()
+			require.NoError(t, err)
+			assert.Equal(t, delay, []int{100, 100, 100, 100, 100, 100, 100, 100})
+			for i := range delay {
+				delay[i] = delay[i] * 2
+			}
+			return img.SetPageDelay(delay)
+		},
+		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_PageDelay2(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		3,
+		func(img *ImageRef) error {
+			delay, err := img.PageDelay()
+			require.NoError(t, err)
+			assert.Equal(t, delay, []int{100, 100, 100, 100, 100, 100, 100, 100})
+			for i := range delay {
+				delay[i] = delay[i] * 2
+			}
+			return img.SetPageDelay(delay)
+		},
+		nil,
+		nil)
+}

@@ -144,13 +144,37 @@ func vipsEmbed(in *C.VipsImage, left, top, width, height int, extend ExtendStrat
 }
 
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-embed
-func vipsEmbedBackground(in *C.VipsImage, left, top, width, height int, backgroundColor *Color) (*C.VipsImage, error) {
+func vipsEmbedBackground(in *C.VipsImage, left, top, width, height int, backgroundColor *ColorRGBA) (*C.VipsImage, error) {
 	incOpCounter("embed")
 	var out *C.VipsImage
 
 	if err := C.embed_image_background(in, &out, C.int(left), C.int(top), C.int(width),
 		C.int(height), C.double(backgroundColor.R),
-		C.double(backgroundColor.G), C.double(backgroundColor.B)); err != 0 {
+		C.double(backgroundColor.G), C.double(backgroundColor.B), C.double(backgroundColor.A)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsEmbedMultiPage(in *C.VipsImage, left, top, width, height int, extend ExtendStrategy) (*C.VipsImage, error) {
+	incOpCounter("embedMultiPage")
+	var out *C.VipsImage
+
+	if err := C.embed_multi_page_image(in, &out, C.int(left), C.int(top), C.int(width), C.int(height), C.int(extend)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsEmbedMultiPageBackground(in *C.VipsImage, left, top, width, height int, backgroundColor *ColorRGBA) (*C.VipsImage, error) {
+	incOpCounter("embedMultiPageBackground")
+	var out *C.VipsImage
+
+	if err := C.embed_multi_page_image_background(in, &out, C.int(left), C.int(top), C.int(width),
+		C.int(height), C.double(backgroundColor.R),
+		C.double(backgroundColor.G), C.double(backgroundColor.B), C.double(backgroundColor.A)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -175,6 +199,17 @@ func vipsExtractArea(in *C.VipsImage, left, top, width, height int) (*C.VipsImag
 	var out *C.VipsImage
 
 	if err := C.extract_image_area(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsExtractAreaMultiPage(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
+	incOpCounter("extractAreaMultiPage")
+	var out *C.VipsImage
+
+	if err := C.extract_area_multi_page(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
 		return nil, handleImageError(out)
 	}
 

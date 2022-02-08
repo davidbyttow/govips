@@ -399,6 +399,30 @@ func TestImageRef_RemoveMetadata__RetainsOrientation(t *testing.T) {
 	assert.Equal(t, 5, image.Orientation())
 }
 
+func TestImageRef_RemoveMetadata__RetainsNPages(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	err = image.RemoveMetadata()
+	require.NoError(t, err)
+
+	assert.Equal(t, 8, image.Pages())
+}
+
+func TestImageRef_RemoveMetadata__RetainsPageHeight(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	err = image.RemoveMetadata()
+	require.NoError(t, err)
+
+	assert.Equal(t, 128, image.PageHeight())
+}
+
 // Known issue: libvips does not write EXIF into WebP:
 // https://github.com/libvips/libvips/pull/1745
 func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
@@ -955,15 +979,7 @@ func TestImageRef_JP2K(t *testing.T) {
 	_, metadata, err := img.ExportJp2k(nil)
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeJP2K, metadata.Format)
-}
-
-func TestImageRef_ExtractArea_MultiPage_Unsupported(t *testing.T) {
-	Startup(nil)
-	image, err := NewImageFromFile(resources + "gif-animated.gif")
-	require.NoError(t, err)
-
-	err = image.ExtractArea(1, 2, 3, 4)
-	assert.Error(t, err)
+	assert.Equal(t, 1, metadata.Pages)
 }
 
 // TODO unit tests to cover:

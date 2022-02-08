@@ -8,11 +8,17 @@ int copy_image(VipsImage *in, VipsImage **out);
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width,
                 int height, int extend);
 int embed_image_background(VipsImage *in, VipsImage **out, int left, int top, int width,
-                int height, double r, double g, double b);
+                int height, double r, double g, double b, double a);
+int embed_multi_page_image(VipsImage *in, VipsImage **out, int left, int top, int width,
+                int height, int extend);
+int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, int top,
+                int width, int height, double r, double g, double b, double a);
 
 int flip_image(VipsImage *in, VipsImage **out, int direction);
 
 int extract_image_area(VipsImage *in, VipsImage **out, int left, int top,
+                       int width, int height);
+int extract_area_multi_page(VipsImage *in, VipsImage **out, int left, int top,
                        int width, int height);
 
 int extract_band(VipsImage *in, VipsImage **out, int band, int num);
