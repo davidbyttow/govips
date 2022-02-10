@@ -36,6 +36,25 @@ func vipsImageGetFields(in *C.VipsImage) (fields []string) {
 	return
 }
 
+func vipsImageGetFieldAsString(in *C.VipsImage, name string) string {
+	out := C.CString("")
+	cName := C.CString(name)
+	defer gFreePointer(unsafe.Pointer(out))
+	defer gFreePointer(unsafe.Pointer(cName))
+	if C.image_get_field_as_string(in, cName, &out) != 0 {
+		return ""
+	}
+	return C.GoString(out)
+}
+
+func vipsImageSetFieldString(in *C.VipsImage, name string, value string) {
+	cName := C.CString(name)
+	cValue := C.CString(value)
+	defer gFreePointer(unsafe.Pointer(cName))
+	defer gFreePointer(unsafe.Pointer(cValue))
+	C.image_set_field_as_string(in, cName, cValue)
+}
+
 func vipsRemoveMetadata(in *C.VipsImage) {
 	C.remove_metadata(in)
 }

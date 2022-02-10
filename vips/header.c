@@ -18,6 +18,14 @@ char** image_get_fields(VipsImage *in) {
     return vips_image_get_fields(in);
 }
 
+int image_get_field_as_string(VipsImage *in, const char *name, char** out) {
+    return vips_image_get_as_string(in, name, out);
+}
+
+void image_set_field_as_string(VipsImage *in, const char *name, const char* str) {
+    vips_image_set_string(in, name, str);
+}
+
 // won't remove the ICC profile, orientation and pages metadata
 void remove_metadata(VipsImage *in) {
   gchar **fields = vips_image_get_fields(in);

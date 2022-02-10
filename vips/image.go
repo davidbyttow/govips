@@ -1315,6 +1315,14 @@ func (r *ImageRef) ImageFields() []string {
 	return vipsImageGetFields(r.image)
 }
 
+func (r *ImageRef) ImageFieldAsString(name string) string {
+	return vipsImageGetFieldAsString(r.image, name)
+}
+
+func (r *ImageRef) ImageFieldSetString(name, value string) {
+	vipsImageSetFieldString(r.image, name, value)
+}
+
 func (r *ImageRef) HasExif() bool {
 	for _, field := range r.ImageFields() {
 		if strings.HasPrefix(field, "exif-") {

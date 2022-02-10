@@ -992,6 +992,32 @@ func TestImageRef_JP2K(t *testing.T) {
 	assert.Equal(t, 1, metadata.Pages)
 }
 
+func TestImageRef_FieldAsString(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	field := image.ImageFieldAsString("vips-loader")
+	assert.Equal(t, "vips-loader", field)
+}
+
+func TestImageRef_FieldSetString(t *testing.T) {
+	Startup(nil)
+
+	// Creates and exports an image with exif UserComment set
+	image, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	image.ImageFieldSetString("exif-ifd2-UserComment", "hello world")
+	blob, _, err := image.ExportJpeg(NewJpegExportParams())
+	require.NoError(t, err)
+	image.Close()
+
+	// Reads the exported image to ensure the field was set
+	image, err = NewImageFromBuffer(blob)
+	require.NoError(t, err)
+	field := image.ImageFieldAsString("exif-ifd2-UserComment")
+	assert.Equal(t, "hello world", field)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test
