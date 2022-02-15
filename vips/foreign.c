@@ -327,6 +327,14 @@ int set_magicksave_options(VipsOperation *operation, SaveParams *params) {
   return ret;
 }
 
+// https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-gifsave-buffer
+int set_gifsave_options(VipsOperation *operation, SaveParams *params) {
+  // TODO: Set optional arguments?
+  //  int ret = vips_object_set(VIPS_OBJECT(operation), "quality", params->quality, NULL);
+  int ret = 0;
+  return ret;
+}
+
 int set_avifsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = vips_object_set(
       VIPS_OBJECT(operation), "compression", VIPS_FOREIGN_HEIF_COMPRESSION_AV1,
@@ -406,7 +414,7 @@ int save_to_buffer(SaveParams *params) {
     case TIFF:
       return save_buffer("tiffsave_buffer", params, set_tiffsave_options);
     case GIF:
-      return save_buffer("magicksave_buffer", params, set_magicksave_options);
+      return save_buffer("gifsave_buffer", params, set_gifsave_options);
     case AVIF:
       return save_buffer("heifsave_buffer", params, set_avifsave_options);
     case JP2K:
