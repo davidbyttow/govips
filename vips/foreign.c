@@ -89,6 +89,11 @@ int load_image_buffer(LoadParams *params, void *buf, size_t len,
     vips_object_set(VIPS_OBJECT(OP), NAME, PARAM.value.i, NULL); \
   }
 
+#define MAYBE_SET_DOUBLE(OP, PARAM, NAME)                        \
+  if (PARAM.is_set) {                                            \
+    vips_object_set(VIPS_OBJECT(OP), NAME, PARAM.value.d, NULL); \
+  }
+
 typedef int (*SetLoadOptionsFn)(VipsOperation *operation, LoadParams *params);
 
 int set_jpegload_options(VipsOperation *operation, LoadParams *params) {
@@ -125,13 +130,13 @@ int set_gifload_options(VipsOperation *operation, LoadParams *params) {
 int set_pdfload_options(VipsOperation *operation, LoadParams *params) {
   MAYBE_SET_INT(operation, params->page, "page");
   MAYBE_SET_INT(operation, params->n, "n");
-  MAYBE_SET_INT(operation, params->dpi, "dpi");
+  MAYBE_SET_DOUBLE(operation, params->dpi, "dpi");
   return 0;
 }
 
 int set_svgload_options(VipsOperation *operation, LoadParams *params) {
   MAYBE_SET_BOOL(operation, params->svgUnlimited, "unlimited");
-  MAYBE_SET_INT(operation, params->dpi, "dpi");
+  MAYBE_SET_DOUBLE(operation, params->dpi, "dpi");
   return 0;
 }
 
