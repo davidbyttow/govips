@@ -428,6 +428,9 @@ func vipsSaveGIFToBuffer(in *C.VipsImage, params GifExportParams) ([]byte, error
 	p := C.create_save_params(C.GIF)
 	p.inputImage = in
 	p.quality = C.int(params.Quality)
+	p.gifDither = C.double(params.Dither)
+	p.gifEffort = C.int(params.Effort)
+	p.gifBitdepth = C.int(params.Bitdepth)
 
 	return vipsSaveToBuffer(p)
 }

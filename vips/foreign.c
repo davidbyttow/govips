@@ -329,9 +329,17 @@ int set_magicksave_options(VipsOperation *operation, SaveParams *params) {
 
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-gifsave-buffer
 int set_gifsave_options(VipsOperation *operation, SaveParams *params) {
-  // TODO: Set optional arguments?
-  //  int ret = vips_object_set(VIPS_OBJECT(operation), "quality", params->quality, NULL);
   int ret = 0;
+  // See for argument values: https://www.libvips.org/API/current/VipsForeignSave.html#vips-gifsave
+  if (params->gifDither > 0.0 && params->gifDither <= 1.0) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "dither", params->gifDither, NULL);
+  }
+  if (params->gifEffort >= 1 && params->gifEffort <= 10) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "effort", params->gifEffort, NULL);
+  }
+  if (params->gifBitdepth >= 1 && params->gifBitdepth <= 8) {
+      ret = vips_object_set(VIPS_OBJECT(operation), "bitdepth", params->gifBitdepth, NULL);
+  }
   return ret;
 }
 
@@ -414,7 +422,11 @@ int save_to_buffer(SaveParams *params) {
     case TIFF:
       return save_buffer("tiffsave_buffer", params, set_tiffsave_options);
     case GIF:
+#if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 12)
       return save_buffer("gifsave_buffer", params, set_gifsave_options);
+#else
+      return save_buffer("magicksave_buffer", params, set_magicksave_options);
+#endif
     case AVIF:
       return save_buffer("heifsave_buffer", params, set_avifsave_options);
     case JP2K:
@@ -467,6 +479,10 @@ static SaveParams defaultSaveParams = {
     .pngBitdepth = 0,
     .pngDither = 0,
     .pngFilter = VIPS_FOREIGN_PNG_FILTER_NONE,
+
+    .gifDither = 0.0,
+    .gifEffort = 0,
+    .gifBitdepth = 0,
 
     .webpLossless = FALSE,
     .webpNearLossless = FALSE,
