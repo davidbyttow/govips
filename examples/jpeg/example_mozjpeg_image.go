@@ -28,6 +28,7 @@ func ExampleMozJPEGEncode() {
 
 	inputImage, err := vips.NewImageFromFile("resources/jpg-24bit-icc-adobe-rgb.jpg")
 	checkError(err)
+	defer inputImage.Close()
 	checkError(inputImage.OptimizeICCProfile())
 
 	ep := vips.NewJpegExportParams()
