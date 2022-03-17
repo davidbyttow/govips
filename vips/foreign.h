@@ -96,6 +96,11 @@ typedef struct SaveParams {
   double pngDither;
   int pngBitdepth;
 
+  // GIF (with CGIF)
+  double gifDither;
+  int gifEffort;
+  int gifBitdepth;
+
   // WEBP
   BOOL webpLossless;
   BOOL webpNearLossless;
