@@ -252,12 +252,17 @@ func NewTiffExportParams() *TiffExportParams {
 type GifExportParams struct {
 	StripMetadata bool
 	Quality       int
+	Dither        float64
+	Effort        int
+	Bitdepth      int
 }
 
 // NewGifExportParams creates default values for an export of a GIF image.
 func NewGifExportParams() *GifExportParams {
 	return &GifExportParams{
-		Quality: 75,
+		Quality:  75,
+		Effort:   7,
+		Bitdepth: 8,
 	}
 }
 
