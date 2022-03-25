@@ -332,6 +332,10 @@ func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, err
 	p.jpegOptimizeScans = C.int(boolToInt(params.OptimizeScans))
 	p.jpegQuantTable = C.int(params.QuantTable)
 
+	if MajorVersion == 8 && MinorVersion >= 12 {
+		p.jpegRestartInterval = C.int(params.RestartInterval)
+	}
+
 	return vipsSaveToBuffer(p)
 }
 

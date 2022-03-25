@@ -233,6 +233,7 @@ type JpegExportParams struct {
 	OvershootDeringing bool
 	OptimizeScans      bool
 	QuantTable         int
+	RestartInterval    int
 }
 
 // NewJpegExportParams creates default values for an export of a JPEG image.

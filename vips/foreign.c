@@ -236,12 +236,17 @@ int save_buffer(const char *operationName, SaveParams *params,
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave-buffer
 int set_jpegsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = vips_object_set(
-      VIPS_OBJECT(operation), "strip", params->stripMetadata, "optimize_coding",
-      params->jpegOptimizeCoding, "interlace", params->interlace,
-      "subsample_mode", params->jpegSubsample, "trellis_quant",
-      params->jpegTrellisQuant, "overshoot_deringing",
-      params->jpegOvershootDeringing, "optimize_scans",
-      params->jpegOptimizeScans, "quant_table", params->jpegQuantTable, NULL);
+      VIPS_OBJECT(operation),
+      "strip", params->stripMetadata,
+      "optimize_coding", params->jpegOptimizeCoding,
+      "interlace", params->interlace,
+      "subsample_mode", params->jpegSubsample,
+      "trellis_quant", params->jpegTrellisQuant,
+      "overshoot_deringing", params->jpegOvershootDeringing,
+      "optimize_scans", params->jpegOptimizeScans,
+      "quant_table", params->jpegQuantTable,
+      "restart_interval", params->jpegRestartInterval,
+      NULL);
 
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
@@ -478,6 +483,7 @@ static SaveParams defaultSaveParams = {
     .jpegOvershootDeringing = FALSE,
     .jpegOptimizeScans = FALSE,
     .jpegQuantTable = 0,
+    .jpegRestartInterval = 0,
 
     .pngCompression = 6,
     .pngPalette = FALSE,

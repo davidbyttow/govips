@@ -88,6 +88,7 @@ typedef struct SaveParams {
   BOOL jpegOvershootDeringing;
   BOOL jpegOptimizeScans;
   int jpegQuantTable;
+  int jpegRestartInterval;
 
   // PNG
   int pngCompression;
