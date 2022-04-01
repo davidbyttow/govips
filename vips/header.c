@@ -15,7 +15,11 @@ unsigned long has_iptc(VipsImage *in) {
 }
 
 char** image_get_fields(VipsImage *in) {
-    return vips_image_get_fields(in);
+  return vips_image_get_fields(in);
+}
+
+void remove_field(VipsImage *in, char *field) {
+  vips_image_remove(in, field);
 }
 
 // won't remove the ICC profile, orientation and pages metadata

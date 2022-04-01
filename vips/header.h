@@ -9,6 +9,7 @@ int remove_icc_profile(VipsImage *in);
 unsigned long has_iptc(VipsImage *in);
 char** image_get_fields(VipsImage *in);
 
+void remove_field(VipsImage *in, char *field);
 // won't remove the ICC profile
 void remove_metadata(VipsImage *in);
 

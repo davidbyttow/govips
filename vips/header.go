@@ -36,8 +36,38 @@ func vipsImageGetFields(in *C.VipsImage) (fields []string) {
 	return
 }
 
-func vipsRemoveMetadata(in *C.VipsImage) {
-	C.remove_metadata(in)
+func vipsRemoveMetadata(in *C.VipsImage, keep ...string) {
+	fields := vipsImageGetFields(in)
+
+	retain := append(keep, technicalMetadata...)
+
+	for _, field := range fields {
+		if contains(retain, field) {
+			continue
+		}
+
+		cField := C.CString(field)
+
+		C.remove_field(in, cField)
+
+		C.free(unsafe.Pointer(cField))
+	}
+}
+
+var technicalMetadata = []string{
+	C.VIPS_META_ICC_NAME,
+	C.VIPS_META_ORIENTATION,
+	C.VIPS_META_N_PAGES,
+	C.VIPS_META_PAGE_HEIGHT,
+}
+
+func contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
 }
 
 func vipsGetMetaOrientation(in *C.VipsImage) int {
