@@ -211,7 +211,6 @@ func TestImageRef_RemoveMetadata_Leave_Orientation(t *testing.T) {
 // https://iptc.org/std/photometadata/specification/IPTC-PhotoMetadata#creator
 // https://iptc.org/std/photometadata/specification/IPTC-PhotoMetadata#credit-line
 // https://iptc.org/std/photometadata/specification/IPTC-PhotoMetadata#copyright-notice
-// todo: find a way to remove the nasty vips "exif-ifd0-" prefix from the field name
 func TestImageRef_RemoveMetadata_Leave_Copyright(t *testing.T) {
 	goldenTest(t, resources+"copyright.jpeg",
 		func(img *ImageRef) error {
