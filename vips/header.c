@@ -18,6 +18,23 @@ char** image_get_fields(VipsImage *in) {
     return vips_image_get_fields(in);
 }
 
+int image_get_field_value(VipsImage *in, const char *name) {
+  int value = 0;
+  if (vips_image_get_typeof(in, name) != 0) {
+    vips_image_get_int(in, name, &value);
+  }
+  return value;
+}
+
+const char* image_get_field_value_string(VipsImage *in, const char *name) {
+  const char *value;
+  if (vips_image_get_typeof(in, name) != 0) {
+    vips_image_get_string(in, name, &value);
+    return &value[0];
+  }
+  return "";
+}
+
 // won't remove the ICC profile, orientation and pages metadata
 void remove_metadata(VipsImage *in) {
   gchar **fields = vips_image_get_fields(in);
@@ -36,12 +53,7 @@ void remove_metadata(VipsImage *in) {
 }
 
 int get_meta_orientation(VipsImage *in) {
-  int orientation = 0;
-  if (vips_image_get_typeof(in, VIPS_META_ORIENTATION) != 0) {
-    vips_image_get_int(in, VIPS_META_ORIENTATION, &orientation);
-  }
-
-  return orientation;
+  return image_get_field_value(in, VIPS_META_ORIENTATION);
 }
 
 void remove_meta_orientation(VipsImage *in) {

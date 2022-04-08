@@ -36,6 +36,20 @@ func vipsImageGetFields(in *C.VipsImage) (fields []string) {
 	return
 }
 
+func vipsImageGetFieldValue(in *C.VipsImage, name string) int {
+	cName := C.CString(name)
+	defer freeCString(cName)
+
+	return int(C.image_get_field_value(in, cName))
+}
+
+func vipsImageGetFieldValueString(in *C.VipsImage, name string) string {
+	cName := C.CString(name)
+	defer freeCString(cName)
+
+	return C.GoString(C.image_get_field_value_string(in, cName))
+}
+
 func vipsRemoveMetadata(in *C.VipsImage) {
 	C.remove_metadata(in)
 }
