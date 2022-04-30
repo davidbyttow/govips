@@ -25,9 +25,10 @@ type LabelParams struct {
 	Height    Scalar
 	OffsetX   Scalar
 	OffsetY   Scalar
+	Alignment Align
+	DPI       int
 	Opacity   float32
 	Color     Color
-	Alignment Align
 }
 
 type vipsLabelOptions struct {
@@ -62,6 +63,18 @@ func labelImage(in *C.VipsImage, params *LabelParams) (*C.VipsImage, error) {
 	offsetX := params.OffsetX.GetRounded(int(in.Xsize))
 	offsetY := params.OffsetY.GetRounded(int(in.Ysize))
 
+	if params.Font == "" {
+		params.Font = DefaultFont
+	}
+
+	if params.DPI <= 0 {
+		params.DPI = 72
+	}
+
+	if params.Opacity <= 0 || params.Opacity > 1 {
+		params.Opacity = 1
+	}
+
 	opts := vipsLabelOptions{
 		Text:      text,
 		Font:      font,
@@ -70,6 +83,7 @@ func labelImage(in *C.VipsImage, params *LabelParams) (*C.VipsImage, error) {
 		OffsetX:   C.int(offsetX),
 		OffsetY:   C.int(offsetY),
 		Alignment: C.VipsAlign(params.Alignment),
+		DPI:       C.int(params.DPI),
 		Opacity:   C.float(params.Opacity),
 		Color:     color,
 	}

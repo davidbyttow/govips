@@ -11,7 +11,7 @@ int label(VipsImage *in, VipsImage **out, LabelOptions *o) {
   VipsImage *base = vips_image_new();
   VipsImage **t = (VipsImage **)vips_object_local_array(VIPS_OBJECT(base), 9);
   if (vips_text(&t[0], o->Text, "font", o->Font, "width", o->Width, "height",
-                o->Height, "align", o->Align, NULL) ||
+                o->Height, "align", o->Align, "dpi", o->DPI, NULL) ||
       vips_linear1(t[0], &t[1], o->Opacity, 0.0, NULL) ||
       vips_cast(t[1], &t[2], VIPS_FORMAT_UCHAR, NULL) ||
       vips_embed(t[2], &t[3], o->OffsetX, o->OffsetY, t[2]->Xsize + o->OffsetX,
