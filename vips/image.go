@@ -248,6 +248,7 @@ func NewJpegExportParams() *JpegExportParams {
 type PngExportParams struct {
 	StripMetadata bool
 	Compression   int
+	Filter        PngFilter
 	Interlace     bool
 	Quality       int
 	Palette       bool
@@ -261,6 +262,7 @@ type PngExportParams struct {
 func NewPngExportParams() *PngExportParams {
 	return &PngExportParams{
 		Compression: 6,
+		Filter:      PngFilterNone,
 		Interlace:   false,
 		Palette:     false,
 	}
