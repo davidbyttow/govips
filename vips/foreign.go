@@ -102,6 +102,20 @@ const (
 	TiffPredictorFloat      TiffPredictor = C.VIPS_FOREIGN_TIFF_PREDICTOR_FLOAT
 )
 
+// PngFilter represents filter algorithms that can be applied before compression.
+// See https://www.w3.org/TR/PNG-Filters.html
+type PngFilter int
+
+// PngFilter enum
+const (
+	PngFilterNone  PngFilter = C.VIPS_FOREIGN_PNG_FILTER_NONE
+	PngFilterSub   PngFilter = C.VIPS_FOREIGN_PNG_FILTER_SUB
+	PngFilterUo    PngFilter = C.VIPS_FOREIGN_PNG_FILTER_UP
+	PngFilterAvg   PngFilter = C.VIPS_FOREIGN_PNG_FILTER_AVG
+	PngFilterPaeth PngFilter = C.VIPS_FOREIGN_PNG_FILTER_PAETH
+	PngFilterAll   PngFilter = C.VIPS_FOREIGN_PNG_FILTER_ALL
+)
+
 // FileExt returns the canonical extension for the ImageType
 func (i ImageType) FileExt() string {
 	if ext, ok := imageTypeExtensionMap[i]; ok {
@@ -344,6 +358,7 @@ func vipsSavePNGToBuffer(in *C.VipsImage, params PngExportParams) ([]byte, error
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.interlace = C.int(boolToInt(params.Interlace))
 	p.pngCompression = C.int(params.Compression)
+	p.pngFilter = C.VipsForeignPngFilter(params.Filter)
 	p.pngPalette = C.int(boolToInt(params.Palette))
 	p.pngDither = C.double(params.Dither)
 	p.pngBitdepth = C.int(params.Bitdepth)
