@@ -208,6 +208,19 @@ func TestImageRef_RemoveMetadata_Leave_Orientation(t *testing.T) {
 		}, nil)
 }
 
+// https://iptc.org/std/photometadata/specification/IPTC-PhotoMetadata#creator
+// https://iptc.org/std/photometadata/specification/IPTC-PhotoMetadata#credit-line
+// https://iptc.org/std/photometadata/specification/IPTC-PhotoMetadata#copyright-notice
+func TestImageRef_RemoveMetadata_Leave_Copyright(t *testing.T) {
+	goldenTest(t, resources+"copyright.jpeg",
+		func(img *ImageRef) error {
+			return img.RemoveMetadata("exif-ifd0-Copyright", "exif-ifd0-Artist")
+		},
+		func(result *ImageRef) {
+			assert.Contains(t, result.ImageFields(), "exif-ifd0-Copyright")
+		}, nil)
+}
+
 func TestImageRef_Orientation_Issue(t *testing.T) {
 	goldenTest(t, resources+"orientation-issue-1.jpg",
 		func(img *ImageRef) error {
