@@ -179,6 +179,7 @@ func NewJpegExportParams() *JpegExportParams {
 type PngExportParams struct {
 	StripMetadata bool
 	Compression   int
+	Filter        PngFilter
 	Interlace     bool
 	Quality       int
 	Palette       bool
@@ -192,6 +193,7 @@ type PngExportParams struct {
 func NewPngExportParams() *PngExportParams {
 	return &PngExportParams{
 		Compression: 6,
+		Filter:      PngFilterNone,
 		Interlace:   false,
 		Palette:     false,
 	}
@@ -1162,13 +1164,13 @@ func (r *ImageRef) OptimizeICCProfile() error {
 // RemoveMetadata removes the EXIF metadata from the image.
 // N.B. this function won't remove the ICC profile, orientation and pages metadata
 // because govips needs it to correctly display the image.
-func (r *ImageRef) RemoveMetadata() error {
+func (r *ImageRef) RemoveMetadata(keep ...string) error {
 	out, err := vipsCopyImage(r.image)
 	if err != nil {
 		return err
 	}
 
-	vipsRemoveMetadata(out)
+	vipsRemoveMetadata(out, keep...)
 
 	r.setImage(out)
 
