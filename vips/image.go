@@ -1792,14 +1792,14 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 // https://www.libvips.org/API/current/VipsImage.html#vips-image-new-from-file
 func vipsImageFromFile(filename string, params *ImportParams) (*C.VipsImage, ImageType, error) {
 	var out *C.VipsImage
-	imageParams := filename
+	filenameOption := filename
 	if params != nil {
-		imageParams += params.OptionString()
+		filenameOption += "[" + params.OptionString() + "]"
 	}
-	cImageParams := C.CString(imageParams)
-	defer freeCString(cImageParams)
+	cFileName := C.CString(filenameOption)
+	defer freeCString(cFileName)
 
-	if err := C.image_new_from_file(cImageParams, &out); err != 0 {
+	if err := C.image_new_from_file(cFileName, &out); err != 0 {
 		err := handleImageError(out)
 		if src, err2 := ioutil.ReadFile(filename); err2 == nil {
 			if isBMP(src) {
