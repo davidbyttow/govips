@@ -1799,7 +1799,7 @@ func vipsImageFromFile(filename string, params *ImportParams) (*C.VipsImage, Ima
 	cFileName := C.CString(filenameOption)
 	defer freeCString(cFileName)
 
-	if err := C.image_new_from_file(cFileName, &out); err != 0 {
+	if code := C.image_new_from_file(cFileName, &out); code != 0 {
 		err := handleImageError(out)
 		if src, err2 := ioutil.ReadFile(filename); err2 == nil {
 			if isBMP(src) {

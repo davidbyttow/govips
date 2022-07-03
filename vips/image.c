@@ -9,13 +9,13 @@ void clear_image(VipsImage **image) {
 
 int image_new_from_buffer(const void *buf, size_t len, VipsImage **out, const char *option_string) {
   *out = vips_image_new_from_buffer(buf, len, option_string, NULL);
-  if (!out) return 1;
+  if (!*out) return 1;
   return 0;
 }
 
 int image_new_from_file(const char *name, VipsImage **out) {
   *out = vips_image_new_from_file(name, NULL);
-  if (!out) return 1;
+  if (!*out) return 1;
   return 0;
 }
 
