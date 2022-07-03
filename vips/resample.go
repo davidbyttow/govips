@@ -121,28 +121,6 @@ func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	return out, imageType, nil
 }
 
-// https://www.libvips.org/API/current/VipsImage.html#vips-image-new-from-file
-func vipsImageFromFile(filename string, params *ImportParams) (*C.VipsImage, ImageType, error) {
-	var out *C.VipsImage
-	cName := C.CString(filename + params.OptionString())
-	defer freeCString(cName)
-
-	if err := C.image_new_from_file(cName, &out); err != 0 {
-		err := handleImageError(out)
-		if src, err2 := ioutil.ReadFile(filename); err2 == nil {
-			if isBMP(src) {
-				if src2, err3 := bmpToPNG(src); err3 == nil {
-					return vipsLoadFromBuffer(src2, params)
-				}
-			}
-		}
-		return nil, ImageTypeUnknown, err
-	}
-
-	imageType := vipsDetermineImageTypeFromMetaLoader(out)
-	return out, imageType, nil
-}
-
 // https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-mapim
 func vipsMapim(in *C.VipsImage, index *C.VipsImage) (*C.VipsImage, error) {
 	incOpCounter("mapim")
