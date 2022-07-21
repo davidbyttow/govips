@@ -262,7 +262,7 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 		return nil, currentType, originalType, ErrUnsupportedImageFormat
 	}
 
-	importParams := createImportParams(originalType, params)
+	importParams := createImportParams(currentType, params)
 
 	if err := C.load_from_buffer(&importParams, unsafe.Pointer(&src[0]), C.size_t(len(src))); err != 0 {
 		return nil, currentType, originalType, handleImageError(importParams.outputImage)
