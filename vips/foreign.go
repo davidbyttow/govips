@@ -73,7 +73,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeWEBP:   "webp",
 	ImageTypeHEIF:   "heif",
 	ImageTypeBMP:    "bmp",
-	ImageTypeAVIF:   "heif",
+	ImageTypeAVIF:   "avif",
 	ImageTypeJP2K:   "jp2k",
 }
 
