@@ -254,7 +254,7 @@ func isJP2K(buf []byte) bool {
 
 func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {
 	src := buf
-	// Reference src here so it's not garbage collected during image initialization.
+	// Reference src here, so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
 	var err error

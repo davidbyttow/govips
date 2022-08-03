@@ -145,6 +145,7 @@ func TestImageRef_BMP__ImplicitConversionToPNG(t *testing.T) {
 	exported, metadata, err := img.ExportNative()
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypePNG, metadata.Format)
+	assert.Equal(t, ImageTypeBMP, img.OriginalFormat())
 	assert.NotNil(t, exported)
 }
 
