@@ -132,22 +132,6 @@ func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
-func TestImageRef_BMP__ImplicitConversionToPNG(t *testing.T) {
-	Startup(nil)
-
-	raw, err := ioutil.ReadFile(resources + "bmp.bmp")
-	require.NoError(t, err)
-
-	img, err := NewImageFromBuffer(raw)
-	require.NoError(t, err)
-	require.NotNil(t, img)
-
-	exported, metadata, err := img.ExportNative()
-	assert.NoError(t, err)
-	assert.Equal(t, ImageTypePNG, metadata.Format)
-	assert.NotNil(t, exported)
-}
-
 func TestImageRef_SVG(t *testing.T) {
 	Startup(nil)
 

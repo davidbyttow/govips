@@ -6,12 +6,10 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"image/png"
 	"math"
 	"runtime"
 	"unsafe"
 
-	"golang.org/x/image/bmp"
 	"golang.org/x/net/html/charset"
 )
 
@@ -257,18 +255,7 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
-	var err error
-
 	imageType := DetermineImageType(src)
-
-	if imageType == ImageTypeBMP {
-		src, err = bmpToPNG(src)
-		if err != nil {
-			return nil, ImageTypeUnknown, err
-		}
-
-		imageType = ImageTypePNG
-	}
 
 	if !IsTypeSupported(imageType) {
 		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format size=%d", len(src)))
@@ -282,24 +269,6 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 	}
 
 	return importParams.outputImage, imageType, nil
-}
-
-func bmpToPNG(src []byte) ([]byte, error) {
-	i, err := bmp.Decode(bytes.NewReader(src))
-	if err != nil {
-		return nil, err
-	}
-
-	var w bytes.Buffer
-	pngEnc := png.Encoder{
-		CompressionLevel: png.NoCompression,
-	}
-	err = pngEnc.Encode(&w, i)
-	if err != nil {
-		return nil, err
-	}
-
-	return w.Bytes(), nil
 }
 
 func maybeSetBoolParam(p BoolParameter, cp *C.Param) {

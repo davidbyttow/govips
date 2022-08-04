@@ -3,7 +3,6 @@ package vips
 // #include "resample.h"
 import "C"
 import (
-	"io/ioutil"
 	"runtime"
 	"unsafe"
 )
@@ -75,13 +74,7 @@ func vipsThumbnailFromFile(filename string, width, height int, crop Interesting,
 
 	if err := C.thumbnail(cFileName, &out, C.int(width), C.int(height), C.int(crop), C.int(size)); err != 0 {
 		err := handleImageError(out)
-		if src, err2 := ioutil.ReadFile(filename); err2 == nil {
-			if isBMP(src) {
-				if src2, err3 := bmpToPNG(src); err3 == nil {
-					return vipsThumbnailFromBuffer(src2, width, height, crop, size, params)
-				}
-			}
-		}
+
 		return nil, ImageTypeUnknown, err
 	}
 
@@ -109,11 +102,6 @@ func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	}
 	if err != 0 {
 		err := handleImageError(out)
-		if isBMP(src) {
-			if src2, err2 := bmpToPNG(src); err2 == nil {
-				return vipsThumbnailFromBuffer(src2, width, height, crop, size, params)
-			}
-		}
 		return nil, ImageTypeUnknown, err
 	}
 
