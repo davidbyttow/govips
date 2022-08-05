@@ -2,9 +2,6 @@ package vips
 
 // #include "color.h"
 import "C"
-import (
-	"unsafe"
-)
 
 // Color represents an RGB
 type Color struct {
@@ -80,11 +77,11 @@ func vipsICCTransform(in *C.VipsImage, outputProfile string, inputProfile string
 	var cEmbedded C.gboolean
 
 	cOutputProfile := C.CString(outputProfile)
-	defer C.free(unsafe.Pointer(cOutputProfile))
+	defer freeCString(cOutputProfile)
 
 	if inputProfile != "" {
 		cInputProfile = C.CString(inputProfile)
-		defer C.free(unsafe.Pointer(cInputProfile))
+		defer freeCString(cInputProfile)
 	}
 
 	if embedded {

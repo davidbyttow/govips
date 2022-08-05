@@ -100,7 +100,7 @@ func vipsSetPageHeight(in *C.VipsImage, height int) {
 
 func vipsImageGetMetaLoader(in *C.VipsImage) (string, bool) {
 	var out *C.char
-	defer gFreePointer(unsafe.Pointer(out))
+	defer freeCString(out)
 	code := int(C.get_meta_loader(in, &out))
 	return C.GoString(out), code == 0
 }

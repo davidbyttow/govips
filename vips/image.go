@@ -30,6 +30,7 @@ type ImageRef struct {
 	buf                 []byte
 	image               *C.VipsImage
 	format              ImageType
+	originalFormat      ImageType
 	lock                sync.Mutex
 	preMultiplication   *PreMultiplicationState
 	optimizedIccProfile string
@@ -412,12 +413,12 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 		params = NewImportParams()
 	}
 
-	vipsImage, format, err := vipsLoadFromBuffer(buf, params)
+	vipsImage, currentFormat, originalFormat, err := vipsLoadFromBuffer(buf, params)
 	if err != nil {
 		return nil, err
 	}
 
-	ref := newImageRef(vipsImage, format, buf)
+	ref := newImageRef(vipsImage, currentFormat, originalFormat, buf)
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageRef %p", ref))
 	return ref, nil
@@ -447,7 +448,7 @@ func LoadThumbnailFromFile(file string, width, height int, crop Interesting, siz
 		return nil, err
 	}
 
-	ref := newImageRef(vipsImage, format, nil)
+	ref := newImageRef(vipsImage, format, format, nil)
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
 	return ref, nil
@@ -467,7 +468,7 @@ func LoadThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 		return nil, err
 	}
 
-	ref := newImageRef(vipsImage, format, buf)
+	ref := newImageRef(vipsImage, format, format, buf)
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
 	return ref, nil
@@ -492,7 +493,7 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 		return nil, err
 	}
 
-	return newImageRef(out, r.format, r.buf), nil
+	return newImageRef(out, r.format, r.originalFormat, r.buf), nil
 }
 
 // XYZ creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
@@ -515,13 +516,15 @@ func Black(width, height int) (*ImageRef, error) {
 	return &ImageRef{image: vipsImage}, err
 }
 
-func newImageRef(vipsImage *C.VipsImage, format ImageType, buf []byte) *ImageRef {
+func newImageRef(vipsImage *C.VipsImage, currentFormat ImageType, originalFormat ImageType, buf []byte) *ImageRef {
 	imageRef := &ImageRef{
-		image:  vipsImage,
-		format: format,
-		buf:    buf,
+		image:          vipsImage,
+		format:         currentFormat,
+		originalFormat: originalFormat,
+		buf:            buf,
 	}
 	runtime.SetFinalizer(imageRef, finalizeImage)
+
 	return imageRef
 }
 
@@ -546,9 +549,17 @@ func (r *ImageRef) Close() {
 	r.lock.Unlock()
 }
 
-// Format returns the initial format of the vips image when loaded.
+// Format returns the current format of the vips image.
 func (r *ImageRef) Format() ImageType {
 	return r.format
+}
+
+// OriginalFormat returns the original format of the image when loaded.
+// In some cases the loaded image is converted on load, for example, a BMP is automatically converted to PNG
+// This method returns the format of the original buffer, as opposed to Format() with will return the format of the
+// currently held buffer content.
+func (r *ImageRef) OriginalFormat() ImageType {
+	return r.originalFormat
 }
 
 // Width returns the width of this image.
@@ -1798,6 +1809,7 @@ func clearImage(ref *C.VipsImage) {
 type Coding int
 
 // Coding enum
+//goland:noinspection GoUnusedConst
 const (
 	CodingError Coding = C.VIPS_CODING_ERROR
 	CodingNone  Coding = C.VIPS_CODING_NONE

@@ -252,36 +252,37 @@ func isJP2K(buf []byte) bool {
 	return bytes.HasPrefix(buf, jp2kHeader)
 }
 
-func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, error) {
+func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
 	var err error
 
-	imageType := DetermineImageType(src)
+	originalType := DetermineImageType(src)
+	currentType := originalType
 
-	if imageType == ImageTypeBMP {
+	if originalType == ImageTypeBMP {
 		src, err = bmpToPNG(src)
 		if err != nil {
-			return nil, ImageTypeUnknown, err
+			return nil, currentType, originalType, err
 		}
 
-		imageType = ImageTypePNG
+		currentType = ImageTypePNG
 	}
 
-	if !IsTypeSupported(imageType) {
+	if !IsTypeSupported(currentType) {
 		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format size=%d", len(src)))
-		return nil, ImageTypeUnknown, ErrUnsupportedImageFormat
+		return nil, currentType, originalType, ErrUnsupportedImageFormat
 	}
 
-	importParams := createImportParams(imageType, params)
+	importParams := createImportParams(currentType, params)
 
 	if err := C.load_from_buffer(&importParams, unsafe.Pointer(&src[0]), C.size_t(len(src))); err != 0 {
-		return nil, ImageTypeUnknown, handleImageError(importParams.outputImage)
+		return nil, currentType, originalType, handleImageError(importParams.outputImage)
 	}
 
-	return importParams.outputImage, imageType, nil
+	return importParams.outputImage, currentType, originalType, nil
 }
 
 func bmpToPNG(src []byte) ([]byte, error) {
