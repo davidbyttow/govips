@@ -10,4 +10,5 @@ require (
 	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
 	golang.org/x/text v0.3.4 // indirect
 	gopkg.in/check.v1 v1.0.0-20200902074654-038fdea0a05b // indirect
+	gopkg.in/gographics/imagick.v3 v3.4.1
 )
