@@ -4,11 +4,11 @@ package vips
 import "C"
 
 // https://libvips.github.io/libvips/API/current/libvips-convolution.html#vips-gaussblur
-func vipsGaussianBlur(in *C.VipsImage, sigma float64) (*C.VipsImage, error) {
+func vipsGaussianBlur(in *C.VipsImage, sigma, minAmpl float64) (*C.VipsImage, error) {
 	incOpCounter("gaussblur")
 	var out *C.VipsImage
 
-	if err := C.gaussian_blur_image(in, &out, C.double(sigma)); err != 0 {
+	if err := C.gaussian_blur_image(in, &out, C.double(sigma), C.double(minAmpl)); err != 0 {
 		return nil, handleImageError(out)
 	}
 

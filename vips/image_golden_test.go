@@ -490,6 +490,9 @@ func TestImage_GaussianBlur(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.GaussianBlur(10.5)
 	}, nil, nil)
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.GaussianBlur(10.5,0.2)
+	}, nil, nil)
 }
 
 func TestImage_BandJoinConst(t *testing.T) {
