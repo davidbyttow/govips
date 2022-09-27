@@ -17,6 +17,8 @@ import (
 	"unsafe"
 )
 
+const GaussBlurDefaultMinAMpl = 0.2
+
 // PreMultiplicationState stores the pre-multiplication band format of the image
 type PreMultiplicationState struct {
 	bandFormat BandFormat
@@ -1364,8 +1366,16 @@ func (r *ImageRef) Flatten(backgroundColor *Color) error {
 }
 
 // GaussianBlur blurs the image
-func (r *ImageRef) GaussianBlur(sigma float64) error {
-	out, err := vipsGaussianBlur(r.image, sigma)
+// add support minAmpl
+func (r *ImageRef) GaussianBlur(sigmas ...float64) error {
+	var (
+		sigma  = sigmas[0]
+		minAmpl  = GaussBlurDefaultMinAMpl
+	)
+	if len(sigmas) >= 2 {
+		minAmpl = sigmas[1]
+	}
+	out, err := vipsGaussianBlur(r.image, sigma, minAmpl)
 	if err != nil {
 		return err
 	}
