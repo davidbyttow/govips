@@ -1,7 +1,7 @@
 #include "convolution.h"
 
-int gaussian_blur_image(VipsImage *in, VipsImage **out, double sigma) {
-  return vips_gaussblur(in, out, sigma, NULL);
+int gaussian_blur_image(VipsImage *in, VipsImage **out, double sigma, double min_ampl) {
+    return vips_gaussblur(in, out, sigma, "min_ampl", min_ampl, NULL);
 }
 
 int sharpen_image(VipsImage *in, VipsImage **out, double sigma, double x1,
