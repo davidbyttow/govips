@@ -20,6 +20,24 @@ func TestMain(m *testing.M) {
 	os.Exit(ret)
 }
 
+func TestDoubleExport(t *testing.T) {
+	Startup(nil)
+
+	srcBytes, err := ioutil.ReadFile(resources + "copyright.jpeg")
+	require.NoError(t, err)
+
+	src := bytes.NewReader(srcBytes)
+	img, err := NewImageFromReader(src)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, _, err = img.ExportWebp(nil)
+	assert.NoError(t, err)
+
+	_, _, err = img.ExportPng(nil)
+	assert.NoError(t, err)
+}
+
 func TestImageRef_WebP(t *testing.T) {
 	Startup(nil)
 

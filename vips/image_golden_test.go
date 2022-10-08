@@ -491,7 +491,7 @@ func TestImage_GaussianBlur(t *testing.T) {
 		return img.GaussianBlur(10.5)
 	}, nil, nil)
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
-		return img.GaussianBlur(10.5,0.2)
+		return img.GaussianBlur(10.5, 0.2)
 	}, nil, nil)
 }
 
@@ -740,7 +740,7 @@ func TestImage_Black(t *testing.T) {
 	assertGoldenMatch(t, resources+"jpg-24bit.jpg", buf, metadata.Format)
 }
 
-//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=auto --interlace --optimize-coding
+// vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=auto --interlace --optimize-coding
 func TestImage_OptimizeCoding(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		nil,
@@ -755,7 +755,7 @@ func TestImage_OptimizeCoding(t *testing.T) {
 	)
 }
 
-//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=on
+// vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=on
 func TestImage_SubsampleMode(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		nil,
@@ -768,7 +768,7 @@ func TestImage_SubsampleMode(t *testing.T) {
 	)
 }
 
-//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --trellis-quant
+// vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --trellis-quant
 func TestImage_TrellisQuant(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		nil,
@@ -782,7 +782,7 @@ func TestImage_TrellisQuant(t *testing.T) {
 	)
 }
 
-//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --overshoot-deringing
+// vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --overshoot-deringing
 func TestImage_OvershootDeringing(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		nil,
@@ -796,7 +796,7 @@ func TestImage_OvershootDeringing(t *testing.T) {
 	)
 }
 
-//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --interlace --optimize-scans
+// vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --interlace --optimize-scans
 func TestImage_OptimizeScans(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		nil,
@@ -811,7 +811,7 @@ func TestImage_OptimizeScans(t *testing.T) {
 	)
 }
 
-//vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --quant-table=3
+// vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --quant-table=3
 func TestImage_QuantTable(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",
 		nil,
