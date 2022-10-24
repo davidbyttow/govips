@@ -1252,6 +1252,12 @@ func (r *ImageRef) ExtractArea(left, top, width, height int) error {
 	return nil
 }
 
+// GetICCProfile retrieves the ICC profile data (if any) from the image.
+func (r *ImageRef) GetICCProfile() []byte {
+	bytes, _ := vipsGetICCProfile(r.image)
+	return bytes
+}
+
 // RemoveICCProfile removes the ICC Profile information from the image.
 // Typically, browsers and other software assume images without profile to be in the sRGB color space.
 func (r *ImageRef) RemoveICCProfile() error {
@@ -1345,6 +1351,10 @@ func (r *ImageRef) HasExif() bool {
 	return false
 }
 
+func (r *ImageRef) GetExif() map[string]string {
+	return vipsImageGetExifData(r.image)
+}
+
 // ToColorSpace changes the color space of the image to the interpretation supplied as the parameter.
 func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
 	out, err := vipsToColorSpace(r.image, interpretation)
@@ -1369,8 +1379,8 @@ func (r *ImageRef) Flatten(backgroundColor *Color) error {
 // add support minAmpl
 func (r *ImageRef) GaussianBlur(sigmas ...float64) error {
 	var (
-		sigma  = sigmas[0]
-		minAmpl  = GaussBlurDefaultMinAMpl
+		sigma   = sigmas[0]
+		minAmpl = GaussBlurDefaultMinAMpl
 	)
 	if len(sigmas) >= 2 {
 		minAmpl = sigmas[1]
@@ -1819,6 +1829,7 @@ func clearImage(ref *C.VipsImage) {
 type Coding int
 
 // Coding enum
+//
 //goland:noinspection GoUnusedConst
 const (
 	CodingError Coding = C.VIPS_CODING_ERROR

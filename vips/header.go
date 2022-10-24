@@ -11,6 +11,18 @@ func vipsHasICCProfile(in *C.VipsImage) bool {
 	return int(C.has_icc_profile(in)) != 0
 }
 
+func vipsGetICCProfile(in *C.VipsImage) ([]byte, bool) {
+	var bufPtr unsafe.Pointer
+	var dataLength C.size_t
+
+	if int(C.get_icc_profile(in, &bufPtr, &dataLength)) != 0 {
+		return nil, false
+	}
+
+	buf := C.GoBytes(bufPtr, C.int(dataLength))
+	return buf, true
+}
+
 func vipsRemoveICCProfile(in *C.VipsImage) bool {
 	return fromGboolean(C.remove_icc_profile(in))
 }
@@ -34,6 +46,35 @@ func vipsImageGetFields(in *C.VipsImage) (fields []string) {
 		fields = append(fields, C.GoString(field))
 	}
 	return
+}
+
+func vipsImageGetExifData(in *C.VipsImage) map[string]string {
+	const maxFields = 256
+
+	rawFields := C.image_get_fields(in)
+	defer C.g_strfreev(rawFields)
+
+	cFields := (*[maxFields]*C.char)(unsafe.Pointer(rawFields))[:maxFields:maxFields]
+
+	exifData := map[string]string{}
+	for _, cField := range cFields {
+		if cField == nil {
+			break
+		}
+
+		field := C.GoString(cField)
+		if !strings.HasPrefix(field, "exif") {
+			continue
+		}
+
+		var cFieldValue *C.char
+		defer freeCString(cFieldValue)
+		if int(C.image_get_string(in, cField, &cFieldValue)) == 0 {
+			exifData[field] = C.GoString(cFieldValue)
+		}
+	}
+
+	return exifData
 }
 
 func vipsRemoveMetadata(in *C.VipsImage, keep ...string) {

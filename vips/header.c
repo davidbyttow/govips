@@ -6,6 +6,19 @@ unsigned long has_icc_profile(VipsImage *in) {
   return vips_image_get_typeof(in, VIPS_META_ICC_NAME);
 }
 
+unsigned long get_icc_profile(VipsImage *in, const void **data,
+                              size_t *dataLength) {
+  if (vips_image_get_typeof(in, VIPS_META_ICC_NAME) == 0) {
+    return 0;
+  }
+
+  if (vips_image_get_blob(in, VIPS_META_ICC_NAME, data, dataLength)) {
+    return -1;
+  }
+
+  return 0;
+}
+
 gboolean remove_icc_profile(VipsImage *in) {
   return vips_image_remove(in, VIPS_META_ICC_NAME);
 }
@@ -14,13 +27,14 @@ unsigned long has_iptc(VipsImage *in) {
   return vips_image_get_typeof(in, VIPS_META_IPTC_NAME);
 }
 
-char** image_get_fields(VipsImage *in) {
-  return vips_image_get_fields(in);
+char **image_get_fields(VipsImage *in) { return vips_image_get_fields(in); }
+
+unsigned long image_get_string(VipsImage *in, const char *name,
+                               const char **out) {
+  return vips_image_get_string(in, name, out);
 }
 
-void remove_field(VipsImage *in, char *field) {
-  vips_image_remove(in, field);
-}
+void remove_field(VipsImage *in, char *field) { vips_image_remove(in, field); }
 
 int get_meta_orientation(VipsImage *in) {
   int orientation = 0;

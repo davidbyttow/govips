@@ -4,10 +4,14 @@
 #include <vips/vips.h>
 
 unsigned long has_icc_profile(VipsImage *in);
+unsigned long get_icc_profile(VipsImage *in, const void **data,
+                              size_t *dataLength);
 int remove_icc_profile(VipsImage *in);
 
 unsigned long has_iptc(VipsImage *in);
-char** image_get_fields(VipsImage *in);
+char **image_get_fields(VipsImage *in);
+unsigned long image_get_string(VipsImage *in, const char *name,
+                               const char **out);
 void remove_field(VipsImage *in, char *field);
 
 int get_meta_orientation(VipsImage *in);
