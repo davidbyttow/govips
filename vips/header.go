@@ -167,6 +167,9 @@ func vipsImageSetDelay(in *C.VipsImage, data []C.int) error {
 
 // vipsDetermineImageTypeFromMetaLoader determine the image type from vips-loader metadata
 func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
+	if in == nil {
+		return ImageTypeUnknown
+	}
 	vipsLoader, ok := vipsImageGetMetaLoader(in)
 	if vipsLoader == "" || !ok {
 		return ImageTypeUnknown

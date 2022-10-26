@@ -393,13 +393,16 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // LoadImageFromFile loads an image from file and creates a new ImageRef
 func LoadImageFromFile(file string, params *ImportParams) (*ImageRef, error) {
-	buf, err := ioutil.ReadFile(file)
+	startupIfNeeded()
+
+	vipsImage, format, err := vipsImageFromFile(file, params)
 	if err != nil {
 		return nil, err
 	}
 
+	ref := newImageRef(vipsImage, format, nil)
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageRef from file %s", file))
-	return LoadImageFromBuffer(buf, params)
+	return ref, nil
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image
@@ -1815,6 +1818,32 @@ func (r *ImageRef) setImage(image *C.VipsImage) {
 	}
 
 	r.image = image
+}
+
+// https://www.libvips.org/API/current/VipsImage.html#vips-image-new-from-file
+func vipsImageFromFile(filename string, params *ImportParams) (*C.VipsImage, ImageType, error) {
+	var out *C.VipsImage
+	filenameOption := filename
+	if params != nil {
+		filenameOption += "[" + params.OptionString() + "]"
+	}
+	cFileName := C.CString(filenameOption)
+	defer freeCString(cFileName)
+
+	if code := C.image_new_from_file(cFileName, &out); code != 0 {
+		err := handleImageError(out)
+		if src, err2 := ioutil.ReadFile(filename); err2 == nil {
+			if isBMP(src) {
+				if src2, err3 := bmpToPNG(src); err3 == nil {
+					return vipsLoadFromBuffer(src2, params)
+				}
+			}
+		}
+		return nil, ImageTypeUnknown, err
+	}
+
+	imageType := vipsDetermineImageTypeFromMetaLoader(out)
+	return out, imageType, nil
 }
 
 func vipsHasAlpha(in *C.VipsImage) bool {

@@ -910,6 +910,24 @@ func goldenTest(
 
 	assertGoldenMatch(t, path, buf, metadata.Format)
 
+	buf2, err := ioutil.ReadFile(path)
+	require.NoError(t, err)
+
+	img2, err := NewImageFromBuffer(buf2)
+
+	err = exec(img2)
+	require.NoError(t, err)
+
+	buf2, metadata2, err := export(img2)
+	require.NoError(t, err)
+
+	result2, err := NewImageFromBuffer(buf2)
+	require.NoError(t, err)
+
+	validate(result2)
+
+	assertGoldenMatch(t, path, buf2, metadata2.Format)
+
 	return buf
 }
 
