@@ -13,19 +13,6 @@ import (
 	"sync"
 )
 
-// Version is the full libvips version string (x.y.z)
-const Version = string(C.VIPS_VERSION)
-
-// MajorVersion is the libvips major component of the version string (x in x.y.z)
-const MajorVersion = int(C.VIPS_MAJOR_VERSION)
-
-// MinorVersion is the libvips minor component of the version string (y in x.y.z)
-const MinorVersion = int(C.VIPS_MINOR_VERSION)
-
-// MicroVersion is the libvips micro component of the version string (z in x.y.z)
-// Also known as patch version
-const MicroVersion = int(C.VIPS_MICRO_VERSION)
-
 const (
 	defaultConcurrencyLevel = 1
 	defaultMaxCacheMem      = 50 * 1024 * 1024
@@ -34,6 +21,19 @@ const (
 )
 
 var (
+	// Version is the full libvips version string (x.y.z)
+	Version = C.GoString(C.vips_version_string())
+
+	// MajorVersion is the libvips major component of the version string (x in x.y.z)
+	MajorVersion = int(C.vips_version(0))
+
+	// MinorVersion is the libvips minor component of the version string (y in x.y.z)
+	MinorVersion = int(C.vips_version(1))
+
+	// MicroVersion is the libvips micro component of the version string (z in x.y.z)
+	// Also known as patch version
+	MicroVersion = int(C.vips_version(2))
+
 	running             = false
 	hasShutdown         = false
 	initLock            sync.Mutex
@@ -72,11 +72,11 @@ func Startup(config *Config) {
 		return
 	}
 
-	if C.VIPS_MAJOR_VERSION < 8 {
+	if MajorVersion < 8 {
 		panic("govips requires libvips version 8.10+")
 	}
 
-	if C.VIPS_MAJOR_VERSION == 8 && C.VIPS_MINOR_VERSION < 10 {
+	if MajorVersion == 8 && MinorVersion < 10 {
 		panic("govips requires libvips version 8.10+")
 	}
 
