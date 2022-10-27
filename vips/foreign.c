@@ -26,8 +26,8 @@ int load_image_buffer(LoadParams *params, void *buf, size_t len,
   ImageType imageType = params->inputFormat;
 
   if (imageType == JPEG) {
-    // shrink: int, fail: bool, autorotate: bool
-    code = vips_jpegload_buffer(buf, len, out, "fail", params->fail,
+    // shrink: int, fail_on: int, autorotate: bool
+    code = vips_jpegload_buffer(buf, len, out, "fail_on", params->failOn,
                                 "autorotate", params->autorotate, "shrink",
                                 params->jpegShrink, NULL);
   } else if (imageType == PNG) {
@@ -98,13 +98,13 @@ typedef int (*SetLoadOptionsFn)(VipsOperation *operation, LoadParams *params);
 
 int set_jpegload_options(VipsOperation *operation, LoadParams *params) {
   MAYBE_SET_BOOL(operation, params->autorotate, "autorotate");
-  MAYBE_SET_BOOL(operation, params->fail, "fail");
+  MAYBE_SET_INT(operation, params->failOn, "fail_on");
   MAYBE_SET_INT(operation, params->jpegShrink, "shrink");
   return 0;
 }
 
 int set_pngload_options(VipsOperation *operation, LoadParams *params) {
-  MAYBE_SET_BOOL(operation, params->fail, "fail");
+  MAYBE_SET_INT(operation, params->failOn, "fail_on");
   return 0;
 }
 
@@ -449,7 +449,7 @@ LoadParams create_load_params(ImageType inputFormat) {
       .inputBlob = NULL,
       .outputImage = NULL,
       .autorotate = defaultParam,
-      .fail = defaultParam,
+      .failOn = defaultParam,
       .page = defaultParam,
       .n = defaultParam,
       .dpi = defaultParam,

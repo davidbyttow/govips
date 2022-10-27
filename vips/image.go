@@ -102,7 +102,7 @@ func (p *Float64Parameter) Get() float64 {
 // For default loading, use NewImportParams() or specify nil
 type ImportParams struct {
 	AutoRotate  BoolParameter
-	FailOnError BoolParameter
+	FailOnError IntParameter
 	Page        IntParameter
 	NumPages    IntParameter
 	Density     IntParameter
@@ -115,7 +115,9 @@ type ImportParams struct {
 // NewImportParams creates default ImportParams
 func NewImportParams() *ImportParams {
 	p := &ImportParams{}
-	p.FailOnError.Set(true)
+	if !p.FailOnError.IsSet(){
+		p.FailOnError.Set(int(FailOnError))
+	}
 	return p
 }
 
@@ -132,7 +134,7 @@ func (i *ImportParams) OptionString() string {
 		values = append(values, "dpi="+strconv.Itoa(v.Get()))
 	}
 	if v := i.FailOnError; v.IsSet() {
-		values = append(values, "fail="+boolToStr(v.Get()))
+		values = append(values, "fail_on="+FailOnLevel(v.Get()).String())
 	}
 	if v := i.JpegShrinkFactor; v.IsSet() {
 		values = append(values, "shrink="+strconv.Itoa(v.Get()))
