@@ -313,6 +313,29 @@ func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
 	)
 }
 
+func TestImage_Export_AVIF_8_Bit(t *testing.T) {
+	avifExportParams := NewAvifExportParams()
+	goldenTest(t, resources+"avif-8bit.avif",
+		func(img *ImageRef) error {
+			return nil
+		},
+		func(result *ImageRef) {
+		}, exportAvif(avifExportParams),
+	)
+}
+
+func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
+	avifExportParams := NewAvifExportParams()
+	avifExportParams.Bitdepth = 12
+	goldenTest(t, resources+"tif-16bit.tif",
+		func(img *ImageRef) error {
+			return nil
+		},
+		func(result *ImageRef) {
+		}, exportAvif(avifExportParams),
+	)
+}
+
 func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-24bit+alpha.png", func(img *ImageRef) error {
 		//usm_0.66_1.00_0.01
@@ -858,6 +881,12 @@ func exportWebp(exportParams *WebpExportParams) func(img *ImageRef) ([]byte, *Im
 func exportJpeg(exportParams *JpegExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
 	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
 		return img.ExportJpeg(exportParams)
+	}
+}
+
+func exportAvif(exportParams *AvifExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+		return img.ExportAvif(exportParams)
 	}
 }
 

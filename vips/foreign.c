@@ -294,18 +294,6 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
   return ret;
 }
 
-// https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
-int set_heifsave_options(VipsOperation *operation, SaveParams *params) {
-  int ret = vips_object_set(VIPS_OBJECT(operation), "lossless",
-                            params->heifLossless, NULL);
-
-  if (!ret && params->quality) {
-    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
-  }
-
-  return ret;
-}
-
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-tiffsave-buffer
 int set_tiffsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = vips_object_set(
@@ -348,10 +336,49 @@ int set_gifsave_options(VipsOperation *operation, SaveParams *params) {
   return ret;
 }
 
+// https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
+int set_heifsave_options(VipsOperation *operation, SaveParams *params) {
+  int ret = vips_object_set(VIPS_OBJECT(operation), "lossless",
+                            params->heifLossless, NULL);
+
+#if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 13)
+  if (!ret && params->heifBitdepth && params->heifEffort) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "bitdepth",
+                          params->heifBitdepth, "effort", params->heifEffort,
+                          NULL);
+  }
+#else
+  if (!ret && params->heifEffort) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "speed", params->heifEffort,
+                          NULL);
+  }
+#endif
+
+  if (!ret && params->quality) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
+
+  return ret;
+}
+
+// https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
 int set_avifsave_options(VipsOperation *operation, SaveParams *params) {
-  int ret = vips_object_set(
-      VIPS_OBJECT(operation), "compression", VIPS_FOREIGN_HEIF_COMPRESSION_AV1,
-      "lossless", params->heifLossless, "speed", params->avifSpeed, NULL);
+  int ret = vips_object_set(VIPS_OBJECT(operation), "compression",
+                            VIPS_FOREIGN_HEIF_COMPRESSION_AV1, "lossless",
+                            params->heifLossless, NULL);
+
+#if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 13)
+  if (!ret && params->heifBitdepth && params->heifEffort) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "bitdepth",
+                          params->heifBitdepth, "effort", params->heifEffort,
+                          NULL);
+  }
+#else
+  if (!ret && params->heifEffort) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "speed", params->heifEffort,
+                          NULL);
+  }
+#endif
 
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
@@ -494,7 +521,9 @@ static SaveParams defaultSaveParams = {
     .webpReductionEffort = 4,
     .webpIccProfile = NULL,
 
+    .heifBitdepth = 8,
     .heifLossless = FALSE,
+    .heifEffort = 5,
 
     .tiffCompression = VIPS_FOREIGN_TIFF_COMPRESSION_LZW,
     .tiffPredictor = VIPS_FOREIGN_TIFF_PREDICTOR_HORIZONTAL,
@@ -504,8 +533,6 @@ static SaveParams defaultSaveParams = {
     .tiffTileWidth = 256,
     .tiffXRes = 1.0,
     .tiffYRes = 1.0,
-
-    .avifSpeed = 5,
 
     .jp2kLossless = FALSE,
     .jp2kTileHeight = 512,
