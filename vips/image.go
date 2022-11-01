@@ -292,20 +292,6 @@ func NewWebpExportParams() *WebpExportParams {
 	}
 }
 
-// HeifExportParams are options when exporting a HEIF to file or buffer
-type HeifExportParams struct {
-	Quality  int
-	Lossless bool
-}
-
-// NewHeifExportParams creates default values for an export of a HEIF image.
-func NewHeifExportParams() *HeifExportParams {
-	return &HeifExportParams{
-		Quality:  80,
-		Lossless: false,
-	}
-}
-
 // TiffExportParams are options when exporting a TIFF to file or buffer
 type TiffExportParams struct {
 	StripMetadata bool
@@ -340,20 +326,43 @@ func NewGifExportParams() *GifExportParams {
 	}
 }
 
+// HeifExportParams are options when exporting a HEIF to file or buffer
+type HeifExportParams struct {
+	Quality  int
+	Bitdepth int
+	Effort   int
+	Lossless bool
+}
+
+// NewHeifExportParams creates default values for an export of a HEIF image.
+func NewHeifExportParams() *HeifExportParams {
+	return &HeifExportParams{
+		Quality:  80,
+		Bitdepth: 8,
+		Effort:   5,
+		Lossless: false,
+	}
+}
+
 // AvifExportParams are options when exporting an AVIF to file or buffer.
 type AvifExportParams struct {
 	StripMetadata bool
 	Quality       int
+	Bitdepth      int
+	Effort        int
 	Lossless      bool
-	Speed         int
+
+	// DEPRECATED - Use Effort instead.
+	Speed int
 }
 
 // NewAvifExportParams creates default values for an export of an AVIF image.
 func NewAvifExportParams() *AvifExportParams {
 	return &AvifExportParams{
 		Quality:  80,
+		Bitdepth: 8,
+		Effort:   5,
 		Lossless: false,
-		Speed:    5,
 	}
 }
 

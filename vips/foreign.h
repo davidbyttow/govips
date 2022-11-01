@@ -107,8 +107,10 @@ typedef struct SaveParams {
   int webpReductionEffort;
   char *webpIccProfile;
 
-  // HEIF
-  BOOL heifLossless;
+  // HEIF - https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L71
+  int heifBitdepth; // Bitdepth to save at for >8 bit images
+  BOOL heifLossless; // Lossless compression
+  int heifEffort; // CPU effort (0 - 9)
 
   // TIFF
   VipsForeignTiffCompression tiffCompression;
@@ -119,9 +121,6 @@ typedef struct SaveParams {
   int tiffTileWidth;
   double tiffXRes;
   double tiffYRes;
-
-  // AVIF
-  int avifSpeed;
 
   // JPEG2000
   BOOL jp2kLossless;

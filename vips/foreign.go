@@ -244,7 +244,7 @@ func isBMP(buf []byte) bool {
 	return bytes.HasPrefix(buf, bmpHeader)
 }
 
-//X'0000 000C 6A50 2020 0D0A 870A'
+// X'0000 000C 6A50 2020 0D0A 870A'
 var jp2kHeader = []byte("\x00\x00\x00\x0C\x6A\x50\x20\x20\x0D\x0A\x87\x0A")
 
 // https://datatracker.ietf.org/doc/html/rfc3745
@@ -406,6 +406,8 @@ func vipsSaveHEIFToBuffer(in *C.VipsImage, params HeifExportParams) ([]byte, err
 	p.outputFormat = C.HEIF
 	p.quality = C.int(params.Quality)
 	p.heifLossless = C.int(boolToInt(params.Lossless))
+	p.heifBitdepth = C.int(params.Bitdepth)
+	p.heifEffort = C.int(params.Effort)
 
 	return vipsSaveToBuffer(p)
 }
@@ -413,12 +415,19 @@ func vipsSaveHEIFToBuffer(in *C.VipsImage, params HeifExportParams) ([]byte, err
 func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, error) {
 	incOpCounter("save_heif_buffer")
 
+	// Speed was deprecated but we want to avoid breaking code that still uses it:
+	effort := params.Effort
+	if params.Speed != 0 {
+		effort = params.Speed
+	}
+
 	p := C.create_save_params(C.AVIF)
 	p.inputImage = in
 	p.outputFormat = C.AVIF
 	p.quality = C.int(params.Quality)
 	p.heifLossless = C.int(boolToInt(params.Lossless))
-	p.avifSpeed = C.int(params.Speed)
+	p.heifBitdepth = C.int(params.Bitdepth)
+	p.heifEffort = C.int(effort)
 
 	return vipsSaveToBuffer(p)
 }

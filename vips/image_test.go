@@ -962,7 +962,7 @@ func TestImageRef_Linear_Fails(t *testing.T) {
 func TestImageRef_AVIF(t *testing.T) {
 	Startup(nil)
 
-	raw, err := ioutil.ReadFile(resources + "avif.avif")
+	raw, err := ioutil.ReadFile(resources + "avif-8bit.avif")
 	require.NoError(t, err)
 
 	img, err := NewImageFromBuffer(raw)

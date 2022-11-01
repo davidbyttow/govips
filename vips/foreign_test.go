@@ -120,7 +120,7 @@ func Test_DetermineImageType__BMP(t *testing.T) {
 func Test_DetermineImageType__AVIF(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "avif.avif")
+	buf, err := ioutil.ReadFile(resources + "avif-8bit.avif")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
