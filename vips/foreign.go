@@ -120,26 +120,11 @@ const (
 type FailOnLevel int
 
 const (
-	FailOnNone      FailOnLevel = C.VIPS_FAIL_ON_NONE
-	FailOnTruncated FailOnLevel = C.VIPS_FAIL_ON_TRUNCATED
-	FailOnError     FailOnLevel = C.VIPS_FAIL_ON_ERROR
-	FailOnWarning   FailOnLevel = C.VIPS_FAIL_ON_WARNING
+	FailOnNone      FailOnLevel = 0 //C.VIPS_FAIL_ON_NONE
+	FailOnTruncated FailOnLevel = 1 //C.VIPS_FAIL_ON_TRUNCATED
+	FailOnError     FailOnLevel = 2 //C.VIPS_FAIL_ON_ERROR
+	FailOnWarning   FailOnLevel = 3 //C.VIPS_FAIL_ON_WARNING
 )
-
-func (f FailOnLevel) String() string {
-	switch f {
-	case FailOnNone:
-		return "none"
-	case FailOnTruncated:
-		return "truncated"
-	case FailOnError:
-		return "error"
-	case FailOnWarning:
-		return "warning"
-	default:
-		return "error"
-	}
-}
 
 // FileExt returns the canonical extension for the ImageType
 func (i ImageType) FileExt() string {
@@ -344,7 +329,7 @@ func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
 	p := C.create_load_params(C.ImageType(format))
 
 	maybeSetBoolParam(params.AutoRotate, &p.autorotate)
-	maybeSetIntParam(params.FailOnError, &p.failOn)
+	maybeSetIntParam(params.FailOn, &p.failOn)
 	maybeSetIntParam(params.Page, &p.page)
 	maybeSetIntParam(params.NumPages, &p.n)
 	maybeSetIntParam(params.JpegShrinkFactor, &p.jpegShrink)
