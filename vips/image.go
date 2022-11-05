@@ -1060,7 +1060,7 @@ func (r *ImageRef) ExtractBand(band int, num int) error {
 	return nil
 }
 
-// ExtractBandToImg extracts one or more bands out of the image to a new image
+// ExtractBandToImage extracts one or more bands out of the image to a new image
 func (r *ImageRef) ExtractBandToImage(band int, num int) (*ImageRef, error) {
 	out, err := vipsExtractBand(r.image, band, num)
 	if err != nil {
