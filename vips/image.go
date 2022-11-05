@@ -1288,7 +1288,12 @@ func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
 	embedded := r.HasICCProfile()
 	inputProfile := SRGBIEC6196621ICCProfilePath
 
-	out, err := vipsICCTransform(r.image, outputProfilePath, inputProfile, IntentPerceptual, 0, embedded)
+	depth := 16
+	if r.BandFormat() == BandFormatUchar || r.BandFormat() == BandFormatChar || r.BandFormat() == BandFormatNotSet {
+		depth = 8
+	}
+
+	out, err := vipsICCTransform(r.image, outputProfilePath, inputProfile, IntentPerceptual, depth, embedded)
 	if err != nil {
 		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
