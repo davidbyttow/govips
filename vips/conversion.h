@@ -3,6 +3,10 @@
 #include <stdlib.h>
 #include <vips/vips.h>
 
+int copy_image_changing_interpretation(VipsImage *in, VipsImage **out,
+                                       VipsInterpretation interpretation);
+int copy_image_changing_resolution(VipsImage *in, VipsImage **out, double xres,
+                                   double yres);
 int copy_image(VipsImage *in, VipsImage **out);
 
 int embed_image(VipsImage *in, VipsImage **out, int left, int top, int width,

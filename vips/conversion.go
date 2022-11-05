@@ -119,6 +119,26 @@ const (
 	InterestingLast      Interesting = C.VIPS_INTERESTING_LAST
 )
 
+func vipsCopyImageChangingInterpretation(in *C.VipsImage, interpretation Interpretation) (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	if err := C.copy_image_changing_interpretation(in, &out, C.VipsInterpretation(interpretation)); int(err) != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+func vipsCopyImageChangingResolution(in *C.VipsImage, xres float64, yres float64) (*C.VipsImage, error) {
+	var out *C.VipsImage
+
+	if err := C.copy_image_changing_resolution(in, &out, C.double(xres), C.double(yres)); int(err) != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-copy
 func vipsCopyImage(in *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage

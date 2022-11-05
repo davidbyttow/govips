@@ -189,6 +189,23 @@ func TestImage_RemoveICCProfile(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_SetExifField(t *testing.T) {
+	var originalExifValue string
+	goldenTest(t, resources+"heic-24bit-exif.heic",
+		func(img *ImageRef) error {
+			originalExifValue = img.GetString("exif-ifd0-Model")
+			assert.NotEqual(t, originalExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			img.SetString("exif-ifd0-Model", "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			updatedExifValue := img.GetString("exif-ifd0-Model")
+			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			return nil
+		},
+		func(img *ImageRef) {
+			updatedExifValue := img.GetString("exif-ifd0-Model")
+			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+		}, nil)
+}
+
 func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
 	goldenTest(t, resources+"heic-24bit-exif.heic",
 		func(img *ImageRef) error {
@@ -329,6 +346,13 @@ func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
 	avifExportParams.Bitdepth = 12
 	goldenTest(t, resources+"tif-16bit.tif",
 		func(img *ImageRef) error {
+			// TIFF images don't use regular exif fields -- they iptc and/or xmp instead.
+			fields := img.GetFields()
+			assert.Greater(t, len(fields), 0)
+			iptcData := img.GetBlob("iptc-data")
+			assert.Greater(t, len(iptcData), 0)
+			xmpData := img.GetBlob("xmp-data")
+			assert.Greater(t, len(xmpData), 0)
 			return nil
 		},
 		func(result *ImageRef) {

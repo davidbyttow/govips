@@ -49,28 +49,12 @@ func vipsImageGetFields(in *C.VipsImage) (fields []string) {
 }
 
 func vipsImageGetExifData(in *C.VipsImage) map[string]string {
-	const maxFields = 256
-
-	rawFields := C.image_get_fields(in)
-	defer C.g_strfreev(rawFields)
-
-	cFields := (*[maxFields]*C.char)(unsafe.Pointer(rawFields))[:maxFields:maxFields]
+	fields := vipsImageGetFields(in)
 
 	exifData := map[string]string{}
-	for _, cField := range cFields {
-		if cField == nil {
-			break
-		}
-
-		field := C.GoString(cField)
-		if !strings.HasPrefix(field, "exif") {
-			continue
-		}
-
-		var cFieldValue *C.char
-		defer freeCString(cFieldValue)
-		if int(C.image_get_string(in, cField, &cFieldValue)) == 0 {
-			exifData[field] = C.GoString(cFieldValue)
+	for _, field := range fields {
+		if strings.HasPrefix(field, "exif") {
+			exifData[field] = vipsImageGetString(in, field)
 		}
 	}
 
@@ -202,4 +186,101 @@ func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
 		return ImageTypePDF
 	}
 	return ImageTypeUnknown
+}
+
+func vipsImageSetBlob(in *C.VipsImage, name string, data []byte) {
+	cData := unsafe.Pointer(&data)
+	cDataLength := C.size_t(len(data))
+
+	cField := C.CString(name)
+	defer freeCString(cField)
+	C.image_set_blob(in, cField, cData, cDataLength)
+}
+
+func vipsImageGetBlob(in *C.VipsImage, name string) []byte {
+	var bufPtr unsafe.Pointer
+	var dataLength C.size_t
+
+	cField := C.CString(name)
+	defer freeCString(cField)
+	if int(C.image_get_blob(in, cField, &bufPtr, &dataLength)) != 0 {
+		return nil
+	}
+
+	buf := C.GoBytes(bufPtr, C.int(dataLength))
+	return buf
+}
+
+func vipsImageSetDouble(in *C.VipsImage, name string, f float64) {
+	cField := C.CString(name)
+	defer freeCString(cField)
+
+	cDouble := C.double(f)
+	C.image_set_double(in, cField, cDouble)
+}
+
+func vipsImageGetDouble(in *C.VipsImage, name string) float64 {
+	cField := C.CString(name)
+	defer freeCString(cField)
+
+	var cDouble C.double
+	if int(C.image_get_double(in, cField, &cDouble)) == 0 {
+		return float64(cDouble)
+	}
+
+	return 0
+}
+
+func vipsImageSetInt(in *C.VipsImage, name string, i int) {
+	cField := C.CString(name)
+	defer freeCString(cField)
+
+	cInt := C.int(i)
+	C.image_set_int(in, cField, cInt)
+}
+
+func vipsImageGetInt(in *C.VipsImage, name string) int {
+	cField := C.CString(name)
+	defer freeCString(cField)
+
+	var cInt C.int
+	if int(C.image_get_int(in, cField, &cInt)) == 0 {
+		return int(cInt)
+	}
+
+	return 0
+}
+
+func vipsImageSetString(in *C.VipsImage, name string, str string) {
+	cField := C.CString(name)
+	defer freeCString(cField)
+
+	cStr := C.CString(str)
+	defer freeCString(cStr)
+
+	C.image_set_string(in, cField, cStr)
+}
+
+func vipsImageGetString(in *C.VipsImage, name string) string {
+	cField := C.CString(name)
+	defer freeCString(cField)
+	var cFieldValue *C.char
+	defer freeCString(cFieldValue)
+	if int(C.image_get_string(in, cField, &cFieldValue)) == 0 {
+		return C.GoString(cFieldValue)
+	}
+
+	return ""
+}
+
+func vipsImageGetAsString(in *C.VipsImage, name string) string {
+	cField := C.CString(name)
+	defer freeCString(cField)
+	var cFieldValue *C.char
+	defer freeCString(cFieldValue)
+	if int(C.image_get_as_string(in, cField, &cFieldValue)) == 0 {
+		return C.GoString(cFieldValue)
+	}
+
+	return ""
 }

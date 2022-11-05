@@ -300,8 +300,7 @@ int set_tiffsave_options(VipsOperation *operation, SaveParams *params) {
       VIPS_OBJECT(operation), "strip", params->stripMetadata, "compression",
       params->tiffCompression, "predictor", params->tiffPredictor, "pyramid",
       params->tiffPyramid, "tile_height", params->tiffTileHeight, "tile_width",
-      params->tiffTileWidth, "tile", params->tiffTile, "xres", params->tiffXRes,
-      "yres", params->tiffYRes, NULL);
+      params->tiffTileWidth, "tile", params->tiffTile, NULL);
 
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
@@ -531,8 +530,6 @@ static SaveParams defaultSaveParams = {
     .tiffTile = FALSE,
     .tiffTileHeight = 256,
     .tiffTileWidth = 256,
-    .tiffXRes = 1.0,
-    .tiffYRes = 1.0,
 
     .jp2kLossless = FALSE,
     .jp2kTileHeight = 512,

@@ -1,5 +1,15 @@
 #include "conversion.h"
 
+int copy_image_changing_interpretation(VipsImage *in, VipsImage **out,
+                                       VipsInterpretation interpretation) {
+  return vips_copy(in, out, "interpretation", interpretation, NULL);
+}
+
+int copy_image_changing_resolution(VipsImage *in, VipsImage **out, double xres,
+                                   double yres) {
+  return vips_copy(in, out, "xres", xres, "yres", yres, NULL);
+}
+
 int copy_image(VipsImage *in, VipsImage **out) {
   return vips_copy(in, out, NULL);
 }
