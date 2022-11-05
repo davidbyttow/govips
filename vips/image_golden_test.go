@@ -189,27 +189,10 @@ func TestImage_RemoveICCProfile(t *testing.T) {
 		}, nil)
 }
 
-func TestImage_SetExifField(t *testing.T) {
-	var originalExifValue string
-	goldenTest(t, resources+"heic-24bit-exif.heic",
-		func(img *ImageRef) error {
-			originalExifValue = img.GetString("exif-ifd0-Model")
-			assert.NotEqual(t, originalExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
-			img.SetString("exif-ifd0-Model", "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
-			updatedExifValue := img.GetString("exif-ifd0-Model")
-			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
-			return nil
-		},
-		func(img *ImageRef) {
-			updatedExifValue := img.GetString("exif-ifd0-Model")
-			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
-		}, nil)
-}
-
 // NOTE: The JPEG spec requires some minimal exif data including exif-ifd0-Orientation.
 // libvips always adds these fields back but they should not be a privacy concern.
 // HEIC images require the same fields and behave the same way in libvips.
-func TestImage_RemoveMetadata_Removes_Exif_HEIC(t *testing.T) {
+func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
 	var initialEXIFCount int
 	goldenTest(t, resources+"heic-24bit-exif.heic",
 		func(img *ImageRef) error {
@@ -224,6 +207,23 @@ func TestImage_RemoveMetadata_Removes_Exif_HEIC(t *testing.T) {
 			exifData := img.GetExif()
 			finalEXIFCount := len(exifData)
 			assert.Less(t, finalEXIFCount, initialEXIFCount)
+		}, nil)
+}
+
+func TestImage_SetExifField(t *testing.T) {
+	var originalExifValue string
+	goldenTest(t, resources+"heic-24bit-exif.heic",
+		func(img *ImageRef) error {
+			originalExifValue = img.GetString("exif-ifd0-Model")
+			assert.NotEqual(t, originalExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			img.SetString("exif-ifd0-Model", "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			updatedExifValue := img.GetString("exif-ifd0-Model")
+			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			return nil
+		},
+		func(img *ImageRef) {
+			updatedExifValue := img.GetString("exif-ifd0-Model")
+			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
 		}, nil)
 }
 
