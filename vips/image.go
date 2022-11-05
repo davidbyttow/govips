@@ -1060,6 +1060,15 @@ func (r *ImageRef) ExtractBand(band int, num int) error {
 	return nil
 }
 
+// ExtractBandToImage extracts one or more bands out of the image to a new image
+func (r *ImageRef) ExtractBandToImage(band int, num int) (*ImageRef, error) {
+	out, err := vipsExtractBand(r.image, band, num)
+	if err != nil {
+		return nil, err
+	}
+	return &ImageRef{image: out}, nil
+}
+
 // BandJoin joins a set of images together, bandwise.
 func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	vipsImages := []*C.VipsImage{r.image}
