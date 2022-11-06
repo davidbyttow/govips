@@ -1084,6 +1084,19 @@ func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	return nil
 }
 
+// BandSplit split an n-band image into n separate images..
+func (r *ImageRef) BandSplit() ([]*ImageRef, error) {
+	var out []*ImageRef
+	for i := 0; i < r.Bands(); i++ {
+		img, err := vipsExtractBand(r.image, i, 1)
+		if err != nil {
+			return out, err
+		}
+		out = append(out, &ImageRef{image: img})
+	}
+	return out, nil
+}
+
 // BandJoinConst appends a set of constant bands to an image.
 func (r *ImageRef) BandJoinConst(constants []float64) error {
 	out, err := vipsBandJoinConst(r.image, constants)

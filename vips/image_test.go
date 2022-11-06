@@ -813,6 +813,39 @@ func TestBandJoin(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestExtractBandToImage(t *testing.T) {
+	Startup(nil)
+	image1, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	v, err := image1.ExtractBandToImage(0, 2)
+	require.NoError(t, err)
+	require.Equal(t, v.Bands(), 2)
+
+	_, err = v.ExtractBandToImage(0, 3)
+	require.Error(t, err)
+}
+
+func TestBandSplit(t *testing.T) {
+	Startup(nil)
+
+	image1, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	bands, err := image1.BandSplit()
+	require.NoError(t, err)
+
+	require.Len(t, bands, 3)
+
+	image2, err := NewImageFromFile(resources + "with_alpha.png")
+	require.NoError(t, err)
+
+	bands2, err := image2.BandSplit()
+	require.NoError(t, err)
+
+	require.Len(t, bands2, 4)
+}
+
 func TestIsColorSpaceSupport(t *testing.T) {
 	Startup(nil)
 
