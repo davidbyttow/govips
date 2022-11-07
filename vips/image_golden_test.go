@@ -1016,6 +1016,7 @@ func goldenCreateTest(
 	require.NoError(t, err)
 
 	img2, err := createFromBuffer(buf2)
+	require.NoError(t, err)
 
 	err = exec(img2)
 	require.NoError(t, err)
@@ -1036,24 +1037,24 @@ func goldenCreateTest(
 func getEnvironment() string {
 	switch runtime.GOOS {
 	case "windows":
-		return "windows"
+		return "windows" + "_libvips-" + Version
 	case "darwin":
 		out, err := exec.Command("sw_vers", "-productVersion").Output()
 		if err != nil {
 			return "macos-unknown"
 		}
 		majorVersion := strings.Split(strings.TrimSpace(string(out)), ".")[0]
-		return "macos-" + majorVersion
+		return "macos-" + majorVersion + "_libvips-" + Version
 	case "linux":
 		out, err := exec.Command("lsb_release", "-cs").Output()
 		if err != nil {
 			return "linux"
 		}
 		strout := strings.TrimSuffix(string(out), "\n")
-		return "linux-" + strout
+		return "linux-" + strout + "_libvips-" + Version
 	}
-	// default to linux assets otherwise
-	return "linux"
+	// default to unknown assets otherwise
+	return "unknown_libvips-" + Version
 }
 
 func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) {
