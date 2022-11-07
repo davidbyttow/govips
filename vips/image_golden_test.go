@@ -196,14 +196,12 @@ func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
 	var initialEXIFCount int
 	goldenTest(t, resources+"heic-24bit-exif.heic",
 		func(img *ImageRef) error {
-			assert.True(t, img.HasExif())
 			exifData := img.GetExif()
 			initialEXIFCount = len(exifData)
 			assert.Greater(t, initialEXIFCount, 0)
 			return img.RemoveMetadata()
 		},
 		func(img *ImageRef) {
-			assert.True(t, img.HasExif())
 			exifData := img.GetExif()
 			finalEXIFCount := len(exifData)
 			assert.Less(t, finalEXIFCount, initialEXIFCount)
