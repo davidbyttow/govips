@@ -189,16 +189,26 @@ func TestImage_RemoveICCProfile(t *testing.T) {
 		}, nil)
 }
 
+// NOTE: The JPEG spec requires some minimal exif data including exif-ifd0-Orientation.
+// libvips always adds these fields back but they should not be a privacy concern.
+// HEIC images require the same fields and behave the same way in libvips.
 func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
+	var initialEXIFCount int
 	goldenTest(t, resources+"heic-24bit-exif.heic",
 		func(img *ImageRef) error {
 			assert.True(t, img.HasExif())
 			exifData := img.GetExif()
-			assert.Greater(t, len(exifData), 0)
+			initialEXIFCount = len(exifData)
+			t.Logf("Initial EXIF Count: %v", initialEXIFCount)
+			assert.Greater(t, initialEXIFCount, 0)
 			return img.RemoveMetadata()
 		},
 		func(img *ImageRef) {
-			assert.False(t, img.HasExif())
+			assert.True(t, img.HasExif())
+			exifData := img.GetExif()
+			finalEXIFCount := len(exifData)
+			t.Logf("Final EXIF Count: %v", finalEXIFCount)
+			assert.Less(t, finalEXIFCount, initialEXIFCount)
 		}, nil)
 }
 
