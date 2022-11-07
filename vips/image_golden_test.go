@@ -189,16 +189,39 @@ func TestImage_RemoveICCProfile(t *testing.T) {
 		}, nil)
 }
 
+// NOTE: The JPEG spec requires some minimal exif data including exif-ifd0-Orientation.
+// libvips always adds these fields back but they should not be a privacy concern.
+// HEIC images require the same fields and behave the same way in libvips.
 func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
+	var initialEXIFCount int
 	goldenTest(t, resources+"heic-24bit-exif.heic",
 		func(img *ImageRef) error {
-			assert.True(t, img.HasExif())
 			exifData := img.GetExif()
-			assert.Greater(t, len(exifData), 0)
+			initialEXIFCount = len(exifData)
+			assert.Greater(t, initialEXIFCount, 0)
 			return img.RemoveMetadata()
 		},
 		func(img *ImageRef) {
-			assert.False(t, img.HasExif())
+			exifData := img.GetExif()
+			finalEXIFCount := len(exifData)
+			assert.Less(t, finalEXIFCount, initialEXIFCount)
+		}, nil)
+}
+
+func TestImage_SetExifField(t *testing.T) {
+	var originalExifValue string
+	goldenTest(t, resources+"heic-24bit-exif.heic",
+		func(img *ImageRef) error {
+			originalExifValue = img.GetString("exif-ifd0-Model")
+			assert.NotEqual(t, originalExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			img.SetString("exif-ifd0-Model", "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			updatedExifValue := img.GetString("exif-ifd0-Model")
+			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
+			return nil
+		},
+		func(img *ImageRef) {
+			updatedExifValue := img.GetString("exif-ifd0-Model")
+			assert.Equal(t, updatedExifValue, "iPhone (iPhone, ASCII, 7 components, 7 bytes)")
 		}, nil)
 }
 
@@ -329,6 +352,11 @@ func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
 	avifExportParams.Bitdepth = 12
 	goldenTest(t, resources+"tif-16bit.tif",
 		func(img *ImageRef) error {
+			// TIFF images don't use regular exif fields -- they iptc and/or xmp instead.
+			fields := img.GetFields()
+			assert.Greater(t, len(fields), 0)
+			xmpData := img.GetBlob("xmp-data")
+			assert.Greater(t, len(xmpData), 0)
 			return nil
 		},
 		func(result *ImageRef) {

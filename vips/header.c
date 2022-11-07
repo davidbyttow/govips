@@ -8,15 +8,7 @@ unsigned long has_icc_profile(VipsImage *in) {
 
 unsigned long get_icc_profile(VipsImage *in, const void **data,
                               size_t *dataLength) {
-  if (vips_image_get_typeof(in, VIPS_META_ICC_NAME) == 0) {
-    return 0;
-  }
-
-  if (vips_image_get_blob(in, VIPS_META_ICC_NAME, data, dataLength)) {
-    return -1;
-  }
-
-  return 0;
+  return image_get_blob(in, VIPS_META_ICC_NAME, data, dataLength);
 }
 
 gboolean remove_icc_profile(VipsImage *in) {
@@ -29,9 +21,17 @@ unsigned long has_iptc(VipsImage *in) {
 
 char **image_get_fields(VipsImage *in) { return vips_image_get_fields(in); }
 
+void image_set_string(VipsImage *in, const char *name, const char *str) {
+  vips_image_set_string(in, name, str);
+}
+
 unsigned long image_get_string(VipsImage *in, const char *name,
                                const char **out) {
   return vips_image_get_string(in, name, out);
+}
+
+unsigned long image_get_as_string(VipsImage *in, const char *name, char **out) {
+  return vips_image_get_as_string(in, name, out);
 }
 
 void remove_field(VipsImage *in, char *field) { vips_image_remove(in, field); }
@@ -85,4 +85,38 @@ int get_image_delay(VipsImage *in, int **out) {
 
 void set_image_delay(VipsImage *in, const int *array, int n) {
   return vips_image_set_array_int(in, "delay", array, n);
+}
+
+void image_set_double(VipsImage *in, const char *name, double i) {
+  vips_image_set_double(in, name, i);
+}
+
+unsigned long image_get_double(VipsImage *in, const char *name, double *out) {
+  return vips_image_get_double(in, name, out);
+}
+
+void image_set_int(VipsImage *in, const char *name, int i) {
+  vips_image_set_int(in, name, i);
+}
+
+unsigned long image_get_int(VipsImage *in, const char *name, int *out) {
+  return vips_image_get_int(in, name, out);
+}
+
+void image_set_blob(VipsImage *in, const char *name, const void *data,
+                    size_t dataLength) {
+  vips_image_set_blob_copy(in, name, data, dataLength);
+}
+
+unsigned long image_get_blob(VipsImage *in, const char *name, const void **data,
+                             size_t *dataLength) {
+  if (vips_image_get_typeof(in, name) == 0) {
+    return 0;
+  }
+
+  if (vips_image_get_blob(in, name, data, dataLength)) {
+    return -1;
+  }
+
+  return 0;
 }

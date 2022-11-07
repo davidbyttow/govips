@@ -119,8 +119,6 @@ typedef struct SaveParams {
   BOOL tiffTile;
   int tiffTileHeight;
   int tiffTileWidth;
-  double tiffXRes;
-  double tiffYRes;
 
   // JPEG2000
   BOOL jp2kLossless;

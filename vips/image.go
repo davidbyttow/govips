@@ -507,6 +507,26 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 	return newImageRef(out, r.format, r.originalFormat, r.buf), nil
 }
 
+// Copy creates a new copy of the given image with the new X and Y resolution (PPI).
+func (r *ImageRef) CopyChangingResolution(xres, yres float64) (*ImageRef, error) {
+	out, err := vipsCopyImageChangingResolution(r.image, xres, yres)
+	if err != nil {
+		return nil, err
+	}
+
+	return newImageRef(out, r.format, r.originalFormat, r.buf), nil
+}
+
+// Copy creates a new copy of the given image with the interpretation.
+func (r *ImageRef) CopyChangingInterpretation(interpretation Interpretation) (*ImageRef, error) {
+	out, err := vipsCopyImageChangingInterpretation(r.image, interpretation)
+	if err != nil {
+		return nil, err
+	}
+
+	return newImageRef(out, r.format, r.originalFormat, r.buf), nil
+}
+
 // XYZ creates a two-band uint32 image where the elements in the first band have the value of their x coordinate
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
@@ -1374,7 +1394,47 @@ func (r *ImageRef) RemoveMetadata(keep ...string) error {
 }
 
 func (r *ImageRef) ImageFields() []string {
+	return r.GetFields()
+}
+
+func (r *ImageRef) GetFields() []string {
 	return vipsImageGetFields(r.image)
+}
+
+func (r *ImageRef) SetBlob(name string, data []byte) {
+	vipsImageSetBlob(r.image, name, data)
+}
+
+func (r *ImageRef) GetBlob(name string) []byte {
+	return vipsImageGetBlob(r.image, name)
+}
+
+func (r *ImageRef) SetDouble(name string, f float64) {
+	vipsImageSetDouble(r.image, name, f)
+}
+
+func (r *ImageRef) GetDouble(name string) float64 {
+	return vipsImageGetDouble(r.image, name)
+}
+
+func (r *ImageRef) SetInt(name string, i int) {
+	vipsImageSetInt(r.image, name, i)
+}
+
+func (r *ImageRef) GetInt(name string) int {
+	return vipsImageGetInt(r.image, name)
+}
+
+func (r *ImageRef) SetString(name string, str string) {
+	vipsImageSetString(r.image, name, str)
+}
+
+func (r *ImageRef) GetString(name string) string {
+	return vipsImageGetString(r.image, name)
+}
+
+func (r *ImageRef) GetAsString(name string) string {
+	return vipsImageGetAsString(r.image, name)
 }
 
 func (r *ImageRef) HasExif() bool {
