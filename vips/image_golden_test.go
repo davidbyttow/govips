@@ -355,8 +355,6 @@ func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
 			// TIFF images don't use regular exif fields -- they iptc and/or xmp instead.
 			fields := img.GetFields()
 			assert.Greater(t, len(fields), 0)
-			iptcData := img.GetBlob("iptc-data")
-			assert.Greater(t, len(iptcData), 0)
 			xmpData := img.GetBlob("xmp-data")
 			assert.Greater(t, len(xmpData), 0)
 			return nil
