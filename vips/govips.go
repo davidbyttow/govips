@@ -52,6 +52,10 @@ type Config struct {
 	ReportLeaks      bool
 	CacheTrace       bool
 	CollectStats     bool
+
+	// TempDir is a directory to use while GoVips is running. If not specified,
+	// a tempdir in /tmp will be created.
+	TempDir string
 }
 
 // Startup sets up the libvips support and ensures the versions are correct. Pass in nil for
@@ -96,7 +100,11 @@ func Startup(config *Config) {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
-	initializeICCProfiles()
+	if config != nil {
+		initializeICCProfiles(config.TempDir)
+	} else {
+		initializeICCProfiles("")
+	}
 
 	running = true
 
