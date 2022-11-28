@@ -531,20 +531,24 @@ func (r *ImageRef) CopyChangingInterpretation(interpretation Interpretation) (*I
 // and elements in the second band have their y coordinate.
 func XYZ(width, height int) (*ImageRef, error) {
 	vipsImage, err := vipsXYZ(width, height)
-	return &ImageRef{image: vipsImage}, err
+	return newImageRef(vipsImage, ImageTypeUnknown, ImageTypeUnknown, nil), err
 }
 
 // Identity creates an identity lookup table, which will leave an image unchanged when applied with Maplut.
 // Each entry in the table has a value equal to its position.
 func Identity(ushort bool) (*ImageRef, error) {
 	img, err := vipsIdentity(ushort)
-	return &ImageRef{image: img}, err
+	return newImageRef(img, ImageTypeUnknown, ImageTypeUnknown, nil), err
 }
 
 // Black creates a new black image of the specified size
 func Black(width, height int) (*ImageRef, error) {
 	vipsImage, err := vipsBlack(width, height)
-	return &ImageRef{image: vipsImage}, err
+	imageRef := &ImageRef{
+		image: vipsImage,
+	}
+	runtime.SetFinalizer(imageRef, finalizeImage)
+	return imageRef, err
 }
 
 func newImageRef(vipsImage *C.VipsImage, currentFormat ImageType, originalFormat ImageType, buf []byte) *ImageRef {
@@ -1086,7 +1090,7 @@ func (r *ImageRef) ExtractBandToImage(band int, num int) (*ImageRef, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &ImageRef{image: out}, nil
+	return newImageRef(out, ImageTypeUnknown, ImageTypeUnknown, nil), nil
 }
 
 // BandJoin joins a set of images together, bandwise.
