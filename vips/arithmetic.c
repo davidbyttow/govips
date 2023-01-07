@@ -49,3 +49,7 @@ int find_trim(VipsImage *in, int *left, int *top, int *width, int *height,
 int getpoint(VipsImage *in, double **vector, int n, int x, int y) {
   return vips_getpoint(in, vector, &n, x, y, NULL);
 }
+
+int hist_find(VipsImage *in, VipsImage **out) {
+  return vips_hist_find(in, out, NULL);
+}

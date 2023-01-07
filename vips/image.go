@@ -1208,6 +1208,14 @@ func (r *ImageRef) Add(addend *ImageRef) error {
 	return nil
 }
 
+func (r *ImageRef) HistFind() (*ImageRef, error) {
+	out, err := vipsHistFind(r.image)
+	if err != nil {
+		return nil, err
+	}
+	return newImageRef(out, ImageTypeUnknown, ImageTypeUnknown, nil), err
+}
+
 // Multiply calculates the product of the image * multiplier and stores it back in the image
 func (r *ImageRef) Multiply(multiplier *ImageRef) error {
 	out, err := vipsMultiply(r.image, multiplier.image)
