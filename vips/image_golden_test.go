@@ -1035,27 +1035,28 @@ func goldenCreateTest(
 }
 
 func getEnvironment() string {
+	sanitizedVersion := strings.ReplaceAll(Version, ":", "-")
 	switch runtime.GOOS {
 	case "windows":
 		// Missing Windows version detection. Windows is not a supported CI target right now
-		return "windows_" + runtime.GOARCH + "_libvips-" + Version
+		return "windows_" + runtime.GOARCH + "_libvips-" + sanitizedVersion
 	case "darwin":
 		out, err := exec.Command("sw_vers", "-productVersion").Output()
 		if err != nil {
-			return "macos-unknown_" + runtime.GOARCH + "_libvips-" + Version
+			return "macos-unknown_" + runtime.GOARCH + "_libvips-" + sanitizedVersion
 		}
 		majorVersion := strings.Split(strings.TrimSpace(string(out)), ".")[0]
-		return "macos-" + majorVersion + "_" + runtime.GOARCH + "_libvips-" + Version
+		return "macos-" + majorVersion + "_" + runtime.GOARCH + "_libvips-" + sanitizedVersion
 	case "linux":
 		out, err := exec.Command("lsb_release", "-cs").Output()
 		if err != nil {
 			return "linux-unknown_" + runtime.GOARCH
 		}
 		strout := strings.TrimSuffix(string(out), "\n")
-		return "linux-" + strout + "_" + runtime.GOARCH + "_libvips-" + Version
+		return "linux-" + strout + "_" + runtime.GOARCH + "_libvips-" + sanitizedVersion
 	}
 	// default to unknown assets otherwise
-	return "unknown_" + runtime.GOARCH + "_libvips-" + Version
+	return "unknown_" + runtime.GOARCH + "_libvips-" + sanitizedVersion
 }
 
 func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) {
