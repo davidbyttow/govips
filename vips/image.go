@@ -544,10 +544,7 @@ func Identity(ushort bool) (*ImageRef, error) {
 // Black creates a new black image of the specified size
 func Black(width, height int) (*ImageRef, error) {
 	vipsImage, err := vipsBlack(width, height)
-	imageRef := &ImageRef{
-		image: vipsImage,
-	}
-	runtime.SetFinalizer(imageRef, finalizeImage)
+	imageRef := newImageRef(vipsImage, ImageTypeUnknown, ImageTypeUnknown, nil)
 	return imageRef, err
 }
 
@@ -1116,7 +1113,8 @@ func (r *ImageRef) BandSplit() ([]*ImageRef, error) {
 		if err != nil {
 			return out, err
 		}
-		out = append(out, &ImageRef{image: img})
+		imageRef := newImageRef(img, ImageTypeUnknown, ImageTypeUnknown, nil)
+		out = append(out, imageRef)
 	}
 	return out, nil
 }
