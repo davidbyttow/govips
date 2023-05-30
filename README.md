@@ -44,9 +44,7 @@ sudo apt -y install libvips-dev
 
 ### Windows
 
-The recommended approach on Windows is to use Govips via WSL and Ubuntu.
-
-If you need to run Govips natively on Windows, it's not difficult but will require some effort. We don't have a recommended environment or setup at the moment. Windows is also not in our list of CI/CD targets so Govips is not regularly tested for compatibility. If you would be willing to setup and maintain a robust CI/CD Windows environment, please open a PR, we would be pleased to accept your contribution and support Windows as a platform.
+You should save dll files for libvips to your system env PATH from vips-dev-w64-web-8.14.2-static.zip of https://github.com/libvips/build-win64-mxe/releases/tag/v8.14.2 page. If you got error 0xc0000135, it means dll are not loaded for running. (In my test, svg converting speed was slow x3-x10 times than linux version on wsl2)
 
 ## Installation
 
