@@ -6,6 +6,7 @@ import (
 	jpeg2 "image/jpeg"
 	"image/png"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -966,6 +967,28 @@ func goldenTest(
 	validate(result)
 
 	assertGoldenMatch(t, path, buf, metadata.Format)
+
+	// Streaming tests
+	file, err := os.Open(path)
+	defer file.Close()
+
+	img2, err := NewImageFromReader(file)
+	require.NoError(t, err)
+
+	err = exec(img2)
+
+	require.NoError(t, err)
+
+	buf2, metadata2, err := export(img2)
+
+	require.NoError(t, err)
+
+	result2, err := NewImageFromBuffer(buf2)
+	require.NoError(t, err)
+
+	validate(result2)
+
+	assertGoldenMatch(t, path, buf2, metadata2.Format)
 
 	return buf
 }

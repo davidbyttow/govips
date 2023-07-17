@@ -387,12 +387,7 @@ func NewJp2kExportParams() *Jp2kExportParams {
 
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
-	buf, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return NewImageFromBuffer(buf)
+	return LoadImageFromReader(r, nil)
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
@@ -482,6 +477,38 @@ func LoadThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	ref := newImageRef(vipsImage, format, format, buf)
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageref %p", ref))
+	return ref, nil
+}
+
+// NewImageFromSource creates an ImageRef using the passed in source
+func NewImageFromSource(source *Source) (*ImageRef, error) {
+	return LoadImageFromSource(source, nil)
+}
+
+func LoadImageFromReader(r io.Reader, params *ImportParams) (*ImageRef, error) {
+	source, err := NewSourceFromReader(r)
+	if err != nil {
+		return nil, err
+	}
+	return LoadImageFromSource(source, params)
+}
+
+// LoadImageFromSource loads an image buffer from source and creates a new Image
+func LoadImageFromSource(source *Source, params *ImportParams) (*ImageRef, error) {
+
+	if params == nil {
+		params = NewImportParams()
+	}
+
+	vipsImage, currentFormat, originalFormat, err := vipsLoadFromSource(source, params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	ref := newImageRef(vipsImage, currentFormat, originalFormat, nil)
+
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageRef %p", ref))
 	return ref, nil
 }
 
@@ -860,6 +887,86 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 	}
 }
 
+// ExportWriter exports the image to the specified writer
+func (r *ImageRef) ExportWriter(w io.Writer, params *ExportParams) (*ImageMetadata, error) {
+	target, err := NewTargetToWriter(w)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.ExportTarget(target, params)
+
+}
+
+// ExportTarget exports the image to the specified Target.
+// The function also returns a copy of the image metadata as well as an error.
+func (r *ImageRef) ExportTarget(target *Target, params *ExportParams) (*ImageMetadata, error) {
+	if params == nil || params.Format == ImageTypeUnknown {
+		params = NewDefaultJPEGExportParams()
+	}
+
+	format := params.Format
+
+	if !IsTypeSupported(format) {
+		return r.newMetadata(ImageTypeUnknown), fmt.Errorf("cannot save to %#v", ImageTypes[format])
+	}
+
+	switch format {
+	case ImageTypeGIF:
+		return r.ExportGIFTarget(target, &GifExportParams{
+			Quality: params.Quality,
+		})
+	case ImageTypeWEBP:
+		return r.ExportWebpTarget(target, &WebpExportParams{
+			StripMetadata:   params.StripMetadata,
+			Quality:         params.Quality,
+			Lossless:        params.Lossless,
+			ReductionEffort: params.Effort,
+		})
+	case ImageTypePNG:
+		return r.ExportPngTarget(target, &PngExportParams{
+			StripMetadata: params.StripMetadata,
+			Compression:   params.Compression,
+			Interlace:     params.Interlaced,
+		})
+	case ImageTypeTIFF:
+		compression := TiffCompressionLzw
+		if params.Lossless {
+			compression = TiffCompressionNone
+		}
+		return r.ExportTiffTarget(target, &TiffExportParams{
+			StripMetadata: params.StripMetadata,
+			Quality:       params.Quality,
+			Compression:   compression,
+		})
+	case ImageTypeHEIF:
+		return r.ExportHeifTarget(target, &HeifExportParams{
+			Quality:  params.Quality,
+			Lossless: params.Lossless,
+		})
+	case ImageTypeAVIF:
+		return r.ExportAvifTarget(target, &AvifExportParams{
+			StripMetadata: params.StripMetadata,
+			Quality:       params.Quality,
+			Lossless:      params.Lossless,
+			Speed:         params.Speed,
+		})
+	default:
+		format = ImageTypeJPEG
+		return r.ExportJpegTarget(target, &JpegExportParams{
+			Quality:            params.Quality,
+			StripMetadata:      params.StripMetadata,
+			Interlace:          params.Interlaced,
+			OptimizeCoding:     params.OptimizeCoding,
+			SubsampleMode:      params.SubsampleMode,
+			TrellisQuant:       params.TrellisQuant,
+			OvershootDeringing: params.OvershootDeringing,
+			OptimizeScans:      params.OptimizeScans,
+			QuantTable:         params.QuantTable,
+		})
+	}
+}
+
 // ExportNative exports the image to a buffer based on its native format with default parameters.
 func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 	switch r.format {
@@ -997,6 +1104,121 @@ func (r *ImageRef) ExportJp2k(params *Jp2kExportParams) ([]byte, *ImageMetadata,
 	}
 
 	return buf, r.newMetadata(ImageTypeJP2K), nil
+}
+
+// ExportJpegTarget exports the image as JPEG to a target.
+func (r *ImageRef) ExportJpegTarget(target *Target, params *JpegExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewJpegExportParams()
+	}
+
+	err := vipsSaveJPEGToTarget(r.image, target, *params)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypeJPEG), nil
+}
+
+// ExportPngTarget exports the image as PNG to a target.
+func (r *ImageRef) ExportPngTarget(target *Target, params *PngExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewPngExportParams()
+	}
+
+	err := vipsSavePNGToTarget(r.image, target, *params)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypePNG), nil
+}
+
+// ExportWebpTarget exports the image as WEBP to a target.
+func (r *ImageRef) ExportWebpTarget(target *Target, params *WebpExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewWebpExportParams()
+	}
+
+	paramsWithIccProfile := *params
+	paramsWithIccProfile.IccProfile = r.optimizedIccProfile
+
+	err := vipsSaveWebPToTarget(r.image, target, paramsWithIccProfile)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypeWEBP), nil
+}
+
+// ExportHeifTarget exports the image as HEIF to a target.
+func (r *ImageRef) ExportHeifTarget(target *Target, params *HeifExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewHeifExportParams()
+	}
+
+	err := vipsSaveHEIFToTarget(r.image, target, *params)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypeHEIF), nil
+}
+
+// ExportTiffTarget exports the image as TIFF to a target.
+func (r *ImageRef) ExportTiffTarget(target *Target, params *TiffExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewTiffExportParams()
+	}
+
+	err := vipsSaveTIFFToTarget(r.image, target, *params)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypeTIFF), nil
+}
+
+// ExportGIFTarget exports the image as GIF to a target.
+func (r *ImageRef) ExportGIFTarget(target *Target, params *GifExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewGifExportParams()
+	}
+
+	err := vipsSaveGIFToTarget(r.image, target, *params)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypeGIF), nil
+}
+
+// ExportAvifTarget exports the image as AVIF to a target.
+func (r *ImageRef) ExportAvifTarget(target *Target, params *AvifExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewAvifExportParams()
+	}
+
+	err := vipsSaveAVIFToTarget(r.image, target, *params)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypeAVIF), nil
+}
+
+// ExportJp2kTarget exports the image as JPEG2000 to a target.
+func (r *ImageRef) ExportJp2kTarget(target *Target, params *Jp2kExportParams) (*ImageMetadata, error) {
+	if params == nil {
+		params = NewJp2kExportParams()
+	}
+
+	err := vipsSaveJP2KToTarget(r.image, target, *params)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.newMetadata(ImageTypeJP2K), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.

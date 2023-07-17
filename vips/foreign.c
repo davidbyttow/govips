@@ -20,6 +20,10 @@ void set_double_param(Param *p, gdouble d) {
   p->is_set = TRUE;
 }
 
+void * source_sniff(VipsSourceCustom * source, size_t len) {
+  return vips_source_sniff((VipsSource *) source, len);
+}
+
 int load_image_buffer(LoadParams *params, void *buf, size_t len,
                       VipsImage **out) {
   int code = 1;
@@ -229,6 +233,112 @@ int save_buffer(const char *operationName, SaveParams *params,
   params->outputLen = area->length;
   area->free_fn = NULL;
   vips_area_unref(area);
+
+  return 0;
+}
+
+int load_source(const char *operationName, VipsSourceCustom *src,
+                LoadParams *params, SetLoadOptionsFn setLoadOptions) {
+
+  VipsOperation *operation = vips_operation_new(operationName);
+  if (!operation) {
+    return 1;
+  }
+
+  if (vips_object_set(VIPS_OBJECT(operation), "source", src, NULL)) {
+    return 1;
+  }
+
+  if (setLoadOptions(operation, params)) {
+    vips_object_unref_outputs(VIPS_OBJECT(operation));
+    g_object_unref(operation);
+    return 1;
+  }
+
+  if (vips_cache_operation_buildp(&operation)) {
+    vips_object_unref_outputs(VIPS_OBJECT(operation));
+    g_object_unref(operation);
+    return 1;
+  }
+
+  g_object_get(VIPS_OBJECT(operation), "out", &params->outputImage, NULL);
+
+  vips_object_unref_outputs(VIPS_OBJECT(operation));
+  g_object_unref(operation);
+
+  return 0;
+}
+
+int load_from_source(LoadParams *params, VipsSourceCustom *source) {
+
+  switch (params->inputFormat) {
+  case JPEG:
+    return load_source("jpegload_source", source, params,
+                       set_jpegload_options);
+  case PNG:
+    return load_source("pngload_source", source, params,
+                       set_pngload_options);
+  case WEBP:
+    return load_source("webpload_source", source, params,
+                       set_webpload_options);
+  case HEIF:
+    return load_source("heifload_source", source, params,
+                       set_heifload_options);
+  case TIFF:
+    return load_source("tiffload_source", source, params,
+                       set_tiffload_options);
+  case SVG:
+    return load_source("svgload_source", source, params,
+                       set_svgload_options);
+  case GIF:
+    return load_source("gifload_source", source, params,
+                       set_gifload_options);
+  case PDF:
+    return load_source("pdfload_source", source, params,
+                       set_pdfload_options);
+  case MAGICK:
+    return load_source("magickload_source", source, params,
+                       set_magickload_options);
+  case AVIF:
+    return load_source("heifload_source", source, params,
+                       set_heifload_options);
+  case JP2K:
+    return load_source("jp2kload_source", source, params,
+                       set_jp2kload_options);
+  default:
+    g_warning("Unsupported input type given: %d", params->inputFormat);
+  }
+  return 0;
+}
+
+int save_target(const char *operationName, SaveParams *params, VipsTargetCustom *target,
+                SetSaveOptionsFn setSaveOptions) {
+
+  VipsOperation *operation = vips_operation_new(operationName);
+  if (!operation) {
+    return 1;
+  }
+
+  if (vips_object_set(VIPS_OBJECT(operation), "in", params->inputImage, NULL)) {
+    return 1;
+  }
+
+  if (vips_object_set(VIPS_OBJECT(operation), "target", target, NULL)) {
+    return 1;
+  }
+
+  if (setSaveOptions(operation, params)) {
+    g_object_unref(operation);
+    return 1;
+  }
+
+  if (vips_cache_operation_buildp(&operation)) {
+    vips_object_unref_outputs(VIPS_OBJECT(operation));
+    g_object_unref(operation);
+    return 1;
+  }
+
+  g_object_unref(operation);
 
   return 0;
 }
@@ -464,6 +574,34 @@ int save_to_buffer(SaveParams *params) {
       return save_buffer("jp2ksave_buffer", params, set_jp2ksave_options);
     default:
       g_warning("Unsupported output type given: %d", params->outputFormat);
+  }
+  return 1;
+}
+
+int save_to_target(SaveParams *params, VipsTargetCustom *target) {
+  switch (params->outputFormat) {
+  case JPEG:
+    return save_target("jpegsave_target", params, target, set_jpegsave_options);
+  case PNG:
+    return save_target("pngsave_target", params, target, set_pngsave_options);
+  case WEBP:
+    return save_target("webpsave_target", params, target, set_webpsave_options);
+  case HEIF:
+    return save_target("heifsave_target", params, target, set_heifsave_options);
+  case TIFF:
+    return save_target("tiffsave_target", params, target, set_tiffsave_options);
+  case GIF:
+#if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 12)      
+    return save_target("gifsave_target", params, target, set_gifsave_options);
+#else      
+    return save_target("magicksave_target", params, target, set_magicksave_options);
+#endif    
+  case AVIF:
+    return save_target("heifsave_target", params, target, set_avifsave_options);
+  case JP2K:
+    return save_target("jp2ksave_target", params, target, set_jp2ksave_options);
+  default:
+    g_warning("Unsupported output type given: %d", params->outputFormat);
   }
   return 1;
 }

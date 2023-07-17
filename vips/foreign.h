@@ -70,6 +70,9 @@ typedef struct LoadParams {
 
 LoadParams create_load_params(ImageType inputFormat);
 int load_from_buffer(LoadParams *params, void *buf, size_t len);
+int load_from_source(LoadParams *params, VipsSourceCustom *source);
+
+void * source_sniff(VipsSourceCustom * source, size_t len);
 
 typedef struct SaveParams {
   VipsImage *inputImage;
@@ -128,4 +131,5 @@ typedef struct SaveParams {
 
 SaveParams create_save_params(ImageType outputFormat);
 int save_to_buffer(SaveParams *params);
+int save_to_target(SaveParams *params, VipsTargetCustom *target);
 
