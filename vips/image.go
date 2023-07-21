@@ -26,10 +26,11 @@ type PreMultiplicationState struct {
 
 // ImageRef contains a libvips image and manages its lifecycle.
 type ImageRef struct {
-	// NOTE: We keep a reference to this so that the input buffer is
+	// NOTE: We keep a reference to buf and/or source so that the input buffer/source is
 	// never garbage collected during processing. Some image loaders use random
-	// access transcoding and therefore need the original buffer to be in memory.
+	// access transcoding and therefore need the original buffer/source to be in memory.
 	buf                 []byte
+	source              *Source
 	image               *C.VipsImage
 	format              ImageType
 	originalFormat      ImageType
@@ -507,6 +508,7 @@ func LoadImageFromSource(source *Source, params *ImportParams) (*ImageRef, error
 	}
 
 	ref := newImageRef(vipsImage, currentFormat, originalFormat, nil)
+	ref.source = source // hold reference to source to ensure it is not gc'd
 
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageRef %p", ref))
 	return ref, nil
@@ -604,6 +606,11 @@ func (r *ImageRef) Close() {
 	if r.image != nil {
 		clearImage(r.image)
 		r.image = nil
+	}
+
+	if r.source != nil {
+		r.source.Close()
+		r.source = nil
 	}
 
 	r.buf = nil
@@ -893,6 +900,7 @@ func (r *ImageRef) ExportWriter(w io.Writer, params *ExportParams) (*ImageMetada
 	if err != nil {
 		return nil, err
 	}
+	defer target.Close()
 
 	return r.ExportTarget(target, params)
 

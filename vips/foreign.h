@@ -126,7 +126,7 @@ typedef struct SaveParams {
   // JPEG2000
   BOOL jp2kLossless;
   int jp2kTileWidth;
-  int	jp2kTileHeight;
+  int jp2kTileHeight;
 } SaveParams;
 
 SaveParams create_save_params(ImageType outputFormat);
