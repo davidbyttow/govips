@@ -135,7 +135,7 @@ func NewTargetToWriter(writer io.Writer) (*Target, error) {
 	vipsTarget := C.create_go_custom_target(targetPtr)
 
 	if vipsTarget == nil {
-		return nil, fmt.Errorf("error creating target from source: nil source")
+		return nil, handleVipsError()
 	}
 
 	target.writer = writer
@@ -157,7 +157,7 @@ func NewSourceFromReader(reader io.Reader) (*Source, error) {
 	vipsSrc := C.create_go_custom_source(sourcePtr)
 
 	if vipsSrc == nil {
-		return nil, fmt.Errorf("error creating source from reader: nil source")
+		return nil, handleVipsError()
 	}
 
 	source.reader = reader
@@ -178,7 +178,7 @@ func NewSourceFromFile(path string) (*Source, error) {
 	vipsSrc := C.vips_source_new_from_file(cpath)
 
 	if vipsSrc == nil {
-		return nil, fmt.Errorf("error creating source from reader: nil source")
+		return nil, handleVipsError()
 	}
 
 	source.vipsSrc = vipsSrc
