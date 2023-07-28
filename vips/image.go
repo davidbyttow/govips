@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"io/ioutil"
 	"runtime"
 	"strconv"
 	"strings"
@@ -398,13 +397,12 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // LoadImageFromFile loads an image from file and creates a new ImageRef
 func LoadImageFromFile(file string, params *ImportParams) (*ImageRef, error) {
-	buf, err := ioutil.ReadFile(file)
+	source, err := NewSourceFromFile(file)
 	if err != nil {
 		return nil, err
 	}
-
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("creating imageRef from file %s", file))
-	return LoadImageFromBuffer(buf, params)
+	return LoadImageFromSource(source, params)
 }
 
 // NewImageFromBuffer loads an image buffer and creates a new Image

@@ -20,10 +20,6 @@ void set_double_param(Param *p, gdouble d) {
   p->is_set = TRUE;
 }
 
-void * source_sniff(VipsSourceCustom * source, size_t len) {
-  return vips_source_sniff((VipsSource *) source, len);
-}
-
 int load_image_buffer(LoadParams *params, void *buf, size_t len,
                       VipsImage **out) {
   int code = 1;
@@ -237,7 +233,7 @@ int save_buffer(const char *operationName, SaveParams *params,
   return 0;
 }
 
-int load_source(const char *operationName, VipsSourceCustom *src,
+int load_source(const char *operationName, VipsSource *src,
                 LoadParams *params, SetLoadOptionsFn setLoadOptions) {
 
   VipsOperation *operation = vips_operation_new(operationName);
@@ -269,7 +265,7 @@ int load_source(const char *operationName, VipsSourceCustom *src,
   return 0;
 }
 
-int load_from_source(LoadParams *params, VipsSourceCustom *source) {
+int load_from_source(LoadParams *params, VipsSource *source) {
 
   switch (params->inputFormat) {
   case JPEG:
@@ -311,7 +307,7 @@ int load_from_source(LoadParams *params, VipsSourceCustom *source) {
   return 0;
 }
 
-int save_target(const char *operationName, SaveParams *params, VipsTargetCustom *target,
+int save_target(const char *operationName, SaveParams *params, VipsTarget *target,
                 SetSaveOptionsFn setSaveOptions) {
 
   VipsOperation *operation = vips_operation_new(operationName);
@@ -578,7 +574,7 @@ int save_to_buffer(SaveParams *params) {
   return 1;
 }
 
-int save_to_target(SaveParams *params, VipsTargetCustom *target) {
+int save_to_target(SaveParams *params, VipsTarget *target) {
   switch (params->outputFormat) {
   case JPEG:
     return save_target("jpegsave_target", params, target, set_jpegsave_options);

@@ -135,14 +135,14 @@ func IsTypeSupported(imageType ImageType) bool {
 // DetermineImageTypeFromSource attempts to determine the image type of the given source
 func DetermineImageTypeFromSource(source *Source) ImageType {
 	length := 20
-	data := C.source_sniff(source.vipsSrc, C.ulong(length))
+	data := C.vips_source_sniff(source.vipsSrc, C.ulong(length))
 
 	if data == nil {
 		return ImageTypeUnknown
 	}
 
 	sh := &reflect.SliceHeader{
-		Data: uintptr(data),
+		Data: uintptr(unsafe.Pointer(data)),
 		Len:  length,
 		Cap:  length,
 	}

@@ -16,13 +16,13 @@ import (
 type Source struct {
 	lock    sync.Mutex
 	reader  io.Reader
-	vipsSrc *C.VipsSourceCustom
+	vipsSrc *C.VipsSource
 }
 
 type Target struct {
 	lock       sync.Mutex
 	writer     io.Writer
-	vipsTarget *C.VipsTargetCustom
+	vipsTarget *C.VipsTarget
 }
 
 func (r *Source) Close() {
@@ -168,6 +168,26 @@ func NewSourceFromReader(reader io.Reader) (*Source, error) {
 	return source, nil
 }
 
+// NewSourceFromFile creates a Source from a file path
+func NewSourceFromFile(path string) (*Source, error) {
+	source := &Source{}
+
+	cpath := C.CString(path)
+	defer freeCString(cpath)
+
+	vipsSrc := C.vips_source_new_from_file(cpath)
+
+	if vipsSrc == nil {
+		return nil, fmt.Errorf("error creating source from reader: nil source")
+	}
+
+	source.vipsSrc = vipsSrc
+
+	runtime.SetFinalizer(source, finalizeSource)
+
+	return source, nil
+}
+
 func finalizeSource(ref *Source) {
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("closing source %p", ref))
 	ref.Close()
@@ -178,9 +198,9 @@ func finalizeTarget(ref *Target) {
 	ref.Close()
 }
 
-func clearTarget(ref *C.VipsTargetCustom) {
+func clearTarget(ref *C.VipsTarget) {
 	C.clear_target(&ref)
 }
-func clearSource(ref *C.VipsSourceCustom) {
+func clearSource(ref *C.VipsSource) {
 	C.clear_source(&ref)
 }

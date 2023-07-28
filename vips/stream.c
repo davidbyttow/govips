@@ -1,12 +1,12 @@
 #include "stream.h"
 #include "_cgo_export.h"
 
-void clear_source(VipsSourceCustom **ref) {
+void clear_source(VipsSource **ref) {
     // https://developer.gnome.org/gobject/stable/gobject-The-Base-Object-Type.html#g-clear-object
     if (G_IS_OBJECT(*ref)) g_clear_object(ref);
 }
 
-void clear_target(VipsTargetCustom **ref) {
+void clear_target(VipsTarget **ref) {
     // https://developer.gnome.org/gobject/stable/gobject-The-Base-Object-Type.html#g-clear-object
     if (G_IS_OBJECT(*ref)) g_clear_object(ref);
 }
@@ -28,21 +28,23 @@ static gint64 go_write ( VipsTargetCustom *target_custom, gpointer buffer, gint6
 }
 
 
-VipsSourceCustom * create_go_custom_source( void * source_ptr )
+VipsSource * create_go_custom_source( void * source_ptr )
 {
     VipsSourceCustom * source_custom = vips_source_custom_new();
 
     g_signal_connect( source_custom, "read", G_CALLBACK(go_read), source_ptr );
     g_signal_connect( source_custom, "seek", G_CALLBACK(go_seek), source_ptr );
 
-    return source_custom;
+    return (VipsSource *)source_custom;
 }
 
-VipsTargetCustom * create_go_custom_target( void * target_ptr )
+VipsTarget * create_go_custom_target( void * target_ptr )
 {
     VipsTargetCustom * target_custom = vips_target_custom_new();
 
     g_signal_connect( target_custom, "write", G_CALLBACK(go_write), target_ptr );
 
-    return target_custom;
+    return (VipsTarget *)target_custom;
 }
+
+
