@@ -7,8 +7,8 @@ import (
 	"encoding/xml"
 	"fmt"
 	"image/png"
+	"io"
 	"math"
-	"reflect"
 	"runtime"
 	"unsafe"
 
@@ -117,6 +117,14 @@ const (
 	PngFilterAll   PngFilter = C.VIPS_FOREIGN_PNG_FILTER_ALL
 )
 
+// String returns the string representation for the ImageType
+func (i ImageType) String() string {
+	if str, ok := ImageTypes[i]; ok {
+		return str
+	}
+	return ""
+}
+
 // FileExt returns the canonical extension for the ImageType
 func (i ImageType) FileExt() string {
 	if ext, ok := imageTypeExtensionMap[i]; ok {
@@ -130,25 +138,6 @@ func IsTypeSupported(imageType ImageType) bool {
 	startupIfNeeded()
 
 	return supportedImageTypes[imageType]
-}
-
-// DetermineImageTypeFromSource attempts to determine the image type of the given source
-func DetermineImageTypeFromSource(source *Source) ImageType {
-	length := 20
-	data := C.vips_source_sniff(source.vipsSrc, C.ulong(length))
-
-	if data == nil {
-		return ImageTypeUnknown
-	}
-
-	sh := &reflect.SliceHeader{
-		Data: uintptr(unsafe.Pointer(data)),
-		Len:  length,
-		Cap:  length,
-	}
-	buf := *(*[]byte)(unsafe.Pointer(sh))
-
-	return DetermineImageType(buf)
 }
 
 // DetermineImageType attempts to determine the image type of the given buffer
@@ -307,11 +296,23 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 
 func vipsLoadFromSource(source *Source, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {
 
-	originalType := DetermineImageTypeFromSource(source)
+	originalType := DetermineImageType(source.header)
 	currentType := originalType
 
+	if originalType == ImageTypeBMP {
+		src, err := io.ReadAll(source.reader)
+		if err != nil {
+			return nil, currentType, originalType, err
+		}
+		buf, err := bmpToPNG(src)
+		if err != nil {
+			return nil, currentType, originalType, err
+		}
+		return vipsLoadFromBuffer(buf, params)
+	}
+
 	if !IsTypeSupported(currentType) {
-		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format"))
+		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format: %s", currentType))
 		return nil, currentType, originalType, ErrUnsupportedImageFormat
 	}
 

@@ -479,17 +479,17 @@ func LoadThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	return ref, nil
 }
 
-// NewImageFromSource creates an ImageRef using the passed in source
-func NewImageFromSource(source *Source) (*ImageRef, error) {
-	return LoadImageFromSource(source, nil)
-}
-
 func LoadImageFromReader(r io.Reader, params *ImportParams) (*ImageRef, error) {
 	source, err := NewSourceFromReader(r)
 	if err != nil {
 		return nil, err
 	}
 	return LoadImageFromSource(source, params)
+}
+
+// NewImageFromSource creates an ImageRef using the passed in source
+func NewImageFromSource(source *Source) (*ImageRef, error) {
+	return LoadImageFromSource(source, nil)
 }
 
 // LoadImageFromSource loads an image buffer from source and creates a new Image

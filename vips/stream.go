@@ -4,17 +4,22 @@ package vips
 // #include "stream.h"
 import "C"
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"reflect"
 	"runtime"
 	"sync"
 	"unsafe"
 )
 
+const headerSize = 20
+
 type Source struct {
 	lock    sync.Mutex
+	header  []byte // 20 byte header of source
 	reader  io.Reader
 	vipsSrc *C.VipsSource
 }
@@ -160,7 +165,14 @@ func NewSourceFromReader(reader io.Reader) (*Source, error) {
 		return nil, handleVipsError()
 	}
 
-	source.reader = reader
+	bufReader := bufio.NewReader(reader)
+	header, err := bufReader.Peek(headerSize)
+	if err != nil {
+		return nil, err
+	}
+
+	source.header = header
+	source.reader = bufReader
 	source.vipsSrc = vipsSrc
 
 	runtime.SetFinalizer(source, finalizeSource)
@@ -170,6 +182,11 @@ func NewSourceFromReader(reader io.Reader) (*Source, error) {
 
 // NewSourceFromFile creates a Source from a file path
 func NewSourceFromFile(path string) (*Source, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+
 	source := &Source{}
 
 	cpath := C.CString(path)
@@ -181,6 +198,12 @@ func NewSourceFromFile(path string) (*Source, error) {
 		return nil, handleVipsError()
 	}
 
+	header := make([]byte, headerSize)
+	io.ReadFull(file, header)
+	file.Seek(0, 0)
+
+	source.header = header
+	source.reader = file
 	source.vipsSrc = vipsSrc
 
 	runtime.SetFinalizer(source, finalizeSource)
