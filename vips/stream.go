@@ -330,10 +330,8 @@ func goTargetWrite(targetPtr unsafe.Pointer, buffer unsafe.Pointer, length C.lon
 
 //export goTargetEnd
 func goTargetEnd(targetPtr unsafe.Pointer) (write C.longlong) {
-	// target := (*Target)(unsafe.Pointer(targetPtr))
-
+	govipsLog("govips", LogLevelDebug, fmt.Sprintf("goTargetEnd: target write end"))
 	return C.longlong(0)
-
 }
 
 func finalizeSource(ref *Source) {
