@@ -1,8 +1,9 @@
 package vips
 
 import (
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestThumbnail_NoCrop(t *testing.T) {

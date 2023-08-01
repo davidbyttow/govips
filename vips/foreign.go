@@ -10,6 +10,7 @@ import (
 	"io"
 	"math"
 	"runtime"
+	"strings"
 	"unsafe"
 
 	"golang.org/x/image/bmp"
@@ -171,6 +172,32 @@ func DetermineImageType(buf []byte) ImageType {
 	}
 }
 
+// DetermineImageTypeFromSource attempts to determine the image type of the given source
+func DetermineImageTypeFromSource(source *Source) ImageType {
+	// try to determine image type from header
+	imageType := DetermineImageType(source.header)
+	if imageType != ImageTypeUnknown {
+		return imageType
+	}
+
+	// fallback to vips_foreign_find_load_source
+	// https://www.libvips.org/API/current/VipsForeignSave.html#vips-foreign-find-load-source
+	cData := C.vips_foreign_find_load_source(source.vipsSrc)
+	if cData == nil {
+		return ImageTypeUnknown
+	}
+
+	loader := strings.ToLower(C.GoString(cData))
+	loader = strings.TrimSuffix(loader, "source")
+
+	imageType, ok := typeLoaders[loader]
+	if ok {
+		return imageType
+	}
+	govipsLog("govips", LogLevelInfo, fmt.Sprintf("unknown load source: %s", loader))
+	return ImageTypeUnknown
+}
+
 var jpeg = []byte("\xFF\xD8\xFF")
 
 func isJPEG(buf []byte) bool {
@@ -224,6 +251,7 @@ var svg = []byte("<svg")
 
 func isSVG(buf []byte) bool {
 	sub := buf[:int(math.Min(1024.0, float64(len(buf))))]
+
 	if bytes.Contains(sub, svg) {
 		data := &struct {
 			XMLName xml.Name `xml:"svg"`
@@ -234,7 +262,6 @@ func isSVG(buf []byte) bool {
 		decoder.CharsetReader = charset.NewReaderLabel
 
 		err := decoder.Decode(data)
-
 		return err == nil && data.XMLName.Local == "svg"
 	}
 
@@ -296,7 +323,7 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 
 func vipsLoadFromSource(source *Source, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {
 
-	originalType := DetermineImageType(source.header)
+	originalType := DetermineImageTypeFromSource(source)
 	currentType := originalType
 
 	if originalType == ImageTypeBMP {
@@ -312,7 +339,8 @@ func vipsLoadFromSource(source *Source, params *ImportParams) (*C.VipsImage, Ima
 	}
 
 	if !IsTypeSupported(currentType) {
-		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format: %s", currentType))
+
+		govipsLog("govips", LogLevelInfo, fmt.Sprintf("failed to understand image format: %v", len(source.header)))
 		return nil, currentType, originalType, ErrUnsupportedImageFormat
 	}
 
@@ -556,6 +584,14 @@ func vipsSaveWebPToTarget(in *C.VipsImage, out *Target, params WebpExportParams)
 
 func vipsSaveTIFFToTarget(in *C.VipsImage, out *Target, params TiffExportParams) error {
 	incOpCounter("save_tiff_target")
+
+	// libtiff requires read/seek capability as well
+	// https://www.libvips.org/API/current/VipsTargetCustom.html#vips-target-read
+	// https://www.libvips.org/API/current/VipsTargetCustom.html#vips-target-seek
+
+	if _, ok := out.writer.(io.ReadSeeker); !ok {
+		return ErrReadSeekerRequired
+	}
 
 	p := C.create_save_params(C.TIFF)
 	p.inputImage = in

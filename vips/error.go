@@ -13,6 +13,8 @@ import (
 var (
 	// ErrUnsupportedImageFormat when image type is unsupported
 	ErrUnsupportedImageFormat = errors.New("unsupported image format")
+	ErrWriterInvalid          = errors.New("writer is nil or invalid")
+	ErrReadSeekerRequired     = errors.New("writer is required to be ReadSeeker for output image type: tiff")
 )
 
 func handleImageError(out *C.VipsImage) error {

@@ -901,34 +901,99 @@ func testWebpOptimizeIccProfile(t *testing.T, exportParams *WebpExportParams) []
 	)
 }
 
-func exportWebp(exportParams *WebpExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
-	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+func exportWebp(exportParams *WebpExportParams) func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+		if useTarget {
+			return exportWebpTarget(img, exportParams)
+		}
 		return img.ExportWebp(exportParams)
 	}
 }
 
-func exportJpeg(exportParams *JpegExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
-	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+func exportJpeg(exportParams *JpegExportParams) func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+		if useTarget {
+			return exportJpegTarget(img, exportParams)
+		}
 		return img.ExportJpeg(exportParams)
 	}
 }
 
-func exportAvif(exportParams *AvifExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
-	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+func exportAvif(exportParams *AvifExportParams) func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+		if useTarget {
+			return exportAvifTarget(img, exportParams)
+		}
 		return img.ExportAvif(exportParams)
 	}
 }
 
-func exportPng(exportParams *PngExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
-	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+func exportPng(exportParams *PngExportParams) func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+		if useTarget {
+			return exportPngTarget(img, exportParams)
+		}
 		return img.ExportPng(exportParams)
 	}
 }
 
-func exportGif(exportParams *GifExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
-	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
+func exportGif(exportParams *GifExportParams) func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+	return func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error) {
+		if useTarget {
+			return exportGifTarget(img, exportParams)
+		}
 		return img.ExportGIF(exportParams)
 	}
+}
+
+func exportWebpTarget(img *ImageRef, exportParams *WebpExportParams) ([]byte, *ImageMetadata, error) {
+	buf := &bytes.Buffer{}
+	target, err := NewTargetToWriter(buf)
+	if err != nil {
+		return nil, nil, err
+	}
+	metadata, err := img.ExportWebpTarget(target, exportParams)
+	return buf.Bytes(), metadata, err
+}
+
+func exportJpegTarget(img *ImageRef, exportParams *JpegExportParams) ([]byte, *ImageMetadata, error) {
+	buf := &bytes.Buffer{}
+	target, err := NewTargetToWriter(buf)
+	if err != nil {
+		return nil, nil, err
+	}
+	metadata, err := img.ExportJpegTarget(target, exportParams)
+	return buf.Bytes(), metadata, err
+}
+
+func exportAvifTarget(img *ImageRef, exportParams *AvifExportParams) ([]byte, *ImageMetadata, error) {
+	buf := &bytes.Buffer{}
+	target, err := NewTargetToWriter(buf)
+	if err != nil {
+		return nil, nil, err
+	}
+	metadata, err := img.ExportAvifTarget(target, exportParams)
+	return buf.Bytes(), metadata, err
+}
+
+func exportPngTarget(img *ImageRef, exportParams *PngExportParams) ([]byte, *ImageMetadata, error) {
+	buf := &bytes.Buffer{}
+	target, err := NewTargetToWriter(buf)
+	if err != nil {
+		return nil, nil, err
+	}
+	metadata, err := img.ExportPngTarget(target, exportParams)
+	return buf.Bytes(), metadata, err
+}
+
+func exportGifTarget(img *ImageRef, exportParams *GifExportParams) ([]byte, *ImageMetadata, error) {
+	buf := &bytes.Buffer{}
+	target, err := NewTargetToWriter(buf)
+	if err != nil {
+		return nil, nil, err
+	}
+	metadata, err := img.ExportGIFTarget(target, exportParams)
+	return buf.Bytes(), metadata, err
 }
 
 func goldenTest(
@@ -936,7 +1001,7 @@ func goldenTest(
 	path string,
 	exec func(img *ImageRef) error,
 	validate func(img *ImageRef),
-	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
+	export func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error),
 ) []byte {
 	if exec == nil {
 		exec = func(*ImageRef) error { return nil }
@@ -947,49 +1012,45 @@ func goldenTest(
 	}
 
 	if export == nil {
-		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
+		export = func(img *ImageRef, _ bool) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
 	}
 
 	Startup(nil)
 
-	img, err := NewImageFromFile(path)
-	require.NoError(t, err)
+	var buf []byte
+	for _, loadWithReader := range []bool{false, true} {
+		for _, exportWithWriter := range []bool{false, true} {
 
-	err = exec(img)
-	require.NoError(t, err)
+			var img *ImageRef
+			var metadata *ImageMetadata
+			var err error
 
-	buf, metadata, err := export(img)
-	require.NoError(t, err)
+			file, err := os.Open(path)
+			require.NoError(t, err)
+			defer file.Close()
+			if loadWithReader {
+				img, err = NewImageFromReader(file)
+			} else {
+				img, err = NewImageFromFile(path)
+			}
 
-	result, err := NewImageFromBuffer(buf)
-	require.NoError(t, err)
+			require.NoError(t, err)
 
-	validate(result)
+			err = exec(img)
+			require.NoError(t, err)
 
-	assertGoldenMatch(t, path, buf, metadata.Format)
+			buf, metadata, err = export(img, exportWithWriter)
+			require.NoError(t, err)
 
-	// Streaming tests
-	file, err := os.Open(path)
-	defer file.Close()
+			result, err := NewImageFromBuffer(buf)
+			require.NoError(t, err)
 
-	img2, err := NewImageFromReader(file)
-	require.NoError(t, err)
+			validate(result)
 
-	err = exec(img2)
+			assertGoldenMatch(t, path, buf, metadata.Format)
 
-	require.NoError(t, err)
-
-	buf2, metadata2, err := export(img2)
-
-	require.NoError(t, err)
-
-	result2, err := NewImageFromBuffer(buf2)
-	require.NoError(t, err)
-
-	validate(result2)
-
-	assertGoldenMatch(t, path, buf2, metadata2.Format)
-
+		}
+	}
 	return buf
 }
 
@@ -1000,7 +1061,7 @@ func goldenCreateTest(
 	createFromBuffer func(buf []byte) (*ImageRef, error),
 	exec func(img *ImageRef) error,
 	validate func(img *ImageRef),
-	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
+	export func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error),
 ) []byte {
 	if createFromFile == nil {
 		createFromFile = NewImageFromFile
@@ -1014,45 +1075,53 @@ func goldenCreateTest(
 	}
 
 	if export == nil {
-		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
+		export = func(img *ImageRef, _ bool) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
 	}
 
 	Startup(nil)
 
-	img, err := createFromFile(path)
-	require.NoError(t, err)
+	var buf []byte
+	for _, exportWithWriter := range []bool{false, true} {
 
-	err = exec(img)
-	require.NoError(t, err)
+		var img *ImageRef
+		var metadata *ImageMetadata
+		var err error
 
-	buf, metadata, err := export(img)
-	require.NoError(t, err)
+		img, err = createFromFile(path)
+		require.NoError(t, err)
 
-	result, err := NewImageFromBuffer(buf)
-	require.NoError(t, err)
+		err = exec(img)
+		require.NoError(t, err)
 
-	validate(result)
+		buf, metadata, err = export(img, exportWithWriter)
+		require.NoError(t, err)
 
-	assertGoldenMatch(t, path, buf, metadata.Format)
+		result, err := NewImageFromBuffer(buf)
+		require.NoError(t, err)
 
-	buf2, err := ioutil.ReadFile(path)
-	require.NoError(t, err)
+		validate(result)
 
-	img2, err := createFromBuffer(buf2)
-	require.NoError(t, err)
+		assertGoldenMatch(t, path, buf, metadata.Format)
 
-	err = exec(img2)
-	require.NoError(t, err)
+		buf2, err := ioutil.ReadFile(path)
+		require.NoError(t, err)
 
-	buf2, metadata2, err := export(img2)
-	require.NoError(t, err)
+		img2, err := createFromBuffer(buf2)
+		require.NoError(t, err)
 
-	result2, err := NewImageFromBuffer(buf2)
-	require.NoError(t, err)
+		err = exec(img2)
+		require.NoError(t, err)
 
-	validate(result2)
+		buf2, metadata2, err := export(img2, exportWithWriter)
+		require.NoError(t, err)
 
-	assertGoldenMatch(t, path, buf2, metadata2.Format)
+		result2, err := NewImageFromBuffer(buf2)
+		require.NoError(t, err)
+
+		validate(result2)
+
+		assertGoldenMatch(t, path, buf2, metadata2.Format)
+	}
 
 	return buf
 }
@@ -1118,7 +1187,7 @@ func goldenAnimatedTest(
 	pages int,
 	exec func(img *ImageRef) error,
 	validate func(img *ImageRef),
-	export func(img *ImageRef) ([]byte, *ImageMetadata, error),
+	export func(img *ImageRef, useTarget bool) ([]byte, *ImageMetadata, error),
 ) []byte {
 	if exec == nil {
 		exec = func(*ImageRef) error { return nil }
@@ -1129,29 +1198,48 @@ func goldenAnimatedTest(
 	}
 
 	if export == nil {
-		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
+		export = func(img *ImageRef, _ bool) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
 	}
 
 	Startup(nil)
 
-	importParams := NewImportParams()
-	importParams.NumPages.Set(pages)
+	var buf []byte
+	for _, loadWithReader := range []bool{false, true} {
+		for _, exportWithWriter := range []bool{false, true} {
 
-	img, err := LoadImageFromFile(path, importParams)
-	require.NoError(t, err)
+			var img *ImageRef
+			var metadata *ImageMetadata
+			var err error
 
-	err = exec(img)
-	require.NoError(t, err)
+			importParams := NewImportParams()
+			importParams.NumPages.Set(pages)
 
-	buf, metadata, err := export(img)
-	require.NoError(t, err)
+			file, err := os.Open(path)
+			require.NoError(t, err)
+			defer file.Close()
 
-	result, err := NewImageFromBuffer(buf)
-	require.NoError(t, err)
+			if loadWithReader {
+				img, err = LoadImageFromReader(file, importParams)
+			} else {
+				img, err = LoadImageFromFile(path, importParams)
+			}
 
-	validate(result)
+			require.NoError(t, err)
 
-	assertGoldenMatch(t, path, buf, metadata.Format)
+			err = exec(img)
+			require.NoError(t, err)
+
+			buf, metadata, err = export(img, exportWithWriter)
+			require.NoError(t, err)
+
+			result, err := NewImageFromBuffer(buf)
+			require.NoError(t, err)
+
+			validate(result)
+
+			assertGoldenMatch(t, path, buf, metadata.Format)
+		}
+	}
 
 	return buf
 }
