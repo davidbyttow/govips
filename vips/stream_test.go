@@ -1,9 +1,8 @@
 package vips
 
 import (
-	"bytes"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os"
 	"testing"
 
@@ -30,44 +29,43 @@ func TestSource(t *testing.T) {
 		"jp2k-orientation-6.jp2",
 	}
 	tests := []struct {
-		name         string
-		files        []string
-		reader       func(string) io.Reader
-		expSourceErr error
-		expLoadErr   bool
+		name       string
+		files      []string
+		source     func(string) *Source
+		expLoadErr bool
 	}{
 		{
-			name:  "nil reader",
-			files: []string{"empty"},
-			reader: func(name string) io.Reader {
-				return nil
-			},
-			expSourceErr: io.EOF,
-		},
-		{
-			name:  "bad data",
-			files: []string{"empty"},
-			reader: func(name string) io.Reader {
-				return bytes.NewReader([]byte("not an image"))
-			},
-			expLoadErr: true,
-		},
-		{
-			name:  "good data",
+			name:  "pipe",
 			files: allImageTypeFiles,
-			reader: func(name string) io.Reader {
-				file, err := os.Open(resources + name)
+			source: func(path string) *Source {
+				file, err := os.Open(resources + path)
 				require.NoError(t, err)
-				return file
+				source, err := NewSourceFromPipe(file)
+				require.NoError(t, err)
+				return source
+			},
+		},
+		{
+			name:  "file path",
+			files: allImageTypeFiles,
+			source: func(path string) *Source {
+				source, err := NewSourceFromFile(resources + path)
+				require.NoError(t, err)
+				return source
 			},
 		},
 		{
 			name:  "incomplete data",
 			files: allImageTypeFiles,
-			reader: func(name string) io.Reader {
-				file, _ := os.Open(resources + name)
-				reader := io.LimitReader(file, 128)
-				return reader
+			source: func(path string) *Source {
+				file, err := os.Open(resources + path)
+				require.NoError(t, err)
+				fi, err := file.Stat()
+				require.NoError(t, err)
+				file.Seek(0, int(fi.Size()/2))
+				source, err := NewSourceFromPipe(file)
+				require.NoError(t, err)
+				return source
 			},
 			expLoadErr: true,
 		},
@@ -77,24 +75,11 @@ func TestSource(t *testing.T) {
 		for _, file := range test.files {
 			t.Run(fmt.Sprintf("[%s] %s", file, test.name), func(t *testing.T) {
 
-				reader := test.reader(file)
-
-				source, err := NewSourceFromReader(reader)
-				assert.Equal(t, test.expSourceErr, err)
-
-				if test.expSourceErr != nil {
-					require.Nil(t, source, nil)
-					return
-				}
+				source := test.source(file)
 
 				require.NotNil(t, source)
 
 				img, err := NewImageFromSource(source)
-				if test.expLoadErr {
-					assert.NotNil(t, err)
-					require.Nil(t, img)
-					return
-				}
 
 				require.NoError(t, err)
 				require.NotNil(t, img)
@@ -130,13 +115,13 @@ func TestTarget(t *testing.T) {
 		expExportError bool
 	}{
 		{
-			name:       "file writer target",
+			name:       "pipe target",
 			imageTypes: allSupportedTypes,
 			target: func() *Target {
 				file, err := os.CreateTemp("", "test")
 				require.NoError(t, err)
 
-				target, err := NewTargetToWriter(file)
+				target, err := NewTargetToPipe(file)
 				require.NoError(t, err)
 				return target
 			},
@@ -153,39 +138,22 @@ func TestTarget(t *testing.T) {
 				return target
 			},
 		},
-		{
-			name:       "buffer target - no tiff",
-			imageTypes: allTypesExceptTiff,
-			target: func() *Target {
-				target, err := NewTargetToWriter(&bytes.Buffer{})
-				require.NoError(t, err)
-				return target
-			},
-		},
-		{
-			name:       "buffer target - tiff",
-			imageTypes: []ImageType{ImageTypeTIFF},
-			target: func() *Target {
-				target, err := NewTargetToWriter(&bytes.Buffer{})
-				require.NoError(t, err)
-				return target
-			},
-			expExportError: true,
-		},
 	}
 
 	for _, test := range tests {
 		for _, format := range test.imageTypes {
 
 			t.Run(fmt.Sprintf("[%s] %s", format, test.name), func(t *testing.T) {
-				img, err := NewImageFromFile(resources + "png-24bit.png")
+				file, err := os.Open(resources + "png-24bit.png")
+				require.NoError(t, err)
+				buf, err := ioutil.ReadAll(file)
+				require.NoError(t, err)
+
+				img, err := NewImageFromBuffer(buf)
 				assert.NoError(t, err)
 				assert.NotNil(t, img)
 
 				target := test.target()
-				if file, ok := target.writer.(*os.File); ok {
-					defer os.Remove(file.Name())
-				}
 
 				assert.NotNil(t, target)
 

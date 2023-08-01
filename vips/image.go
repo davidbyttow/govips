@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"io/ioutil"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -387,7 +389,17 @@ func NewJp2kExportParams() *Jp2kExportParams {
 
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
-	return LoadImageFromReader(r, nil)
+	buf, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return LoadImageFromBuffer(buf, nil)
+}
+
+// NewImageFromPipe loads an ImageRef from the given reader
+func NewImageFromPipe(file *os.File) (*ImageRef, error) {
+	return LoadImageFromPipe(file, nil)
 }
 
 // NewImageFromFile loads an image from file and creates a new ImageRef
@@ -479,8 +491,8 @@ func LoadThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	return ref, nil
 }
 
-func LoadImageFromReader(r io.Reader, params *ImportParams) (*ImageRef, error) {
-	source, err := NewSourceFromReader(r)
+func LoadImageFromPipe(file *os.File, params *ImportParams) (*ImageRef, error) {
+	source, err := NewSourceFromPipe(file)
 	if err != nil {
 		return nil, err
 	}
@@ -893,15 +905,25 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 }
 
 // ExportWriter exports the image to the specified writer
-func (r *ImageRef) ExportWriter(w io.Writer, params *ExportParams) (*ImageMetadata, error) {
-	target, err := NewTargetToWriter(w)
+func (r *ImageRef) ExportToFile(path string, params *ExportParams) (*ImageMetadata, error) {
+	target, err := NewTargetToFile(path)
 	if err != nil {
 		return nil, err
 	}
 	defer target.Close()
 
 	return r.ExportTarget(target, params)
+}
 
+// ExportWriter exports the image to the specified writer
+func (r *ImageRef) ExportToPipe(file *os.File, params *ExportParams) (*ImageMetadata, error) {
+	target, err := NewTargetToPipe(file)
+	if err != nil {
+		return nil, err
+	}
+	defer target.Close()
+
+	return r.ExportTarget(target, params)
 }
 
 // ExportTarget exports the image to the specified Target.

@@ -327,7 +327,7 @@ func vipsLoadFromSource(source *Source, params *ImportParams) (*C.VipsImage, Ima
 	currentType := originalType
 
 	if originalType == ImageTypeBMP {
-		src, err := io.ReadAll(source.reader)
+		src, err := io.ReadAll(source.file)
 		if err != nil {
 			return nil, currentType, originalType, err
 		}
@@ -584,14 +584,6 @@ func vipsSaveWebPToTarget(in *C.VipsImage, out *Target, params WebpExportParams)
 
 func vipsSaveTIFFToTarget(in *C.VipsImage, out *Target, params TiffExportParams) error {
 	incOpCounter("save_tiff_target")
-
-	// libtiff requires read/seek capability as well
-	// https://www.libvips.org/API/current/VipsTargetCustom.html#vips-target-read
-	// https://www.libvips.org/API/current/VipsTargetCustom.html#vips-target-seek
-
-	if _, ok := out.writer.(io.ReadSeeker); !ok {
-		return ErrReadSeekerRequired
-	}
 
 	p := C.create_save_params(C.TIFF)
 	p.inputImage = in
