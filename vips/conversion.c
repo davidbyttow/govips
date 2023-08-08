@@ -126,6 +126,10 @@ int flip_image(VipsImage *in, VipsImage **out, int direction) {
   return vips_flip(in, out, direction, NULL);
 }
 
+int recomb_image(VipsImage *in, VipsImage **out, VipsImage *m) {
+  return vips_recomb(in, out, m, NULL);
+}
+
 int extract_image_area(VipsImage *in, VipsImage **out, int left, int top,
                        int width, int height) {
   return vips_extract_area(in, out, left, top, width, height, NULL);

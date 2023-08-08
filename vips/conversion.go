@@ -212,6 +212,18 @@ func vipsFlip(in *C.VipsImage, direction Direction) (*C.VipsImage, error) {
 	return out, nil
 }
 
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-recomb
+func vipsRecomb(in *C.VipsImage, m *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("recomb")
+	var out *C.VipsImage
+
+	if err := C.recomb_image(in, &out, m); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-extract-area
 func vipsExtractArea(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
 	incOpCounter("extractArea")
