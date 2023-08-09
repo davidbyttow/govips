@@ -1788,7 +1788,7 @@ func (r *ImageRef) Recomb(matrix [][]float64) error {
 			matrix[i] = append(matrix[i], 0)
 		}
 	} else if numBands != 3 {
-		return errors.New("unsupported number of bands")
+		return errors.New("Unsupported number of bands")
 	}
 
 	// Flatten the matrix
