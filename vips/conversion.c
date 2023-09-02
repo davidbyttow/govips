@@ -223,6 +223,12 @@ int smartcrop(VipsImage *in, VipsImage **out, int width, int height,
                         NULL);
 }
 
+int crop(VipsImage *in, VipsImage **out, int left, int top,
+              int width, int height) {
+  return vips_crop(in, out, left, top, width, height,
+                        NULL);
+}
+
 int flatten_image(VipsImage *in, VipsImage **out, double r, double g,
                   double b) {
   if (is_16bit(in->Type)) {

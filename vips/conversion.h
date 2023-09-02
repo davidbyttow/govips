@@ -33,6 +33,8 @@ int autorot_image(VipsImage *in, VipsImage **out);
 int zoom_image(VipsImage *in, VipsImage **out, int xfac, int yfac);
 int smartcrop(VipsImage *in, VipsImage **out, int width, int height,
               int interesting);
+int crop(VipsImage *in, VipsImage **out, int left, int top,
+              int width, int height);
 
 int bandjoin(VipsImage **in, VipsImage **out, int n);
 int bandjoin_const(VipsImage *in, VipsImage **out, double constants[], int n);

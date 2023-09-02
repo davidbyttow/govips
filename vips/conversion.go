@@ -274,6 +274,18 @@ func vipsSmartCrop(in *C.VipsImage, width int, height int, interesting Interesti
 	return out, nil
 }
 
+// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-crop
+func vipsCrop(in *C.VipsImage, left int, top int, width int, height int) (*C.VipsImage, error) {
+	incOpCounter("crop")
+	var out *C.VipsImage
+
+	if err := C.crop(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-rot
 func vipsRotate(in *C.VipsImage, angle Angle) (*C.VipsImage, error) {
 	incOpCounter("rot")
