@@ -423,6 +423,7 @@ func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, err
 
 	p := C.create_save_params(C.AVIF)
 	p.inputImage = in
+	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.outputFormat = C.AVIF
 	p.quality = C.int(params.Quality)
 	p.heifLossless = C.int(boolToInt(params.Lossless))

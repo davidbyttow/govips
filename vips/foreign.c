@@ -362,7 +362,7 @@ int set_heifsave_options(VipsOperation *operation, SaveParams *params) {
 
 // https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L653
 int set_avifsave_options(VipsOperation *operation, SaveParams *params) {
-  int ret = vips_object_set(VIPS_OBJECT(operation), "compression",
+  int ret = vips_object_set(VIPS_OBJECT(operation), "strip", params->stripMetadata, "compression",
                             VIPS_FOREIGN_HEIF_COMPRESSION_AV1, "lossless",
                             params->heifLossless, NULL);
 
