@@ -50,6 +50,19 @@ func TestImage_GIF_Animated_Resize(t *testing.T) {
 		nil)
 }
 
+func TestImage_GIF_Animated_ResizeWithVScale(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		3,
+		func(img *ImageRef) error {
+			return img.ResizeWithVScale(0.5, 0.78, KernelCubic)
+		},
+		func(img *ImageRef) {
+			assert.Equal(t, 3, img.Pages())
+			assert.Equal(t, 100, img.GetPageHeight())
+		},
+		nil)
+}
+
 func TestImage_GIF_Animated_Rotate90(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		-1,
