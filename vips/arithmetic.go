@@ -40,7 +40,7 @@ func vipsDivide(left *C.VipsImage, right *C.VipsImage) (*C.VipsImage, error) {
 	return out, nil
 }
 
-//  https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func vipsLinear(in *C.VipsImage, a, b []float64, n int) (*C.VipsImage, error) {
 	incOpCounter("linear")
 	var out *C.VipsImage
@@ -52,7 +52,7 @@ func vipsLinear(in *C.VipsImage, a, b []float64, n int) (*C.VipsImage, error) {
 	return out, nil
 }
 
-//  https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear1
+// https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear1
 func vipsLinear1(in *C.VipsImage, a, b float64) (*C.VipsImage, error) {
 	incOpCounter("linear1")
 	var out *C.VipsImage
