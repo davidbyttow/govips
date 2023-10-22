@@ -1026,6 +1026,20 @@ func TestImageRef_JP2K(t *testing.T) {
 	assert.Equal(t, 1, metadata.Pages)
 }
 
+func TestImageRef_CorruptedJPEG(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "jpg-corruption.jpg")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, _, err = img.ExportJpeg(nil)
+	assert.Error(t, err, "VipsJpeg: Corrupt JPEG data: bad Huffman code")
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test
