@@ -672,6 +672,38 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Recomb(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	matrix := [][]float64{
+		{0.3588, 0.7044, 0.1368},
+		{0.2990, 0.5870, 0.1140},
+		{0.2392, 0.4696, 0.0912},
+	}
+
+	err = image.Recomb(matrix)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Recomb_Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	matrix := [][]float64{
+		{0.3588, 0.7044, 0.1368, 0},
+		{0.2990, 0.5870, 0.1140, 0},
+		{0.2392, 0.4696, 0.0912, 0},
+	}
+
+	err = image.Recomb(matrix)
+	require.Error(t, err)
+}
+
 func TestCopy(t *testing.T) {
 	Startup(nil)
 

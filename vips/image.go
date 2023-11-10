@@ -1774,6 +1774,55 @@ func (r *ImageRef) Flip(direction Direction) error {
 	return nil
 }
 
+// Recomb recombines the image bands using the matrix provided
+func (r *ImageRef) Recomb(matrix [][]float64) error {
+	numBands := r.Bands()
+	// Ensure the provided matrix is 3x3
+	if len(matrix) != 3 || len(matrix[0]) != 3 || len(matrix[1]) != 3 || len(matrix[2]) != 3 {
+		return errors.New("Invalid recombination matrix")
+	}
+	// If the image is RGBA, expand the matrix to 4x4
+	if numBands == 4 {
+		matrix = append(matrix, []float64{0, 0, 0, 1})
+		for i := 0; i < 3; i++ {
+			matrix[i] = append(matrix[i], 0)
+		}
+	} else if numBands != 3 {
+		return errors.New("Unsupported number of bands")
+	}
+
+	// Flatten the matrix
+	var matrixValues []float64
+	for _, row := range matrix {
+		for _, value := range row {
+			matrixValues = append(matrixValues, value)
+		}
+	}
+
+	// Convert the Go slice to a C array and get its size
+	matrixPtr := unsafe.Pointer(&matrixValues[0])
+	matrixSize := C.size_t(len(matrixValues) * 8) // 8 bytes for each float64
+
+	// Create a VipsImage from the matrix in memory
+	matrixImage := C.vips_image_new_from_memory(matrixPtr, matrixSize, C.int(numBands), C.int(numBands), 1, C.VIPS_FORMAT_DOUBLE)
+
+	// Check for any Vips errors
+	errMsg := C.GoString(C.vips_error_buffer())
+	if errMsg != "" {
+		C.vips_error_clear()
+		return errors.New("Vips error: " + errMsg)
+	}
+
+	// Recombine the image using the matrix
+	out, err := vipsRecomb(r.image, matrixImage)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
 // Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
 	width := r.Width()
