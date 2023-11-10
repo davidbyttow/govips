@@ -565,6 +565,15 @@ func TestImage_SmartCrop(t *testing.T) {
 	}, nil)
 }
 
+func TestImage_Crop(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
+		return img.Crop(10, 10, 60, 80)
+	}, func(result *ImageRef) {
+		assert.Equal(t, 60, result.Width())
+		assert.Equal(t, 80, result.Height())
+	}, nil)
+}
+
 func TestImage_Replicate(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg", func(img *ImageRef) error {
 		return img.Replicate(3, 2)

@@ -1845,6 +1845,16 @@ func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) err
 	return nil
 }
 
+// Crop will crop the image based on coordinate and box size
+func (r *ImageRef) Crop(left int, top int, width int, height int) error {
+	out, err := vipsCrop(r.image, left, top, width, height)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Label overlays a label on top of the image
 func (r *ImageRef) Label(labelParams *LabelParams) error {
 	out, err := labelImage(r.image, labelParams)
