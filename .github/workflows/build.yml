@@ -10,7 +10,7 @@ jobs:
       CGO_CFLAGS_ALLOW: -Xpreprocessor
     strategy:
       matrix:
-        os: [ubuntu-22.04, macos-11]
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - name: Set up Go 1.x
@@ -22,13 +22,13 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Install linux deps
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get -y install libopenjp2-7
           sudo apt-get -y install libvips-dev
 
       - name: Install macos deps
-        if: matrix.os == 'macos-11'
+        if: matrix.os == 'macos-latest'
         run: |
           brew install vips
 
@@ -43,7 +43,7 @@ jobs:
         run: go test -v -coverprofile=profile.cov ./...
 
       - name: Coveralls
-        if: matrix.os == 'ubuntu-22.04'
+        if: matrix.os == 'ubuntu-latest'
         uses: shogo82148/actions-goveralls@v1
         with:
           path-to-profile: profile.cov
