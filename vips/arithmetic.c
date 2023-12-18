@@ -53,3 +53,19 @@ int getpoint(VipsImage *in, double **vector, int n, int x, int y) {
 int stats(VipsImage *in, VipsImage **out) {
   return vips_stats(in, out, NULL);
 }
+
+int hist_find(VipsImage *in, VipsImage **out) {
+  return vips_hist_find(in, out, NULL);
+}
+
+int hist_cum(VipsImage *in, VipsImage **out) {
+  return vips_hist_cum(in, out, NULL);
+}
+
+int hist_norm(VipsImage *in, VipsImage **out) {
+  return vips_hist_norm(in, out, NULL);
+}
+
+int hist_entropy(VipsImage *in, double *out) {
+  return vips_hist_entropy(in, out, NULL);
+}

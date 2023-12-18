@@ -1633,6 +1633,47 @@ func (r *ImageRef) Stats() error {
 	return nil
 }
 
+// HistogramFind find the histogram the image.
+// Find the histogram for all bands (producing a one-band histogram).
+// char and uchar images are cast to uchar before histogramming, all other image types are cast to ushort.
+func (r *ImageRef) HistogramFind() error {
+	out, err := vipsHistFind(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramCumulative form cumulative histogram.
+func (r *ImageRef) HistogramCumulative() error {
+	out, err := vipsHistCum(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramNormalise
+// The maximum of each band becomes equal to the maximum index, so for example the max for a uchar
+// image becomes 255. Normalise each band separately.
+func (r *ImageRef) HistogramNormalise() error {
+	out, err := vipsHistNorm(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramEntropy estimate image entropy from a histogram. Entropy is calculated as:
+// `-sum(p * log2(p))`
+// where p is histogram-value / sum-of-histogram-values.
+func (r *ImageRef) HistogramEntropy() (float64, error) {
+	return vipsHistEntropy(r.image)
+}
+
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)

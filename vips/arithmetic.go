@@ -126,3 +126,51 @@ func vipsStats(in *C.VipsImage) (*C.VipsImage, error) {
 
 	return out, nil
 }
+
+// https://www.libvips.org/API/current/libvips-arithmetic.html#vips-hist-find
+func vipsHistFind(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("histFind")
+	var out *C.VipsImage
+
+	if err := C.hist_find(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-histogram.html#vips-hist-norm
+func vipsHistNorm(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("histNorm")
+	var out *C.VipsImage
+
+	if err := C.hist_norm(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-histogram.html#vips-hist-cum
+func vipsHistCum(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("histCum")
+	var out *C.VipsImage
+
+	if err := C.hist_cum(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-histogram.html#vips-hist-entropy
+func vipsHistEntropy(in *C.VipsImage) (float64, error) {
+	incOpCounter("histEntropy")
+	var out C.double
+
+	if err := C.hist_entropy(in, &out); err != 0 {
+		return 0, handleVipsError()
+	}
+
+	return float64(out), nil
+}
