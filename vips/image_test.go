@@ -1072,6 +1072,21 @@ func TestImageRef_CorruptedJPEG(t *testing.T) {
 	assert.Error(t, err, "VipsJpeg: Corrupt JPEG data: bad Huffman code")
 }
 
+func TestImageRef_Stats(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	bands := image.Bands()
+
+	err = image.Stats()
+	require.NoError(t, err)
+
+	// May need updating if `vips_stats` adds more columns
+	require.Equal(t, 10, image.Width())
+	require.Equal(t, bands+1, image.Height())
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test
