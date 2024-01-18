@@ -25,7 +25,8 @@ typedef enum types {
   HEIF,
   BMP,
   AVIF,
-  JP2K
+  JP2K,
+  JXL
 } ImageType;
 
 typedef enum ParamType {
@@ -124,6 +125,12 @@ typedef struct SaveParams {
   BOOL jp2kLossless;
   int jp2kTileWidth;
   int	jp2kTileHeight;
+
+  // JXL
+  int jxlTier;
+  double jxlDistance;
+  int jxlEffort;
+  BOOL jxlLossless;
 } SaveParams;
 
 SaveParams create_save_params(ImageType outputFormat);
