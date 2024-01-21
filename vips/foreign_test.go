@@ -138,3 +138,14 @@ func Test_DetermineImageType__JP2K(t *testing.T) {
 	imageType := DetermineImageType(buf)
 	assert.Equal(t, ImageTypeJP2K, imageType)
 }
+
+func Test_DetermineImageType__JXL(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := ioutil.ReadFile(resources + "jxl-8bit-grey-icc-dot-gain.jxl")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypeJXL, imageType)
+}

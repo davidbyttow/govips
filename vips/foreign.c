@@ -153,6 +153,11 @@ int set_jp2kload_options(VipsOperation *operation, LoadParams *params) {
   return 0;
 }
 
+int set_jxlload_options(VipsOperation *operation, LoadParams *params) {
+  // nothing need to do
+  return 0;
+}
+
 int set_magickload_options(VipsOperation *operation, LoadParams *params) {
   MAYBE_SET_INT(operation, params->page, "page");
   MAYBE_SET_INT(operation, params->n, "n");
@@ -399,6 +404,19 @@ int set_jp2ksave_options(VipsOperation *operation, SaveParams *params) {
   return ret;
 }
 
+int set_jxlsave_options(VipsOperation *operation, SaveParams *params) {
+  int ret = vips_object_set(
+      VIPS_OBJECT(operation), "tier", params->jxlTier,
+      "distance", params->jxlDistance, "effort", params->jxlEffort,
+      "lossless", params->jxlLossless, NULL);
+
+  if (!ret && params->quality) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+  }
+
+  return ret;
+}
+
 int load_from_buffer(LoadParams *params, void *buf, size_t len) {
   switch (params->inputFormat) {
     case JPEG:
@@ -431,9 +449,12 @@ int load_from_buffer(LoadParams *params, void *buf, size_t len) {
     case AVIF:
       return load_buffer("heifload_buffer", buf, len, params,
                          set_heifload_options);
-   case JP2K:
+    case JP2K:
       return load_buffer("jp2kload_buffer", buf, len, params,
                           set_jp2kload_options);
+    case JXL:
+      return load_buffer("jxlload_buffer", buf, len, params,
+                          set_jxlload_options);
     default:
       g_warning("Unsupported input type given: %d", params->inputFormat);
   }
@@ -462,6 +483,8 @@ int save_to_buffer(SaveParams *params) {
       return save_buffer("heifsave_buffer", params, set_avifsave_options);
     case JP2K:
       return save_buffer("jp2ksave_buffer", params, set_jp2ksave_options);
+    case JXL:
+      return save_buffer("jxlsave_buffer", params, set_jxlsave_options);
     default:
       g_warning("Unsupported output type given: %d", params->outputFormat);
   }

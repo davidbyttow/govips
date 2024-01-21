@@ -385,6 +385,24 @@ func NewJp2kExportParams() *Jp2kExportParams {
 	}
 }
 
+// JxlExportParams are options when exporting an JXL to file or buffer.
+type JxlExportParams struct {
+	Quality  int
+	Lossless bool
+	Tier     int
+	Distance float64
+	Effort   int
+}
+
+// NewJxlExportParams creates default values for an export of an JXL image.
+func NewJxlExportParams() *JxlExportParams {
+	return &JxlExportParams{
+		Quality:  75,
+		Lossless: false,
+		Effort:   7,
+	}
+}
+
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := ioutil.ReadAll(r)
@@ -844,6 +862,12 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 			Lossless:      params.Lossless,
 			Speed:         params.Speed,
 		})
+	case ImageTypeJXL:
+		return r.ExportJxl(&JxlExportParams{
+			Quality:  params.Quality,
+			Lossless: params.Lossless,
+			Effort:   params.Effort,
+		})
 	default:
 		format = ImageTypeJPEG
 		return r.ExportJpeg(&JpegExportParams{
@@ -879,6 +903,8 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 		return r.ExportJp2k(NewJp2kExportParams())
 	case ImageTypeGIF:
 		return r.ExportGIF(NewGifExportParams())
+	case ImageTypeJXL:
+		return r.ExportJxl(NewJxlExportParams())
 	default:
 		return r.ExportJpeg(NewJpegExportParams())
 	}
@@ -997,6 +1023,20 @@ func (r *ImageRef) ExportJp2k(params *Jp2kExportParams) ([]byte, *ImageMetadata,
 	}
 
 	return buf, r.newMetadata(ImageTypeJP2K), nil
+}
+
+// ExportJxl exports the image as JPEG XL to a buffer.
+func (r *ImageRef) ExportJxl(params *JxlExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewJxlExportParams()
+	}
+
+	buf, err := vipsSaveJxlToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeJXL), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
