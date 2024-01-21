@@ -1072,6 +1072,73 @@ func TestImageRef_CorruptedJPEG(t *testing.T) {
 	assert.Error(t, err, "VipsJpeg: Corrupt JPEG data: bad Huffman code")
 }
 
+func TestImageRef_Stats(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	bands := image.Bands()
+
+	err = image.Stats()
+	require.NoError(t, err)
+
+	// May need updating if `vips_stats` adds more columns
+	require.Equal(t, 10, image.Width())
+	require.Equal(t, bands+1, image.Height())
+}
+
+func TestImageRef_HistogramFind(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+	require.Equal(t, 256, image.Width())
+	require.Equal(t, 1, image.Height())
+}
+
+func TestImageRef_HistogramNormalize(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+
+	err = image.HistogramNormalise()
+	require.NoError(t, err)
+}
+
+func TestImageRef_HistogramCumulative(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+
+	err = image.HistogramCumulative()
+	require.NoError(t, err)
+}
+
+func TestImageRef_HistogramEntropy(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+
+	e, err := image.HistogramEntropy()
+	require.NoError(t, err)
+	require.True(t, e > 0)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

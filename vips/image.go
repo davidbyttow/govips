@@ -1655,6 +1655,65 @@ func (r *ImageRef) GetPoint(x int, y int) ([]float64, error) {
 	return vipsGetPoint(r.image, n, x, y)
 }
 
+// Stats find many image statistics in a single pass through the data. Image is changed into a one-band
+// `BandFormatDouble` image of at least 10 columns by n + 1 (where n is number of bands in image in)
+// rows. Columns are statistics, and are, in order: minimum, maximum, sum, sum of squares, mean,
+// standard deviation, x coordinate of minimum, y coordinate of minimum, x coordinate of maximum,
+// y coordinate of maximum.
+//
+// Row 0 has statistics for all bands together, row 1 has stats for band 1, and so on.
+//
+// If there is more than one maxima or minima, one of them will be chosen at random.
+func (r *ImageRef) Stats() error {
+	out, err := vipsStats(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramFind find the histogram the image.
+// Find the histogram for all bands (producing a one-band histogram).
+// char and uchar images are cast to uchar before histogramming, all other image types are cast to ushort.
+func (r *ImageRef) HistogramFind() error {
+	out, err := vipsHistFind(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramCumulative form cumulative histogram.
+func (r *ImageRef) HistogramCumulative() error {
+	out, err := vipsHistCum(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramNormalise
+// The maximum of each band becomes equal to the maximum index, so for example the max for a uchar
+// image becomes 255. Normalise each band separately.
+func (r *ImageRef) HistogramNormalise() error {
+	out, err := vipsHistNorm(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// HistogramEntropy estimate image entropy from a histogram. Entropy is calculated as:
+// `-sum(p * log2(p))`
+// where p is histogram-value / sum-of-histogram-values.
+func (r *ImageRef) HistogramEntropy() (float64, error) {
+	return vipsHistEntropy(r.image)
+}
+
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)
