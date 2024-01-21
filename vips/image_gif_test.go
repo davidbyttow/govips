@@ -115,6 +115,18 @@ func TestImage_GIF_Animated_ExtractArea(t *testing.T) {
 		nil)
 }
 
+func TestImage_GIF_Animated_Crop(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.Crop(10, 20, 20, 20)
+		},
+		func(img *ImageRef) {
+			assert.Equal(t, img.GetPageHeight(), 20)
+		},
+		nil)
+}
+
 func TestImage_GIF_Animated_PageDelay(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		-1,
