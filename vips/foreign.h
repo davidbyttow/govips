@@ -107,6 +107,9 @@ typedef struct SaveParams {
   BOOL webpNearLossless;
   int webpReductionEffort;
   char *webpIccProfile;
+  BOOL webpMinSize;
+  int webpKMin;
+  int webpKMax;
 
   // HEIF - https://github.com/libvips/libvips/blob/master/libvips/foreign/heifsave.c#L71
   int heifBitdepth; // Bitdepth to save at for >8 bit images
