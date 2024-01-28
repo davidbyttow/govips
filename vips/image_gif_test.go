@@ -40,6 +40,18 @@ func TestImage_GIF_Animated_to_WebP(t *testing.T) {
 		exportWebp(NewWebpExportParams()))
 }
 
+func TestImage_GIF_Animated_to_WebP_Extra_Params(t *testing.T) {
+	exportParams := NewWebpExportParams()
+	exportParams.MaxKeyFrames = 100
+	exportParams.MinKeyFrames = 10
+	exportParams.MinSize = true
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		3,
+		nil,
+		nil,
+		exportWebp(exportParams))
+}
+
 func TestImage_GIF_Animated_Resize(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		3,

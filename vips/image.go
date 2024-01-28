@@ -272,6 +272,8 @@ func NewPngExportParams() *PngExportParams {
 }
 
 // WebpExportParams are options when exporting a WEBP to file or buffer
+// see https://www.libvips.org/API/current/VipsForeignSave.html#vips-webpsave
+// for details on each parameter
 type WebpExportParams struct {
 	StripMetadata   bool
 	Quality         int
@@ -279,6 +281,9 @@ type WebpExportParams struct {
 	NearLossless    bool
 	ReductionEffort int
 	IccProfile      string
+	MinSize         bool
+	MinKeyFrames    int
+	MaxKeyFrames    int
 }
 
 // NewWebpExportParams creates default values for an export of a WEBP image.

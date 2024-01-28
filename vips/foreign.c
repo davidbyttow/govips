@@ -290,6 +290,9 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
                       "near_lossless", params->webpNearLossless,
                       "reduction_effort", params->webpReductionEffort,
                       "profile", params->webpIccProfile ? params->webpIccProfile : "none",
+                      "min_size", params->webpMinSize,
+                      "kmin", params->webpKMin,
+                      "kmax", params->webpKMax,
                       NULL);
 
   if (!ret && params->quality) {
@@ -542,6 +545,9 @@ static SaveParams defaultSaveParams = {
     .webpNearLossless = FALSE,
     .webpReductionEffort = 4,
     .webpIccProfile = NULL,
+    .webpKMax = 0,
+    .webpKMin = 0,
+    .webpMinSize = FALSE,
 
     .heifBitdepth = 8,
     .heifLossless = FALSE,
