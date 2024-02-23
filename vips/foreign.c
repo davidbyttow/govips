@@ -288,7 +288,7 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
                       NULL);
 
   if (!ret && params->quality) {
-    vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
+    ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
   return ret;
