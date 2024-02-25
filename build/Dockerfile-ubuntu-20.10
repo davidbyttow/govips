@@ -1,3 +1,5 @@
+# This Dockerfile can be used to build Ubuntu/Debian packages with govips
+
 FROM ubuntu:20.10
 
 ENV DEBIAN_FRONTEND noninteractive
@@ -9,7 +11,6 @@ RUN apt-get update
 RUN apt-get -y --no-install-recommends install software-properties-common gpg-agent
 RUN apt-get -y --no-install-recommends install \
     build-essential devscripts lsb-release dput wget git golang nvi
-RUN add-apt-repository -y ppa:tonimelisma/ppa
 RUN apt-get -y install --no-install-recommends libvips-dev
 RUN go get golang.org/dl/go1.15.4
 RUN ~/go/bin/go1.15.4 download
@@ -20,7 +21,7 @@ RUN cd ~/go/src/github.com/davidbyttow/govips && ~/go/bin/go1.15.4 test -v ./...
 
 
 ENV DEBFULLNAME="Toni Melisma"
-ENV DEBEMAIL="toni.melisma@iki.fi"
+ENV DEBEMAIL="toni@melisma.net"
 ENV PPANAME="tonimelisma"
 ENV DISTRIBUTION="groovy"
 ENV DISTVERSION="20.10"
