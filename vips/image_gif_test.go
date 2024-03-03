@@ -40,6 +40,18 @@ func TestImage_GIF_Animated_to_WebP(t *testing.T) {
 		exportWebp(NewWebpExportParams()))
 }
 
+func TestImage_GIF_Animated_to_WebP_Extra_Params(t *testing.T) {
+	exportParams := NewWebpExportParams()
+	exportParams.MaxKeyFrames = 100
+	exportParams.MinKeyFrames = 10
+	exportParams.MinSize = true
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		3,
+		nil,
+		nil,
+		exportWebp(exportParams))
+}
+
 func TestImage_GIF_Animated_Resize(t *testing.T) {
 	goldenAnimatedTest(t, resources+"gif-animated.gif",
 		3,
@@ -47,6 +59,19 @@ func TestImage_GIF_Animated_Resize(t *testing.T) {
 			return img.Resize(2, KernelCubic)
 		},
 		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_ResizeWithVScale(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		3,
+		func(img *ImageRef) error {
+			return img.ResizeWithVScale(0.5, 0.78, KernelCubic)
+		},
+		func(img *ImageRef) {
+			assert.Equal(t, 3, img.Pages())
+			assert.Equal(t, 100, img.GetPageHeight())
+		},
 		nil)
 }
 
@@ -99,6 +124,18 @@ func TestImage_GIF_Animated_ExtractArea(t *testing.T) {
 			return img.ExtractArea(10, 20, 80, 90)
 		},
 		nil,
+		nil)
+}
+
+func TestImage_GIF_Animated_Crop(t *testing.T) {
+	goldenAnimatedTest(t, resources+"gif-animated.gif",
+		-1,
+		func(img *ImageRef) error {
+			return img.Crop(10, 20, 20, 20)
+		},
+		func(img *ImageRef) {
+			assert.Equal(t, img.GetPageHeight(), 20)
+		},
 		nil)
 }
 

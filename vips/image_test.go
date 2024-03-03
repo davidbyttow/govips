@@ -672,6 +672,38 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_Recomb(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	matrix := [][]float64{
+		{0.3588, 0.7044, 0.1368},
+		{0.2990, 0.5870, 0.1140},
+		{0.2392, 0.4696, 0.0912},
+	}
+
+	err = image.Recomb(matrix)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Recomb_Error(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	matrix := [][]float64{
+		{0.3588, 0.7044, 0.1368, 0},
+		{0.2990, 0.5870, 0.1140, 0},
+		{0.2392, 0.4696, 0.0912, 0},
+	}
+
+	err = image.Recomb(matrix)
+	require.Error(t, err)
+}
+
 func TestCopy(t *testing.T) {
 	Startup(nil)
 
@@ -1024,6 +1056,87 @@ func TestImageRef_JP2K(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, ImageTypeJP2K, metadata.Format)
 	assert.Equal(t, 1, metadata.Pages)
+}
+
+func TestImageRef_CorruptedJPEG(t *testing.T) {
+	Startup(nil)
+
+	raw, err := ioutil.ReadFile(resources + "jpg-corruption.jpg")
+	require.NoError(t, err)
+
+	img, err := NewImageFromBuffer(raw)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+
+	_, _, err = img.ExportJpeg(nil)
+	assert.Error(t, err, "VipsJpeg: Corrupt JPEG data: bad Huffman code")
+}
+
+func TestImageRef_Stats(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	bands := image.Bands()
+
+	err = image.Stats()
+	require.NoError(t, err)
+
+	// May need updating if `vips_stats` adds more columns
+	require.Equal(t, 10, image.Width())
+	require.Equal(t, bands+1, image.Height())
+}
+
+func TestImageRef_HistogramFind(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+	require.Equal(t, 256, image.Width())
+	require.Equal(t, 1, image.Height())
+}
+
+func TestImageRef_HistogramNormalize(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+
+	err = image.HistogramNormalise()
+	require.NoError(t, err)
+}
+
+func TestImageRef_HistogramCumulative(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+
+	err = image.HistogramCumulative()
+	require.NoError(t, err)
+}
+
+func TestImageRef_HistogramEntropy(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.HistogramFind()
+	require.NoError(t, err)
+
+	e, err := image.HistogramEntropy()
+	require.NoError(t, err)
+	require.True(t, e > 0)
 }
 
 // TODO unit tests to cover:

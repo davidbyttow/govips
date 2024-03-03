@@ -26,22 +26,6 @@ Use [homebrew](https://brew.sh/) to install vips and pkg-config:
 brew install vips pkg-config
 ```
 
-### Ubuntu
-
-You need a recent libvips to work with govips. New govips functionality is continuously added which takes advantage of new libvips functionality. Groovy (20.10) and Hirsute (21.04) repositories have working versions. However on Focal (20.04), you need to install libvips and dependencies from a backports repository:
-
-```bash
-sudo add-apt-repository -y ppa:strukturag/libde265
-sudo add-apt-repository -y ppa:strukturag/libheif
-sudo add-apt-repository ppa:tonimelisma/ppa
-```
-
-Then:
-
-```bash
-sudo apt -y install libvips-dev
-```
-
 ### Windows
 
 The recommended approach on Windows is to use Govips via WSL and Ubuntu.
@@ -121,7 +105,7 @@ MALLOC_ARENA_MAX=2 application
 
 This will reduce GLib memory appetites by reducing the number of malloc arenas
 that it can create. By default GLib creates one are per thread, and this would
-follow to a memory fragmentation.
+follow to memory fragmentation.
 
 ## Contributing
 
