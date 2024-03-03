@@ -319,7 +319,7 @@ func TestImage_AutoRotate_6__jpeg_to_webp(t *testing.T) {
 			// expected should be 1
 			// Known issue: libvips does not write EXIF into WebP:
 			// https://github.com/libvips/libvips/pull/1745
-			//assert.Equal(t, 0, result.Orientation())
+			// assert.Equal(t, 0, result.Orientation())
 		},
 		exportWebp(nil),
 	)
@@ -366,7 +366,7 @@ func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
 
 func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-24bit+alpha.png", func(img *ImageRef) error {
-		//usm_0.66_1.00_0.01
+		// usm_0.66_1.00_0.01
 		sigma := 1 + (0.66 / 2)
 		x1 := 0.01 * 100
 		m2 := 1.0
@@ -377,7 +377,7 @@ func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 
 func TestImage_Sharpen_8bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
-		//usm_0.66_1.00_0.01
+		// usm_0.66_1.00_0.01
 		sigma := 1 + (0.66 / 2)
 		x1 := 0.01 * 100
 		m2 := 1.0
@@ -1081,7 +1081,7 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 	goldenFile := prefix + "-" + getEnvironment() + ".golden" + ext
 
 	golden, _ := ioutil.ReadFile(goldenFile)
-	if golden != nil {
+	if assert.NotNil(t, golden, "golden file %s is missing", goldenFile) {
 		sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
 		if !sameAsGolden {
 			failed := prefix + "-" + getEnvironment() + ".failed" + ext
