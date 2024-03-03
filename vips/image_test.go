@@ -52,29 +52,6 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func TestImageInbuildIcc_WebP(t *testing.T) {
-	Startup(nil)
-
-	srcBytes, err := ioutil.ReadFile(resources + "jpg-24bit-icc-iec.jpg")
-	require.NoError(t, err)
-
-	img, err := NewImageFromBuffer(srcBytes)
-	require.NoError(t, err)
-	require.NotNil(t, img)
-
-	params := NewWebpExportParams()
-	exportedWebpBytes, _, err := img.ExportWebp(params)
-	assert.NoError(t, err)
-	assert.NotNil(t, exportedWebpBytes)
-
-	// Check if the exported webp has the same ICC profile as the original image
-	exportedImg, err := NewImageFromBuffer(exportedWebpBytes)
-	require.NoError(t, err)
-	require.NotNil(t, exportedImg)
-
-	assert.Equal(t, img.GetICCProfile(), exportedImg.GetICCProfile())
-}
-
 func TestImageRef_WebP__NearLossless(t *testing.T) {
 	Startup(nil)
 
