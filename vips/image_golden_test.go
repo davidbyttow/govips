@@ -3,7 +3,7 @@ package vips
 import (
 	"bytes"
 	"image"
-	jpeg2 "image/jpeg"
+	"image/jpeg"
 	"image/png"
 	"io/ioutil"
 	"os/exec"
@@ -707,7 +707,7 @@ func TestImage_Decode_JPG(t *testing.T) {
 		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)
-		err = jpeg2.Encode(buf, goImg, nil)
+		err = jpeg.Encode(buf, goImg, nil)
 		assert.Nil(t, err)
 
 		config, format, err := image.DecodeConfig(buf)
