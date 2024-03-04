@@ -1074,15 +1074,15 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 
 	name := strings.Replace(t.Name(), "/", "_", -1)
 	name = strings.Replace(name, "TestImage_", "", -1)
-	prefix := file[:i] + "." + name
+	prefix := file[:i] + "." + name + "-" + getEnvironment()
 	ext := format.FileExt()
-	goldenFile := prefix + "-" + getEnvironment() + ".golden" + ext
+	goldenFile := prefix + ".golden" + ext
 
 	golden, _ := ioutil.ReadFile(goldenFile)
 	if assert.NotNil(t, golden, "golden file %s is missing", goldenFile) {
 		sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
 		if !sameAsGolden {
-			failed := prefix + "-" + getEnvironment() + ".failed" + ext
+			failed := prefix + ".failed" + ext
 			require.NoError(t, ioutil.WriteFile(failed, buf, 0666))
 		}
 		return
