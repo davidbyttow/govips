@@ -1070,9 +1070,7 @@ func getEnvironment() string {
 
 func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) {
 	i := strings.LastIndex(file, ".")
-	if i < 0 {
-		panic("bad filename")
-	}
+	require.GreaterOrEqual(t, i, 0, "filename %s does not contain a dot", file)
 
 	name := strings.Replace(t.Name(), "/", "_", -1)
 	name = strings.Replace(name, "TestImage_", "", -1)
@@ -1085,10 +1083,7 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 		sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
 		if !sameAsGolden {
 			failed := prefix + "-" + getEnvironment() + ".failed" + ext
-			err := ioutil.WriteFile(failed, buf, 0666)
-			if err != nil {
-				panic(err)
-			}
+			require.NoError(t, ioutil.WriteFile(failed, buf, 0666))
 		}
 		return
 	}
