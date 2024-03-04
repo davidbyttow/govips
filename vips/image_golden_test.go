@@ -6,6 +6,7 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -1077,20 +1078,21 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 	prefix := file[:i] + "." + name + "-" + getEnvironment()
 	ext := format.FileExt()
 	goldenFile := prefix + ".golden" + ext
-
-	golden, _ := ioutil.ReadFile(goldenFile)
-	if assert.NotNil(t, golden, "golden file %s is missing", goldenFile) {
-		sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
-		if !sameAsGolden {
-			failed := prefix + ".failed" + ext
-			require.NoError(t, ioutil.WriteFile(failed, buf, 0666))
-		}
+	if !assert.FileExists(t, goldenFile) {
+		t.Log("writing golden file: " + goldenFile)
+		err := os.WriteFile(goldenFile, buf, 0644)
+		assert.NoError(t, err)
 		return
 	}
 
-	t.Log("writing golden file: " + goldenFile)
-	err := ioutil.WriteFile(goldenFile, buf, 0644)
-	assert.NoError(t, err)
+	golden, err := os.ReadFile(goldenFile)
+	require.NoError(t, err)
+
+	sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
+	if !sameAsGolden {
+		failed := prefix + ".failed" + ext
+		require.NoError(t, os.WriteFile(failed, buf, 0666))
+	}
 }
 
 func goldenAnimatedTest(
