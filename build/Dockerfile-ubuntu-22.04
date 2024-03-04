@@ -1,0 +1,17 @@
+# This Dockerfile can be used to test and build govips
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+# Enable deb-src APT sources and get build tools
+RUN sed -e '/^#\sdeb-src /s/^# *//;t;d' "/etc/apt/sources.list" \
+    >> "/etc/apt/sources.list.d/ubuntu-sources.list"
+RUN apt-get update
+RUN apt-get -y --no-install-recommends install \
+    build-essential git golang
+RUN apt-get -y --no-install-recommends install ca-certificates
+RUN apt-get -y --no-install-recommends install lsb-release
+RUN apt-get -y install --no-install-recommends libvips-dev
+RUN mkdir -p ~/go/src/github.com/davidbyttow
+RUN cd ~/go/src/github.com/davidbyttow  && git clone -v https://github.com/davidbyttow/govips.git
