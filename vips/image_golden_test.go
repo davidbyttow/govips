@@ -126,6 +126,57 @@ func TestImage_TransformICCProfile_RGB_Embedded(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_TransformICCProfileWithFallback(t *testing.T) {
+	t.Run("RGB source without ICC", func(t *testing.T) {
+		goldenTest(t, resources+"jpg-24bit-rgb-no-icc.jpg",
+			func(img *ImageRef) error {
+				return img.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, resources+"adobe-rgb.icc")
+			},
+			func(result *ImageRef) {
+				assert.True(t, result.HasICCProfile())
+				iccProfileData := result.GetICCProfile()
+				assert.Greater(t, len(iccProfileData), 0)
+				assert.Equal(t, InterpretationSRGB, result.Interpretation())
+			}, nil)
+	})
+	t.Run("RGB source with ICC", func(t *testing.T) {
+		goldenTest(t, resources+"jpg-24bit-icc-adobe-rgb.jpg",
+			func(img *ImageRef) error {
+				return img.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, SRGBV2MicroICCProfilePath)
+			},
+			func(result *ImageRef) {
+				assert.True(t, result.HasICCProfile())
+				iccProfileData := result.GetICCProfile()
+				assert.Greater(t, len(iccProfileData), 0)
+				assert.Equal(t, InterpretationSRGB, result.Interpretation())
+			}, nil)
+	})
+	t.Run("CMYK source without ICC", func(t *testing.T) {
+		goldenTest(t, resources+"jpg-32bit-cmyk-no-icc.jpg",
+			func(img *ImageRef) error {
+				return img.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, "cmyk")
+			},
+			func(result *ImageRef) {
+				assert.True(t, result.HasICCProfile())
+				iccProfileData := result.GetICCProfile()
+				assert.Greater(t, len(iccProfileData), 0)
+				assert.Equal(t, InterpretationSRGB, result.Interpretation())
+			}, nil)
+	})
+	t.Run("CMYK source with ICC", func(t *testing.T) {
+		goldenTest(t, resources+"jpg-32bit-cmyk-icc-swop.jpg",
+			func(img *ImageRef) error {
+				return img.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, "cmyk")
+			},
+			func(result *ImageRef) {
+				assert.True(t, result.HasICCProfile())
+				iccProfileData := result.GetICCProfile()
+				assert.Greater(t, len(iccProfileData), 0)
+				assert.Equal(t, InterpretationSRGB, result.Interpretation())
+			}, nil)
+	})
+}
+
 func TestImage_OptimizeICCProfile_CMYK(t *testing.T) {
 	goldenTest(t, resources+"jpg-32bit-cmyk-icc-swop.jpg",
 		func(img *ImageRef) error {
@@ -319,7 +370,7 @@ func TestImage_AutoRotate_6__jpeg_to_webp(t *testing.T) {
 			// expected should be 1
 			// Known issue: libvips does not write EXIF into WebP:
 			// https://github.com/libvips/libvips/pull/1745
-			//assert.Equal(t, 0, result.Orientation())
+			// assert.Equal(t, 0, result.Orientation())
 		},
 		exportWebp(nil),
 	)
@@ -366,7 +417,7 @@ func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
 
 func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-24bit+alpha.png", func(img *ImageRef) error {
-		//usm_0.66_1.00_0.01
+		// usm_0.66_1.00_0.01
 		sigma := 1 + (0.66 / 2)
 		x1 := 0.01 * 100
 		m2 := 1.0
@@ -377,7 +428,7 @@ func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 
 func TestImage_Sharpen_8bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
-		//usm_0.66_1.00_0.01
+		// usm_0.66_1.00_0.01
 		sigma := 1 + (0.66 / 2)
 		x1 := 0.01 * 100
 		m2 := 1.0

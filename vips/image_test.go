@@ -469,6 +469,36 @@ func TestImageRef_TransformICCProfile(t *testing.T) {
 	assert.True(t, image.HasICCProfile())
 }
 
+func TestImageRef_TransformICCProfileWithFallback(t *testing.T) {
+	Startup(nil)
+
+	t.Run("source with ICC", func(t *testing.T) {
+		image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
+		require.NoError(t, err)
+
+		require.True(t, image.HasIPTC())
+		require.True(t, image.HasICCProfile())
+
+		err = image.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, SRGBV2MicroICCProfilePath)
+		require.NoError(t, err)
+
+		assert.True(t, image.HasIPTC())
+		assert.True(t, image.HasICCProfile())
+	})
+
+	t.Run("source without ICC", func(t *testing.T) {
+		image, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+		require.NoError(t, err)
+
+		require.False(t, image.HasICCProfile())
+
+		err = image.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, SRGBV2MicroICCProfilePath)
+		require.NoError(t, err)
+
+		assert.True(t, image.HasICCProfile())
+	})
+}
+
 func TestImageRef_Close(t *testing.T) {
 	Startup(nil)
 
@@ -661,7 +691,7 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 		image, err := NewImageFromFile(resources + uri)
 		require.NoError(t, err)
 
-		//add offset test
+		// add offset test
 		images[i] = &ImageComposite{image, BlendModeOver, (i + 1) * 20, (i + 2) * 20}
 	}
 

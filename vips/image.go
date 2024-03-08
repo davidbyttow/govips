@@ -1372,19 +1372,15 @@ func (r *ImageRef) RemoveICCProfile() error {
 	return nil
 }
 
-// TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
-func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
-	// If the image has an embedded profile, that will be used and the input profile ignored.
-	// Otherwise, images without an input profile are assumed to use a standard RGB profile.
-	embedded := r.HasICCProfile()
-	inputProfile := SRGBIEC6196621ICCProfilePath
-
+// TransformICCProfileWithFallback transforms from the embedded ICC profile of the image to the ICC profile at the given path.
+// The fallback ICC profile is used if the image does not have an embedded ICC profile.
+func (r *ImageRef) TransformICCProfileWithFallback(targetProfilePath, fallbackProfilePath string) error {
 	depth := 16
 	if r.BandFormat() == BandFormatUchar || r.BandFormat() == BandFormatChar || r.BandFormat() == BandFormatNotSet {
 		depth = 8
 	}
 
-	out, err := vipsICCTransform(r.image, outputProfilePath, inputProfile, IntentPerceptual, depth, embedded)
+	out, err := vipsICCTransform(r.image, targetProfilePath, fallbackProfilePath, IntentPerceptual, depth, true)
 	if err != nil {
 		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
@@ -1394,13 +1390,18 @@ func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
 	return nil
 }
 
+// TransformICCProfile transforms from the embedded ICC profile of the image to the icc profile at the given path.
+func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
+	return r.TransformICCProfileWithFallback(outputProfilePath, SRGBIEC6196621ICCProfilePath)
+}
+
 // OptimizeICCProfile optimizes the ICC color profile of the image.
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
 func (r *ImageRef) OptimizeICCProfile() error {
 	inputProfile := r.determineInputICCProfile()
 	if !r.HasICCProfile() && (inputProfile == "") {
-		//No embedded ICC profile in the input image and no input profile determined, nothing to do.
+		// No embedded ICC profile in the input image and no input profile determined, nothing to do.
 		return nil
 	}
 
