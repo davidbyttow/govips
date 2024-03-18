@@ -405,6 +405,7 @@ func NewJxlExportParams() *JxlExportParams {
 		Quality:  75,
 		Lossless: false,
 		Effort:   7,
+		Distance: 1.0,
 	}
 }
 

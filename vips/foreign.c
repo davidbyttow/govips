@@ -562,7 +562,13 @@ static SaveParams defaultSaveParams = {
 
     .jp2kLossless = FALSE,
     .jp2kTileHeight = 512,
-    .jp2kTileWidth = 512};
+    .jp2kTileWidth = 512,
+
+    .jxlTier = 0,
+    .jxlDistance = 1.0,
+    .jxlEffort = 7,
+    .jxlLossless = FALSE,
+    };
 
 SaveParams create_save_params(ImageType outputFormat) {
   SaveParams params = defaultSaveParams;
