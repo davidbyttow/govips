@@ -332,7 +332,7 @@ int set_magicksave_options(VipsOperation *operation, SaveParams *params) {
 int set_gifsave_options(VipsOperation *operation, SaveParams *params) {
   int ret = 0;
   // See for argument values: https://www.libvips.org/API/current/VipsForeignSave.html#vips-gifsave
-  if (params->gifDither > 1 && params->gifDither <= 10) {
+  if (params->gifDither > 0.0 && params->gifDither <= 10) {
     ret = vips_object_set(VIPS_OBJECT(operation), "dither", params->gifDither, NULL);
   }
   if (params->gifEffort >= 1 && params->gifEffort <= 10) {
