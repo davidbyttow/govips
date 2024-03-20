@@ -437,6 +437,12 @@ func TestImage_Sharpen_8bit_Alpha(t *testing.T) {
 	}, nil, nil)
 }
 
+func TestImage_Sobel(t *testing.T) {
+	goldenTest(t, resources+"png-8bit+alpha.png", func(img *ImageRef) error {
+		return img.Sobel()
+	}, nil, nil)
+}
+
 func TestImage_Modulate(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg", func(img *ImageRef) error {
 		return img.Modulate(0.7, 0.5, 180)
