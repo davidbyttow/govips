@@ -1553,6 +1553,16 @@ func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 	return nil
 }
 
+// Apply Sobel edge detector to the image.
+func (r *ImageRef) Sobel() error {
+	out, err := vipsSobel(r.image)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // Modulate the colors
 func (r *ImageRef) Modulate(brightness, saturation, hue float64) error {
 	var err error
