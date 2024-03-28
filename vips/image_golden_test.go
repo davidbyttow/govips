@@ -3,9 +3,10 @@ package vips
 import (
 	"bytes"
 	"image"
-	jpeg2 "image/jpeg"
+	"image/jpeg"
 	"image/png"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -764,7 +765,7 @@ func TestImage_Decode_JPG(t *testing.T) {
 		assert.NoError(t, err)
 
 		buf := new(bytes.Buffer)
-		err = jpeg2.Encode(buf, goImg, nil)
+		err = jpeg.Encode(buf, goImg, nil)
 		assert.Nil(t, err)
 
 		config, format, err := image.DecodeConfig(buf)
@@ -1127,32 +1128,28 @@ func getEnvironment() string {
 
 func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) {
 	i := strings.LastIndex(file, ".")
-	if i < 0 {
-		panic("bad filename")
-	}
+	require.GreaterOrEqual(t, i, 0, "filename %s does not contain a dot", file)
 
 	name := strings.Replace(t.Name(), "/", "_", -1)
 	name = strings.Replace(name, "TestImage_", "", -1)
-	prefix := file[:i] + "." + name
+	prefix := file[:i] + "." + name + "-" + getEnvironment()
 	ext := format.FileExt()
-	goldenFile := prefix + "-" + getEnvironment() + ".golden" + ext
-
-	golden, _ := ioutil.ReadFile(goldenFile)
-	if golden != nil {
-		sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
-		if !sameAsGolden {
-			failed := prefix + "-" + getEnvironment() + ".failed" + ext
-			err := ioutil.WriteFile(failed, buf, 0666)
-			if err != nil {
-				panic(err)
-			}
-		}
+	goldenFile := prefix + ".golden" + ext
+	if !assert.FileExists(t, goldenFile) {
+		t.Log("writing golden file: " + goldenFile)
+		err := os.WriteFile(goldenFile, buf, 0644)
+		assert.NoError(t, err)
 		return
 	}
 
-	t.Log("writing golden file: " + goldenFile)
-	err := ioutil.WriteFile(goldenFile, buf, 0644)
-	assert.NoError(t, err)
+	golden, err := os.ReadFile(goldenFile)
+	require.NoError(t, err)
+
+	sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
+	if !sameAsGolden {
+		failed := prefix + ".failed" + ext
+		require.NoError(t, os.WriteFile(failed, buf, 0666))
+	}
 }
 
 func goldenAnimatedTest(

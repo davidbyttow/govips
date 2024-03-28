@@ -167,10 +167,10 @@ func DetermineImageType(buf []byte) ImageType {
 	}
 }
 
-var jpeg = []byte("\xFF\xD8\xFF")
+var jpegHeader = []byte("\xFF\xD8\xFF")
 
 func isJPEG(buf []byte) bool {
-	return bytes.HasPrefix(buf, jpeg)
+	return bytes.HasPrefix(buf, jpegHeader)
 }
 
 var gifHeader = []byte("\x47\x49\x46")
