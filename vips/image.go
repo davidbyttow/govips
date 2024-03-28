@@ -318,6 +318,7 @@ func NewTiffExportParams() *TiffExportParams {
 // Please note that if vips version is above 8.12, then `vips_gifsave_buffer` is used, and only `Dither`, `Effort`, `Bitdepth` is used.
 // If vips version is below 8.12, then `vips_magicksave_buffer` is used, and only `Bitdepth`, `Quality` is used.
 type GifExportParams struct {
+	StripMetadata bool
 	Quality  int
 	Dither   float64
 	Effort   int
