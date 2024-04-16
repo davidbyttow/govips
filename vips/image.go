@@ -766,7 +766,7 @@ func (r *ImageRef) SetPages(pages int) error {
 		return err
 	}
 
-	vipsSetImageNPages(r.image, pages)
+	vipsSetImageNPages(out, pages)
 
 	r.setImage(out)
 	return nil
