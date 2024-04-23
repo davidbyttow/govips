@@ -314,6 +314,10 @@ func NewTiffExportParams() *TiffExportParams {
 	}
 }
 
+// GifExportParams are options when exporting a GIF to file or buffer
+// Please note that if vips version is above 8.12, then `vips_gifsave_buffer` is used, and only `Dither`, `Effort`, `Bitdepth` is used.
+// If vips version is below 8.12, then `vips_magicksave_buffer` is used, and only `Bitdepth`, `Quality` is used.
+// StripMetadata does nothing to Gif images.
 type GifExportParams struct {
 	StripMetadata bool
 	Quality       int
@@ -405,6 +409,7 @@ func NewJxlExportParams() *JxlExportParams {
 		Quality:  75,
 		Lossless: false,
 		Effort:   7,
+		Distance: 1.0,
 	}
 }
 
@@ -761,7 +766,7 @@ func (r *ImageRef) SetPages(pages int) error {
 		return err
 	}
 
-	vipsSetImageNPages(r.image, pages)
+	vipsSetImageNPages(out, pages)
 
 	r.setImage(out)
 	return nil
@@ -1545,6 +1550,16 @@ func (r *ImageRef) GaussianBlur(sigmas ...float64) error {
 // m2: slope for jaggy areas
 func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 	out, err := vipsSharpen(r.image, sigma, x1, m2)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
+// Apply Sobel edge detector to the image.
+func (r *ImageRef) Sobel() error {
+	out, err := vipsSobel(r.image)
 	if err != nil {
 		return err
 	}

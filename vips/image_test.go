@@ -1169,6 +1169,18 @@ func TestImageRef_HistogramEntropy(t *testing.T) {
 	require.True(t, e > 0)
 }
 
+func TestImageRef_SetPages(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+	require.Equal(t, 8, image.Pages())
+
+	err = image.SetPages(3)
+	require.NoError(t, err)
+	require.Equal(t, 3, image.Pages())
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test
