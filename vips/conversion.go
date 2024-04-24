@@ -1,5 +1,6 @@
 package vips
 
+// #cgo CFLAGS: -std=c99
 // #include "conversion.h"
 import "C"
 
