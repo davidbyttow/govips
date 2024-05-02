@@ -2,9 +2,10 @@ package thumbnail
 
 import (
 	"fmt"
-	"github.com/davidbyttow/govips/v2/vips"
-	"io/ioutil"
+	"os"
 	"testing"
+
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 var file = "../../resources/jpg-24bit-icc-iec.jpg"
@@ -43,7 +44,7 @@ func BenchmarkNewImageFromFile(b *testing.B) {
 
 func BenchmarkNewImageFromBuffer(b *testing.B) {
 	resizeToTest := func(size int) {
-		buf, err := ioutil.ReadFile(file)
+		buf, err := os.ReadFile(file)
 		if err != nil {
 			panic(err)
 		}
@@ -94,7 +95,7 @@ func BenchmarkNewThumbnailFromFile(b *testing.B) {
 
 func BenchmarkNewThumbnailFromBuffer(b *testing.B) {
 	resizeToTest := func(size int) {
-		buf, err := ioutil.ReadFile(file)
+		buf, err := os.ReadFile(file)
 		if err != nil {
 			panic(err)
 		}

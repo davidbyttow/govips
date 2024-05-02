@@ -2,7 +2,6 @@ package mem_tests
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
 	"testing"
@@ -29,7 +28,7 @@ func TestMain(m *testing.M) {
 func TestMemoryLeak(t *testing.T) {
 	vips.Startup(nil)
 
-	buf, err := ioutil.ReadFile(resources + "png-24bit.png")
+	buf, err := os.ReadFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
 	iteration := func() {

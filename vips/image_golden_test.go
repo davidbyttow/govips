@@ -5,7 +5,7 @@ import (
 	"image"
 	jpeg2 "image/jpeg"
 	"image/png"
-	"io/ioutil"
+	"os"
 	"os/exec"
 	"runtime"
 	"strings"
@@ -1078,7 +1078,7 @@ func goldenCreateTest(
 
 	assertGoldenMatch(t, path, buf, metadata.Format)
 
-	buf2, err := ioutil.ReadFile(path)
+	buf2, err := os.ReadFile(path)
 	require.NoError(t, err)
 
 	img2, err := createFromBuffer(buf2)
@@ -1137,12 +1137,12 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 	ext := format.FileExt()
 	goldenFile := prefix + "-" + getEnvironment() + ".golden" + ext
 
-	golden, _ := ioutil.ReadFile(goldenFile)
+	golden, _ := os.ReadFile(goldenFile)
 	if golden != nil {
 		sameAsGolden := assert.True(t, bytes.Equal(buf, golden), "Actual image (size=%d) didn't match expected golden file=%s (size=%d)", len(buf), goldenFile, len(golden))
 		if !sameAsGolden {
 			failed := prefix + "-" + getEnvironment() + ".failed" + ext
-			err := ioutil.WriteFile(failed, buf, 0666)
+			err := os.WriteFile(failed, buf, 0666)
 			if err != nil {
 				panic(err)
 			}
@@ -1151,7 +1151,7 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 	}
 
 	t.Log("writing golden file: " + goldenFile)
-	err := ioutil.WriteFile(goldenFile, buf, 0644)
+	err := os.WriteFile(goldenFile, buf, 0644)
 	assert.NoError(t, err)
 }
 
