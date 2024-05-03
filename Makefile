@@ -1,12 +1,30 @@
 all: deps build test
 
-deps: FORCE
+.PHONY: deps
+deps:
 	CGO_CFLAGS_ALLOW=-Xpreprocessor go get ./...
 
-build: FORCE
+.PHONY: build
+build:
 	CGO_CFLAGS_ALLOW=-Xpreprocessor go build ./vips
 
-test: FORCE
+.PHONY: test
+test:
 	CGO_CFLAGS_ALLOW=-Xpreprocessor go test -v ./...
 
-FORCE:
+.PHONY: clean
+clean:
+	go clean
+
+.PHONY: clean-cache
+clean-cache:
+	# Purge build cache and test cache.
+	# When something went wrong on building or testing, try this.
+	-go clean -testcache
+	-go clean -cache
+
+.PHONY: distclean
+distclean:
+	-go clean -testcache
+	-go clean -cache
+	-git clean -f -x
