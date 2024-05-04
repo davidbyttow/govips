@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"io/ioutil"
+	"os"
 	"runtime"
 	"strconv"
 	"strings"
@@ -415,7 +415,7 @@ func NewJxlExportParams() *JxlExportParams {
 
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
-	buf, err := ioutil.ReadAll(r)
+	buf, err := io.ReadAll(r)
 	if err != nil {
 		return nil, err
 	}
@@ -430,7 +430,7 @@ func NewImageFromFile(file string) (*ImageRef, error) {
 
 // LoadImageFromFile loads an image from file and creates a new ImageRef
 func LoadImageFromFile(file string, params *ImportParams) (*ImageRef, error) {
-	buf, err := ioutil.ReadFile(file)
+	buf, err := os.ReadFile(file)
 	if err != nil {
 		return nil, err
 	}
@@ -817,7 +817,7 @@ func (r *ImageRef) SetPageDelay(delay []int) error {
 }
 
 // Export creates a byte array of the image for use.
-// The function returns a byte array that can be written to a file e.g. via ioutil.WriteFile().
+// The function returns a byte array that can be written to a file e.g. via os.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
 // The function also returns a copy of the image metadata as well as an error.
 // Deprecated: Use ExportNative or format-specific Export methods

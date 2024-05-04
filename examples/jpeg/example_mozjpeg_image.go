@@ -4,7 +4,6 @@ package vips_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/davidbyttow/govips/v2/vips"
@@ -44,5 +43,5 @@ func ExampleMozJPEGEncode() {
 
 	imageBytes, _, err := inputImage.ExportJpeg(ep)
 	checkError(err)
-	checkError(ioutil.WriteFile("examples/jpeg/mozjpeg-output-govips.jpeg", imageBytes, 0644))
+	checkError(os.WriteFile("examples/jpeg/mozjpeg-output-govips.jpeg", imageBytes, 0644))
 }

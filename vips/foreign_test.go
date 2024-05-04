@@ -1,7 +1,7 @@
 package vips
 
 import (
-	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -10,7 +10,7 @@ import (
 func Test_DetermineImageType__JPEG(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "jpg-24bit-icc-iec.jpg")
+	buf, err := os.ReadFile(resources + "jpg-24bit-icc-iec.jpg")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -21,7 +21,7 @@ func Test_DetermineImageType__JPEG(t *testing.T) {
 func Test_DetermineImageType__HEIF_HEIC(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "heic-24bit-exif.heic")
+	buf, err := os.ReadFile(resources + "heic-24bit-exif.heic")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -32,7 +32,7 @@ func Test_DetermineImageType__HEIF_HEIC(t *testing.T) {
 func Test_DetermineImageType__HEIF_MIF1(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "heic-24bit.heic")
+	buf, err := os.ReadFile(resources + "heic-24bit.heic")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -43,7 +43,7 @@ func Test_DetermineImageType__HEIF_MIF1(t *testing.T) {
 func Test_DetermineImageType__PNG(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "png-24bit+alpha.png")
+	buf, err := os.ReadFile(resources + "png-24bit+alpha.png")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -54,7 +54,7 @@ func Test_DetermineImageType__PNG(t *testing.T) {
 func Test_DetermineImageType__TIFF(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "tif.tif")
+	buf, err := os.ReadFile(resources + "tif.tif")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -65,7 +65,7 @@ func Test_DetermineImageType__TIFF(t *testing.T) {
 func Test_DetermineImageType__WEBP(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "webp+alpha.webp")
+	buf, err := os.ReadFile(resources + "webp+alpha.webp")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -76,7 +76,7 @@ func Test_DetermineImageType__WEBP(t *testing.T) {
 func Test_DetermineImageType__SVG(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "svg.svg")
+	buf, err := os.ReadFile(resources + "svg.svg")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -87,7 +87,7 @@ func Test_DetermineImageType__SVG(t *testing.T) {
 func Test_DetermineImageType__SVG_1(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "svg_1.svg")
+	buf, err := os.ReadFile(resources + "svg_1.svg")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -98,7 +98,7 @@ func Test_DetermineImageType__SVG_1(t *testing.T) {
 func Test_DetermineImageType__PDF(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "pdf.pdf")
+	buf, err := os.ReadFile(resources + "pdf.pdf")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -109,7 +109,7 @@ func Test_DetermineImageType__PDF(t *testing.T) {
 func Test_DetermineImageType__BMP(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "bmp.bmp")
+	buf, err := os.ReadFile(resources + "bmp.bmp")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -120,7 +120,7 @@ func Test_DetermineImageType__BMP(t *testing.T) {
 func Test_DetermineImageType__AVIF(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "avif-8bit.avif")
+	buf, err := os.ReadFile(resources + "avif-8bit.avif")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -131,7 +131,7 @@ func Test_DetermineImageType__AVIF(t *testing.T) {
 func Test_DetermineImageType__JP2K(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "jp2k-orientation-6.jp2")
+	buf, err := os.ReadFile(resources + "jp2k-orientation-6.jp2")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 
@@ -142,7 +142,7 @@ func Test_DetermineImageType__JP2K(t *testing.T) {
 func Test_DetermineImageType__JXL(t *testing.T) {
 	Startup(&Config{})
 
-	buf, err := ioutil.ReadFile(resources + "jxl-8bit-grey-icc-dot-gain.jxl")
+	buf, err := os.ReadFile(resources + "jxl-8bit-grey-icc-dot-gain.jxl")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 

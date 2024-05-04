@@ -4,7 +4,6 @@ package package_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/davidbyttow/govips/v2/vips"
@@ -33,6 +32,6 @@ func main() {
 	exportParams := vips.NewTiffExportParams()
 	exportParams.Quality = 100
 	imageBytes, _, err := inputImage.ExportTiff(exportParams)
-	err = ioutil.WriteFile("examples/tiff/output-govips.tiff", imageBytes, 0644)
+	err = os.WriteFile("examples/tiff/output-govips.tiff", imageBytes, 0644)
 	checkError(err)
 }

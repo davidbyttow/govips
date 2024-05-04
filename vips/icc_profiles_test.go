@@ -1,9 +1,10 @@
 package vips
 
 import (
-	"github.com/stretchr/testify/require"
-	"io/ioutil"
+	"os"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -18,7 +19,7 @@ func Test_ICCProfileInitialisation(t *testing.T) {
 }
 
 func assertIccProfile(t *testing.T, expectedProfile []byte, path string) {
-	loadedProfile, err := ioutil.ReadFile(path)
+	loadedProfile, err := os.ReadFile(path)
 	require.NoError(t, err)
 	assert.Equal(t, expectedProfile, loadedProfile)
 }

@@ -14,7 +14,7 @@ The intent for this is to enable developers to build extremely fast image proces
 
 -   [libvips](https://github.com/libvips/libvips) 8.10+
 -   C compatible compiler such as gcc 4.6+ or clang 3.0+
--   Go 1.14+
+-   Go 1.16+
 
 ## Dependencies
 
@@ -53,7 +53,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/davidbyttow/govips/v2/vips"
@@ -79,7 +78,7 @@ func main() {
 
 	ep := vips.NewDefaultJPEGExportParams()
 	image1bytes, _, err := image1.Export(ep)
-	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
+	err = os.WriteFile("output.jpg", image1bytes, 0644)
 	checkError(err)
 
 }

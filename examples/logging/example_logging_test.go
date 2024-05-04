@@ -2,7 +2,6 @@ package package_test
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 
@@ -64,6 +63,6 @@ func main() {
 
 	image1bytes, _, err := image1.ExportJpeg(nil)
 	checkError(err)
-	err = ioutil.WriteFile("output.jpg", image1bytes, 0644)
+	err = os.WriteFile("output.jpg", image1bytes, 0644)
 	checkError(err)
 }
