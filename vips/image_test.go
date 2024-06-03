@@ -1187,7 +1187,7 @@ func TestImageRef_SetGamma(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 8, image.Pages())
 
-	err = image.Gamma(2.4)
+	err = image.Gamma(1.0 / 2.4)
 	require.NoError(t, err)
 }
 
