@@ -257,10 +257,14 @@ func isJP2K(buf []byte) bool {
 	return bytes.HasPrefix(buf, jp2kHeader)
 }
 
+// As a 'naked' codestream
 var jxlHeader = []byte("\xff\x0a")
 
+// As an ISOBMFF-based container: 0x0000000C 4A584C20 0D0A870A
+var jxlHeaderISOBMFF = []byte("\x00\x00\x00\x0C\x4A\x58\x4C\x20\x0D\x0A\x87\x0A")
+
 func isJXL(buf []byte) bool {
-	return bytes.HasPrefix(buf, jxlHeader)
+	return bytes.HasPrefix(buf, jxlHeader) || bytes.HasPrefix(buf, jxlHeaderISOBMFF)
 }
 
 func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {

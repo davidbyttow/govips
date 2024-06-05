@@ -149,3 +149,14 @@ func Test_DetermineImageType__JXL(t *testing.T) {
 	imageType := DetermineImageType(buf)
 	assert.Equal(t, ImageTypeJXL, imageType)
 }
+
+func Test_DetermineImageType__JXL_ISOBMFF(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := os.ReadFile(resources + "jxl-isobmff.jxl")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypeJXL, imageType)
+}
