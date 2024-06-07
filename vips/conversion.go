@@ -507,3 +507,14 @@ func vipsGrid(in *C.VipsImage, tileHeight, across, down int) (*C.VipsImage, erro
 	}
 	return out, nil
 }
+
+func vipsGamma(image *C.VipsImage, gamma float64) (*C.VipsImage, error) {
+	incOpCounter("gamma")
+	var out *C.VipsImage
+
+	if err := C.adjust_gamma(image, &out, C.double(gamma)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}

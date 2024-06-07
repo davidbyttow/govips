@@ -1304,6 +1304,17 @@ func (r *ImageRef) Linear1(a, b float64) error {
 	return nil
 }
 
+// Adjusts the image's gamma value.
+// See https://www.libvips.org/API/current/libvips-conversion.html#vips-gamma
+func (r *ImageRef) Gamma(gamma float64) error {
+	out, err := vipsGamma(r.image, gamma)
+	if err != nil {
+		return err
+	}
+	r.setImage(out)
+	return nil
+}
+
 // GetRotationAngleFromExif returns the angle which the image is currently rotated in.
 // First returned value is the angle and second is a boolean indicating whether image is flipped.
 // This is based on the EXIF orientation tag standard.

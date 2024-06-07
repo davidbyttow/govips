@@ -1180,6 +1180,16 @@ func TestImageRef_SetPages(t *testing.T) {
 	require.Equal(t, 3, image.Pages())
 }
 
+func TestImageRef_SetGamma(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.Gamma(1.0 / 2.4)
+	require.NoError(t, err)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test
