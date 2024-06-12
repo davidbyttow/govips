@@ -67,8 +67,6 @@ func Startup(config *Config) {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 
-	createTemporaryDirectoryOrPanic()
-
 	if running {
 		govipsLog("govips", LogLevelInfo, "warning libvips already started")
 		return
@@ -98,6 +96,7 @@ func Startup(config *Config) {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
+	createTemporaryDirectoryOrPanic()
 	initializeICCProfiles()
 
 	running = true
