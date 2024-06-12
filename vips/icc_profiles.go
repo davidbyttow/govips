@@ -653,7 +653,7 @@ var (
 
 func initializeICCProfiles() {
 
-	if temporaryDirectory != "" {
+	if temporaryDirectory == "" {
 		createTemporaryDirectoryOrPanic()
 	}
 
