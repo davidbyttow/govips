@@ -644,14 +644,24 @@ var (
 		0x00, 0x20, 0x63, 0xcf, 0x8f, 0xf0, 0x65, 0x87, 0x4e, 0xf6, 0x00, 0x00,
 	}
 
-	temporaryDirectory               = temporaryDirectoryOrPanic()
-	SRGBV2MicroICCProfilePath        = filepath.Join(temporaryDirectory, "srgb_v2_micro.icc")
-	SGrayV2MicroICCProfilePath       = filepath.Join(temporaryDirectory, "sgray_v2_micro.icc")
-	SRGBIEC6196621ICCProfilePath     = filepath.Join(temporaryDirectory, "srgb_iec61966_2_1.icc")
-	GenericGrayGamma22ICCProfilePath = filepath.Join(temporaryDirectory, "generic_gray_gamma_2_2.icc")
+	temporaryDirectory               string
+	SRGBV2MicroICCProfilePath        string
+	SGrayV2MicroICCProfilePath       string
+	SRGBIEC6196621ICCProfilePath     string
+	GenericGrayGamma22ICCProfilePath string
 )
 
 func initializeICCProfiles() {
+
+	if temporaryDirectory != "" {
+		createTemporaryDirectoryOrPanic()
+	}
+
+	SRGBV2MicroICCProfilePath = filepath.Join(temporaryDirectory, "srgb_v2_micro.icc")
+	SGrayV2MicroICCProfilePath = filepath.Join(temporaryDirectory, "sgray_v2_micro.icc")
+	SRGBIEC6196621ICCProfilePath = filepath.Join(temporaryDirectory, "srgb_iec61966_2_1.icc")
+	GenericGrayGamma22ICCProfilePath = filepath.Join(temporaryDirectory, "generic_gray_gamma_2_2.icc")
+
 	storeIccProfile(SRGBV2MicroICCProfilePath, sRGBV2MicroICCProfile)
 	storeIccProfile(SGrayV2MicroICCProfilePath, sGrayV2MicroICCProfile)
 	storeIccProfile(SRGBIEC6196621ICCProfilePath, sRGBIEC6196621ICCProfile)
@@ -665,8 +675,11 @@ func storeIccProfile(path string, data []byte) {
 	}
 }
 
-func temporaryDirectoryOrPanic() string {
-	temporaryDirectory, err := os.MkdirTemp("", "govips-")
+func createTemporaryDirectoryOrPanic() string {
+
+	tmpDir, err := os.MkdirTemp("", "govips-")
+	temporaryDirectory = tmpDir // assign to global variable
+
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't create temporary directory: %v", err.Error()))
 	}
