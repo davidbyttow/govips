@@ -1190,6 +1190,28 @@ func TestImageRef_SetGamma(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestImageRef_LoadImageFromBytes(t *testing.T) {
+	Startup(nil)
+
+	bytes := []byte{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12}
+	img, err := LoadImageFromBytes(bytes, 2, 2)
+	require.NoError(t, err)
+	require.NotNil(t, img)
+	assert.Equal(t, 2, img.Width())
+	assert.Equal(t, 3, img.Bands())
+
+	retBytes, err := img.ToBytes()
+	require.NoError(t, err)
+	assert.Equal(t, bytes, retBytes)
+	_, _, err = img.ExportNative()
+	assert.NoError(t, err)
+
+	// error cases
+	img1, err := LoadImageFromBytes(bytes, 3, 5)
+	assert.Nil(t, img1)
+	require.Error(t, err, "invalid buffer size")
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

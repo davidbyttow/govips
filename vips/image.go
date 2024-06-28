@@ -463,6 +463,30 @@ func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
 	return ref, nil
 }
 
+// LoadImageFromBytes loads an image bytes array and creates a new Image
+func LoadImageFromBytes(buf []byte, w, h int) (*ImageRef, error) {
+	startupIfNeeded()
+
+	bufPtr := unsafe.Pointer(&buf[0])
+	bufSize := C.size_t(len(buf))
+
+	bytePerPixel := len(buf) / (w * h)
+	if bytePerPixel < 1 {
+		return nil, errors.New("invalid buffer size")
+	}
+
+	// Create a VipsImage from bytes
+	img := C.vips_image_new_from_memory(bufPtr, bufSize, C.int(w), C.int(h), C.int(bytePerPixel), C.VipsBandFormat(C.VIPS_FORMAT_UCHAR))
+
+	// Check for any Vips errors
+	errMsg := C.GoString(C.vips_error_buffer())
+	if errMsg != "" {
+		C.vips_error_clear()
+		return nil, errors.New("Vips error: " + errMsg)
+	}
+	return newImageRef(img, ImageTypeUnknown, ImageTypeUnknown, nil), nil
+}
+
 // NewThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail crop
 func NewThumbnailFromFile(file string, width, height int, crop Interesting) (*ImageRef, error) {
 	return LoadThumbnailFromFile(file, width, height, crop, SizeBoth, nil)
