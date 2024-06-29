@@ -476,7 +476,7 @@ func LoadImageFromBytes(buf []byte, w, h int) (*ImageRef, error) {
 	}
 
 	// Create a VipsImage from bytes
-	img := C.vips_image_new_from_memory(bufPtr, bufSize, C.int(w), C.int(h), C.int(bytePerPixel), C.VipsBandFormat(C.VIPS_FORMAT_UCHAR))
+	img := C.vips_image_new_from_memory_copy(bufPtr, bufSize, C.int(w), C.int(h), C.int(bytePerPixel), C.VipsBandFormat(C.VIPS_FORMAT_UCHAR))
 
 	// Check for any Vips errors
 	errMsg := C.GoString(C.vips_error_buffer())
