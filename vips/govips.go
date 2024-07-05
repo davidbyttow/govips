@@ -183,7 +183,9 @@ func Shutdown() {
 		return
 	}
 
-	os.RemoveAll(temporaryDirectory)
+	if temporaryDirectory != "" {
+		os.RemoveAll(temporaryDirectory)
+	}
 
 	C.vips_shutdown()
 	disableLogging()
