@@ -644,10 +644,10 @@ var (
 		0x00, 0x20, 0x63, 0xcf, 0x8f, 0xf0, 0x65, 0x87, 0x4e, 0xf6, 0x00, 0x00,
 	}
 
-	sRGBV2MicroICCProfilePathToken        = "#srgb_v2_micro.icc"
-	sGrayV2MicroICCProfilePathToken       = "#sgray_v2_micro.icc"
-	sRGBIEC6196621ICCProfilePathToken     = "#srgb_iec61966_2_1.icc"
-	genericGrayGamma22ICCProfilePathToken = "#generic_gray_gamma_2_2.icc"
+	sRGBV2MicroICCProfilePathToken        = "\x00srgb_v2_micro.icc"
+	sGrayV2MicroICCProfilePathToken       = "\x00sgray_v2_micro.icc"
+	sRGBIEC6196621ICCProfilePathToken     = "\x00srgb_iec61966_2_1.icc"
+	genericGrayGamma22ICCProfilePathToken = "\x00generic_gray_gamma_2_2.icc"
 
 	temporaryDirectory               = ""
 	SRGBV2MicroICCProfilePath        = sRGBV2MicroICCProfilePathToken
@@ -658,7 +658,7 @@ var (
 
 // Back support
 func ensureLoadICCPath(name *string) (err error) {
-	if len(*name) > 0 && (*name)[0] == '#' {
+	if len(*name) > 0 && (*name)[0] == 0 {
 		switch *name {
 		case sRGBV2MicroICCProfilePathToken:
 			*name, err = GetSRGBV2MicroICCProfilePath()
@@ -717,7 +717,7 @@ func GetGenericGrayGamma22ICCProfilePath() (string, error) {
 func getOrLoad(pathFile *string, name string, fileBytes []byte) (string, error) {
 	lockIcc.Lock()
 	defer lockIcc.Unlock()
-	if len(*pathFile) > 0 && (*pathFile)[0] != '#' {
+	if len(*pathFile) > 0 && (*pathFile)[0] != 0 {
 		return *pathFile, nil
 	}
 
