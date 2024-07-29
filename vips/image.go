@@ -1781,6 +1781,18 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 
 	pages := r.Pages()
 	pageHeight := r.GetPageHeight()
+	newPageHeight := 0
+
+	if pages > 1 {
+		scale := hScale
+		if vScale != -1 {
+			scale = vScale
+		}
+		newPageHeight = int(float64(pageHeight) * scale)
+		if float64(newPageHeight) != float64(pageHeight)*scale {
+			return ErrInvalidScaleForAnimatedImage
+		}
+	}
 
 	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
@@ -1789,11 +1801,6 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 	r.setImage(out)
 
 	if pages > 1 {
-		scale := hScale
-		if vScale != -1 {
-			scale = vScale
-		}
-		newPageHeight := int(float64(pageHeight)*scale + 0.5)
 		if err := r.SetPageHeight(newPageHeight); err != nil {
 			return err
 		}
