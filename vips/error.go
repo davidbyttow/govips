@@ -13,6 +13,8 @@ import (
 var (
 	// ErrUnsupportedImageFormat when image type is unsupported
 	ErrUnsupportedImageFormat = errors.New("unsupported image format")
+	// ErrInvalidScaleForAnimatedImage when an animated image will not resize correctly with the given scale value
+	ErrInvalidScaleForAnimatedImage = errors.New("invalid scale for animated image")
 )
 
 func handleImageError(out *C.VipsImage) error {

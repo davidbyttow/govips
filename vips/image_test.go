@@ -209,6 +209,26 @@ func TestImageRef_Resize__Error(t *testing.T) {
 	require.Error(t, err)
 }
 
+func TestImageRef_Resize_Animated_CorrectScale(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	err = image.Resize(0.5, KernelLanczos3)
+	require.NoError(t, err)
+}
+
+func TestImageRef_Resize_Animated_InvalidScale(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	err = image.Resize(0.2, KernelLanczos3)
+	require.Error(t, err)
+}
+
 func TestImageRef_ExtractArea__Error(t *testing.T) {
 	Startup(nil)
 
