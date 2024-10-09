@@ -1190,6 +1190,17 @@ func TestImageRef_SetGamma(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func Test_NewImageFromFile(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "PDF-2.0-with-offset-start.pdf")
+	require.NoError(t, err)
+
+	assert.Equal(t, ImageTypePDF, image.originalFormat)
+	assert.Equal(t, ImageTypePDF, image.format)
+	assert.Equal(t, 1, image.Pages())
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

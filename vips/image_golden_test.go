@@ -954,6 +954,14 @@ func TestImage_Pixelate(t *testing.T) {
 		nil, nil)
 }
 
+func TestPDF_WithOffsetStart(t *testing.T) {
+	goldenTest(t, resources+"PDF-2.0-with-offset-start.pdf",
+		nil, func(img *ImageRef) {
+			assert.Equal(t, 612, img.Width())
+			assert.Equal(t, 396, img.Height())
+		}, nil)
+}
+
 func testWebpOptimizeIccProfile(t *testing.T, exportParams *WebpExportParams) []byte {
 	return goldenTest(t, resources+"has-icc-profile.png",
 		func(img *ImageRef) error {
