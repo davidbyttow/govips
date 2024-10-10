@@ -6,13 +6,12 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
+	"golang.org/x/image/bmp"
+	"golang.org/x/net/html/charset"
 	"image/png"
 	"math"
 	"runtime"
 	"unsafe"
-
-	"golang.org/x/image/bmp"
-	"golang.org/x/net/html/charset"
 )
 
 // SubsampleMode correlates to a libvips subsample mode
@@ -154,14 +153,14 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypeHEIF
 	} else if isSVG(buf) {
 		return ImageTypeSVG
-	} else if isPDF(buf) {
-		return ImageTypePDF
 	} else if isBMP(buf) {
 		return ImageTypeBMP
 	} else if isJP2K(buf) {
 		return ImageTypeJP2K
 	} else if isJXL(buf) {
 		return ImageTypeJXL
+	} else if isPDF(buf) {
+		return ImageTypePDF
 	} else {
 		return ImageTypeUnknown
 	}
@@ -240,7 +239,10 @@ func isSVG(buf []byte) bool {
 var pdf = []byte("\x25\x50\x44\x46")
 
 func isPDF(buf []byte) bool {
-	return bytes.HasPrefix(buf, pdf)
+	if len(buf) <= 1024 {
+		return bytes.Contains(buf, pdf)
+	}
+	return bytes.Contains(buf[:1024], pdf)
 }
 
 var bmpHeader = []byte("BM")

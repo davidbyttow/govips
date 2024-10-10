@@ -106,6 +106,17 @@ func Test_DetermineImageType__PDF(t *testing.T) {
 	assert.Equal(t, ImageTypePDF, imageType)
 }
 
+func Test_DetermineImageType__PDF_1(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := os.ReadFile(resources + "PDF-2.0-with-offset-start.pdf")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypePDF, imageType)
+}
+
 func Test_DetermineImageType__BMP(t *testing.T) {
 	Startup(&Config{})
 
