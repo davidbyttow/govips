@@ -96,6 +96,7 @@ func Startup(config *Config) {
 		panic(fmt.Sprintf("Failed to start vips code=%v", err))
 	}
 
+	createTemporaryDirectoryOrPanic()
 	initializeICCProfiles()
 
 	running = true
