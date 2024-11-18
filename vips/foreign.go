@@ -19,10 +19,10 @@ type SubsampleMode int
 
 // SubsampleMode enum correlating to libvips subsample modes
 const (
-	VipsForeignSubsampleAuto SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_AUTO
-	VipsForeignSubsampleOn   SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_ON
-	VipsForeignSubsampleOff  SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_OFF
-	VipsForeignSubsampleLast SubsampleMode = C.VIPS_FOREIGN_JPEG_SUBSAMPLE_LAST
+	VipsForeignSubsampleAuto SubsampleMode = C.VIPS_FOREIGN_SUBSAMPLE_AUTO
+	VipsForeignSubsampleOn   SubsampleMode = C.VIPS_FOREIGN_SUBSAMPLE_ON
+	VipsForeignSubsampleOff  SubsampleMode = C.VIPS_FOREIGN_SUBSAMPLE_OFF
+	VipsForeignSubsampleLast SubsampleMode = C.VIPS_FOREIGN_SUBSAMPLE_LAST
 )
 
 // ImageType represents an image type
@@ -358,7 +358,7 @@ func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, err
 	p.quality = C.int(params.Quality)
 	p.interlace = C.int(boolToInt(params.Interlace))
 	p.jpegOptimizeCoding = C.int(boolToInt(params.OptimizeCoding))
-	p.jpegSubsample = C.VipsForeignJpegSubsample(params.SubsampleMode)
+	p.jpegSubsample = C.VipsForeignSubsample(params.SubsampleMode)
 	p.jpegTrellisQuant = C.int(boolToInt(params.TrellisQuant))
 	p.jpegOvershootDeringing = C.int(boolToInt(params.OvershootDeringing))
 	p.jpegOptimizeScans = C.int(boolToInt(params.OptimizeScans))
@@ -463,7 +463,7 @@ func vipsSaveJP2KToBuffer(in *C.VipsImage, params Jp2kExportParams) ([]byte, err
 	p.jp2kLossless = C.int(boolToInt(params.Lossless))
 	p.jp2kTileWidth = C.int(params.TileWidth)
 	p.jp2kTileHeight = C.int(params.TileHeight)
-	p.jpegSubsample = C.VipsForeignJpegSubsample(params.SubsampleMode)
+	p.jpegSubsample = C.VipsForeignSubsample(params.SubsampleMode)
 
 	return vipsSaveToBuffer(p)
 }
