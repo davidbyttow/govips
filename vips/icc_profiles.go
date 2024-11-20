@@ -677,13 +677,6 @@ func ensureLoadICCPath(name *string) (err error) {
 	return
 }
 
-func initializeICCProfiles() {
-	GetSRGBV2MicroICCProfilePath()
-	GetSGrayV2MicroICCProfilePath()
-	GetSRGBIEC6196621ICCProfilePath()
-	GetGenericGrayGamma22ICCProfilePath()
-}
-
 func getTemporaryDirectory() (string, error) {
 	if temporaryDirectory != "" {
 		return temporaryDirectory, nil
