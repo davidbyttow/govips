@@ -306,6 +306,10 @@ type TiffExportParams struct {
 	Quality       int
 	Compression   TiffCompression
 	Predictor     TiffPredictor
+	Pyramid       bool
+	Tile          bool
+	TileHeight    int
+	TileWidth     int
 }
 
 // NewTiffExportParams creates default values for an export of a TIFF image.
@@ -314,6 +318,10 @@ func NewTiffExportParams() *TiffExportParams {
 		Quality:     80,
 		Compression: TiffCompressionLzw,
 		Predictor:   TiffPredictorHorizontal,
+		Pyramid:     false,
+		Tile:        false,
+		TileHeight:  256,
+		TileWidth:   256,
 	}
 }
 

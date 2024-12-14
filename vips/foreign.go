@@ -414,6 +414,10 @@ func vipsSaveTIFFToBuffer(in *C.VipsImage, params TiffExportParams) ([]byte, err
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
 	p.quality = C.int(params.Quality)
 	p.tiffCompression = C.VipsForeignTiffCompression(params.Compression)
+	p.tiffPyramid = C.int(boolToInt(params.Pyramid))
+	p.tiffTile = C.int(boolToInt(params.Tile))
+	p.tiffTileHeight = C.int(params.TileHeight)
+	p.tiffTileWidth = C.int(params.TileWidth)
 
 	return vipsSaveToBuffer(p)
 }
