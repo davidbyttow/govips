@@ -1,11 +1,5 @@
 #include "label.h"
 
-int text(VipsImage **out, const char *text, const char *font, int width,
-         int height, VipsAlign align, int dpi) {
-  return vips_text(out, text, "font", font, "width", width, "height", height,
-                   "align", align, "dpi", dpi, NULL);
-}
-
 int label(VipsImage *in, VipsImage **out, LabelOptions *o) {
   double ones[3] = {1, 1, 1};
   VipsImage *base = vips_image_new();

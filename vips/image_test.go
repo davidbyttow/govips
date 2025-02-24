@@ -1238,6 +1238,38 @@ func TestImageRef_Background(t *testing.T) {
 	require.Equal(t, 3, len(background))
 }
 
+func Test_MakeTextImage(t *testing.T) {
+	Startup(nil)
+
+	textImage, err := Text(&TextParams{
+		Text:      "Test",
+		Font:      "Helvetica",
+		Width:     10,
+		Height:    10,
+		Alignment: AlignLow,
+		DPI:       72,
+		Wrap:      TextWrapWord,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, textImage)
+
+	// pango Image
+	pangoText := "<span font_desc='Helvetica' font_size='13pt' foreground='black'>Test</span>"
+	pangoTextImage, err := Text(&TextParams{
+		Text:      pangoText,
+		Width:     10,
+		Height:    0,
+		Alignment: AlignLow,
+		DPI:       72,
+		RGBA:      true,
+		Justify:   false,
+		Spacing:   0,
+		Wrap:      TextWrapWord,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, pangoTextImage)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

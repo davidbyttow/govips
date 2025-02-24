@@ -590,6 +590,12 @@ func Black(width, height int) (*ImageRef, error) {
 	return imageRef, err
 }
 
+// Text draws the string text to an image.
+func Text(params *TextParams) (*ImageRef, error) {
+	img, err := vipsText(params)
+	return newImageRef(img, ImageTypeUnknown, ImageTypeUnknown, nil), err
+}
+
 func newImageRef(vipsImage *C.VipsImage, currentFormat ImageType, originalFormat ImageType, buf []byte) *ImageRef {
 	imageRef := &ImageRef{
 		image:          vipsImage,
