@@ -79,6 +79,10 @@ int get_meta_loader(const VipsImage *in, const char **out) {
   return vips_image_get_string(in, VIPS_META_LOADER, out);
 }
 
+int get_background(VipsImage *in, double **out, int *n) {
+  return vips_image_get_array_double(in, "background", out, n);
+}
+
 int get_image_delay(VipsImage *in, int **out) {
   return vips_image_get_array_int(in, "delay", out, NULL);
 }

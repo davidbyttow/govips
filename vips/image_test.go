@@ -1227,6 +1227,17 @@ func TestImageRef_ArithmeticOperation(t *testing.T) {
 	require.Equal(t, orgHeight, rowImage.Height())
 }
 
+func TestImageRef_Background(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	background, err := image.Background()
+	require.NoError(t, err)
+
+	require.Equal(t, 3, len(background))
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

@@ -827,6 +827,15 @@ func (r *ImageRef) SetPageDelay(delay []int) error {
 	return vipsImageSetDelay(r.image, data)
 }
 
+// Background get the background of image.
+func (r *ImageRef) Background() ([]float64, error) {
+	out, err := vipsImageGetBackground(r.image)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Export creates a byte array of the image for use.
 // The function returns a byte array that can be written to a file e.g. via os.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
