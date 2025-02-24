@@ -174,3 +174,37 @@ func vipsHistEntropy(in *C.VipsImage) (float64, error) {
 
 	return float64(out), nil
 }
+
+// https://www.libvips.org/API/current/libvips-arithmetic.html#vips-subtract
+func vipsSubtract(in1 *C.VipsImage, in2 *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("subtract")
+	var out *C.VipsImage
+
+	if err := C.subtract(in1, in2, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-arithmetic.html#vips-abs
+func vipsAbs(img *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("abs")
+	var out *C.VipsImage
+	if err := C.absOp(img, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://www.libvips.org/API/current/libvips-arithmetic.html#vips-project
+func vipsProject(in *C.VipsImage) (*C.VipsImage, *C.VipsImage, error) {
+	incOpCounter("project")
+	var col, row *C.VipsImage
+
+	if err := C.project(in, &col, &row); err != 0 {
+		return nil, nil, handleVipsError()
+	}
+	return col, row, nil
+}

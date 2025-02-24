@@ -1201,6 +1201,32 @@ func Test_NewImageFromFile(t *testing.T) {
 	assert.Equal(t, 1, image.Pages())
 }
 
+func TestImageRef_ArithmeticOperation(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	image2, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	orgWidth := image.Width()
+	orgHeight := image.Height()
+
+	err = image2.Abs()
+	require.NoError(t, err)
+
+	err = image.Subtract(image2)
+	require.NoError(t, err)
+
+	colImage, rowImage, err := image.Project()
+	require.NoError(t, err)
+
+	require.Equal(t, orgWidth, colImage.Width())
+	require.Equal(t, 1, colImage.Height())
+	require.Equal(t, 1, rowImage.Width())
+	require.Equal(t, orgHeight, rowImage.Height())
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

@@ -1777,6 +1777,38 @@ func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height 
 	return nil
 }
 
+// Subtract calculate subtract operation between two images.
+func (r *ImageRef) Subtract(in2 *ImageRef) error {
+	out, err := vipsSubtract(r.image, in2.image)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
+// Abs calculate abs operation.
+func (r *ImageRef) Abs() error {
+	out, err := vipsAbs(r.image)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
+// Project calculate project operation.
+func (r *ImageRef) Project() (*ImageRef, *ImageRef, error) {
+	col, row, err := vipsProject(r.image)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return newImageRef(col, r.format, r.originalFormat, nil), newImageRef(row, r.format, r.originalFormat, nil), nil
+}
+
 // Rank does rank filtering on an image. A window of size width by height is passed over the image.
 // At each position, the pixels inside the window are sorted into ascending order and the pixel at position
 // index is output. index numbers from 0.
