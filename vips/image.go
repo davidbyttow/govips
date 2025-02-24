@@ -1824,6 +1824,11 @@ func (r *ImageRef) Project() (*ImageRef, *ImageRef, error) {
 	return newImageRef(col, r.format, r.originalFormat, nil), newImageRef(row, r.format, r.originalFormat, nil), nil
 }
 
+// Min finds the minimum value in an image.
+func (r *ImageRef) Min() (float64, int, int, error) {
+	return vipsMin(r.image)
+}
+
 // Rank does rank filtering on an image. A window of size width by height is passed over the image.
 // At each position, the pixels inside the window are sorted into ascending order and the pixel at position
 // index is output. index numbers from 0.

@@ -1212,6 +1212,9 @@ func TestImageRef_ArithmeticOperation(t *testing.T) {
 	orgWidth := image.Width()
 	orgHeight := image.Height()
 
+	_, _, _, err = image.Min()
+	require.NoError(t, err)
+
 	err = image2.Abs()
 	require.NoError(t, err)
 

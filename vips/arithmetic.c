@@ -81,3 +81,7 @@ int absOp(VipsImage *img, VipsImage **out) {
 int project(VipsImage *in, VipsImage **col, VipsImage **row) {
   return vips_project(in, col, row, NULL);
 }
+
+int minOp(VipsImage *in, double *out, int *x, int *y, int size) {
+  return vips_min(in, out, "x", x, "y", y, "size", size, NULL);
+}

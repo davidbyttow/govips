@@ -208,3 +208,16 @@ func vipsProject(in *C.VipsImage) (*C.VipsImage, *C.VipsImage, error) {
 	}
 	return col, row, nil
 }
+
+// https://www.libvips.org/API/current/libvips-arithmetic.html#vips-min
+func vipsMin(in *C.VipsImage) (float64, int, int, error) {
+	incOpCounter("min")
+	var out C.double
+	var x, y C.int
+
+	if err := C.minOp(in, &out, &x, &y, C.int(1)); err != 0 {
+		return 0, 0, 0, handleVipsError()
+	}
+
+	return float64(out), int(x), int(y), nil
+}

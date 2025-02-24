@@ -21,3 +21,4 @@ int hist_entropy(VipsImage *in, double *out);
 int subtract(VipsImage *in1, VipsImage *in2, VipsImage **out);
 int absOp(VipsImage *img, VipsImage **out);
 int project(VipsImage *in, VipsImage **col, VipsImage **row);
+int minOp(VipsImage *in, double *out, int *x, int *y, int size);
