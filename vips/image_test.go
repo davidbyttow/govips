@@ -1201,6 +1201,78 @@ func Test_NewImageFromFile(t *testing.T) {
 	assert.Equal(t, 1, image.Pages())
 }
 
+func TestImageRef_ArithmeticOperation(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	image2, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	orgWidth := image.Width()
+	orgHeight := image.Height()
+
+	_, _, _, err = image.Min()
+	require.NoError(t, err)
+
+	err = image2.Abs()
+	require.NoError(t, err)
+
+	err = image.Subtract(image2)
+	require.NoError(t, err)
+
+	colImage, rowImage, err := image.Project()
+	require.NoError(t, err)
+
+	require.Equal(t, orgWidth, colImage.Width())
+	require.Equal(t, 1, colImage.Height())
+	require.Equal(t, 1, rowImage.Width())
+	require.Equal(t, orgHeight, rowImage.Height())
+}
+
+func TestImageRef_Background(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	background, err := image.Background()
+	require.NoError(t, err)
+
+	require.Equal(t, 3, len(background))
+}
+
+func Test_MakeTextImage(t *testing.T) {
+	Startup(nil)
+
+	textImage, err := Text(&TextParams{
+		Text:      "Test",
+		Font:      "Helvetica",
+		Width:     10,
+		Height:    10,
+		Alignment: AlignLow,
+		DPI:       72,
+		Wrap:      TextWrapWord,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, textImage)
+
+	// pango Image
+	pangoText := "<span font_desc='Helvetica' font_size='13pt' foreground='black'>Test</span>"
+	pangoTextImage, err := Text(&TextParams{
+		Text:      pangoText,
+		Width:     10,
+		Height:    0,
+		Alignment: AlignLow,
+		DPI:       72,
+		RGBA:      true,
+		Justify:   false,
+		Spacing:   0,
+		Wrap:      TextWrapWord,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, pangoTextImage)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

@@ -69,3 +69,19 @@ int hist_norm(VipsImage *in, VipsImage **out) {
 int hist_entropy(VipsImage *in, double *out) {
   return vips_hist_entropy(in, out, NULL);
 }
+
+int subtract(VipsImage *in1, VipsImage *in2, VipsImage **out) {
+  return vips_subtract(in1, in2, out, NULL);
+}
+
+int absOp(VipsImage *img, VipsImage **out) {
+  return vips_abs(img, out, NULL);
+}
+
+int project(VipsImage *in, VipsImage **col, VipsImage **row) {
+  return vips_project(in, col, row, NULL);
+}
+
+int minOp(VipsImage *in, double *out, int *x, int *y, int size) {
+  return vips_min(in, out, "x", x, "y", y, "size", size, NULL);
+}

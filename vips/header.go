@@ -149,6 +149,18 @@ func vipsImageSetDelay(in *C.VipsImage, data []C.int) error {
 	return nil
 }
 
+func vipsImageGetBackground(in *C.VipsImage) ([]float64, error) {
+	incOpCounter("imageGetBackground")
+	var out *C.double
+	var n C.int
+	defer gFreePointer(unsafe.Pointer(out))
+
+	if err := C.get_background(in, &out, &n); err != 0 {
+		return nil, handleVipsError()
+	}
+	return fromCArrayDouble(out, int(n)), nil
+}
+
 // vipsDetermineImageTypeFromMetaLoader determine the image type from vips-loader metadata
 func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
 	vipsLoader, ok := vipsImageGetMetaLoader(in)

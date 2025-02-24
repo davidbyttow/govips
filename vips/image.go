@@ -590,6 +590,12 @@ func Black(width, height int) (*ImageRef, error) {
 	return imageRef, err
 }
 
+// Text draws the string text to an image.
+func Text(params *TextParams) (*ImageRef, error) {
+	img, err := vipsText(params)
+	return newImageRef(img, ImageTypeUnknown, ImageTypeUnknown, nil), err
+}
+
 func newImageRef(vipsImage *C.VipsImage, currentFormat ImageType, originalFormat ImageType, buf []byte) *ImageRef {
 	imageRef := &ImageRef{
 		image:          vipsImage,
@@ -825,6 +831,15 @@ func (r *ImageRef) SetPageDelay(delay []int) error {
 		data = append(data, C.int(d))
 	}
 	return vipsImageSetDelay(r.image, data)
+}
+
+// Background get the background of image.
+func (r *ImageRef) Background() ([]float64, error) {
+	out, err := vipsImageGetBackground(r.image)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // Export creates a byte array of the image for use.
@@ -1775,6 +1790,43 @@ func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height 
 		return err
 	}
 	return nil
+}
+
+// Subtract calculate subtract operation between two images.
+func (r *ImageRef) Subtract(in2 *ImageRef) error {
+	out, err := vipsSubtract(r.image, in2.image)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
+// Abs calculate abs operation.
+func (r *ImageRef) Abs() error {
+	out, err := vipsAbs(r.image)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
+// Project calculate project operation.
+func (r *ImageRef) Project() (*ImageRef, *ImageRef, error) {
+	col, row, err := vipsProject(r.image)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return newImageRef(col, r.format, r.originalFormat, nil), newImageRef(row, r.format, r.originalFormat, nil), nil
+}
+
+// Min finds the minimum value in an image.
+func (r *ImageRef) Min() (float64, int, int, error) {
+	return vipsMin(r.image)
 }
 
 // Rank does rank filtering on an image. A window of size width by height is passed over the image.
