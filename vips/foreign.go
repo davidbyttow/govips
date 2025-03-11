@@ -6,12 +6,11 @@ import (
 	"bytes"
 	"encoding/xml"
 	"fmt"
-	"golang.org/x/image/bmp"
-	"golang.org/x/net/html/charset"
-	"image/png"
 	"math"
 	"runtime"
 	"unsafe"
+
+	"golang.org/x/net/html/charset"
 )
 
 // SubsampleMode correlates to a libvips subsample mode
@@ -129,6 +128,11 @@ func (i ImageType) FileExt() string {
 // IsTypeSupported checks whether given image type is supported by govips
 func IsTypeSupported(imageType ImageType) bool {
 	startupIfNeeded()
+
+	// BMP is supported via the magick loader
+	if imageType == ImageTypeBMP {
+		return supportedImageTypes[ImageTypeMagick]
+	}
 
 	return supportedImageTypes[imageType]
 }
@@ -274,18 +278,12 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 	// Reference src here so it's not garbage collected during image initialization.
 	defer runtime.KeepAlive(src)
 
-	var err error
-
 	originalType := DetermineImageType(src)
 	currentType := originalType
 
+	// For BMP files, use the magick loader
 	if originalType == ImageTypeBMP {
-		src, err = bmpToPNG(src)
-		if err != nil {
-			return nil, currentType, originalType, err
-		}
-
-		currentType = ImageTypePNG
+		currentType = ImageTypeMagick
 	}
 
 	if !IsTypeSupported(currentType) {
@@ -300,24 +298,6 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 	}
 
 	return importParams.outputImage, currentType, originalType, nil
-}
-
-func bmpToPNG(src []byte) ([]byte, error) {
-	i, err := bmp.Decode(bytes.NewReader(src))
-	if err != nil {
-		return nil, err
-	}
-
-	var w bytes.Buffer
-	pngEnc := png.Encoder{
-		CompressionLevel: png.NoCompression,
-	}
-	err = pngEnc.Encode(&w, i)
-	if err != nil {
-		return nil, err
-	}
-
-	return w.Bytes(), nil
 }
 
 func maybeSetBoolParam(p BoolParameter, cp *C.Param) {
