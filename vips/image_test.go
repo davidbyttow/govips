@@ -1256,6 +1256,28 @@ func Test_MakeTextImage(t *testing.T) {
 	require.NotNil(t, pangoTextImage)
 }
 
+func Test_LoadImageWithAccessMode(t *testing.T) {
+	Startup(nil)
+
+	param := NewImportParams()
+	param.Access.Set(AccessSequential)
+	jpegImg, err := LoadImageFromFile(resources+"jpg-24bit.jpg", param)
+	require.NoError(t, err)
+	assert.NotNil(t, jpegImg)
+
+	pngImg, err := LoadImageFromFile(resources+"png-24bit.png", param)
+	require.NoError(t, err)
+	assert.NotNil(t, pngImg)
+
+	webpImg, err := LoadImageFromFile(resources+"webp+alpha.webp", param)
+	require.NoError(t, err)
+	assert.NotNil(t, webpImg)
+
+	gifImg, err := LoadImageFromFile(resources+"gif-animated.gif", param)
+	require.NoError(t, err)
+	assert.NotNil(t, gifImg)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

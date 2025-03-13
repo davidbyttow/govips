@@ -117,6 +117,15 @@ const (
 	PngFilterAll   PngFilter = C.VIPS_FOREIGN_PNG_FILTER_ALL
 )
 
+// Access represents how libvips opens files.
+// See https://www.libvips.org/API/current/How-it-opens-files.html
+const (
+	AccessRandom               int = C.VIPS_ACCESS_RANDOM
+	AccessSequential           int = C.VIPS_ACCESS_SEQUENTIAL
+	AccessSequentialUnbuffered int = C.VIPS_ACCESS_SEQUENTIAL_UNBUFFERED
+	AccessLast                 int = C.VIPS_ACCESS_LAST
+)
+
 // FileExt returns the canonical extension for the ImageType
 func (i ImageType) FileExt() string {
 	if ext, ok := imageTypeExtensionMap[i]; ok {
@@ -322,6 +331,7 @@ func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
 	maybeSetIntParam(params.JpegShrinkFactor, &p.jpegShrink)
 	maybeSetBoolParam(params.HeifThumbnail, &p.heifThumbnail)
 	maybeSetBoolParam(params.SvgUnlimited, &p.svgUnlimited)
+	maybeSetIntParam(params.Access, &p.access)
 
 	if params.Density.IsSet() {
 		C.set_double_param(&p.dpi, C.gdouble(params.Density.Get()))
