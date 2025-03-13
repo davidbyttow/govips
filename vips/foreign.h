@@ -135,6 +135,12 @@ typedef struct SaveParams {
   double jxlDistance;
   int jxlEffort;
   BOOL jxlLossless;
+
+  // MAGICK
+  char *magickFormat;
+  BOOL magickOptimizeGifFrames;
+  BOOL magickOptimizeGifTransparency;
+  int magickBitDepth;
 } SaveParams;
 
 SaveParams create_save_params(ImageType outputFormat);
