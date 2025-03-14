@@ -1278,6 +1278,39 @@ func Test_LoadImageWithAccessMode(t *testing.T) {
 	assert.NotNil(t, gifImg)
 }
 
+func Test_SaveImageWithMagick(t *testing.T) {
+	Startup(nil)
+
+	// GIF Save With Magick
+	param := NewImportParams()
+	gifImage, err := LoadImageFromFile(resources+"gif-animated.gif", param)
+	require.NoError(t, err)
+	require.NotNil(t, gifImage)
+
+	exportParam := NewMagickExportParams()
+	exportParam.Format = "GIF"
+	exportParam.BitDepth = 8
+
+	gifBuf, _, err := gifImage.ExportMagick(exportParam)
+	require.NoError(t, err)
+	require.NotNil(t, gifBuf)
+	require.True(t, isGIF(gifBuf))
+
+	// BMP Save With Magick
+	param = NewImportParams()
+	bmpImage, err := LoadImageFromFile(resources+"koala.bmp", param)
+	require.NoError(t, err)
+	require.NotNil(t, bmpImage)
+
+	exportParam = NewMagickExportParams()
+	exportParam.Format = "BMP"
+
+	bmpBuf, _, err := bmpImage.ExportMagick(exportParam)
+	require.NoError(t, err)
+	require.NotNil(t, bmpBuf)
+	require.True(t, isBMP(bmpBuf))
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

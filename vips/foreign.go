@@ -5,6 +5,7 @@ import "C"
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"math"
 	"runtime"
@@ -174,6 +175,8 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypeJXL
 	} else if isPDF(buf) {
 		return ImageTypePDF
+	} else if isICO(buf) {
+		return ImageTypeMagick
 	} else {
 		return ImageTypeUnknown
 	}
@@ -280,6 +283,12 @@ var jxlHeaderISOBMFF = []byte("\x00\x00\x00\x0C\x4A\x58\x4C\x20\x0D\x0A\x87\x0A"
 
 func isJXL(buf []byte) bool {
 	return bytes.HasPrefix(buf, jxlHeader) || bytes.HasPrefix(buf, jxlHeaderISOBMFF)
+}
+
+var icoHeader = []byte("\x00\x00\x01\x00")
+
+func isICO(buf []byte) bool {
+	return bytes.HasPrefix(buf, icoHeader)
 }
 
 func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {
@@ -486,6 +495,24 @@ func vipsSaveJxlToBuffer(in *C.VipsImage, params JxlExportParams) ([]byte, error
 	p.jxlTier = C.int(params.Tier)
 	p.jxlDistance = C.double(params.Distance)
 	p.jxlEffort = C.int(params.Effort)
+
+	return vipsSaveToBuffer(p)
+}
+
+func vipsSaveMagickToBuffer(in *C.VipsImage, params MagickExportParams) ([]byte, error) {
+	incOpCounter("save_magick_buffer")
+
+	if params.Format == "" {
+		return nil, errors.New("magick format required")
+	}
+	p := C.create_save_params(C.MAGICK)
+	p.inputImage = in
+	p.outputFormat = C.MAGICK
+	p.quality = C.int(params.Quality)
+	p.magickFormat = C.CString(params.Format)
+	p.magickOptimizeGifFrames = C.int(boolToInt(params.OptimizeGifFrames))
+	p.magickOptimizeGifTransparency = C.int(boolToInt(params.OptimizeGifTransparency))
+	p.magickBitDepth = C.int(params.BitDepth)
 
 	return vipsSaveToBuffer(p)
 }

@@ -428,6 +428,22 @@ func NewJxlExportParams() *JxlExportParams {
 	}
 }
 
+// MagickExportParams are options when exporting an image to file or buffer by ImageMagick.
+type MagickExportParams struct {
+	Quality                 int
+	Format                  string
+	OptimizeGifFrames       bool
+	OptimizeGifTransparency bool
+	BitDepth                int
+}
+
+// NewMagickExportParams creates default values for an export of an image by ImageMagick.
+func NewMagickExportParams() *MagickExportParams {
+	return &MagickExportParams{
+		Quality: 75,
+	}
+}
+
 // NewImageFromReader loads an ImageRef from the given reader
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := io.ReadAll(r)
@@ -1077,6 +1093,21 @@ func (r *ImageRef) ExportJxl(params *JxlExportParams) ([]byte, *ImageMetadata, e
 	}
 
 	return buf, r.newMetadata(ImageTypeJXL), nil
+}
+
+// ExportMagick exports the image as Format set in param to a buffer.
+func (r *ImageRef) ExportMagick(params *MagickExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewMagickExportParams()
+		params.Format = "JPG"
+	}
+
+	buf, err := vipsSaveMagickToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeMagick), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
