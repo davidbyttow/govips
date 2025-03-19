@@ -80,6 +80,7 @@ typedef struct SaveParams {
   size_t outputLen;
 
   BOOL stripMetadata;
+  VipsForeignKeep keep;
   int quality;
   BOOL interlace;
 
