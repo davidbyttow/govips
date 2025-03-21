@@ -1,0 +1,7 @@
+mode: set
+github.com/davidbyttow/govips/v2/examples/tiff/example_tiff_image.go:12.28,13.16 1 0
+github.com/davidbyttow/govips/v2/examples/tiff/example_tiff_image.go:13.16,16.3 2 0
+github.com/davidbyttow/govips/v2/examples/tiff/example_tiff_image.go:19.13,37.2 14 0
+github.com/davidbyttow/govips/v2/examples/jpeg/example_mozjpeg_image.go:12.28,13.16 1 0
+github.com/davidbyttow/govips/v2/examples/jpeg/example_mozjpeg_image.go:13.16,16.3 2 0
+github.com/davidbyttow/govips/v2/examples/jpeg/example_mozjpeg_image.go:24.29,47.2 19 0

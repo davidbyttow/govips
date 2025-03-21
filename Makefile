@@ -2,15 +2,15 @@ all: deps build test
 
 .PHONY: deps
 deps:
-	CGO_CFLAGS_ALLOW=-Xpreprocessor go get -v -t -d ./...
+	CGO_CFLAGS_ALLOW='-I.*' go get -v -t ./...
 
 .PHONY: build
 build:
-	CGO_CFLAGS_ALLOW=-Xpreprocessor go build -v ./vips
+	CGO_CFLAGS_ALLOW='-I.*' go build -v ./vips
 
 .PHONY: test
 test:
-	CGO_CFLAGS_ALLOW=-Xpreprocessor go test -v -coverprofile=profile.cov ./...
+	CGO_CFLAGS_ALLOW='-I.*' go test -v -coverprofile=profile.cov ./...
 
 .PHONY: clean
 clean:
