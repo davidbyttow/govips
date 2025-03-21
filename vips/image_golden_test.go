@@ -884,6 +884,7 @@ func TestImage_SubsampleMode(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleOn,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 		}),
 	)
@@ -897,6 +898,7 @@ func TestImage_TrellisQuant(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleAuto,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 			TrellisQuant:  true,
 		}),
@@ -911,6 +913,7 @@ func TestImage_OvershootDeringing(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode:      VipsForeignSubsampleAuto,
 			StripMetadata:      true,
+			Keep:               VipsForeignKeepNone,
 			Quality:            75,
 			OvershootDeringing: true,
 		}),
@@ -925,6 +928,7 @@ func TestImage_OptimizeScans(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleAuto,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 			Interlace:     true,
 			OptimizeScans: true,
@@ -940,6 +944,7 @@ func TestImage_QuantTable(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleAuto,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 			QuantTable:    3,
 		}),

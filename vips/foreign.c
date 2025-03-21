@@ -262,6 +262,10 @@ int set_jpegsave_options(VipsOperation *operation, SaveParams *params) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
+
   return ret;
 }
 
@@ -284,6 +288,10 @@ int set_pngsave_options(VipsOperation *operation, SaveParams *params) {
   if (!ret && params->pngBitdepth) {
     ret = vips_object_set(VIPS_OBJECT(operation), "bitdepth", params->pngBitdepth, NULL);
   }
+
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
 
   // TODO: Handle `profile` param.
 
@@ -309,6 +317,10 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
+
   return ret;
 }
 
@@ -324,6 +336,10 @@ int set_tiffsave_options(VipsOperation *operation, SaveParams *params) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
+
   return ret;
 }
 
@@ -338,6 +354,11 @@ int set_magicksave_options(VipsOperation *operation, SaveParams *params) {
     ret = vips_object_set(VIPS_OBJECT(operation), "quality", params->quality,
                           NULL);
   }
+
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
+
   return ret;
 }
 
@@ -354,6 +375,11 @@ int set_gifsave_options(VipsOperation *operation, SaveParams *params) {
   if (params->gifBitdepth >= 1 && params->gifBitdepth <= 8) {
       ret = vips_object_set(VIPS_OBJECT(operation), "bitdepth", params->gifBitdepth, NULL);
   }
+
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
+
   return ret;
 }
 
@@ -378,6 +404,10 @@ int set_heifsave_options(VipsOperation *operation, SaveParams *params) {
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
+
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
 
   return ret;
 }
@@ -405,6 +435,10 @@ int set_avifsave_options(VipsOperation *operation, SaveParams *params) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
+
   return ret;
 }
 
@@ -418,6 +452,10 @@ int set_jp2ksave_options(VipsOperation *operation, SaveParams *params) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
 
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
+
   return ret;
 }
 
@@ -430,6 +468,10 @@ int set_jxlsave_options(VipsOperation *operation, SaveParams *params) {
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);
   }
+
+  #if (VIPS_MAJOR_VERSION >= 8) && (VIPS_MINOR_VERSION >= 15)
+    ret = vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL);
+  #endif
 
   return ret;
 }
@@ -545,6 +587,7 @@ static SaveParams defaultSaveParams = {
     .interlace = FALSE,
     .quality = 0,
     .stripMetadata = FALSE,
+    .keep = VIPS_FOREIGN_KEEP_ALL,
 
     .jpegOptimizeCoding = FALSE,
     .jpegSubsample = VIPS_FOREIGN_SUBSAMPLE_ON,
