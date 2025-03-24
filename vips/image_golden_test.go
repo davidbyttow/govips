@@ -967,6 +967,15 @@ func TestPDF_WithOffsetStart(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_KeepMetadata(t *testing.T) {
+	param := NewPngExportParams()
+	param.Keep = VipsForeignKeepXmp | VipsForeignKeepIptc | VipsForeignKeepExif
+	goldenTest(t, resources+"has-icc-profile.png",
+		nil, func(result *ImageRef) {
+			assert.True(t, !result.HasICCProfile(), "should have no ICC profile")
+		}, exportPng(param))
+}
+
 func testWebpOptimizeIccProfile(t *testing.T, exportParams *WebpExportParams) []byte {
 	return goldenTest(t, resources+"has-icc-profile.png",
 		func(img *ImageRef) error {
