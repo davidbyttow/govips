@@ -884,6 +884,7 @@ func TestImage_SubsampleMode(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleOn,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 		}),
 	)
@@ -897,6 +898,7 @@ func TestImage_TrellisQuant(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleAuto,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 			TrellisQuant:  true,
 		}),
@@ -911,6 +913,7 @@ func TestImage_OvershootDeringing(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode:      VipsForeignSubsampleAuto,
 			StripMetadata:      true,
+			Keep:               VipsForeignKeepNone,
 			Quality:            75,
 			OvershootDeringing: true,
 		}),
@@ -925,6 +928,7 @@ func TestImage_OptimizeScans(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleAuto,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 			Interlace:     true,
 			OptimizeScans: true,
@@ -940,6 +944,7 @@ func TestImage_QuantTable(t *testing.T) {
 		exportJpeg(&JpegExportParams{
 			SubsampleMode: VipsForeignSubsampleAuto,
 			StripMetadata: true,
+			Keep:          VipsForeignKeepNone,
 			Quality:       75,
 			QuantTable:    3,
 		}),
@@ -960,6 +965,15 @@ func TestPDF_WithOffsetStart(t *testing.T) {
 			assert.Equal(t, 612, img.Width())
 			assert.Equal(t, 396, img.Height())
 		}, nil)
+}
+
+func TestImage_KeepMetadata(t *testing.T) {
+	param := NewPngExportParams()
+	param.Keep = VipsForeignKeepXmp | VipsForeignKeepIptc | VipsForeignKeepExif
+	goldenTest(t, resources+"has-icc-profile.png",
+		nil, func(result *ImageRef) {
+			assert.True(t, !result.HasICCProfile(), "should have no ICC profile")
+		}, exportPng(param))
 }
 
 func testWebpOptimizeIccProfile(t *testing.T, exportParams *WebpExportParams) []byte {
