@@ -44,7 +44,14 @@ const (
 	ImageTypeAVIF    ImageType = C.AVIF
 	ImageTypeJP2K    ImageType = C.JP2K
 	ImageTypeJXL     ImageType = C.JXL
+	ImageTypePSD     ImageType = C.PSD
 )
+
+// Types which should be deligated to ImageMagick loader
+var imageMagickTypes = map[ImageType]bool{
+	ImageTypeBMP: true,
+	ImageTypePSD: true,
+}
 
 var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeGIF:    ".gif",
@@ -60,6 +67,7 @@ var imageTypeExtensionMap = map[ImageType]string{
 	ImageTypeAVIF:   ".avif",
 	ImageTypeJP2K:   ".jp2",
 	ImageTypeJXL:    ".jxl",
+	ImageTypePSD:    ".psd",
 }
 
 // ImageTypes defines the various image types supported by govips
@@ -77,6 +85,7 @@ var ImageTypes = map[ImageType]string{
 	ImageTypeAVIF:   "heif",
 	ImageTypeJP2K:   "jp2k",
 	ImageTypeJXL:    "jxl",
+	ImageTypePSD:    "psd",
 }
 
 // TiffCompression represents method for compressing a tiff at export
@@ -177,6 +186,8 @@ func DetermineImageType(buf []byte) ImageType {
 		return ImageTypePDF
 	} else if isICO(buf) {
 		return ImageTypeMagick
+	} else if isPSD(buf) {
+		return ImageTypePSD
 	} else {
 		return ImageTypeUnknown
 	}
@@ -291,6 +302,16 @@ func isICO(buf []byte) bool {
 	return bytes.HasPrefix(buf, icoHeader)
 }
 
+var psdHeader = []byte("\x38\x42\x50\x53")
+
+func isPSD(buf []byte) bool {
+	return bytes.HasPrefix(buf, psdHeader)
+}
+
+func isNeedToChangeLoaderToMagick(t ImageType) bool {
+	return imageMagickTypes[t]
+}
+
 func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageType, ImageType, error) {
 	src := buf
 	// Reference src here so it's not garbage collected during image initialization.
@@ -299,8 +320,8 @@ func vipsLoadFromBuffer(buf []byte, params *ImportParams) (*C.VipsImage, ImageTy
 	originalType := DetermineImageType(src)
 	currentType := originalType
 
-	// For BMP files, use the magick loader
-	if originalType == ImageTypeBMP {
+	// Map image types which are not supported by libvips itself to ImageMagick
+	if isNeedToChangeLoaderToMagick(originalType) {
 		currentType = ImageTypeMagick
 	}
 

@@ -26,7 +26,8 @@ typedef enum types {
   BMP,
   AVIF,
   JP2K,
-  JXL
+  JXL,
+  PSD,
 } ImageType;
 
 typedef enum ParamType {
