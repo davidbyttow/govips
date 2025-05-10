@@ -415,6 +415,34 @@ func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
 	)
 }
 
+func TestImage_PSD_To_PNG(t *testing.T) {
+	goldenTest(t, resources+"psd.example.psd",
+		func(img *ImageRef) error {
+			fields := img.GetFields()
+			assert.Greater(t, len(fields), 0)
+			xmpData := img.GetBlob("xmp-data")
+			assert.Greater(t, len(xmpData), 0)
+			return nil
+		},
+		nil,
+		exportPng(NewPngExportParams()),
+	)
+}
+
+func TestImage_PSD_To_JPEG(t *testing.T) {
+	goldenTest(t, resources+"psd.example.psd",
+		func(img *ImageRef) error {
+			fields := img.GetFields()
+			assert.Greater(t, len(fields), 0)
+			xmpData := img.GetBlob("xmp-data")
+			assert.Greater(t, len(xmpData), 0)
+			return nil
+		},
+		nil,
+		exportJpeg(NewJpegExportParams()),
+	)
+}
+
 func TestImage_Sharpen_24bit_Alpha(t *testing.T) {
 	goldenTest(t, resources+"png-24bit+alpha.png", func(img *ImageRef) error {
 		// usm_0.66_1.00_0.01
