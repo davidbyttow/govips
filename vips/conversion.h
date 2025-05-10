@@ -18,6 +18,9 @@ int embed_multi_page_image(VipsImage *in, VipsImage **out, int left, int top, in
 int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, int top,
                 int width, int height, double r, double g, double b, double a);
 
+int gravity_image(VipsImage *in, VipsImage **out, int gravity, int width,
+                  int height);
+
 int flip_image(VipsImage *in, VipsImage **out, int direction);
 
 int recomb_image(VipsImage *in, VipsImage **out, VipsImage *m);
