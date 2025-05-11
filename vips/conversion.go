@@ -56,6 +56,22 @@ const (
 	BlendModeExclusion  BlendMode = C.VIPS_BLEND_MODE_EXCLUSION
 )
 
+// Gravity represents VIPS_GRAVITY type
+type Gravity int
+
+// Gravity enum
+const (
+	GravityCentre    Gravity = C.VIPS_COMPASS_DIRECTION_CENTRE
+	GravityNorth     Gravity = C.VIPS_COMPASS_DIRECTION_NORTH
+	GravityEast      Gravity = C.VIPS_COMPASS_DIRECTION_EAST
+	GravitySouth     Gravity = C.VIPS_COMPASS_DIRECTION_SOUTH
+	GravityWest      Gravity = C.VIPS_COMPASS_DIRECTION_WEST
+	GravityNorthEast Gravity = C.VIPS_COMPASS_DIRECTION_NORTH_EAST
+	GravityNorthWest Gravity = C.VIPS_COMPASS_DIRECTION_NORTH_WEST
+	GravitySouthEast Gravity = C.VIPS_COMPASS_DIRECTION_SOUTH_EAST
+	GravitySouthWest Gravity = C.VIPS_COMPASS_DIRECTION_SOUTH_WEST
+)
+
 // Direction represents VIPS_DIRECTION type
 type Direction int
 
@@ -195,6 +211,18 @@ func vipsEmbedMultiPageBackground(in *C.VipsImage, left, top, width, height int,
 	if err := C.embed_multi_page_image_background(in, &out, C.int(left), C.int(top), C.int(width),
 		C.int(height), C.double(backgroundColor.R),
 		C.double(backgroundColor.G), C.double(backgroundColor.B), C.double(backgroundColor.A)); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
+
+// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-gravity
+func vipsGravity(in *C.VipsImage, gravity Gravity, width, height int) (*C.VipsImage, error) {
+	incOpCounter("gravity")
+	var out *C.VipsImage
+
+	if err := C.gravity_image(in, &out, C.int(gravity), C.int(width), C.int(height)); err != 0 {
 		return nil, handleImageError(out)
 	}
 

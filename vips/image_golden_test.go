@@ -102,6 +102,13 @@ func TestImage_EmbedBackground_NoAlpha(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_Gravity(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.Gravity(GravityNorthWest, 500, 500)
+		}, nil, nil)
+}
+
 func TestImage_TransformICCProfile_RGB_No_Profile(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg",
 		func(img *ImageRef) error {

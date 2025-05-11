@@ -2004,6 +2004,16 @@ func (r *ImageRef) Zoom(xFactor int, yFactor int) error {
 	return nil
 }
 
+func (r *ImageRef) Gravity(gravity Gravity, width int, height int) error {
+	out, err := vipsGravity(r.image, gravity, width, height)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
 // Flip flips the image either horizontally or vertically based on the parameter
 func (r *ImageRef) Flip(direction Direction) error {
 	out, err := vipsFlip(r.image, direction)

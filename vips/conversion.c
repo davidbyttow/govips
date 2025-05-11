@@ -124,6 +124,10 @@ int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, 
   return 0;
 }
 
+int gravity_image(VipsImage *in, VipsImage **out, int gravity, int width, int height) {
+  return vips_gravity(in, out, gravity, width, height, NULL);
+}
+
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
   return vips_flip(in, out, direction, NULL);
 }
