@@ -18,6 +18,8 @@ import (
 	"strings"
 	"sync"
 	"unsafe"
+
+	_ "golang.org/x/image/webp"
 )
 
 const GaussBlurDefaultMinAMpl = 0.2
