@@ -131,23 +131,6 @@ func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, metadata.Format)
 }
 
-func TestImageRef_BMP__ImplicitConversionToPNG(t *testing.T) {
-	Startup(nil)
-
-	raw, err := os.ReadFile(resources + "bmp.bmp")
-	require.NoError(t, err)
-
-	img, err := NewImageFromBuffer(raw)
-	require.NoError(t, err)
-	require.NotNil(t, img)
-
-	exported, metadata, err := img.ExportNative()
-	assert.NoError(t, err)
-	assert.Equal(t, ImageTypePNG, metadata.Format)
-	assert.Equal(t, ImageTypeBMP, img.OriginalFormat())
-	assert.NotNil(t, exported)
-}
-
 func TestImageRef_SVG(t *testing.T) {
 	Startup(nil)
 
@@ -1188,6 +1171,144 @@ func TestImageRef_SetGamma(t *testing.T) {
 
 	err = image.Gamma(1.0 / 2.4)
 	require.NoError(t, err)
+}
+
+func Test_NewImageFromFile(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "PDF-2.0-with-offset-start.pdf")
+	require.NoError(t, err)
+
+	assert.Equal(t, ImageTypePDF, image.originalFormat)
+	assert.Equal(t, ImageTypePDF, image.format)
+	assert.Equal(t, 1, image.Pages())
+}
+
+func TestImageRef_ArithmeticOperation(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	image2, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	orgWidth := image.Width()
+	orgHeight := image.Height()
+
+	_, _, _, err = image.Min()
+	require.NoError(t, err)
+
+	err = image2.Abs()
+	require.NoError(t, err)
+
+	err = image.Subtract(image2)
+	require.NoError(t, err)
+
+	colImage, rowImage, err := image.Project()
+	require.NoError(t, err)
+
+	require.Equal(t, orgWidth, colImage.Width())
+	require.Equal(t, 1, colImage.Height())
+	require.Equal(t, 1, rowImage.Width())
+	require.Equal(t, orgHeight, rowImage.Height())
+}
+
+func TestImageRef_Background(t *testing.T) {
+	Startup(nil)
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	background, err := image.Background()
+	require.NoError(t, err)
+
+	require.Equal(t, 3, len(background))
+}
+
+func Test_MakeTextImage(t *testing.T) {
+	Startup(nil)
+
+	textImage, err := Text(&TextParams{
+		Text:      "Test",
+		Font:      "Helvetica",
+		Width:     10,
+		Height:    10,
+		Alignment: AlignLow,
+		DPI:       72,
+		Wrap:      TextWrapWord,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, textImage)
+
+	// pango Image
+	pangoText := "<span font_desc='Helvetica' font_size='13pt' foreground='black'>Test</span>"
+	pangoTextImage, err := Text(&TextParams{
+		Text:      pangoText,
+		Width:     10,
+		Height:    0,
+		Alignment: AlignLow,
+		DPI:       72,
+		RGBA:      true,
+		Justify:   false,
+		Spacing:   0,
+		Wrap:      TextWrapWord,
+	})
+	require.NoError(t, err)
+	require.NotNil(t, pangoTextImage)
+}
+
+func Test_LoadImageWithAccessMode(t *testing.T) {
+	Startup(nil)
+
+	param := NewImportParams()
+	param.Access.Set(AccessSequential)
+	jpegImg, err := LoadImageFromFile(resources+"jpg-24bit.jpg", param)
+	require.NoError(t, err)
+	assert.NotNil(t, jpegImg)
+
+	pngImg, err := LoadImageFromFile(resources+"png-24bit.png", param)
+	require.NoError(t, err)
+	assert.NotNil(t, pngImg)
+
+	webpImg, err := LoadImageFromFile(resources+"webp+alpha.webp", param)
+	require.NoError(t, err)
+	assert.NotNil(t, webpImg)
+
+	gifImg, err := LoadImageFromFile(resources+"gif-animated.gif", param)
+	require.NoError(t, err)
+	assert.NotNil(t, gifImg)
+}
+
+func Test_SaveImageWithMagick(t *testing.T) {
+	Startup(nil)
+
+	// GIF Save With Magick
+	param := NewImportParams()
+	gifImage, err := LoadImageFromFile(resources+"gif-animated.gif", param)
+	require.NoError(t, err)
+	require.NotNil(t, gifImage)
+
+	exportParam := NewMagickExportParams()
+	exportParam.Format = "GIF"
+	exportParam.BitDepth = 8
+
+	gifBuf, _, err := gifImage.ExportMagick(exportParam)
+	require.NoError(t, err)
+	require.NotNil(t, gifBuf)
+	require.True(t, isGIF(gifBuf))
+
+	// BMP Save With Magick
+	param = NewImportParams()
+	bmpImage, err := LoadImageFromFile(resources+"koala.bmp", param)
+	require.NoError(t, err)
+	require.NotNil(t, bmpImage)
+
+	exportParam = NewMagickExportParams()
+	exportParam.Format = "BMP"
+
+	bmpBuf, _, err := bmpImage.ExportMagick(exportParam)
+	require.NoError(t, err)
+	require.NotNil(t, bmpBuf)
+	require.True(t, isBMP(bmpBuf))
 }
 
 // TODO unit tests to cover:

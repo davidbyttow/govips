@@ -106,6 +106,18 @@ This will reduce GLib memory appetites by reducing the number of malloc arenas
 that it can create. By default GLib creates one are per thread, and this would
 follow to memory fragmentation.
 
+### Jemalloc
+If the arena option doesn't help, you can try replacing the standard allocator with `jemalloc`,
+which emphasizes fragmentation avoidance and scalable concurrency support.
+
+To do this, you need to install the `libjemalloc-dev` package. 
+And pass the following flags for build command:
+
+```
+CGO_CFLAGS="-fno-builtin-malloc -fno-builtin-calloc -fno-builtin-realloc -fno-builtin-free" CGO_LDFLAGS="-ljemalloc" go build
+```
+
+
 ## Contributing
 
 Feel free to file issues or create pull requests. See this [guide on contributing](https://github.com/davidbyttow/govips/blob/master/CONTRIBUTING.md) for more information.

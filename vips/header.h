@@ -28,6 +28,7 @@ void set_page_height(VipsImage *in, int height);
 int get_meta_loader(const VipsImage *in, const char **out);
 int get_image_delay(VipsImage *in, int **out);
 void set_image_delay(VipsImage *in, const int *array, int n);
+int get_background(VipsImage *in, double **out, int *n);
 
 void image_set_blob(VipsImage *in, const char *name, const void *data,
                     size_t dataLength);

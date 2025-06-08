@@ -16,6 +16,3 @@ typedef struct {
 } LabelOptions;
 
 int label(VipsImage *in, VipsImage **out, LabelOptions *o);
-
-int text(VipsImage **out, const char *text, const char *font, int width,
-         int height, VipsAlign align, int dpi);

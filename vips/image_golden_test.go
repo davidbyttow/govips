@@ -102,6 +102,13 @@ func TestImage_EmbedBackground_NoAlpha(t *testing.T) {
 		}, nil)
 }
 
+func TestImage_Gravity(t *testing.T) {
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			return img.Gravity(GravityNorthWest, 500, 500)
+		}, nil, nil)
+}
+
 func TestImage_TransformICCProfile_RGB_No_Profile(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit.jpg",
 		func(img *ImageRef) error {
@@ -412,6 +419,34 @@ func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
 		},
 		func(result *ImageRef) {
 		}, exportAvif(avifExportParams),
+	)
+}
+
+func TestImage_PSD_To_PNG(t *testing.T) {
+	goldenTest(t, resources+"psd.example.psd",
+		func(img *ImageRef) error {
+			fields := img.GetFields()
+			assert.Greater(t, len(fields), 0)
+			xmpData := img.GetBlob("xmp-data")
+			assert.Greater(t, len(xmpData), 0)
+			return nil
+		},
+		nil,
+		exportPng(NewPngExportParams()),
+	)
+}
+
+func TestImage_PSD_To_JPEG(t *testing.T) {
+	goldenTest(t, resources+"psd.example.psd",
+		func(img *ImageRef) error {
+			fields := img.GetFields()
+			assert.Greater(t, len(fields), 0)
+			xmpData := img.GetBlob("xmp-data")
+			assert.Greater(t, len(xmpData), 0)
+			return nil
+		},
+		nil,
+		exportJpeg(NewJpegExportParams()),
 	)
 }
 
@@ -952,6 +987,14 @@ func TestImage_Pixelate(t *testing.T) {
 			return Pixelate(img, 24)
 		},
 		nil, nil)
+}
+
+func TestPDF_WithOffsetStart(t *testing.T) {
+	goldenTest(t, resources+"PDF-2.0-with-offset-start.pdf",
+		nil, func(img *ImageRef) {
+			assert.Equal(t, 612, img.Width())
+			assert.Equal(t, 396, img.Height())
+		}, nil)
 }
 
 func testWebpOptimizeIccProfile(t *testing.T, exportParams *WebpExportParams) []byte {

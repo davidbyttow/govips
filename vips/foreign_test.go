@@ -29,6 +29,18 @@ func Test_DetermineImageType__HEIF_HEIC(t *testing.T) {
 	assert.Equal(t, ImageTypeHEIF, imageType)
 }
 
+func Test_DetermineImageType__PSD(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := os.ReadFile(resources + "psd.example.psd")
+
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypePSD, imageType)
+}
+
 func Test_DetermineImageType__HEIF_MIF1(t *testing.T) {
 	Startup(&Config{})
 
@@ -99,6 +111,17 @@ func Test_DetermineImageType__PDF(t *testing.T) {
 	Startup(&Config{})
 
 	buf, err := os.ReadFile(resources + "pdf.pdf")
+	assert.NoError(t, err)
+	assert.NotNil(t, buf)
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypePDF, imageType)
+}
+
+func Test_DetermineImageType__PDF_1(t *testing.T) {
+	Startup(&Config{})
+
+	buf, err := os.ReadFile(resources + "PDF-2.0-with-offset-start.pdf")
 	assert.NoError(t, err)
 	assert.NotNil(t, buf)
 

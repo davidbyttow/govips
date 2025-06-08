@@ -113,6 +113,7 @@ type ImportParams struct {
 	JpegShrinkFactor IntParameter
 	HeifThumbnail    BoolParameter
 	SvgUnlimited     BoolParameter
+	Access           IntParameter
 }
 
 // NewImportParams creates default ImportParams
@@ -148,6 +149,9 @@ func (i *ImportParams) OptionString() string {
 	}
 	if v := i.HeifThumbnail; v.IsSet() {
 		values = append(values, "thumbnail="+boolToStr(v.Get()))
+	}
+	if v := i.Access; v.IsSet() {
+		values = append(values, "access="+strconv.Itoa(v.Get()))
 	}
 	return strings.Join(values, ",")
 }
@@ -306,6 +310,10 @@ type TiffExportParams struct {
 	Quality       int
 	Compression   TiffCompression
 	Predictor     TiffPredictor
+	Pyramid       bool
+	Tile          bool
+	TileHeight    int
+	TileWidth     int
 }
 
 // NewTiffExportParams creates default values for an export of a TIFF image.
@@ -314,6 +322,10 @@ func NewTiffExportParams() *TiffExportParams {
 		Quality:     80,
 		Compression: TiffCompressionLzw,
 		Predictor:   TiffPredictorHorizontal,
+		Pyramid:     false,
+		Tile:        false,
+		TileHeight:  256,
+		TileWidth:   256,
 	}
 }
 
@@ -413,6 +425,22 @@ func NewJxlExportParams() *JxlExportParams {
 		Lossless: false,
 		Effort:   7,
 		Distance: 1.0,
+	}
+}
+
+// MagickExportParams are options when exporting an image to file or buffer by ImageMagick.
+type MagickExportParams struct {
+	Quality                 int
+	Format                  string
+	OptimizeGifFrames       bool
+	OptimizeGifTransparency bool
+	BitDepth                int
+}
+
+// NewMagickExportParams creates default values for an export of an image by ImageMagick.
+func NewMagickExportParams() *MagickExportParams {
+	return &MagickExportParams{
+		Quality: 75,
 	}
 }
 
@@ -580,6 +608,12 @@ func Black(width, height int) (*ImageRef, error) {
 	}
 	runtime.SetFinalizer(imageRef, finalizeImage)
 	return imageRef, err
+}
+
+// Text draws the string text to an image.
+func Text(params *TextParams) (*ImageRef, error) {
+	img, err := vipsText(params)
+	return newImageRef(img, ImageTypeUnknown, ImageTypeUnknown, nil), err
 }
 
 func newImageRef(vipsImage *C.VipsImage, currentFormat ImageType, originalFormat ImageType, buf []byte) *ImageRef {
@@ -819,6 +853,15 @@ func (r *ImageRef) SetPageDelay(delay []int) error {
 	return vipsImageSetDelay(r.image, data)
 }
 
+// Background get the background of image.
+func (r *ImageRef) Background() ([]float64, error) {
+	out, err := vipsImageGetBackground(r.image)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // Export creates a byte array of the image for use.
 // The function returns a byte array that can be written to a file e.g. via os.WriteFile().
 // N.B. govips does not currently have built-in support for directly exporting to a file.
@@ -1050,6 +1093,21 @@ func (r *ImageRef) ExportJxl(params *JxlExportParams) ([]byte, *ImageMetadata, e
 	}
 
 	return buf, r.newMetadata(ImageTypeJXL), nil
+}
+
+// ExportMagick exports the image as Format set in param to a buffer.
+func (r *ImageRef) ExportMagick(params *MagickExportParams) ([]byte, *ImageMetadata, error) {
+	if params == nil {
+		params = NewMagickExportParams()
+		params.Format = "JPG"
+	}
+
+	buf, err := vipsSaveMagickToBuffer(r.image, *params)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return buf, r.newMetadata(ImageTypeMagick), nil
 }
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
@@ -1394,6 +1452,13 @@ func (r *ImageRef) RemoveICCProfile() error {
 // TransformICCProfileWithFallback transforms from the embedded ICC profile of the image to the ICC profile at the given path.
 // The fallback ICC profile is used if the image does not have an embedded ICC profile.
 func (r *ImageRef) TransformICCProfileWithFallback(targetProfilePath, fallbackProfilePath string) error {
+	if err := ensureLoadICCPath(&targetProfilePath); err != nil {
+		return err
+	}
+	if err := ensureLoadICCPath(&fallbackProfilePath); err != nil {
+		return err
+	}
+
 	depth := 16
 	if r.BandFormat() == BandFormatUchar || r.BandFormat() == BandFormatChar || r.BandFormat() == BandFormatNotSet {
 		depth = 8
@@ -1427,6 +1492,10 @@ func (r *ImageRef) OptimizeICCProfile() error {
 	r.optimizedIccProfile = SRGBV2MicroICCProfilePath
 	if r.Bands() <= 2 {
 		r.optimizedIccProfile = SGrayV2MicroICCProfilePath
+	}
+
+	if err := ensureLoadICCPath(&r.optimizedIccProfile); err != nil {
+		return err
 	}
 
 	embedded := r.HasICCProfile() && (inputProfile == "")
@@ -1758,6 +1827,43 @@ func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height 
 	return nil
 }
 
+// Subtract calculate subtract operation between two images.
+func (r *ImageRef) Subtract(in2 *ImageRef) error {
+	out, err := vipsSubtract(r.image, in2.image)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
+// Abs calculate abs operation.
+func (r *ImageRef) Abs() error {
+	out, err := vipsAbs(r.image)
+	if err != nil {
+		return err
+	}
+
+	r.setImage(out)
+	return nil
+}
+
+// Project calculate project operation.
+func (r *ImageRef) Project() (*ImageRef, *ImageRef, error) {
+	col, row, err := vipsProject(r.image)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return newImageRef(col, r.format, r.originalFormat, nil), newImageRef(row, r.format, r.originalFormat, nil), nil
+}
+
+// Min finds the minimum value in an image.
+func (r *ImageRef) Min() (float64, int, int, error) {
+	return vipsMin(r.image)
+}
+
 // Rank does rank filtering on an image. A window of size width by height is passed over the image.
 // At each position, the pixels inside the window are sorted into ascending order and the pixel at position
 // index is output. index numbers from 0.
@@ -1894,6 +2000,16 @@ func (r *ImageRef) Zoom(xFactor int, yFactor int) error {
 	if err != nil {
 		return err
 	}
+	r.setImage(out)
+	return nil
+}
+
+func (r *ImageRef) Gravity(gravity Gravity, width int, height int) error {
+	out, err := vipsGravity(r.image, gravity, width, height)
+	if err != nil {
+		return err
+	}
+
 	r.setImage(out)
 	return nil
 }

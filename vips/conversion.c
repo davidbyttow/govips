@@ -48,13 +48,14 @@ int embed_multi_page_image(VipsImage *in, VipsImage **out, int left, int top, in
   int n_pages = in->Ysize / page_height;
 
   VipsImage **page = (VipsImage **) vips_object_local_array(base, n_pages);
+  VipsImage **embedded_page = (VipsImage **) vips_object_local_array(base, n_pages);
   VipsImage **copy = (VipsImage **) vips_object_local_array(base, 1);
 
   // split image into cropped frames
   for (int i = 0; i < n_pages; i++) {
     if (
       vips_extract_area(in, &page[i], 0, page_height * i, in_width, page_height, NULL) ||
-      vips_embed(page[i], &page[i], left, top, width, height, "extend", extend, NULL)
+      vips_embed(page[i], &embedded_page[i], left, top, width, height, "extend", extend, NULL)
     ) {
       g_object_unref(base);
       return -1;
@@ -63,7 +64,7 @@ int embed_multi_page_image(VipsImage *in, VipsImage **out, int left, int top, in
   // reassemble frames and set page height
   // copy before modifying metadata
   if(
-    vips_arrayjoin(page, &copy[0], n_pages, "across", 1, NULL) ||
+    vips_arrayjoin(embedded_page, &copy[0], n_pages, "across", 1, NULL) ||
     vips_copy(copy[0], out, NULL)
   ) {
     g_object_unref(base);
@@ -92,13 +93,14 @@ int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, 
   int n_pages = in->Ysize / page_height;
 
   VipsImage **page = (VipsImage **) vips_object_local_array(base, n_pages);
+  VipsImage **embedded_page = (VipsImage **) vips_object_local_array(base, n_pages);
   VipsImage **copy = (VipsImage **) vips_object_local_array(base, 1);
 
   // split image into cropped frames
   for (int i = 0; i < n_pages; i++) {
     if (
       vips_extract_area(in, &page[i], 0, page_height * i, in_width, page_height, NULL) ||
-      vips_embed(page[i], &page[i], left, top, width, height,
+      vips_embed(page[i], &embedded_page[i], left, top, width, height,
           "extend", VIPS_EXTEND_BACKGROUND, "background", vipsBackground, NULL)
     ) {
       vips_area_unref(VIPS_AREA(vipsBackground));
@@ -109,7 +111,7 @@ int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, 
   // reassemble frames and set page height
   // copy before modifying metadata
   if(
-    vips_arrayjoin(page, &copy[0], n_pages, "across", 1, NULL) ||
+    vips_arrayjoin(embedded_page, &copy[0], n_pages, "across", 1, NULL) ||
     vips_copy(copy[0], out, NULL)
   ) {
     vips_area_unref(VIPS_AREA(vipsBackground));
@@ -120,6 +122,10 @@ int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, 
   vips_area_unref(VIPS_AREA(vipsBackground));
   g_object_unref(base);
   return 0;
+}
+
+int gravity_image(VipsImage *in, VipsImage **out, int gravity, int width, int height) {
+  return vips_gravity(in, out, gravity, width, height, NULL);
 }
 
 int flip_image(VipsImage *in, VipsImage **out, int direction) {
@@ -239,12 +245,13 @@ int crop(VipsImage *in, VipsImage **out, int left, int top,
   int in_width = in->Xsize;
   VipsObject *base = VIPS_OBJECT(vips_image_new());
   VipsImage **page = (VipsImage **) vips_object_local_array(base, n_pages);
+  VipsImage **cropped_page = (VipsImage **) vips_object_local_array(base, n_pages);
   VipsImage **copy = (VipsImage **) vips_object_local_array(base, 1);
   // split image into cropped frames
   for (int i = 0; i < n_pages; i++) {
     if (
       vips_extract_area(in, &page[i], 0, page_height * i, in_width, page_height, NULL) ||
-      vips_crop(page[i], &page[i], left, top, width, height, NULL)
+      vips_crop(page[i], &cropped_page[i], left, top, width, height, NULL)
     ) {
       g_object_unref(base);
       return -1;
@@ -254,7 +261,7 @@ int crop(VipsImage *in, VipsImage **out, int left, int top,
   // reassemble frames and set page height
   // copy before modifying metadata
   if(
-    vips_arrayjoin(page, &copy[0], n_pages, "across", 1, NULL) ||
+    vips_arrayjoin(cropped_page, &copy[0], n_pages, "across", 1, NULL) ||
     vips_copy(copy[0], out, NULL)
   ) {
     g_object_unref(base);
