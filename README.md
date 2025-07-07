@@ -20,7 +20,7 @@ The intent for this is to enable developers to build extremely fast image proces
 
 ### The Recommended Path Forward: `vipsgen`
 
-A better solution now exists: **[`vipsgen`](https://github.com/cmost/vipsgen)**.
+A better solution now exists: **[`vipsgen`](https://github.com/cshum/vipsgen)**.
 
 `vipsgen` is a tool that automatically generates comprehensive, type-safe Go bindings directly from the `libvips` `GObject-Introspection` data. This is the official and recommended way to create bindings for `GObject`-based libraries.
 
