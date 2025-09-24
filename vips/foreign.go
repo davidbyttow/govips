@@ -227,12 +227,18 @@ func isWEBP(buf []byte) bool {
 // https://github.com/strukturag/libheif/blob/master/libheif/heif.cc
 var ftyp = []byte("ftyp")
 var heic = []byte("heic")
+var heix = []byte("heix")
+var heim = []byte("heim")
+var heis = []byte("heis")
 var mif1 = []byte("mif1")
 var msf1 = []byte("msf1")
 var avif = []byte("avif")
 
 func isHEIF(buf []byte) bool {
 	return bytes.Equal(buf[4:8], ftyp) && (bytes.Equal(buf[8:12], heic) ||
+		bytes.Equal(buf[8:12], heix) ||
+		bytes.Equal(buf[8:12], heim) ||
+		bytes.Equal(buf[8:12], heis) ||
 		bytes.Equal(buf[8:12], mif1) ||
 		bytes.Equal(buf[8:12], msf1)) ||
 		isAVIF(buf)
