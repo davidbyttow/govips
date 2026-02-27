@@ -681,6 +681,7 @@ func (r *ImageRef) Bands() int {
 
 // HasProfile returns if the image has an ICC profile embedded.
 func (r *ImageRef) HasProfile() bool {
+	defer runtime.KeepAlive(r)
 	return vipsHasICCProfile(r.image)
 }
 
@@ -691,16 +692,19 @@ func (r *ImageRef) HasICCProfile() bool {
 
 // HasIPTC returns a boolean whether the image in question has IPTC data associated with it.
 func (r *ImageRef) HasIPTC() bool {
+	defer runtime.KeepAlive(r)
 	return vipsHasIPTC(r.image)
 }
 
 // HasAlpha returns if the image has an alpha layer.
 func (r *ImageRef) HasAlpha() bool {
+	defer runtime.KeepAlive(r)
 	return vipsHasAlpha(r.image)
 }
 
 // Orientation returns the orientation number as it appears in the EXIF, if present
 func (r *ImageRef) Orientation() int {
+	defer runtime.KeepAlive(r)
 	return vipsGetMetaOrientation(r.image)
 }
 
@@ -777,6 +781,7 @@ func (r *ImageRef) ColorSpace() Interpretation {
 
 // IsColorSpaceSupported returns a boolean whether the image's color space is supported by libvips.
 func (r *ImageRef) IsColorSpaceSupported() bool {
+	defer runtime.KeepAlive(r)
 	return vipsIsColorSpaceSupported(r.image)
 }
 
@@ -789,6 +794,7 @@ func (r *ImageRef) Pages() int {
 		return 1
 	}
 
+	defer runtime.KeepAlive(r)
 	return vipsGetImageNPages(r.image)
 }
 
@@ -813,12 +819,14 @@ func (r *ImageRef) SetPages(pages int) error {
 
 // PageHeight return the height of a single page
 func (r *ImageRef) PageHeight() int {
+	defer runtime.KeepAlive(r)
 	return vipsGetPageHeight(r.image)
 }
 
 // GetPageHeight return the height of a single page
 // Deprecated use PageHeight() instead
 func (r *ImageRef) GetPageHeight() int {
+	defer runtime.KeepAlive(r)
 	return vipsGetPageHeight(r.image)
 }
 
@@ -838,6 +846,7 @@ func (r *ImageRef) SetPageHeight(height int) error {
 
 // PageDelay get the page delay array for animation
 func (r *ImageRef) PageDelay() ([]int, error) {
+	defer runtime.KeepAlive(r)
 	n := vipsGetImageNPages(r.image)
 	if n <= 1 {
 		// should not call if not multi page
@@ -848,6 +857,7 @@ func (r *ImageRef) PageDelay() ([]int, error) {
 
 // SetPageDelay set the page delay array for animation
 func (r *ImageRef) SetPageDelay(delay []int) error {
+	defer runtime.KeepAlive(r)
 	var data []C.int
 	for _, d := range delay {
 		data = append(data, C.int(d))
@@ -857,6 +867,7 @@ func (r *ImageRef) SetPageDelay(delay []int) error {
 
 // Background get the background of image.
 func (r *ImageRef) Background() ([]float64, error) {
+	defer runtime.KeepAlive(r)
 	out, err := vipsImageGetBackground(r.image)
 	if err != nil {
 		return nil, err
@@ -1199,6 +1210,7 @@ func (r *ImageRef) ExtractBand(band int, num int) error {
 
 // ExtractBandToImage extracts one or more bands out of the image to a new image
 func (r *ImageRef) ExtractBandToImage(band int, num int) (*ImageRef, error) {
+	defer runtime.KeepAlive(r)
 	out, err := vipsExtractBand(r.image, band, num)
 	if err != nil {
 		return nil, err
@@ -1223,6 +1235,7 @@ func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 
 // BandSplit split an n-band image into n separate images..
 func (r *ImageRef) BandSplit() ([]*ImageRef, error) {
+	defer runtime.KeepAlive(r)
 	var out []*ImageRef
 	for i := 0; i < r.Bands(); i++ {
 		img, err := vipsExtractBand(r.image, i, 1)
@@ -1433,6 +1446,7 @@ func (r *ImageRef) ExtractArea(left, top, width, height int) error {
 
 // GetICCProfile retrieves the ICC profile data (if any) from the image.
 func (r *ImageRef) GetICCProfile() []byte {
+	defer runtime.KeepAlive(r)
 	bytes, _ := vipsGetICCProfile(r.image)
 	return bytes
 }
@@ -1538,42 +1552,52 @@ func (r *ImageRef) ImageFields() []string {
 }
 
 func (r *ImageRef) GetFields() []string {
+	defer runtime.KeepAlive(r)
 	return vipsImageGetFields(r.image)
 }
 
 func (r *ImageRef) SetBlob(name string, data []byte) {
+	defer runtime.KeepAlive(r)
 	vipsImageSetBlob(r.image, name, data)
 }
 
 func (r *ImageRef) GetBlob(name string) []byte {
+	defer runtime.KeepAlive(r)
 	return vipsImageGetBlob(r.image, name)
 }
 
 func (r *ImageRef) SetDouble(name string, f float64) {
+	defer runtime.KeepAlive(r)
 	vipsImageSetDouble(r.image, name, f)
 }
 
 func (r *ImageRef) GetDouble(name string) float64 {
+	defer runtime.KeepAlive(r)
 	return vipsImageGetDouble(r.image, name)
 }
 
 func (r *ImageRef) SetInt(name string, i int) {
+	defer runtime.KeepAlive(r)
 	vipsImageSetInt(r.image, name, i)
 }
 
 func (r *ImageRef) GetInt(name string) int {
+	defer runtime.KeepAlive(r)
 	return vipsImageGetInt(r.image, name)
 }
 
 func (r *ImageRef) SetString(name string, str string) {
+	defer runtime.KeepAlive(r)
 	vipsImageSetString(r.image, name, str)
 }
 
 func (r *ImageRef) GetString(name string) string {
+	defer runtime.KeepAlive(r)
 	return vipsImageGetString(r.image, name)
 }
 
 func (r *ImageRef) GetAsString(name string) string {
+	defer runtime.KeepAlive(r)
 	return vipsImageGetAsString(r.image, name)
 }
 
@@ -1588,6 +1612,7 @@ func (r *ImageRef) HasExif() bool {
 }
 
 func (r *ImageRef) GetExif() map[string]string {
+	defer runtime.KeepAlive(r)
 	return vipsImageGetExifData(r.image)
 }
 
@@ -1738,6 +1763,7 @@ func (r *ImageRef) Invert() error {
 
 // Average finds the average value in an image
 func (r *ImageRef) Average() (float64, error) {
+	defer runtime.KeepAlive(r)
 	out, err := vipsAverage(r.image)
 	if err != nil {
 		return 0, err
@@ -1748,12 +1774,14 @@ func (r *ImageRef) Average() (float64, error) {
 // FindTrim returns the bounding box of the non-border part of the image
 // Returned values are left, top, width, height
 func (r *ImageRef) FindTrim(threshold float64, backgroundColor *Color) (int, int, int, int, error) {
+	defer runtime.KeepAlive(r)
 	return vipsFindTrim(r.image, threshold, backgroundColor)
 }
 
 // GetPoint reads a single pixel on an image.
 // The pixel values are returned in a slice of length n.
 func (r *ImageRef) GetPoint(x int, y int) ([]float64, error) {
+	defer runtime.KeepAlive(r)
 	n := 3
 	if vipsHasAlpha(r.image) {
 		n = 4
@@ -1817,11 +1845,13 @@ func (r *ImageRef) HistogramNormalise() error {
 // `-sum(p * log2(p))`
 // where p is histogram-value / sum-of-histogram-values.
 func (r *ImageRef) HistogramEntropy() (float64, error) {
+	defer runtime.KeepAlive(r)
 	return vipsHistEntropy(r.image)
 }
 
 // DrawRect draws an (optionally filled) rectangle with a single colour
 func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height int, fill bool) error {
+	defer runtime.KeepAlive(r)
 	err := vipsDrawRect(r.image, ink, left, top, width, height, fill)
 	if err != nil {
 		return err
@@ -1853,6 +1883,7 @@ func (r *ImageRef) Abs() error {
 
 // Project calculate project operation.
 func (r *ImageRef) Project() (*ImageRef, *ImageRef, error) {
+	defer runtime.KeepAlive(r)
 	col, row, err := vipsProject(r.image)
 	if err != nil {
 		return nil, nil, err
@@ -1863,6 +1894,7 @@ func (r *ImageRef) Project() (*ImageRef, *ImageRef, error) {
 
 // Min finds the minimum value in an image.
 func (r *ImageRef) Min() (float64, int, int, error) {
+	defer runtime.KeepAlive(r)
 	return vipsMin(r.image)
 }
 
@@ -2180,6 +2212,7 @@ func (r *ImageRef) Replicate(across int, down int) error {
 
 // ToBytes writes the image to memory in VIPs format and returns the raw bytes, useful for storage.
 func (r *ImageRef) ToBytes() ([]byte, error) {
+	defer runtime.KeepAlive(r)
 	var cSize C.size_t
 	cData := C.vips_image_write_to_memory(r.image, &cSize)
 	if cData == nil {
