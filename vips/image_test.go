@@ -87,7 +87,7 @@ func TestImageRef_PNG(t *testing.T) {
 }
 
 func TestImageRef_HEIF(t *testing.T) {
-	require.NoError(t, Startup(nil))
+	skipIfHeifSaveUnsupported(t)
 
 	raw, err := os.ReadFile(resources + "heic-24bit-exif.heic")
 	require.NoError(t, err)

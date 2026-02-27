@@ -251,6 +251,7 @@ func TestImage_RemoveICCProfile(t *testing.T) {
 // libvips always adds these fields back but they should not be a privacy concern.
 // HEIC images require the same fields and behave the same way in libvips.
 func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
+	skipIfHeifSaveUnsupported(t)
 	var initialEXIFCount int
 	goldenTest(t, resources+"heic-24bit-exif.heic",
 		func(img *ImageRef) error {
@@ -267,6 +268,7 @@ func TestImage_RemoveMetadata_Removes_Exif(t *testing.T) {
 }
 
 func TestImage_SetExifField(t *testing.T) {
+	skipIfHeifSaveUnsupported(t)
 	var originalExifValue string
 	goldenTest(t, resources+"heic-24bit-exif.heic",
 		func(img *ImageRef) error {
@@ -395,6 +397,7 @@ func TestImage_AutoRotate_6__heic_to_jpg(t *testing.T) {
 }
 
 func TestImage_Export_AVIF_8_Bit(t *testing.T) {
+	skipIfHeifSaveUnsupported(t)
 	avifExportParams := NewAvifExportParams()
 	goldenTest(t, resources+"avif-8bit.avif",
 		func(img *ImageRef) error {
@@ -406,6 +409,7 @@ func TestImage_Export_AVIF_8_Bit(t *testing.T) {
 }
 
 func TestImage_TIF_16_Bit_To_AVIF_12_Bit(t *testing.T) {
+	skipIfHeifSaveUnsupported(t)
 	avifExportParams := NewAvifExportParams()
 	avifExportParams.Bitdepth = 12
 	goldenTest(t, resources+"tif-16bit.tif",
@@ -1018,6 +1022,17 @@ func exportWebp(exportParams *WebpExportParams) func(img *ImageRef) ([]byte, *Im
 func exportJpeg(exportParams *JpegExportParams) func(img *ImageRef) ([]byte, *ImageMetadata, error) {
 	return func(img *ImageRef) ([]byte, *ImageMetadata, error) {
 		return img.ExportJpeg(exportParams)
+	}
+}
+
+func skipIfHeifSaveUnsupported(t *testing.T) {
+	t.Helper()
+	require.NoError(t, Startup(nil))
+	img, err := Black(1, 1)
+	require.NoError(t, err)
+	_, _, err = img.ExportHeif(NewHeifExportParams())
+	if err != nil {
+		t.Skip("HEIF save is not supported in this environment")
 	}
 }
 
