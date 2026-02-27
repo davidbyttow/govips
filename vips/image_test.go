@@ -1311,6 +1311,26 @@ func Test_SaveImageWithMagick(t *testing.T) {
 	require.True(t, isBMP(bmpBuf))
 }
 
+func TestBandJoinConst_EmptyConstants(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.BandJoinConst([]float64{})
+	assert.Error(t, err)
+}
+
+func TestCompositeMulti_EmptyInputs(t *testing.T) {
+	Startup(nil)
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	err = image.CompositeMulti([]*ImageComposite{})
+	assert.Error(t, err)
+}
+
 // TODO unit tests to cover:
 // NewImageFromReader failing test
 // NewImageFromFile failing test

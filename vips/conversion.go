@@ -4,6 +4,8 @@ package vips
 // #include "conversion.h"
 import "C"
 
+import "errors"
+
 // BandFormat represents VIPS_FORMAT type
 type BandFormat int
 
@@ -365,6 +367,9 @@ func vipsZoom(in *C.VipsImage, xFactor, yFactor int) (*C.VipsImage, error) {
 
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-bandjoin
 func vipsBandJoin(ins []*C.VipsImage) (*C.VipsImage, error) {
+	if len(ins) == 0 {
+		return nil, errors.New("vipsBandJoin: empty input slice")
+	}
 	incOpCounter("bandjoin")
 	var out *C.VipsImage
 
@@ -377,6 +382,9 @@ func vipsBandJoin(ins []*C.VipsImage) (*C.VipsImage, error) {
 
 // http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-bandjoin-const
 func vipsBandJoinConst(in *C.VipsImage, constants []float64) (*C.VipsImage, error) {
+	if len(constants) == 0 {
+		return nil, errors.New("vipsBandJoinConst: empty constants slice")
+	}
 	incOpCounter("bandjoin_const")
 	var out *C.VipsImage
 
@@ -448,6 +456,9 @@ func vipsCast(in *C.VipsImage, bandFormat BandFormat) (*C.VipsImage, error) {
 
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite
 func vipsComposite(ins []*C.VipsImage, modes []C.int, xs, ys []C.int) (*C.VipsImage, error) {
+	if len(ins) == 0 || len(modes) == 0 || len(xs) == 0 || len(ys) == 0 {
+		return nil, errors.New("vipsComposite: empty input slice")
+	}
 	incOpCounter("composite_multi")
 	var out *C.VipsImage
 
@@ -505,6 +516,9 @@ func vipsJoin(input1 *C.VipsImage, input2 *C.VipsImage, dir Direction) (*C.VipsI
 
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-arrayjoin
 func vipsArrayJoin(inputs []*C.VipsImage, across int) (*C.VipsImage, error) {
+	if len(inputs) == 0 {
+		return nil, errors.New("vipsArrayJoin: empty input slice")
+	}
 	incOpCounter("arrayjoin")
 	var out *C.VipsImage
 
