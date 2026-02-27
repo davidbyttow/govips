@@ -102,7 +102,7 @@ func TestImageRef_HEIF(t *testing.T) {
 }
 
 func TestImageRef_HEIF_MIF1(t *testing.T) {
-	require.NoError(t, Startup(nil))
+	skipIfHeifSaveUnsupported(t)
 
 	raw, err := os.ReadFile(resources + "heic-24bit.heic")
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestImageRef_HEIF_MIF1(t *testing.T) {
 }
 
 func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
-	require.NoError(t, Startup(nil))
+	skipIfHeifSaveUnsupported(t)
 
 	raw, err := os.ReadFile(resources + "heic-ftypmsf1.heic")
 	require.NoError(t, err)
@@ -1037,7 +1037,7 @@ func TestImageRef_Linear_Fails(t *testing.T) {
 }
 
 func TestImageRef_AVIF(t *testing.T) {
-	require.NoError(t, Startup(nil))
+	skipIfHeifSaveUnsupported(t)
 
 	raw, err := os.ReadFile(resources + "avif-8bit.avif")
 	require.NoError(t, err)
