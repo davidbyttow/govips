@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func captureOutput(f func()) string {
@@ -19,7 +20,7 @@ func captureOutput(f func()) string {
 }
 
 func Test_DefaultLogging(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 	LoggingSettings(nil, LogLevelInfo)
 
 	output := captureOutput(func() {
@@ -31,7 +32,7 @@ func Test_DefaultLogging(t *testing.T) {
 }
 
 func Test_LoggingVerbosity(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 	LoggingSettings(nil, LogLevelMessage)
 
 	output := captureOutput(func() {
@@ -48,7 +49,7 @@ func Test_LoggingVerbosity(t *testing.T) {
 }
 
 func Test_LoggingHandler(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	var testDomain string
 	var testVerbosity LogLevel

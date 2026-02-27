@@ -14,7 +14,9 @@ func init() {
 	vips.LoggingSettings(func(domain string, level vips.LogLevel, msg string) {
 		fmt.Println(domain, level, msg)
 	}, vips.LogLevelError)
-	vips.Startup(nil)
+	if err := vips.Startup(nil); err != nil {
+		panic(err)
+	}
 }
 
 func BenchmarkNewImageFromFile(b *testing.B) {

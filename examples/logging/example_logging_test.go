@@ -50,7 +50,7 @@ func myLogger(messageDomain string, verbosity vips.LogLevel, message string) {
 
 func main() {
 	vips.LoggingSettings(myLogger, vips.LogLevelInfo)
-	vips.Startup(nil)
+	checkError(vips.Startup(nil))
 	defer vips.Shutdown()
 
 	image1, err := vips.NewImageFromFile("input.jpg")

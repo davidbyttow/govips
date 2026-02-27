@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestImageRef_WebP(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	srcBytes, err := os.ReadFile(resources + "webp+alpha.webp")
 	require.NoError(t, err)
@@ -35,7 +35,7 @@ func TestImageRef_WebP(t *testing.T) {
 }
 
 func TestImageRef_WebP__ReducedEffort(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	srcBytes, err := os.ReadFile(resources + "webp+alpha.webp")
 	require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestImageRef_WebP__ReducedEffort(t *testing.T) {
 }
 
 func TestImageRef_WebP__NearLossless(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	srcBytes, err := os.ReadFile(resources + "webp+alpha.webp")
 	require.NoError(t, err)
@@ -69,7 +69,7 @@ func TestImageRef_WebP__NearLossless(t *testing.T) {
 }
 
 func TestImageRef_PNG(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	srcBytes, err := os.ReadFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -87,7 +87,7 @@ func TestImageRef_PNG(t *testing.T) {
 }
 
 func TestImageRef_HEIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "heic-24bit-exif.heic")
 	require.NoError(t, err)
@@ -102,7 +102,7 @@ func TestImageRef_HEIF(t *testing.T) {
 }
 
 func TestImageRef_HEIF_MIF1(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "heic-24bit.heic")
 	require.NoError(t, err)
@@ -117,7 +117,7 @@ func TestImageRef_HEIF_MIF1(t *testing.T) {
 }
 
 func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "heic-ftypmsf1.heic")
 	require.NoError(t, err)
@@ -132,7 +132,7 @@ func TestImageRef_HEIF_ftypmsf1(t *testing.T) {
 }
 
 func TestImageRef_SVG(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "svg.svg")
 	require.NoError(t, err)
@@ -145,7 +145,7 @@ func TestImageRef_SVG(t *testing.T) {
 }
 
 func TestImageRef_SVG_1(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "svg_1.svg")
 	require.NoError(t, err)
@@ -158,7 +158,7 @@ func TestImageRef_SVG_1(t *testing.T) {
 }
 
 func TestImageRef_SVG_2(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "svg_2.svg")
 	require.NoError(t, err)
@@ -171,7 +171,7 @@ func TestImageRef_SVG_2(t *testing.T) {
 }
 
 func TestImageRef_OverSizedMetadata(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	srcBytes, err := os.ReadFile(resources + "png-bad-metadata.png")
 	require.NoError(t, err)
@@ -183,7 +183,7 @@ func TestImageRef_OverSizedMetadata(t *testing.T) {
 }
 
 func TestImageRef_Resize__Error(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -193,7 +193,7 @@ func TestImageRef_Resize__Error(t *testing.T) {
 }
 
 func TestImageRef_ExtractArea__Error(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -203,7 +203,7 @@ func TestImageRef_ExtractArea__Error(t *testing.T) {
 }
 
 func TestImageRef_HasAlpha__True(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
 	require.NoError(t, err)
@@ -212,7 +212,7 @@ func TestImageRef_HasAlpha__True(t *testing.T) {
 }
 
 func TestImageRef_HasAlpha__False(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -221,7 +221,7 @@ func TestImageRef_HasAlpha__False(t *testing.T) {
 }
 
 func TestImageRef_AddAlpha(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -236,7 +236,7 @@ func TestImageRef_AddAlpha(t *testing.T) {
 }
 
 func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
 	require.NoError(t, err)
@@ -251,7 +251,7 @@ func TestImageRef_AddAlpha__Idempotent(t *testing.T) {
 }
 
 func TestImageRef_HasProfile__True(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
@@ -261,7 +261,7 @@ func TestImageRef_HasProfile__True(t *testing.T) {
 }
 
 func TestImageRef_HasIPTC__True(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
@@ -271,7 +271,7 @@ func TestImageRef_HasIPTC__True(t *testing.T) {
 }
 
 func TestImageRef_HasIPTC__False(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
 	require.NoError(t, err)
@@ -281,7 +281,7 @@ func TestImageRef_HasIPTC__False(t *testing.T) {
 }
 
 func TestImageRef_HasProfile__False(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
 	require.NoError(t, err)
@@ -290,7 +290,7 @@ func TestImageRef_HasProfile__False(t *testing.T) {
 }
 
 func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
@@ -299,7 +299,7 @@ func TestImageRef_GetOrientation__HasEXIF(t *testing.T) {
 }
 
 func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -308,7 +308,7 @@ func TestImageRef_GetOrientation__NoEXIF(t *testing.T) {
 }
 
 func TestImageRef_SetOrientation__HasEXIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
@@ -320,7 +320,7 @@ func TestImageRef_SetOrientation__HasEXIF(t *testing.T) {
 }
 
 func TestImageRef_SetOrientation__NoEXIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -332,7 +332,7 @@ func TestImageRef_SetOrientation__NoEXIF(t *testing.T) {
 }
 
 func TestImageRef_RemoveOrientation__HasEXIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
 	require.NoError(t, err)
@@ -344,7 +344,7 @@ func TestImageRef_RemoveOrientation__HasEXIF(t *testing.T) {
 }
 
 func TestImageRef_RemoveOrientation__NoEXIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -356,7 +356,7 @@ func TestImageRef_RemoveOrientation__NoEXIF(t *testing.T) {
 }
 
 func TestImageRef_RemoveMetadata__RetainsProfile(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
@@ -371,7 +371,7 @@ func TestImageRef_RemoveMetadata__RetainsProfile(t *testing.T) {
 }
 
 func TestImageRef_RemoveMetadata__RetainsOrientation(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-orientation-5.jpg")
 	require.NoError(t, err)
@@ -383,7 +383,7 @@ func TestImageRef_RemoveMetadata__RetainsOrientation(t *testing.T) {
 }
 
 func TestImageRef_RemoveMetadata__RetainsNPages(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "gif-animated.gif")
 	require.NoError(t, err)
@@ -395,7 +395,7 @@ func TestImageRef_RemoveMetadata__RetainsNPages(t *testing.T) {
 }
 
 func TestImageRef_RemoveMetadata__RetainsPageHeight(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "gif-animated.gif")
 	require.NoError(t, err)
@@ -409,7 +409,7 @@ func TestImageRef_RemoveMetadata__RetainsPageHeight(t *testing.T) {
 // Known issue: libvips does not write EXIF into WebP:
 // https://github.com/libvips/libvips/pull/1745
 func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "webp-orientation-6.webp")
 	require.NoError(t, err)
@@ -421,7 +421,7 @@ func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
 }
 
 func TestImageRef_RemoveICCProfile(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
@@ -436,7 +436,7 @@ func TestImageRef_RemoveICCProfile(t *testing.T) {
 }
 
 func TestImageRef_TransformICCProfile(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
 	require.NoError(t, err)
@@ -452,7 +452,7 @@ func TestImageRef_TransformICCProfile(t *testing.T) {
 }
 
 func TestImageRef_TransformICCProfileWithFallback(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	t.Run("source with ICC", func(t *testing.T) {
 		image, err := NewImageFromFile(resources + "jpg-24bit-icc-adobe-rgb.jpg")
@@ -482,7 +482,7 @@ func TestImageRef_TransformICCProfileWithFallback(t *testing.T) {
 }
 
 func TestImageRef_Close(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
@@ -494,7 +494,7 @@ func TestImageRef_Close(t *testing.T) {
 }
 
 func TestImageRef_Close__AlreadyClosed(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	assert.NoError(t, err)
@@ -511,7 +511,7 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 }
 
 func TestImageRef_NotImage(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "txt.txt")
 	require.Error(t, err)
@@ -519,7 +519,7 @@ func TestImageRef_NotImage(t *testing.T) {
 }
 
 func TestImageRef_Label(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "jpg-24bit.jpg")
 	require.NoError(t, err)
@@ -531,7 +531,7 @@ func TestImageRef_Label(t *testing.T) {
 }
 
 func TestImageRef_Composite(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -544,7 +544,7 @@ func TestImageRef_Composite(t *testing.T) {
 }
 
 func TestImageRef_Insert(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -557,7 +557,7 @@ func TestImageRef_Insert(t *testing.T) {
 }
 
 func TestImageRef_Join(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -575,7 +575,7 @@ func TestImageRef_Join(t *testing.T) {
 }
 
 func TestImageRef_ArrayJoin(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -604,7 +604,7 @@ func TestImageRef_ArrayJoin(t *testing.T) {
 }
 
 func TestImageRef_Mapim(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -620,7 +620,7 @@ func TestImageRef_Mapim(t *testing.T) {
 }
 
 func TestImageRef_Mapim__Error(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -633,7 +633,7 @@ func TestImageRef_Mapim__Error(t *testing.T) {
 }
 
 func TestImageRef_Maplut(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -649,7 +649,7 @@ func TestImageRef_Maplut(t *testing.T) {
 }
 
 func TestImageRef_Maplut_Error(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -662,7 +662,7 @@ func TestImageRef_Maplut_Error(t *testing.T) {
 }
 
 func TestImageRef_CompositeMulti(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -685,7 +685,7 @@ func TestImageRef_CompositeMulti(t *testing.T) {
 }
 
 func TestImageRef_Recomb(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -701,7 +701,7 @@ func TestImageRef_Recomb(t *testing.T) {
 }
 
 func TestImageRef_Recomb_Error(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -717,7 +717,7 @@ func TestImageRef_Recomb_Error(t *testing.T) {
 }
 
 func TestCopy(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -729,7 +729,7 @@ func TestCopy(t *testing.T) {
 }
 
 func BenchmarkExportImage(b *testing.B) {
-	Startup(nil)
+	require.NoError(b, Startup(nil))
 
 	fileBuf, err := os.ReadFile(resources + "heic-24bit.heic")
 	require.NoError(b, err)
@@ -747,7 +747,7 @@ func BenchmarkExportImage(b *testing.B) {
 }
 
 func BenchmarkOpenBMPImage(b *testing.B) {
-	Startup(nil)
+	require.NoError(b, Startup(nil))
 
 	fileBuf, err := os.ReadFile(resources + "large.bmp")
 	require.NoError(b, err)
@@ -773,7 +773,7 @@ func TestMemstats(t *testing.T) {
 }
 
 func TestBands(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -783,7 +783,7 @@ func TestBands(t *testing.T) {
 }
 
 func TestCoding(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -793,7 +793,7 @@ func TestCoding(t *testing.T) {
 }
 
 func TestGetRotation(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	rotation, flipped := GetRotationAngleFromExif(6)
 	assert.Equal(t, rotation, Angle270)
@@ -817,7 +817,7 @@ func TestGetRotation(t *testing.T) {
 }
 
 func TestResOffset(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -834,7 +834,7 @@ func TestResOffset(t *testing.T) {
 }
 
 func TestToBytes(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -845,7 +845,7 @@ func TestToBytes(t *testing.T) {
 }
 
 func TestBandJoin(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image1, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -858,7 +858,7 @@ func TestBandJoin(t *testing.T) {
 }
 
 func TestExtractBandToImage(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 	image1, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 
@@ -871,7 +871,7 @@ func TestExtractBandToImage(t *testing.T) {
 }
 
 func TestBandSplit(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image1, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -891,7 +891,7 @@ func TestBandSplit(t *testing.T) {
 }
 
 func TestIsColorSpaceSupport(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -904,7 +904,7 @@ func TestIsColorSpaceSupport(t *testing.T) {
 }
 
 func TestPages_webp(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 	image, err := NewImageFromFile(resources + "webp-animated.webp")
 	require.NoError(t, err)
 
@@ -913,7 +913,7 @@ func TestPages_webp(t *testing.T) {
 }
 
 func TestImageRef_Divide__Error(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -929,14 +929,14 @@ func TestImageRef_Divide__Error(t *testing.T) {
 }
 
 func TestXYZ(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	_, err := XYZ(100, 100)
 	require.NoError(t, err)
 }
 
 func TestIdentity(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	_, err := Identity(false)
 	require.NoError(t, err)
@@ -945,7 +945,7 @@ func TestIdentity(t *testing.T) {
 }
 
 func TestDeprecatedExportParams(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	defaultExportParams := NewDefaultExportParams()
 	assert.Equal(t, ImageTypeUnknown, defaultExportParams.Format)
@@ -1037,7 +1037,7 @@ func TestImageRef_Linear_Fails(t *testing.T) {
 }
 
 func TestImageRef_AVIF(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "avif-8bit.avif")
 	require.NoError(t, err)
@@ -1055,7 +1055,7 @@ func TestImageRef_JP2K(t *testing.T) {
 	if MajorVersion == 8 && MinorVersion < 11 {
 		t.Skip("JPEG2000 is only supported in vips 8.11+")
 	}
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "jp2k-orientation-6.jp2")
 	require.NoError(t, err)
@@ -1071,7 +1071,7 @@ func TestImageRef_JP2K(t *testing.T) {
 }
 
 func TestImageRef_CorruptedJPEG(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	raw, err := os.ReadFile(resources + "jpg-corruption.jpg")
 	require.NoError(t, err)
@@ -1085,7 +1085,7 @@ func TestImageRef_CorruptedJPEG(t *testing.T) {
 }
 
 func TestImageRef_Stats(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1100,7 +1100,7 @@ func TestImageRef_Stats(t *testing.T) {
 }
 
 func TestImageRef_HistogramFind(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1112,7 +1112,7 @@ func TestImageRef_HistogramFind(t *testing.T) {
 }
 
 func TestImageRef_HistogramNormalize(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1125,7 +1125,7 @@ func TestImageRef_HistogramNormalize(t *testing.T) {
 }
 
 func TestImageRef_HistogramCumulative(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1138,7 +1138,7 @@ func TestImageRef_HistogramCumulative(t *testing.T) {
 }
 
 func TestImageRef_HistogramEntropy(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1152,7 +1152,7 @@ func TestImageRef_HistogramEntropy(t *testing.T) {
 }
 
 func TestImageRef_SetPages(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "gif-animated.gif")
 	require.NoError(t, err)
@@ -1164,7 +1164,7 @@ func TestImageRef_SetPages(t *testing.T) {
 }
 
 func TestImageRef_SetGamma(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1174,7 +1174,7 @@ func TestImageRef_SetGamma(t *testing.T) {
 }
 
 func Test_NewImageFromFile(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "PDF-2.0-with-offset-start.pdf")
 	require.NoError(t, err)
@@ -1185,7 +1185,7 @@ func Test_NewImageFromFile(t *testing.T) {
 }
 
 func TestImageRef_ArithmeticOperation(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1214,7 +1214,7 @@ func TestImageRef_ArithmeticOperation(t *testing.T) {
 }
 
 func TestImageRef_Background(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 	image, err := NewImageFromFile(resources + "gif-animated.gif")
 	require.NoError(t, err)
 
@@ -1225,7 +1225,7 @@ func TestImageRef_Background(t *testing.T) {
 }
 
 func Test_MakeTextImage(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	textImage, err := Text(&TextParams{
 		Text:      "Test",
@@ -1257,7 +1257,7 @@ func Test_MakeTextImage(t *testing.T) {
 }
 
 func Test_LoadImageWithAccessMode(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	param := NewImportParams()
 	param.Access.Set(AccessSequential)
@@ -1279,7 +1279,7 @@ func Test_LoadImageWithAccessMode(t *testing.T) {
 }
 
 func Test_SaveImageWithMagick(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	// GIF Save With Magick
 	param := NewImportParams()
@@ -1312,7 +1312,7 @@ func Test_SaveImageWithMagick(t *testing.T) {
 }
 
 func TestBandJoinConst_EmptyConstants(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)
@@ -1322,7 +1322,7 @@ func TestBandJoinConst_EmptyConstants(t *testing.T) {
 }
 
 func TestCompositeMulti_EmptyInputs(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	image, err := NewImageFromFile(resources + "png-24bit.png")
 	require.NoError(t, err)

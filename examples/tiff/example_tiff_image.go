@@ -17,7 +17,7 @@ func checkError(err error) {
 }
 
 func main() {
-	vips.Startup(nil)
+	checkError(vips.Startup(nil))
 	defer vips.Shutdown()
 
 	inputImage, err := vips.NewImageFromFile("examples/tiff/input.jpg")

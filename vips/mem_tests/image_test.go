@@ -11,22 +11,26 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Startup() {
+func startup() {
 	// We need zero MaxCacheSize
-	vips.Startup(&vips.Config{
+	if err := vips.Startup(&vips.Config{
 		MaxCacheSize: 0,
-	})
+	}); err != nil {
+		panic(err)
+	}
 }
 
 func TestMain(m *testing.M) {
-	Startup()
+	startup()
 	ret := m.Run()
 	vips.Shutdown()
 	os.Exit(ret)
 }
 
 func TestMemoryLeak(t *testing.T) {
-	vips.Startup(nil)
+	if err := vips.Startup(nil); err != nil {
+		t.Fatal(err)
+	}
 
 	buf, err := os.ReadFile(resources + "png-24bit.png")
 	require.NoError(t, err)

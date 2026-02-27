@@ -22,7 +22,7 @@ func checkError(err error) {
 // These mozjpeg options are documented here:
 // https://libvips.github.io/libvips/API/current/VipsForeignSave.html#vips-jpegsave
 func ExampleMozJPEGEncode() {
-	vips.Startup(nil)
+	checkError(vips.Startup(nil))
 	defer vips.Shutdown()
 
 	inputImage, err := vips.NewImageFromFile("resources/jpg-24bit-icc-adobe-rgb.jpg")

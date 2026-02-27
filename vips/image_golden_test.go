@@ -887,7 +887,7 @@ func TestImage_Tiff(t *testing.T) {
 }
 
 func TestImage_Black(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 	i, err := Black(10, 20)
 	require.NoError(t, err)
 	buf, metadata, err := i.ExportNative()
@@ -1058,7 +1058,7 @@ func goldenTest(
 		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
 	}
 
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := NewImageFromFile(path)
 	require.NoError(t, err)
@@ -1103,7 +1103,7 @@ func goldenCreateTest(
 		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
 	}
 
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	img, err := createFromFile(path)
 	require.NoError(t, err)
@@ -1218,7 +1218,7 @@ func goldenAnimatedTest(
 		export = func(img *ImageRef) ([]byte, *ImageMetadata, error) { return img.ExportNative() }
 	}
 
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 
 	importParams := NewImportParams()
 	importParams.NumPages.Set(pages)

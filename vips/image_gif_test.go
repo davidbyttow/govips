@@ -8,7 +8,7 @@ import (
 )
 
 func TestI_GIF_Animated_Pages(t *testing.T) {
-	Startup(nil)
+	require.NoError(t, Startup(nil))
 	image, err := NewImageFromFile(resources + "gif-animated.gif")
 	require.NoError(t, err)
 
