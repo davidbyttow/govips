@@ -2044,7 +2044,7 @@ func (r *ImageRef) Recomb(matrix [][]float64) error {
 	}
 
 	// Flatten the matrix
-	var matrixValues []float64
+	matrixValues := make([]float64, 0, numBands*numBands)
 	for _, row := range matrix {
 		for _, value := range row {
 			matrixValues = append(matrixValues, value)
@@ -2057,6 +2057,7 @@ func (r *ImageRef) Recomb(matrix [][]float64) error {
 
 	// Create a VipsImage from the matrix in memory
 	matrixImage := C.vips_image_new_from_memory(matrixPtr, matrixSize, C.int(numBands), C.int(numBands), 1, C.VIPS_FORMAT_DOUBLE)
+	defer clearImage(matrixImage)
 
 	// Check for any Vips errors
 	errMsg := C.GoString(C.vips_error_buffer())
@@ -2067,6 +2068,7 @@ func (r *ImageRef) Recomb(matrix [][]float64) error {
 
 	// Recombine the image using the matrix
 	out, err := vipsRecomb(r.image, matrixImage)
+	runtime.KeepAlive(matrixValues)
 	if err != nil {
 		return err
 	}
