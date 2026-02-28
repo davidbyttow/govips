@@ -51,11 +51,5 @@ int thumbnail_buffer(void *buf, size_t len, VipsImage **out,
                               "crop", crop, "size", size, NULL);
 }
 
-int mapim(VipsImage *in, VipsImage **out, VipsImage *index) {
-  return vips_mapim(in, out, index, NULL);
-}
 
-int maplut(VipsImage *in, VipsImage **out, VipsImage *lut) {
-  return vips_maplut(in, out, lut, NULL);
-}
 

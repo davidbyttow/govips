@@ -138,37 +138,6 @@ const (
 	InterestingLast      Interesting = C.VIPS_INTERESTING_LAST
 )
 
-func vipsCopyImageChangingInterpretation(in *C.VipsImage, interpretation Interpretation) (*C.VipsImage, error) {
-	var out *C.VipsImage
-
-	if err := C.copy_image_changing_interpretation(in, &out, C.VipsInterpretation(interpretation)); int(err) != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-func vipsCopyImageChangingResolution(in *C.VipsImage, xres float64, yres float64) (*C.VipsImage, error) {
-	var out *C.VipsImage
-
-	if err := C.copy_image_changing_resolution(in, &out, C.double(xres), C.double(yres)); int(err) != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-copy
-func vipsCopyImage(in *C.VipsImage) (*C.VipsImage, error) {
-	var out *C.VipsImage
-
-	if err := C.copy_image(in, &out); int(err) != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-embed
 func vipsEmbed(in *C.VipsImage, left, top, width, height int, extend ExtendStrategy) (*C.VipsImage, error) {
 	incOpCounter("embed")
@@ -219,36 +188,12 @@ func vipsEmbedMultiPageBackground(in *C.VipsImage, left, top, width, height int,
 	return out, nil
 }
 
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-gravity
-func vipsGravity(in *C.VipsImage, gravity Gravity, width, height int) (*C.VipsImage, error) {
-	incOpCounter("gravity")
-	var out *C.VipsImage
-
-	if err := C.gravity_image(in, &out, C.int(gravity), C.int(width), C.int(height)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-flip
 func vipsFlip(in *C.VipsImage, direction Direction) (*C.VipsImage, error) {
 	incOpCounter("flip")
 	var out *C.VipsImage
 
 	if err := C.flip_image(in, &out, C.int(direction)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-recomb
-func vipsRecomb(in *C.VipsImage, m *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("recomb")
-	var out *C.VipsImage
-
-	if err := C.recomb_image(in, &out, m); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -272,18 +217,6 @@ func vipsExtractAreaMultiPage(in *C.VipsImage, left, top, width, height int) (*C
 	var out *C.VipsImage
 
 	if err := C.extract_area_multi_page(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-extract-band
-func vipsExtractBand(in *C.VipsImage, band, num int) (*C.VipsImage, error) {
-	incOpCounter("extractBand")
-	var out *C.VipsImage
-
-	if err := C.extract_band(in, &out, C.int(band), C.int(num)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -329,131 +262,6 @@ func vipsCrop(in *C.VipsImage, left int, top int, width int, height int) (*C.Vip
 	return out, nil
 }
 
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-rot
-func vipsRotate(in *C.VipsImage, angle Angle) (*C.VipsImage, error) {
-	incOpCounter("rot")
-	var out *C.VipsImage
-
-	if err := C.rot_image(in, &out, C.VipsAngle(angle)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-autorot
-func vipsAutoRotate(in *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("autorot")
-	var out *C.VipsImage
-
-	if err := C.autorot_image(in, &out); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-zoom
-func vipsZoom(in *C.VipsImage, xFactor, yFactor int) (*C.VipsImage, error) {
-	incOpCounter("zoom")
-	var out *C.VipsImage
-
-	if err := C.zoom_image(in, &out, C.int(xFactor), C.int(yFactor)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-bandjoin
-func vipsBandJoin(ins []*C.VipsImage) (*C.VipsImage, error) {
-	if len(ins) == 0 {
-		return nil, errors.New("vipsBandJoin: empty input slice")
-	}
-	incOpCounter("bandjoin")
-	var out *C.VipsImage
-
-	if err := C.bandjoin(&ins[0], &out, C.int(len(ins))); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-bandjoin-const
-func vipsBandJoinConst(in *C.VipsImage, constants []float64) (*C.VipsImage, error) {
-	if len(constants) == 0 {
-		return nil, errors.New("vipsBandJoinConst: empty constants slice")
-	}
-	incOpCounter("bandjoin_const")
-	var out *C.VipsImage
-
-	if err := C.bandjoin_const(in, &out, (*C.double)(&constants[0]), C.int(len(constants))); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-flatten
-func vipsFlatten(in *C.VipsImage, color *Color) (*C.VipsImage, error) {
-	incOpCounter("flatten")
-	var out *C.VipsImage
-
-	err := C.flatten_image(in, &out, C.double(color.R), C.double(color.G), C.double(color.B))
-	if int(err) != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-func vipsAddAlpha(in *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("addAlpha")
-	var out *C.VipsImage
-
-	if err := C.add_alpha(in, &out); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-premultiply
-func vipsPremultiplyAlpha(in *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("premultiplyAlpha")
-	var out *C.VipsImage
-
-	if err := C.premultiply_alpha(in, &out); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-unpremultiply
-func vipsUnpremultiplyAlpha(in *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("unpremultiplyAlpha")
-	var out *C.VipsImage
-
-	if err := C.unpremultiply_alpha(in, &out); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-func vipsCast(in *C.VipsImage, bandFormat BandFormat) (*C.VipsImage, error) {
-	incOpCounter("cast")
-	var out *C.VipsImage
-
-	if err := C.cast(in, &out, C.int(bandFormat)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite
 func vipsComposite(ins []*C.VipsImage, modes []C.int, xs, ys []C.int) (*C.VipsImage, error) {
 	if len(ins) == 0 || len(modes) == 0 || len(xs) == 0 || len(ys) == 0 {
@@ -463,38 +271,6 @@ func vipsComposite(ins []*C.VipsImage, modes []C.int, xs, ys []C.int) (*C.VipsIm
 	var out *C.VipsImage
 
 	if err := C.composite_image(&ins[0], &out, C.int(len(ins)), &modes[0], &xs[0], &ys[0]); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-composite2
-func vipsComposite2(base *C.VipsImage, overlay *C.VipsImage, mode BlendMode, x, y int) (*C.VipsImage, error) {
-	incOpCounter("composite")
-	var out *C.VipsImage
-
-	if err := C.composite2_image(base, overlay, &out, C.int(mode), C.gint(x), C.gint(y)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}
-
-func vipsInsert(main *C.VipsImage, sub *C.VipsImage, x, y int, expand bool, background *ColorRGBA) (*C.VipsImage, error) {
-	incOpCounter("insert")
-	var out *C.VipsImage
-
-	if background == nil {
-		background = &ColorRGBA{R: 0.0, G: 0.0, B: 0.0, A: 255.0}
-	}
-
-	expandInt := 0
-	if expand {
-		expandInt = 1
-	}
-
-	if err := C.insert_image(main, sub, &out, C.int(x), C.int(y), C.int(expandInt), C.double(background.R), C.double(background.G), C.double(background.B), C.double(background.A)); err != 0 {
 		return nil, handleImageError(out)
 	}
 
@@ -514,49 +290,5 @@ func vipsJoin(input1 *C.VipsImage, input2 *C.VipsImage, dir Direction) (*C.VipsI
 	return out, nil
 }
 
-// https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-arrayjoin
-func vipsArrayJoin(inputs []*C.VipsImage, across int) (*C.VipsImage, error) {
-	if len(inputs) == 0 {
-		return nil, errors.New("vipsArrayJoin: empty input slice")
-	}
-	incOpCounter("arrayjoin")
-	var out *C.VipsImage
 
-	if err := C.arrayjoin(&inputs[0], &out, C.int(len(inputs)), C.int(across)); err != 0 {
-		return nil, handleVipsError()
-	}
-	return out, nil
-}
 
-// https://www.libvips.org/API/current/libvips-conversion.html#vips-replicate
-func vipsReplicate(in *C.VipsImage, across int, down int) (*C.VipsImage, error) {
-	incOpCounter("replicate")
-	var out *C.VipsImage
-
-	if err := C.replicate(in, &out, C.int(across), C.int(down)); err != 0 {
-		return nil, handleImageError(out)
-	}
-	return out, nil
-}
-
-// https://www.libvips.org/API/current/libvips-conversion.html#vips-grid
-func vipsGrid(in *C.VipsImage, tileHeight, across, down int) (*C.VipsImage, error) {
-	incOpCounter("grid")
-	var out *C.VipsImage
-
-	if err := C.grid(in, &out, C.int(tileHeight), C.int(across), C.int(down)); err != 0 {
-		return nil, handleImageError(out)
-	}
-	return out, nil
-}
-
-func vipsGamma(image *C.VipsImage, gamma float64) (*C.VipsImage, error) {
-	incOpCounter("gamma")
-	var out *C.VipsImage
-
-	if err := C.adjust_gamma(image, &out, C.double(gamma)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}

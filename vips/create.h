@@ -19,7 +19,4 @@ typedef struct {
   VipsTextWrap Wrap;
 } TextOptions;
 
-int xyz(VipsImage **out, int width, int height);
-int black(VipsImage **out, int width, int height);
-int identity(VipsImage **out, int ushort);
 int text(VipsImage **out, TextOptions *o);

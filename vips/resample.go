@@ -112,26 +112,5 @@ func vipsThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, si
 	return out, imageType, nil
 }
 
-// https://libvips.github.io/libvips/API/current/libvips-resample.html#vips-mapim
-func vipsMapim(in *C.VipsImage, index *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("mapim")
-	var out *C.VipsImage
 
-	if err := C.mapim(in, &out, index); err != 0 {
-		return nil, handleImageError(out)
-	}
 
-	return out, nil
-}
-
-// https://libvips.github.io/libvips/API/current/libvips-histogram.html#vips-maplut
-func vipsMaplut(in *C.VipsImage, lut *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("maplut")
-	var out *C.VipsImage
-
-	if err := C.maplut(in, &out, lut); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
-}

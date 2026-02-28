@@ -1,33 +1,5 @@
 #include "arithmetic.h"
 
-int add(VipsImage *left, VipsImage *right, VipsImage **out) {
-  return vips_add(left, right, out, NULL);
-}
-
-int multiply(VipsImage *left, VipsImage *right, VipsImage **out) {
-  return vips_multiply(left, right, out, NULL);
-}
-
-int divide(VipsImage *left, VipsImage *right, VipsImage **out) {
-  return vips_divide(left, right, out, NULL);
-}
-
-int linear(VipsImage *in, VipsImage **out, double *a, double *b, int n) {
-  return vips_linear(in, out, a, b, n, NULL);
-}
-
-int linear1(VipsImage *in, VipsImage **out, double a, double b) {
-  return vips_linear1(in, out, a, b, NULL);
-}
-
-int invert_image(VipsImage *in, VipsImage **out) {
-  return vips_invert(in, out, NULL);
-}
-
-int average(VipsImage *in, double *out) {
-	return vips_avg(in, out, NULL);
-}
-
 int find_trim(VipsImage *in, int *left, int *top, int *width, int *height,
               double threshold, double r, double g, double b) {
 
@@ -48,38 +20,6 @@ int find_trim(VipsImage *in, int *left, int *top, int *width, int *height,
 
 int getpoint(VipsImage *in, double **vector, int n, int x, int y) {
   return vips_getpoint(in, vector, &n, x, y, NULL);
-}
-
-int stats(VipsImage *in, VipsImage **out) {
-  return vips_stats(in, out, NULL);
-}
-
-int hist_find(VipsImage *in, VipsImage **out) {
-  return vips_hist_find(in, out, NULL);
-}
-
-int hist_cum(VipsImage *in, VipsImage **out) {
-  return vips_hist_cum(in, out, NULL);
-}
-
-int hist_norm(VipsImage *in, VipsImage **out) {
-  return vips_hist_norm(in, out, NULL);
-}
-
-int hist_entropy(VipsImage *in, double *out) {
-  return vips_hist_entropy(in, out, NULL);
-}
-
-int subtract(VipsImage *in1, VipsImage *in2, VipsImage **out) {
-  return vips_subtract(in1, in2, out, NULL);
-}
-
-int absOp(VipsImage *img, VipsImage **out) {
-  return vips_abs(img, out, NULL);
-}
-
-int project(VipsImage *in, VipsImage **col, VipsImage **row) {
-  return vips_project(in, col, row, NULL);
 }
 
 int minOp(VipsImage *in, double *out, int *x, int *y, int size) {
