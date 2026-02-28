@@ -2238,7 +2238,9 @@ func (r *ImageRef) ToBytes() ([]byte, error) {
 
 func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
 	if r.Interpretation() == InterpretationCMYK {
-		inputProfile = "cmyk"
+		if !r.HasICCProfile() {
+			inputProfile = "cmyk"
+		}
 	}
 	return
 }
