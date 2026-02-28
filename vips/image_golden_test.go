@@ -944,6 +944,69 @@ func TestNewTransparentCanvas_Composite(t *testing.T) {
 	assert.Equal(t, 200, canvas.Height())
 }
 
+func TestImage_Grey(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	ref, err := Grey(256, 1, true)
+	require.NoError(t, err)
+	defer ref.Close()
+
+	assert.Equal(t, 256, ref.Width())
+	assert.Equal(t, 1, ref.Height())
+	assert.Equal(t, 1, ref.Bands())
+
+	// First pixel should be near 0, last pixel should be near 255
+	p0, err := ref.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.InDelta(t, 0, p0[0], 2)
+
+	p255, err := ref.GetPoint(255, 0)
+	require.NoError(t, err)
+	assert.InDelta(t, 255, p255[0], 2)
+}
+
+func TestImage_Grey_Gradient_Composite(t *testing.T) {
+	// Demonstrates the gradient overlay use case from issue #287:
+	// Create a vertical gradient (black->transparent) and composite over an image
+	goldenTest(t, resources+"jpg-24bit.jpg",
+		func(img *ImageRef) error {
+			// Create a gradient ramp matching image dimensions
+			gradient, err := Grey(img.Width(), img.Height(), true)
+			if err != nil {
+				return err
+			}
+			defer gradient.Close()
+
+			// Rotate 90 degrees to make it vertical (top=black, bottom=white)
+			if err := gradient.Rotate(Angle90); err != nil {
+				return err
+			}
+
+			// Use the gradient as an alpha channel on a black overlay:
+			// black image + gradient alpha = black-to-transparent overlay
+			overlay, err := Black(img.Width(), img.Height())
+			if err != nil {
+				return err
+			}
+			defer overlay.Close()
+
+			if err := overlay.ToColorSpace(InterpretationSRGB); err != nil {
+				return err
+			}
+
+			// BandJoin the gradient as the alpha channel
+			if err := overlay.BandJoin(gradient); err != nil {
+				return err
+			}
+
+			// Composite the gradient overlay on top
+			return img.Composite(overlay, BlendModeOver, 0, 0)
+		},
+		nil,
+		exportPng(NewPngExportParams()),
+	)
+}
+
 // vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=auto --interlace --optimize-coding
 func TestImage_OptimizeCoding(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",

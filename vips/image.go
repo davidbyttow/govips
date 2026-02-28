@@ -622,6 +622,17 @@ func Black(width, height int) (*ImageRef, error) {
 	return imageRef, err
 }
 
+// Grey creates a horizontal gradient image (ramp from black to white).
+// When uchar is true, pixel values are 0-255 uint8; when false, 0.0-1.0 float.
+// Useful for creating gradient overlays when combined with rotation, BandJoin, and Composite.
+func Grey(width, height int, uchar bool) (*ImageRef, error) {
+	img, err := vipsGenGrey(width, height, &GreyOptions{Uchar: &uchar})
+	if err != nil {
+		return nil, err
+	}
+	return newImageRef(img, ImageTypeUnknown, ImageTypeUnknown, nil), nil
+}
+
 // NewTransparentCanvas creates a fully transparent RGBA image of the given dimensions.
 // The image is in sRGB color space with 4 bands (RGBA), all channels set to 0.
 func NewTransparentCanvas(width, height int) (*ImageRef, error) {
