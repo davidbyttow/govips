@@ -3,6 +3,8 @@ package vips
 import (
 	"bytes"
 	"fmt"
+	"image"
+	"image/color"
 	"math"
 	"os"
 	"runtime"
@@ -1345,3 +1347,124 @@ func TestCompositeMulti_EmptyInputs(t *testing.T) {
 // Providing Linear() with different length a and b slices
 // RemoveICCProfile failing test
 // RemoveMetadata failing test
+
+func TestImageRef_ToGoImage(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	ref, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer ref.Close()
+
+	goImg, err := ref.ToGoImage()
+	require.NoError(t, err)
+
+	nrgba, ok := goImg.(*image.NRGBA)
+	require.True(t, ok, "expected *image.NRGBA")
+
+	assert.Equal(t, ref.Width(), nrgba.Bounds().Dx())
+	assert.Equal(t, ref.Height(), nrgba.Bounds().Dy())
+}
+
+func TestImageRef_ToGoImage_Grayscale(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	ref, err := NewImageFromFile(resources + "jpg-8bit-grey-icc-dot-gain.jpg")
+	require.NoError(t, err)
+	defer ref.Close()
+
+	goImg, err := ref.ToGoImage()
+	require.NoError(t, err)
+
+	gray, ok := goImg.(*image.Gray)
+	require.True(t, ok, "expected *image.Gray")
+
+	assert.Equal(t, ref.Width(), gray.Bounds().Dx())
+	assert.Equal(t, ref.Height(), gray.Bounds().Dy())
+}
+
+func TestImageRef_ToGoImage_Alpha(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	ref, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+	defer ref.Close()
+
+	goImg, err := ref.ToGoImage()
+	require.NoError(t, err)
+
+	nrgba, ok := goImg.(*image.NRGBA)
+	require.True(t, ok, "expected *image.NRGBA")
+
+	assert.Equal(t, ref.Width(), nrgba.Bounds().Dx())
+	assert.Equal(t, ref.Height(), nrgba.Bounds().Dy())
+}
+
+func TestNewImageFromGoImage(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Create a 100x50 red image in Go
+	goImg := image.NewNRGBA(image.Rect(0, 0, 100, 50))
+	for y := 0; y < 50; y++ {
+		for x := 0; x < 100; x++ {
+			goImg.SetNRGBA(x, y, color.NRGBA{R: 255, G: 0, B: 0, A: 255})
+		}
+	}
+
+	ref, err := NewImageFromGoImage(goImg)
+	require.NoError(t, err)
+	defer ref.Close()
+
+	assert.Equal(t, 100, ref.Width())
+	assert.Equal(t, 50, ref.Height())
+	assert.Equal(t, 4, ref.Bands())
+	assert.Equal(t, InterpretationSRGB, ref.Interpretation())
+
+	pixel, err := ref.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{255, 0, 0, 255}, pixel)
+}
+
+func TestNewImageFromGoImage_RoundTrip(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Load an image via govips
+	original, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer original.Close()
+
+	origWidth := original.Width()
+	origHeight := original.Height()
+
+	// Convert to Go image
+	goImg, err := original.ToGoImage()
+	require.NoError(t, err)
+
+	// Convert back to govips
+	roundTrip, err := NewImageFromGoImage(goImg)
+	require.NoError(t, err)
+	defer roundTrip.Close()
+
+	assert.Equal(t, origWidth, roundTrip.Width())
+	assert.Equal(t, origHeight, roundTrip.Height())
+	assert.Equal(t, 4, roundTrip.Bands())
+}
+
+func TestNewImageFromGoImage_RGBA(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Create an image.RGBA (premultiplied alpha)
+	goImg := image.NewRGBA(image.Rect(0, 0, 10, 10))
+	for y := 0; y < 10; y++ {
+		for x := 0; x < 10; x++ {
+			goImg.SetRGBA(x, y, color.RGBA{R: 128, G: 0, B: 0, A: 128})
+		}
+	}
+
+	ref, err := NewImageFromGoImage(goImg)
+	require.NoError(t, err)
+	defer ref.Close()
+
+	assert.Equal(t, 10, ref.Width())
+	assert.Equal(t, 10, ref.Height())
+	assert.Equal(t, 4, ref.Bands())
+}

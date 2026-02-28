@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/draw"
 	_ "image/gif"
 	"math"
 	_ "image/jpeg"
@@ -2268,6 +2269,139 @@ func (r *ImageRef) ToImage(params *ExportParams) (image.Image, error) {
 	}
 
 	return img, nil
+}
+
+// ToGoImage converts a vips image directly to a Go image.Image without encoding.
+// This is significantly faster than ToImage() which round-trips through JPEG/PNG.
+// The resulting image will be in sRGB color space with 8-bit depth.
+func (r *ImageRef) ToGoImage() (image.Image, error) {
+	defer runtime.KeepAlive(r)
+
+	// Work on a copy to avoid mutating the receiver
+	tmp, err := vipsGenCopy(r.image, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer clearImage(tmp)
+
+	// Convert to sRGB if needed (keep B_W for grayscale)
+	interp := Interpretation(int(tmp.Type))
+	if interp != InterpretationSRGB && interp != InterpretationBW {
+		out, err := vipsToColorSpace(tmp, InterpretationSRGB)
+		if err != nil {
+			return nil, err
+		}
+		clearImage(tmp)
+		tmp = out
+	}
+
+	// Cast to uchar if needed
+	if BandFormat(int(tmp.BandFmt)) != BandFormatUchar {
+		out, err := vipsGenCast(tmp, BandFormatUchar, nil)
+		if err != nil {
+			return nil, err
+		}
+		clearImage(tmp)
+		tmp = out
+	}
+
+	// Extract raw pixel data
+	var cSize C.size_t
+	cData := C.vips_image_write_to_memory(tmp, &cSize)
+	if cData == nil {
+		return nil, errors.New("failed to write image to memory")
+	}
+	defer C.free(cData)
+
+	width := int(tmp.Xsize)
+	height := int(tmp.Ysize)
+	bands := int(tmp.Bands)
+	pixels := C.GoBytes(unsafe.Pointer(cData), C.int(cSize))
+
+	switch bands {
+	case 1:
+		img := image.NewGray(image.Rect(0, 0, width, height))
+		copy(img.Pix, pixels)
+		return img, nil
+	case 2:
+		// Grayscale + alpha
+		img := image.NewNRGBA(image.Rect(0, 0, width, height))
+		srcIdx := 0
+		dstIdx := 0
+		for srcIdx+1 < len(pixels) {
+			v := pixels[srcIdx]
+			img.Pix[dstIdx] = v
+			img.Pix[dstIdx+1] = v
+			img.Pix[dstIdx+2] = v
+			img.Pix[dstIdx+3] = pixels[srcIdx+1]
+			srcIdx += 2
+			dstIdx += 4
+		}
+		return img, nil
+	case 3:
+		// RGB, add opaque alpha
+		img := image.NewNRGBA(image.Rect(0, 0, width, height))
+		srcIdx := 0
+		dstIdx := 0
+		for srcIdx+2 < len(pixels) {
+			img.Pix[dstIdx] = pixels[srcIdx]
+			img.Pix[dstIdx+1] = pixels[srcIdx+1]
+			img.Pix[dstIdx+2] = pixels[srcIdx+2]
+			img.Pix[dstIdx+3] = 255
+			srcIdx += 3
+			dstIdx += 4
+		}
+		return img, nil
+	case 4:
+		img := image.NewNRGBA(image.Rect(0, 0, width, height))
+		copy(img.Pix, pixels)
+		return img, nil
+	default:
+		return nil, fmt.Errorf("unsupported number of bands: %d", bands)
+	}
+}
+
+// NewImageFromGoImage creates a new ImageRef from a Go image.Image.
+// The image is normalized to NRGBA (non-premultiplied RGBA, 8-bit) and
+// imported into libvips in sRGB color space.
+func NewImageFromGoImage(img image.Image) (*ImageRef, error) {
+	startupIfNeeded()
+
+	bounds := img.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	if width == 0 || height == 0 {
+		return nil, errors.New("image has zero dimensions")
+	}
+
+	// Normalize to NRGBA
+	var nrgba *image.NRGBA
+	if n, ok := img.(*image.NRGBA); ok && n.Rect.Min.X == 0 && n.Rect.Min.Y == 0 && n.Stride == width*4 {
+		nrgba = n
+	} else {
+		nrgba = image.NewNRGBA(image.Rect(0, 0, width, height))
+		draw.Draw(nrgba, nrgba.Bounds(), img, bounds.Min, draw.Src)
+	}
+
+	// Create vips image from pixel data (copies data, safe for Go GC)
+	vipsImage := C.create_image_from_memory_copy(
+		unsafe.Pointer(&nrgba.Pix[0]),
+		C.size_t(len(nrgba.Pix)),
+		C.int(width),
+		C.int(height),
+		4,
+		C.VIPS_FORMAT_UCHAR,
+	)
+	runtime.KeepAlive(nrgba)
+	if vipsImage == nil {
+		return nil, errors.New("failed to create vips image from memory")
+	}
+
+	// Set interpretation to sRGB
+	vipsImage.Type = C.VIPS_INTERPRETATION_sRGB
+
+	return newImageRef(vipsImage, ImageTypeUnknown, ImageTypeUnknown, nil), nil
 }
 
 // setImage resets the image for this image and frees the previous one
