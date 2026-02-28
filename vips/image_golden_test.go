@@ -903,6 +903,47 @@ func TestImage_Black(t *testing.T) {
 	assertGoldenMatch(t, resources+"jpg-24bit.jpg", buf, metadata.Format)
 }
 
+func TestNewTransparentCanvas(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	ref, err := NewTransparentCanvas(200, 100)
+	require.NoError(t, err)
+	defer ref.Close()
+
+	assert.Equal(t, 200, ref.Width())
+	assert.Equal(t, 100, ref.Height())
+	assert.Equal(t, 4, ref.Bands())
+	assert.True(t, ref.HasAlpha())
+	assert.Equal(t, InterpretationSRGB, ref.Interpretation())
+
+	pixel, err := ref.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{0, 0, 0, 0}, pixel)
+
+	pixel, err = ref.GetPoint(199, 99)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{0, 0, 0, 0}, pixel)
+}
+
+func TestNewTransparentCanvas_Composite(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	canvas, err := NewTransparentCanvas(200, 200)
+	require.NoError(t, err)
+	defer canvas.Close()
+
+	overlay, err := Black(50, 50)
+	require.NoError(t, err)
+	defer overlay.Close()
+	require.NoError(t, overlay.ToColorSpace(InterpretationSRGB))
+
+	err = canvas.Composite(overlay, BlendModeOver, 10, 10)
+	require.NoError(t, err)
+
+	assert.Equal(t, 200, canvas.Width())
+	assert.Equal(t, 200, canvas.Height())
+}
+
 // vips jpegsave resources/jpg-24bit-icc-iec.jpg test.jpg --Q=75 --profile=none --strip --subsample-mode=auto --interlace --optimize-coding
 func TestImage_OptimizeCoding(t *testing.T) {
 	goldenTest(t, resources+"jpg-24bit-icc-iec.jpg",

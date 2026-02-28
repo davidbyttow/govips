@@ -621,6 +621,27 @@ func Black(width, height int) (*ImageRef, error) {
 	return imageRef, err
 }
 
+// NewTransparentCanvas creates a fully transparent RGBA image of the given dimensions.
+// The image is in sRGB color space with 4 bands (RGBA), all channels set to 0.
+func NewTransparentCanvas(width, height int) (*ImageRef, error) {
+	ref, err := Black(width, height)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ref.ToColorSpace(InterpretationSRGB); err != nil {
+		ref.Close()
+		return nil, err
+	}
+
+	if err := ref.BandJoinConst([]float64{0}); err != nil {
+		ref.Close()
+		return nil, err
+	}
+
+	return ref, nil
+}
+
 // Text draws the string text to an image.
 func Text(params *TextParams) (*ImageRef, error) {
 	img, err := vipsText(params)
