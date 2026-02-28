@@ -283,8 +283,10 @@ int vipsgen_introspect_enum(const char *type_name, EnumInfo *result) {
             continue;
 
         EnumValueInfo *ev = &result->values[result->n_values];
-        strncpy(ev->c_name, v->value_name, sizeof(ev->c_name) - 1);
-        strncpy(ev->nick, v->value_nick, sizeof(ev->nick) - 1);
+        if (v->value_name)
+            strncpy(ev->c_name, v->value_name, sizeof(ev->c_name) - 1);
+        if (v->value_nick)
+            strncpy(ev->nick, v->value_nick, sizeof(ev->nick) - 1);
         ev->value = v->value;
         result->n_values++;
     }

@@ -66,7 +66,7 @@ type OpDef struct {
 	Args        []ArgDef // all arguments
 }
 
-// RequiredInputs returns required input arguments (excluding the primary image input).
+// RequiredInputs returns all required input arguments.
 func (op *OpDef) RequiredInputs() []ArgDef {
 	var result []ArgDef
 	for _, a := range op.Args {
