@@ -331,16 +331,24 @@ func NewTiffExportParams() *TiffExportParams {
 	}
 }
 
-// GifExportParams are options when exporting a GIF to file or buffer
-// Please note that if vips version is above 8.12, then `vips_gifsave_buffer` is used, and only `Dither`, `Effort`, `Bitdepth` is used.
-// If vips version is below 8.12, then `vips_magicksave_buffer` is used, and only `Bitdepth`, `Quality` is used.
-// StripMetadata does nothing to Gif images.
+// GifExportParams are options when exporting a GIF to file or buffer.
+//
+// For vips 8.12+, native gifsave is used. The relevant parameters are Dither,
+// Effort, and Bitdepth. Quality is ignored because native gifsave does not
+// support a quality parameter.
+//
+// For vips below 8.12, magicksave is used as a fallback. The relevant
+// parameters are Quality and Bitdepth.
+//
+// StripMetadata has no effect on GIF images.
 type GifExportParams struct {
 	StripMetadata bool
-	Quality       int
-	Dither        float64
-	Effort        int
-	Bitdepth      int
+	// Quality is only used with vips < 8.12 (magicksave fallback).
+	// Ignored by native gifsave in vips 8.12+.
+	Quality  int
+	Dither   float64
+	Effort   int
+	Bitdepth int
 }
 
 // NewGifExportParams creates default values for an export of a GIF image.
