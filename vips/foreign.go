@@ -293,7 +293,13 @@ var jxlHeader = []byte("\xff\x0a")
 var jxlHeaderISOBMFF = []byte("\x00\x00\x00\x0C\x4A\x58\x4C\x20\x0D\x0A\x87\x0A")
 
 func isJXL(buf []byte) bool {
-	return bytes.HasPrefix(buf, jxlHeader) || bytes.HasPrefix(buf, jxlHeaderISOBMFF)
+	if len(buf) >= 2 && buf[0] == 0xFF && buf[1] == 0x0A {
+		return true
+	}
+	if len(buf) >= 8 && bytes.Equal(buf[4:8], []byte("JXL ")) {
+		return true
+	}
+	return false
 }
 
 var icoHeader = []byte("\x00\x00\x01\x00")
