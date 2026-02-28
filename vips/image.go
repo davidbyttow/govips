@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"image"
 	_ "image/gif"
+	"math"
 	_ "image/jpeg"
 	_ "image/png"
 	"io"
@@ -1948,7 +1949,7 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 		if vScale != -1 {
 			scale = vScale
 		}
-		newPageHeight := int(float64(pageHeight)*scale + 0.5)
+		newPageHeight := int(math.Round(float64(pageHeight) * scale))
 		if err := r.SetPageHeight(newPageHeight); err != nil {
 			return err
 		}
