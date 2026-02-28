@@ -5,8 +5,6 @@
 #include <stdlib.h>
 #include <vips/vips.h>
 
-int gen_vips_addalpha(VipsImage * input, VipsImage ** out_out);
-
 typedef struct {
     int has_across;
     int across;

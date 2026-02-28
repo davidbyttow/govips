@@ -128,8 +128,9 @@ var excludeOps = map[string]bool{
 	"min":     true, // value+x+y+array outputs
 	"measure": true, // returns matrix
 
-	// Operations requiring libvips 8.16+ (not available in CI).
-	"sdf": true, // VipsSdfShape enum added in 8.16
+	// Operations requiring libvips 8.16+ (not registered as VipsOperation in older versions).
+	"sdf":      true, // VipsSdfShape enum added in 8.16
+	"addalpha": true, // only a VipsOperation class since 8.16
 
 	// Hand-written multi-page handling.
 	"embed":        true,

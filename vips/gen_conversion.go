@@ -12,21 +12,6 @@ import (
 // Ensure imports are used.
 var _ = unsafe.Pointer(nil)
 
-// vipsGenAddalpha calls the vips addalpha operation.
-// append an alpha channel
-func vipsGenAddalpha(input *C.VipsImage) (*C.VipsImage, error) {
-	incOpCounter("addalpha")
-
-	var out_out *C.VipsImage
-
-	ret := C.gen_vips_addalpha(input, &out_out)
-	if ret != 0 {
-		return nil, handleImageError(out_out)
-	}
-
-	return out_out, nil
-}
-
 // ArrayjoinOptions are optional parameters for arrayjoin.
 type ArrayjoinOptions struct {
 	Across *int

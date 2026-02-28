@@ -258,3 +258,7 @@ int composite_image(VipsImage **in, VipsImage **out, int n, int *mode, int *x,
 int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction) {
   return vips_join(in1, in2, out, direction, NULL);
 }
+
+int add_alpha(VipsImage *in, VipsImage **out) {
+  return vips_addalpha(in, out, NULL);
+}

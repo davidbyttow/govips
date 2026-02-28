@@ -290,5 +290,14 @@ func vipsJoin(input1 *C.VipsImage, input2 *C.VipsImage, dir Direction) (*C.VipsI
 	return out, nil
 }
 
+func vipsAddAlpha(in *C.VipsImage) (*C.VipsImage, error) {
+	incOpCounter("addalpha")
+	var out *C.VipsImage
 
+	if err := C.add_alpha(in, &out); err != 0 {
+		return nil, handleImageError(out)
+	}
+
+	return out, nil
+}
 

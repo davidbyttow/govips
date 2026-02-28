@@ -35,3 +35,5 @@ int composite_image(VipsImage **in, VipsImage **out, int n, int *mode, int *x,
 int join(VipsImage *in1, VipsImage *in2, VipsImage **out, int direction);
 
 int is_16bit(VipsInterpretation interpretation);
+
+int add_alpha(VipsImage *in, VipsImage **out);

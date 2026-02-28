@@ -1271,7 +1271,7 @@ func (r *ImageRef) AddAlpha() error {
 		return nil
 	}
 
-	out, err := vipsGenAddalpha(r.image)
+	out, err := vipsAddAlpha(r.image)
 	if err != nil {
 		return err
 	}
