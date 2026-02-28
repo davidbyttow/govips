@@ -91,6 +91,18 @@ void set_image_delay(VipsImage *in, const int *array, int n) {
   return vips_image_set_array_int(in, "delay", array, n);
 }
 
+int get_image_loop(VipsImage *in) {
+  int loop = 0;
+  if (vips_image_get_typeof(in, "loop") != 0) {
+    vips_image_get_int(in, "loop", &loop);
+  }
+  return loop;
+}
+
+void set_image_loop(VipsImage *in, int loop) {
+  vips_image_set_int(in, "loop", loop);
+}
+
 void image_set_double(VipsImage *in, const char *name, double i) {
   vips_image_set_double(in, name, i);
 }

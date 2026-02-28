@@ -84,6 +84,8 @@ var technicalMetadata = []string{
 	C.VIPS_META_ORIENTATION,
 	C.VIPS_META_N_PAGES,
 	C.VIPS_META_PAGE_HEIGHT,
+	"delay",
+	"loop",
 }
 
 func contains(a []string, x string) bool {
@@ -147,6 +149,14 @@ func vipsImageSetDelay(in *C.VipsImage, data []C.int) error {
 		C.set_image_delay(in, &data[0], C.int(n))
 	}
 	return nil
+}
+
+func vipsImageGetLoop(in *C.VipsImage) int {
+	return int(C.get_image_loop(in))
+}
+
+func vipsImageSetLoop(in *C.VipsImage, loop int) {
+	C.set_image_loop(in, C.int(loop))
 }
 
 func vipsImageGetBackground(in *C.VipsImage) ([]float64, error) {

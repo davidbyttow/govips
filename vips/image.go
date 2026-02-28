@@ -874,6 +874,21 @@ func (r *ImageRef) SetPageDelay(delay []int) error {
 	return vipsImageSetDelay(r.image, data)
 }
 
+// Loop returns the loop count for animated images.
+// A value of 0 means infinite looping.
+func (r *ImageRef) Loop() int {
+	defer runtime.KeepAlive(r)
+	return vipsImageGetLoop(r.image)
+}
+
+// SetLoop sets the loop count for animated images.
+// A value of 0 means infinite looping.
+func (r *ImageRef) SetLoop(loop int) error {
+	defer runtime.KeepAlive(r)
+	vipsImageSetLoop(r.image, loop)
+	return nil
+}
+
 // Background get the background of image.
 func (r *ImageRef) Background() ([]float64, error) {
 	defer runtime.KeepAlive(r)

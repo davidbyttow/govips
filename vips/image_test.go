@@ -406,6 +406,56 @@ func TestImageRef_RemoveMetadata__RetainsPageHeight(t *testing.T) {
 	assert.Equal(t, 128, image.PageHeight())
 }
 
+func TestImageRef_Loop(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	err = image.SetLoop(3)
+	require.NoError(t, err)
+
+	assert.Equal(t, 3, image.Loop())
+
+	err = image.SetLoop(0)
+	require.NoError(t, err)
+
+	assert.Equal(t, 0, image.Loop())
+}
+
+func TestImageRef_RemoveMetadata__RetainsLoop(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	err = image.SetLoop(5)
+	require.NoError(t, err)
+
+	err = image.RemoveMetadata()
+	require.NoError(t, err)
+
+	assert.Equal(t, 5, image.Loop())
+}
+
+func TestImageRef_RemoveMetadata__RetainsDelay(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "gif-animated.gif")
+	require.NoError(t, err)
+
+	delay, err := image.PageDelay()
+	require.NoError(t, err)
+	require.NotNil(t, delay)
+
+	err = image.RemoveMetadata()
+	require.NoError(t, err)
+
+	delayAfter, err := image.PageDelay()
+	require.NoError(t, err)
+	assert.Equal(t, delay, delayAfter)
+}
+
 // Known issue: libvips does not write EXIF into WebP:
 // https://github.com/libvips/libvips/pull/1745
 func TestImageRef_RemoveMetadata__RetainsOrientation__WebP(t *testing.T) {
