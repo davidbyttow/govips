@@ -3,4 +3,4 @@
 .vscode
 .idea
 node_modules/
-vipsgen
+/vipsgen

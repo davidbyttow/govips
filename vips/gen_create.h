@@ -221,19 +221,6 @@ typedef struct {
 int gen_vips_perlin(int width, int height, VipsImage ** out_out, GenPerlinOpts *opts);
 
 typedef struct {
-    int has_r;
-    double r;
-    int has_a;
-    double *a; int a_n;
-    int has_b;
-    double *b; int b_n;
-    int has_corners;
-    double *corners; int corners_n;
-} GenSdfOpts;
-
-int gen_vips_sdf(int width, int height, VipsSdfShape shape, VipsImage ** out_out, GenSdfOpts *opts);
-
-typedef struct {
     int has_uchar;
     int uchar;
     int has_hfreq;

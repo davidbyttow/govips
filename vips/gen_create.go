@@ -4,10 +4,7 @@ package vips
 // #include "gen_create.h"
 import "C"
 
-import (
-	"runtime"
-	"unsafe"
-)
+import "unsafe"
 
 // Ensure imports are used.
 var _ = unsafe.Pointer(nil)
@@ -762,57 +759,6 @@ func vipsGenPerlin(width int, height int, opts *PerlinOptions) (*C.VipsImage, er
 	}
 
 	ret := C.gen_vips_perlin(C.int(width), C.int(height), &out_out, &cOpts)
-	if ret != 0 {
-		return nil, handleImageError(out_out)
-	}
-
-	return out_out, nil
-}
-
-// SdfOptions are optional parameters for sdf.
-type SdfOptions struct {
-	R *float64
-	A []float64
-	B []float64
-	Corners []float64
-}
-
-// vipsGenSdf calls the vips sdf operation.
-// create an SDF image
-func vipsGenSdf(width int, height int, shape int, opts *SdfOptions) (*C.VipsImage, error) {
-	incOpCounter("sdf")
-
-	var out_out *C.VipsImage
-
-	var cOpts C.GenSdfOpts
-	var pinner runtime.Pinner
-	defer pinner.Unpin()
-	if opts != nil {
-		if opts.R != nil {
-			cOpts.has_r = 1
-			cOpts.r = C.double(*opts.R)
-		}
-		if opts.A != nil {
-			cOpts.has_a = 1
-			pinner.Pin(&opts.A[0])
-			cOpts.a = (*C.double)(unsafe.Pointer(&opts.A[0]))
-			cOpts.a_n = C.int(len(opts.A))
-		}
-		if opts.B != nil {
-			cOpts.has_b = 1
-			pinner.Pin(&opts.B[0])
-			cOpts.b = (*C.double)(unsafe.Pointer(&opts.B[0]))
-			cOpts.b_n = C.int(len(opts.B))
-		}
-		if opts.Corners != nil {
-			cOpts.has_corners = 1
-			pinner.Pin(&opts.Corners[0])
-			cOpts.corners = (*C.double)(unsafe.Pointer(&opts.Corners[0]))
-			cOpts.corners_n = C.int(len(opts.Corners))
-		}
-	}
-
-	ret := C.gen_vips_sdf(C.int(width), C.int(height), C.VipsSdfShape(shape), &out_out, &cOpts)
 	if ret != 0 {
 		return nil, handleImageError(out_out)
 	}

@@ -698,55 +698,6 @@ error:
     return -1;
 }
 
-int gen_vips_sdf(int width, int height, VipsSdfShape shape, VipsImage ** out_out, GenSdfOpts *opts) {
-    VipsOperation *op = vips_operation_new("sdf");
-    if (!op) return -1;
-
-    if (vips_object_set(VIPS_OBJECT(op), "width", width, NULL)) goto error;
-    if (vips_object_set(VIPS_OBJECT(op), "height", height, NULL)) goto error;
-    if (vips_object_set(VIPS_OBJECT(op), "shape", (int)shape, NULL)) goto error;
-
-    if (opts) {
-        if (opts->has_r) {
-            vips_object_set(VIPS_OBJECT(op), "r", opts->r, NULL);
-        }
-        if (opts->has_a) {
-            {
-                VipsArrayDouble *arr = vips_array_double_new(opts->a, opts->a_n);
-                vips_object_set(VIPS_OBJECT(op), "a", arr, NULL);
-                vips_area_unref(VIPS_AREA(arr));
-            }
-        }
-        if (opts->has_b) {
-            {
-                VipsArrayDouble *arr = vips_array_double_new(opts->b, opts->b_n);
-                vips_object_set(VIPS_OBJECT(op), "b", arr, NULL);
-                vips_area_unref(VIPS_AREA(arr));
-            }
-        }
-        if (opts->has_corners) {
-            {
-                VipsArrayDouble *arr = vips_array_double_new(opts->corners, opts->corners_n);
-                vips_object_set(VIPS_OBJECT(op), "corners", arr, NULL);
-                vips_area_unref(VIPS_AREA(arr));
-            }
-        }
-    }
-
-    if (vips_cache_operation_buildp(&op)) goto error;
-
-    g_object_get(VIPS_OBJECT(op), "out", out_out, NULL);
-
-    vips_object_unref_outputs(VIPS_OBJECT(op));
-    g_object_unref(op);
-    return 0;
-
-error:
-    vips_object_unref_outputs(VIPS_OBJECT(op));
-    g_object_unref(op);
-    return -1;
-}
-
 int gen_vips_sines(int width, int height, VipsImage ** out_out, GenSinesOpts *opts) {
     VipsOperation *op = vips_operation_new("sines");
     if (!op) return -1;
