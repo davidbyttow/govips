@@ -432,6 +432,21 @@ func vipsGenCopy(input *C.VipsImage, opts *CopyOptions) (*C.VipsImage, error) {
 	return out_out, nil
 }
 
+// vipsGenExtractArea calls the vips extract_area operation.
+// extract an area from an image
+func vipsGenExtractArea(input *C.VipsImage, left int, top int, width int, height int) (*C.VipsImage, error) {
+	incOpCounter("extract_area")
+
+	var out_out *C.VipsImage
+
+	ret := C.gen_vips_extract_area(input, C.int(left), C.int(top), C.int(width), C.int(height), &out_out)
+	if ret != 0 {
+		return nil, handleImageError(out_out)
+	}
+
+	return out_out, nil
+}
+
 // ExtractBandOptions are optional parameters for extract_band.
 type ExtractBandOptions struct {
 	N *int
@@ -505,6 +520,21 @@ func vipsGenFlatten(input *C.VipsImage, opts *FlattenOptions) (*C.VipsImage, err
 	}
 
 	ret := C.gen_vips_flatten(input, &out_out, &cOpts)
+	if ret != 0 {
+		return nil, handleImageError(out_out)
+	}
+
+	return out_out, nil
+}
+
+// vipsGenFlip calls the vips flip operation.
+// flip an image
+func vipsGenFlip(input *C.VipsImage, direction Direction) (*C.VipsImage, error) {
+	incOpCounter("flip")
+
+	var out_out *C.VipsImage
+
+	ret := C.gen_vips_flip(input, C.VipsDirection(direction), &out_out)
 	if ret != 0 {
 		return nil, handleImageError(out_out)
 	}
@@ -935,6 +965,41 @@ func vipsGenSequential(input *C.VipsImage, opts *SequentialOptions) (*C.VipsImag
 	}
 
 	return out_out, nil
+}
+
+// SmartcropOptions are optional parameters for smartcrop.
+type SmartcropOptions struct {
+	Interesting *Interesting
+	Premultiplied *bool
+}
+
+// vipsGenSmartcrop calls the vips smartcrop operation.
+// extract an area from an image
+func vipsGenSmartcrop(input *C.VipsImage, width int, height int, opts *SmartcropOptions) (int, *C.VipsImage, int, error) {
+	incOpCounter("smartcrop")
+
+	var out_attentionX C.int
+	var out_out *C.VipsImage
+	var out_attentionY C.int
+
+	var cOpts C.GenSmartcropOpts
+	if opts != nil {
+		if opts.Interesting != nil {
+			cOpts.has_interesting = 1
+			cOpts.interesting = C.VipsInteresting(*opts.Interesting)
+		}
+		if opts.Premultiplied != nil {
+			cOpts.has_premultiplied = 1
+			cOpts.premultiplied = C.int(boolToInt(*opts.Premultiplied))
+		}
+	}
+
+	ret := C.gen_vips_smartcrop(input, C.int(width), C.int(height), &out_attentionX, &out_out, &out_attentionY, &cOpts)
+	if ret != 0 {
+		return 0, nil, 0, handleImageError(out_out)
+	}
+
+	return int(out_attentionX), out_out, int(out_attentionY), nil
 }
 
 // SubsampleOptions are optional parameters for subsample.

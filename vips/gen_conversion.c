@@ -420,6 +420,30 @@ error:
     return -1;
 }
 
+int gen_vips_extract_area(VipsImage * input, int left, int top, int width, int height, VipsImage ** out_out) {
+    VipsOperation *op = vips_operation_new("extract_area");
+    if (!op) return -1;
+
+    if (vips_object_set(VIPS_OBJECT(op), "input", input, NULL)) goto error;
+    if (vips_object_set(VIPS_OBJECT(op), "left", left, NULL)) goto error;
+    if (vips_object_set(VIPS_OBJECT(op), "top", top, NULL)) goto error;
+    if (vips_object_set(VIPS_OBJECT(op), "width", width, NULL)) goto error;
+    if (vips_object_set(VIPS_OBJECT(op), "height", height, NULL)) goto error;
+
+    if (vips_cache_operation_buildp(&op)) goto error;
+
+    g_object_get(VIPS_OBJECT(op), "out", out_out, NULL);
+
+    vips_object_unref_outputs(VIPS_OBJECT(op));
+    g_object_unref(op);
+    return 0;
+
+error:
+    vips_object_unref_outputs(VIPS_OBJECT(op));
+    g_object_unref(op);
+    return -1;
+}
+
 int gen_vips_extract_band(VipsImage * input, int band, VipsImage ** out_out, GenExtractBandOpts *opts) {
     VipsOperation *op = vips_operation_new("extract_band");
     if (!op) return -1;
@@ -485,6 +509,27 @@ int gen_vips_flatten(VipsImage * input, VipsImage ** out_out, GenFlattenOpts *op
             vips_object_set(VIPS_OBJECT(op), "max-alpha", opts->maxAlpha, NULL);
         }
     }
+
+    if (vips_cache_operation_buildp(&op)) goto error;
+
+    g_object_get(VIPS_OBJECT(op), "out", out_out, NULL);
+
+    vips_object_unref_outputs(VIPS_OBJECT(op));
+    g_object_unref(op);
+    return 0;
+
+error:
+    vips_object_unref_outputs(VIPS_OBJECT(op));
+    g_object_unref(op);
+    return -1;
+}
+
+int gen_vips_flip(VipsImage * input, VipsDirection direction, VipsImage ** out_out) {
+    VipsOperation *op = vips_operation_new("flip");
+    if (!op) return -1;
+
+    if (vips_object_set(VIPS_OBJECT(op), "in", input, NULL)) goto error;
+    if (vips_object_set(VIPS_OBJECT(op), "direction", (int)direction, NULL)) goto error;
 
     if (vips_cache_operation_buildp(&op)) goto error;
 
@@ -911,6 +956,39 @@ int gen_vips_sequential(VipsImage * input, VipsImage ** out_out, GenSequentialOp
     if (vips_cache_operation_buildp(&op)) goto error;
 
     g_object_get(VIPS_OBJECT(op), "out", out_out, NULL);
+
+    vips_object_unref_outputs(VIPS_OBJECT(op));
+    g_object_unref(op);
+    return 0;
+
+error:
+    vips_object_unref_outputs(VIPS_OBJECT(op));
+    g_object_unref(op);
+    return -1;
+}
+
+int gen_vips_smartcrop(VipsImage * input, int width, int height, int * out_attentionX, VipsImage ** out_out, int * out_attentionY, GenSmartcropOpts *opts) {
+    VipsOperation *op = vips_operation_new("smartcrop");
+    if (!op) return -1;
+
+    if (vips_object_set(VIPS_OBJECT(op), "input", input, NULL)) goto error;
+    if (vips_object_set(VIPS_OBJECT(op), "width", width, NULL)) goto error;
+    if (vips_object_set(VIPS_OBJECT(op), "height", height, NULL)) goto error;
+
+    if (opts) {
+        if (opts->has_interesting) {
+            vips_object_set(VIPS_OBJECT(op), "interesting", (int)opts->interesting, NULL);
+        }
+        if (opts->has_premultiplied) {
+            vips_object_set(VIPS_OBJECT(op), "premultiplied", (gboolean)opts->premultiplied, NULL);
+        }
+    }
+
+    if (vips_cache_operation_buildp(&op)) goto error;
+
+    g_object_get(VIPS_OBJECT(op), "attention-x", out_attentionX, NULL);
+    g_object_get(VIPS_OBJECT(op), "out", out_out, NULL);
+    g_object_get(VIPS_OBJECT(op), "attention-y", out_attentionY, NULL);
 
     vips_object_unref_outputs(VIPS_OBJECT(op));
     g_object_unref(op);

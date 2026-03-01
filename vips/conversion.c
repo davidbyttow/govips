@@ -110,46 +110,6 @@ int embed_multi_page_image_background(VipsImage *in, VipsImage **out, int left, 
   return 0;
 }
 
-int flip_image(VipsImage *in, VipsImage **out, int direction) {
-  return vips_flip(in, out, direction, NULL);
-}
-
-int extract_image_area(VipsImage *in, VipsImage **out, int left, int top,
-                       int width, int height) {
-  return vips_extract_area(in, out, left, top, width, height, NULL);
-}
-
-int extract_area_multi_page(VipsImage *in, VipsImage **out, int left, int top, int width, int height) {
-  VipsObject *base = VIPS_OBJECT(vips_image_new());
-  int page_height = vips_image_get_page_height(in);
-  int n_pages = in->Ysize / page_height;
-
-  VipsImage **page = (VipsImage **) vips_object_local_array(base, n_pages);
-  VipsImage **copy = (VipsImage **) vips_object_local_array(base, 1);
-
-  // split image into cropped frames
-  for (int i = 0; i < n_pages; i++) {
-    if(vips_extract_area(in, &page[i], left, page_height * i + top, width, height, NULL)) {
-      g_object_unref(base);
-      return -1;
-    }
-  }
-  // reassemble frames and set page height
-  // copy before modifying metadata
-  if(
-    vips_arrayjoin(page, &copy[0], n_pages, "across", 1, NULL) ||
-    vips_copy(copy[0], out, NULL)
-  ) {
-    g_object_unref(base);
-    return -1;
-  }
-  vips_image_set_int(*out, VIPS_META_PAGE_HEIGHT, height);
-  g_object_unref(base);
-  return 0;
-}
-
-
-
 
 int similarity(VipsImage *in, VipsImage **out, double scale, double angle,
                double r, double g, double b, double a, double idx, double idy,
@@ -179,12 +139,6 @@ int similarity(VipsImage *in, VipsImage **out, double scale, double angle,
 
   vips_area_unref(VIPS_AREA(vipsBackground));
   return code;
-}
-
-int smartcrop(VipsImage *in, VipsImage **out, int width, int height,
-              int interesting) {
-  return vips_smartcrop(in, out, width, height, "interesting", interesting,
-                        NULL);
 }
 
 int crop(VipsImage *in, VipsImage **out, int left, int top,

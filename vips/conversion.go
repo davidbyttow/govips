@@ -190,36 +190,48 @@ func vipsEmbedMultiPageBackground(in *C.VipsImage, left, top, width, height int,
 
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-flip
 func vipsFlip(in *C.VipsImage, direction Direction) (*C.VipsImage, error) {
-	incOpCounter("flip")
-	var out *C.VipsImage
-
-	if err := C.flip_image(in, &out, C.int(direction)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
+	return vipsGenFlip(in, direction)
 }
 
 // https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-extract-area
 func vipsExtractArea(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
-	incOpCounter("extractArea")
-	var out *C.VipsImage
-
-	if err := C.extract_image_area(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
+	return vipsGenExtractArea(in, left, top, width, height)
 }
 
 func vipsExtractAreaMultiPage(in *C.VipsImage, left, top, width, height int) (*C.VipsImage, error) {
 	incOpCounter("extractAreaMultiPage")
-	var out *C.VipsImage
 
-	if err := C.extract_area_multi_page(in, &out, C.int(left), C.int(top), C.int(width), C.int(height)); err != 0 {
-		return nil, handleImageError(out)
+	pageHeight := vipsGetPageHeight(in)
+	nPages := int(in.Ysize) / pageHeight
+
+	pages := make([]*C.VipsImage, nPages)
+	for i := 0; i < nPages; i++ {
+		page, err := vipsGenExtractArea(in, left, pageHeight*i+top, width, height)
+		if err != nil {
+			for j := 0; j < i; j++ {
+				clearImage(pages[j])
+			}
+			return nil, err
+		}
+		pages[i] = page
 	}
 
+	across := 1
+	joined, err := vipsGenArrayjoin(pages, &ArrayjoinOptions{Across: &across})
+	for _, p := range pages {
+		clearImage(p)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := vipsGenCopy(joined, nil)
+	clearImage(joined)
+	if err != nil {
+		return nil, err
+	}
+
+	vipsSetPageHeight(out, height)
 	return out, nil
 }
 
@@ -240,14 +252,8 @@ func vipsSimilarity(in *C.VipsImage, scale float64, angle float64, color *ColorR
 
 // http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-smartcrop
 func vipsSmartCrop(in *C.VipsImage, width int, height int, interesting Interesting) (*C.VipsImage, error) {
-	incOpCounter("smartcrop")
-	var out *C.VipsImage
-
-	if err := C.smartcrop(in, &out, C.int(width), C.int(height), C.int(interesting)); err != 0 {
-		return nil, handleImageError(out)
-	}
-
-	return out, nil
+	_, out, _, err := vipsGenSmartcrop(in, width, height, &SmartcropOptions{Interesting: &interesting})
+	return out, err
 }
 
 // http://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-crop

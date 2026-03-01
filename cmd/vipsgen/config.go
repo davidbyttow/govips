@@ -133,11 +133,8 @@ var excludeOps = map[string]bool{
 	"addalpha": true, // only a VipsOperation class since 8.16
 
 	// Hand-written multi-page handling.
-	"embed":        true,
-	"extract_area": true,
-	"flip":         true,
-	"crop":         true,
-	"smartcrop":    true,
+	"embed": true,
+	"crop":  true,
 
 	// Draw operations (in-place mutation, array double ink).
 	"draw_rect":   true,

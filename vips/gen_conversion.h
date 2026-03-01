@@ -113,6 +113,8 @@ typedef struct {
 
 int gen_vips_copy(VipsImage * input, VipsImage ** out_out, GenCopyOpts *opts);
 
+int gen_vips_extract_area(VipsImage * input, int left, int top, int width, int height, VipsImage ** out_out);
+
 typedef struct {
     int has_n;
     int n;
@@ -130,6 +132,8 @@ typedef struct {
 } GenFlattenOpts;
 
 int gen_vips_flatten(VipsImage * input, VipsImage ** out_out, GenFlattenOpts *opts);
+
+int gen_vips_flip(VipsImage * input, VipsDirection direction, VipsImage ** out_out);
 
 typedef struct {
     int has_exponent;
@@ -233,6 +237,15 @@ typedef struct {
 } GenSequentialOpts;
 
 int gen_vips_sequential(VipsImage * input, VipsImage ** out_out, GenSequentialOpts *opts);
+
+typedef struct {
+    int has_interesting;
+    VipsInteresting interesting;
+    int has_premultiplied;
+    int premultiplied;
+} GenSmartcropOpts;
+
+int gen_vips_smartcrop(VipsImage * input, int width, int height, int * out_attentionX, VipsImage ** out_out, int * out_attentionY, GenSmartcropOpts *opts);
 
 typedef struct {
     int has_point;
