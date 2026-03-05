@@ -698,7 +698,6 @@ func vipsImageGetMetaLoader(in *C.VipsImage) (string, bool) {
 func vipsImageGetDelay(in *C.VipsImage, n int) ([]int, error) {
 	incOpCounter("imageGetDelay")
 	var out *C.int
-	defer gFreePointer(unsafe.Pointer(out))
 
 	if err := C.get_image_delay(in, &out); err != 0 {
 		return nil, handleVipsError()
