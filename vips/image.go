@@ -268,7 +268,7 @@ type PngExportParams struct {
 	Palette       bool
 	Dither        float64
 	Bitdepth      int
-	Profile       string // TODO: Use this param during save
+	Profile       string
 }
 
 // NewPngExportParams creates default values for an export of a PNG image.
