@@ -445,7 +445,7 @@ int label(VipsImage *in, VipsImage **out, LabelOptions *o) {
       vips_embed(t[2], &t[3], o->OffsetX, o->OffsetY, t[2]->Xsize + o->OffsetX,
                  t[2]->Ysize + o->OffsetY, NULL)) {
     g_object_unref(base);
-    return 1;
+    return -1;
   }
   if (vips_black(&t[4], 1, 1, NULL) ||
       vips_linear(t[4], &t[5], ones, o->Color, 3, NULL) ||
@@ -454,11 +454,11 @@ int label(VipsImage *in, VipsImage **out, LabelOptions *o) {
       vips_embed(t[7], &t[8], 0, 0, in->Xsize, in->Ysize, "extend",
                  VIPS_EXTEND_COPY, NULL)) {
     g_object_unref(base);
-    return 1;
+    return -1;
   }
   if (vips_ifthenelse(t[3], t[8], in, out, "blend", TRUE, NULL)) {
     g_object_unref(base);
-    return 1;
+    return -1;
   }
   g_object_unref(base);
   return 0;
