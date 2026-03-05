@@ -1474,6 +1474,36 @@ func TestNewImageFromGoImage(t *testing.T) {
 	assert.Equal(t, []float64{255, 0, 0, 255}, pixel)
 }
 
+// TestGetPoint_RepeatedCalls verifies that GetPoint returns a Go-owned slice
+// whose data remains valid across multiple calls. Previously, vipsGetPoint
+// returned a slice backed by C memory and deferred a g_free on a nil pointer
+// (captured before the C call), leaking the allocation.
+func TestGetPoint_RepeatedCalls(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// Call GetPoint multiple times and retain results.
+	// If the returned slice were backed by C memory, earlier results could
+	// be corrupted by later calls.
+	var results [][]float64
+	for i := 0; i < 10; i++ {
+		p, err := img.GetPoint(10, 10)
+		require.NoError(t, err)
+		results = append(results, p)
+	}
+
+	// All results should be identical and independently owned.
+	for i, p := range results {
+		assert.Equal(t, 3, len(p), "iteration %d", i)
+		assert.Equal(t, 255.0, p[0], "iteration %d", i)
+		assert.Equal(t, 255.0, p[1], "iteration %d", i)
+		assert.Equal(t, 255.0, p[2], "iteration %d", i)
+	}
+}
+
 func TestNewImageFromGoImage_RoundTrip(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
