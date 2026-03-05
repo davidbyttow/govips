@@ -725,7 +725,6 @@ func vipsImageGetBackground(in *C.VipsImage) ([]float64, error) {
 	incOpCounter("imageGetBackground")
 	var out *C.double
 	var n C.int
-	defer gFreePointer(unsafe.Pointer(out))
 
 	if err := C.get_background(in, &out, &n); err != 0 {
 		return nil, handleVipsError()
