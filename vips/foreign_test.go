@@ -152,6 +152,18 @@ func Test_DetermineImageType__AVIF(t *testing.T) {
 	assert.Equal(t, ImageTypeAVIF, imageType)
 }
 
+func Test_DetermineImageType__AVIF_Animated(t *testing.T) {
+	require.NoError(t, Startup(&Config{}))
+
+	// Construct a minimal ftyp box with "avis" brand (Animated AVIF)
+	buf := make([]byte, 16)
+	copy(buf[4:8], "ftyp")
+	copy(buf[8:12], "avis")
+
+	imageType := DetermineImageType(buf)
+	assert.Equal(t, ImageTypeAVIF, imageType)
+}
+
 func Test_DetermineImageType__JP2K(t *testing.T) {
 	require.NoError(t, Startup(&Config{}))
 
