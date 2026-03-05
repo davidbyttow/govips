@@ -1504,6 +1504,23 @@ func TestGetPoint_RepeatedCalls(t *testing.T) {
 	}
 }
 
+// TestGetAsString_RoundTrip verifies that GetAsString correctly returns
+// string metadata. Previously, vipsImageGetAsString deferred freeCString
+// on a nil pointer (captured before the C call), leaking the allocated string.
+func TestGetAsString_RoundTrip(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	img.SetString("test-field", "hello-world")
+
+	// GetAsString returns a formatted version of the field value.
+	result := img.GetAsString("test-field")
+	assert.Contains(t, result, "hello-world")
+}
+
 func TestNewImageFromGoImage_RoundTrip(t *testing.T) {
 	require.NoError(t, Startup(nil))
 

@@ -868,7 +868,7 @@ func vipsImageGetAsString(in *C.VipsImage, name string) string {
 	cField := C.CString(name)
 	defer freeCString(cField)
 	var cFieldValue *C.char
-	defer freeCString(cFieldValue)
+	defer func() { freeCString(cFieldValue) }()
 	if int(C.image_get_as_string(in, cField, &cFieldValue)) == 0 {
 		return C.GoString(cFieldValue)
 	}
