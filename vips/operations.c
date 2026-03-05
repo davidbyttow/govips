@@ -383,7 +383,7 @@ int get_image_delay(VipsImage *in, int **out) {
 }
 
 void set_image_delay(VipsImage *in, const int *array, int n) {
-  return vips_image_set_array_int(in, "delay", array, n);
+  vips_image_set_array_int(in, "delay", array, n);
 }
 
 int get_image_loop(VipsImage *in) {
