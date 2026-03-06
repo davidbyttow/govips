@@ -233,6 +233,7 @@ var heis = []byte("heis")
 var mif1 = []byte("mif1")
 var msf1 = []byte("msf1")
 var avif = []byte("avif")
+var avis = []byte("avis")
 
 func isHEIF(buf []byte) bool {
 	return bytes.Equal(buf[4:8], ftyp) && (bytes.Equal(buf[8:12], heic) ||
@@ -245,7 +246,8 @@ func isHEIF(buf []byte) bool {
 }
 
 func isAVIF(buf []byte) bool {
-	return bytes.Equal(buf[4:8], ftyp) && bytes.Equal(buf[8:12], avif)
+	return bytes.Equal(buf[4:8], ftyp) &&
+		(bytes.Equal(buf[8:12], avif) || bytes.Equal(buf[8:12], avis))
 }
 
 var svg = []byte("<svg")
