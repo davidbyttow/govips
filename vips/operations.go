@@ -30,14 +30,16 @@ func vipsFindTrim(in *C.VipsImage, threshold float64, backgroundColor *Color) (i
 func vipsGetPoint(in *C.VipsImage, n int, x int, y int) ([]float64, error) {
 	incOpCounter("getpoint")
 	var out *C.double
-	defer gFreePointer(unsafe.Pointer(out))
 
 	if err := C.getpoint(in, &out, C.int(n), C.int(x), C.int(y)); err != 0 {
 		return nil, handleVipsError()
 	}
 
-	// maximum n is 4
-	return (*[4]float64)(unsafe.Pointer(out))[:n:n], nil
+	// Copy from C memory into a Go slice, then free the C allocation.
+	result := make([]float64, n)
+	copy(result, (*[4]float64)(unsafe.Pointer(out))[:n:n])
+	gFreePointer(unsafe.Pointer(out))
+	return result, nil
 }
 
 // https://www.libvips.org/API/current/libvips-arithmetic.html#vips-min
@@ -866,7 +868,7 @@ func vipsImageGetAsString(in *C.VipsImage, name string) string {
 	cField := C.CString(name)
 	defer freeCString(cField)
 	var cFieldValue *C.char
-	defer freeCString(cFieldValue)
+	defer func() { freeCString(cFieldValue) }()
 	if int(C.image_get_as_string(in, cField, &cFieldValue)) == 0 {
 		return C.GoString(cFieldValue)
 	}
