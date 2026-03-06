@@ -1565,3 +1565,71 @@ func TestNewImageFromGoImage_RGBA(t *testing.T) {
 	assert.Equal(t, 10, ref.Height())
 	assert.Equal(t, 4, ref.Bands())
 }
+
+func TestAutoRotate(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// Orientation 6 = 90° CW, stored as 4032x3024
+	assert.Equal(t, 4032, img.Width())
+	assert.Equal(t, 3024, img.Height())
+	assert.Equal(t, 6, img.Orientation())
+
+	err = img.AutoRotate()
+	require.NoError(t, err)
+
+	// After auto-rotate, dimensions should swap
+	assert.Equal(t, 3024, img.Width())
+	assert.Equal(t, 4032, img.Height())
+}
+
+func TestCopyChangingResolution(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	origWidth := img.Width()
+	origHeight := img.Height()
+	origXres := img.GetDouble("xres")
+	origYres := img.GetDouble("yres")
+
+	newImg, err := img.CopyChangingResolution(300.0, 300.0)
+	require.NoError(t, err)
+	defer newImg.Close()
+
+	// New image should have same pixel dimensions
+	assert.Equal(t, origWidth, newImg.Width())
+	assert.Equal(t, origHeight, newImg.Height())
+
+	// Resolution should be updated
+	assert.Equal(t, 300.0, newImg.GetDouble("xres"))
+	assert.Equal(t, 300.0, newImg.GetDouble("yres"))
+
+	// Original should be unchanged
+	assert.Equal(t, origXres, img.GetDouble("xres"))
+	assert.Equal(t, origYres, img.GetDouble("yres"))
+}
+
+func TestCopyChangingInterpretation(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	assert.Equal(t, InterpretationSRGB, img.Interpretation())
+
+	newImg, err := img.CopyChangingInterpretation(InterpretationBW)
+	require.NoError(t, err)
+	defer newImg.Close()
+
+	assert.Equal(t, InterpretationBW, newImg.Interpretation())
+
+	// Original should be unchanged
+	assert.Equal(t, InterpretationSRGB, img.Interpretation())
+}
