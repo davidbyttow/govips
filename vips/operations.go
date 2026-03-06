@@ -693,7 +693,6 @@ func vipsSetPageHeight(in *C.VipsImage, height int) {
 
 func vipsImageGetMetaLoader(in *C.VipsImage) (string, bool) {
 	var out *C.char
-	defer freeCString(out)
 	code := int(C.get_meta_loader(in, &out))
 	return C.GoString(out), code == 0
 }
@@ -701,7 +700,6 @@ func vipsImageGetMetaLoader(in *C.VipsImage) (string, bool) {
 func vipsImageGetDelay(in *C.VipsImage, n int) ([]int, error) {
 	incOpCounter("imageGetDelay")
 	var out *C.int
-	defer gFreePointer(unsafe.Pointer(out))
 
 	if err := C.get_image_delay(in, &out); err != 0 {
 		return nil, handleVipsError()
@@ -729,7 +727,6 @@ func vipsImageGetBackground(in *C.VipsImage) ([]float64, error) {
 	incOpCounter("imageGetBackground")
 	var out *C.double
 	var n C.int
-	defer gFreePointer(unsafe.Pointer(out))
 
 	if err := C.get_background(in, &out, &n); err != 0 {
 		return nil, handleVipsError()
@@ -856,7 +853,6 @@ func vipsImageGetString(in *C.VipsImage, name string) string {
 	cField := C.CString(name)
 	defer freeCString(cField)
 	var cFieldValue *C.char
-	defer freeCString(cFieldValue)
 	if int(C.image_get_string(in, cField, &cFieldValue)) == 0 {
 		return C.GoString(cFieldValue)
 	}
