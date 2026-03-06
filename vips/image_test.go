@@ -1777,3 +1777,181 @@ func TestExportMagick_ExplicitFormat(t *testing.T) {
 	assert.NotEmpty(t, buf)
 	assert.Equal(t, ImageTypeMagick, meta.Format)
 }
+
+func TestRecomb_RGBA(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// Should be 4 bands (RGBA)
+	require.Equal(t, 4, img.Bands())
+
+	// Sepia matrix (3x3) -- Recomb should expand to 4x4 for RGBA
+	matrix := [][]float64{
+		{0.3588, 0.7044, 0.1368},
+		{0.2990, 0.5870, 0.1140},
+		{0.2392, 0.4696, 0.0912},
+	}
+
+	err = img.Recomb(matrix)
+	require.NoError(t, err)
+	assert.True(t, img.HasAlpha())
+}
+
+func TestRotate_AllAngles(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	tests := []struct {
+		angle       Angle
+		swapDims    bool
+	}{
+		{Angle0, false},
+		{Angle90, true},
+		{Angle180, false},
+		{Angle270, true},
+	}
+
+	for _, tc := range tests {
+		t.Run(fmt.Sprintf("Angle%d", int(tc.angle)*90), func(t *testing.T) {
+			img, err := NewImageFromFile(resources + "png-24bit.png")
+			require.NoError(t, err)
+			defer img.Close()
+
+			origW := img.Width()
+			origH := img.Height()
+
+			err = img.Rotate(tc.angle)
+			require.NoError(t, err)
+
+			if tc.swapDims {
+				assert.Equal(t, origH, img.Width())
+				assert.Equal(t, origW, img.Height())
+			} else {
+				assert.Equal(t, origW, img.Width())
+				assert.Equal(t, origH, img.Height())
+			}
+		})
+	}
+}
+
+func TestRotate_Animated(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Load all pages so Rotate's Grid call works
+	params := NewImportParams()
+	params.NumPages.Set(-1)
+	img, err := LoadImageFromFile(resources+"gif-animated.gif", params)
+	require.NoError(t, err)
+	defer img.Close()
+
+	require.Greater(t, img.Pages(), 1)
+	origW := img.Width()
+	origPageH := img.GetPageHeight()
+
+	err = img.Rotate(Angle90)
+	require.NoError(t, err)
+
+	// Width/height should swap per page
+	assert.Equal(t, origPageH, img.Width())
+	assert.Equal(t, origW, img.GetPageHeight())
+}
+
+func TestPixelate(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	origW := img.Width()
+	origH := img.Height()
+
+	err = Pixelate(img, 4.0)
+	require.NoError(t, err)
+	assert.Equal(t, origW, img.Width())
+	assert.Equal(t, origH, img.Height())
+}
+
+func TestPixelate_InvalidFactor(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	err = Pixelate(img, 0.5)
+	assert.Error(t, err)
+}
+
+func TestTransformICCProfile_16bit(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-alpha-64bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// Should be 16-bit (ushort), hitting the depth=16 branch
+	require.NotEqual(t, BandFormatUchar, img.BandFormat())
+
+	err = img.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, SRGBV2MicroICCProfilePath)
+	require.NoError(t, err)
+	assert.True(t, img.HasICCProfile())
+}
+
+func TestOptionString(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		p := &ImportParams{}
+		assert.Equal(t, "", p.OptionString())
+	})
+
+	t.Run("single_param", func(t *testing.T) {
+		p := &ImportParams{}
+		p.NumPages.Set(2)
+		assert.Equal(t, "n=2", p.OptionString())
+	})
+
+	t.Run("multiple_params", func(t *testing.T) {
+		p := &ImportParams{}
+		p.NumPages.Set(3)
+		p.Page.Set(1)
+		p.Density.Set(150)
+		result := p.OptionString()
+		assert.Contains(t, result, "n=3")
+		assert.Contains(t, result, "page=1")
+		assert.Contains(t, result, "dpi=150")
+	})
+}
+
+func TestExportNative_MoreFormats(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	t.Run("AVIF", func(t *testing.T) {
+		if !IsTypeSupported(ImageTypeAVIF) {
+			t.Skip("AVIF not supported")
+		}
+		img, err := NewImageFromFile(resources + "avif-8bit.avif")
+		require.NoError(t, err)
+		defer img.Close()
+
+		buf, meta, err := img.ExportNative()
+		require.NoError(t, err)
+		assert.NotEmpty(t, buf)
+		assert.Equal(t, ImageTypeAVIF, meta.Format)
+	})
+
+	t.Run("HEIF", func(t *testing.T) {
+		if !IsTypeSupported(ImageTypeHEIF) {
+			t.Skip("HEIF not supported")
+		}
+		img, err := NewImageFromFile(resources + "heic-24bit.heic")
+		require.NoError(t, err)
+		defer img.Close()
+
+		buf, meta, err := img.ExportNative()
+		require.NoError(t, err)
+		assert.NotEmpty(t, buf)
+		assert.Equal(t, ImageTypeHEIF, meta.Format)
+	})
+}

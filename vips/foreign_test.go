@@ -184,3 +184,38 @@ func Test_DetermineImageType__JXL_ISOBMFF(t *testing.T) {
 	imageType := DetermineImageType(buf)
 	assert.Equal(t, ImageTypeJXL, imageType)
 }
+
+func TestIsPDF(t *testing.T) {
+	t.Run("real_pdf", func(t *testing.T) {
+		buf, err := os.ReadFile(resources + "PDF-2.0-with-offset-start.pdf")
+		require.NoError(t, err)
+		assert.True(t, isPDF(buf))
+	})
+
+	t.Run("non_pdf", func(t *testing.T) {
+		buf, err := os.ReadFile(resources + "jpg-24bit.jpg")
+		require.NoError(t, err)
+		assert.False(t, isPDF(buf))
+	})
+
+	t.Run("small_buffer_with_sig", func(t *testing.T) {
+		// Buffer <= 1024 bytes with PDF signature
+		buf := make([]byte, 1024)
+		copy(buf[1020:], []byte("%PDF"))
+		assert.True(t, isPDF(buf))
+	})
+
+	t.Run("large_buffer_sig_within_window", func(t *testing.T) {
+		// Buffer > 1024 bytes, signature within first 1024 bytes
+		buf := make([]byte, 2048)
+		copy(buf[100:], []byte("%PDF"))
+		assert.True(t, isPDF(buf))
+	})
+
+	t.Run("large_buffer_sig_outside_window", func(t *testing.T) {
+		// Buffer > 1024 bytes, signature at position 1024 (outside window)
+		buf := make([]byte, 2048)
+		copy(buf[1024:], []byte("%PDF"))
+		assert.False(t, isPDF(buf))
+	})
+}
