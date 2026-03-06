@@ -1565,3 +1565,404 @@ func TestNewImageFromGoImage_RGBA(t *testing.T) {
 	assert.Equal(t, 10, ref.Height())
 	assert.Equal(t, 4, ref.Bands())
 }
+
+func TestAutoRotate(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "jpg-orientation-6.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// Orientation 6 = 90° CW, stored as 4032x3024
+	assert.Equal(t, 4032, img.Width())
+	assert.Equal(t, 3024, img.Height())
+	assert.Equal(t, 6, img.Orientation())
+
+	err = img.AutoRotate()
+	require.NoError(t, err)
+
+	// After auto-rotate, dimensions should swap
+	assert.Equal(t, 3024, img.Width())
+	assert.Equal(t, 4032, img.Height())
+}
+
+func TestCopyChangingResolution(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	origWidth := img.Width()
+	origHeight := img.Height()
+	origXres := img.GetDouble("xres")
+	origYres := img.GetDouble("yres")
+
+	newImg, err := img.CopyChangingResolution(300.0, 300.0)
+	require.NoError(t, err)
+	defer newImg.Close()
+
+	// New image should have same pixel dimensions
+	assert.Equal(t, origWidth, newImg.Width())
+	assert.Equal(t, origHeight, newImg.Height())
+
+	// Resolution should be updated
+	assert.Equal(t, 300.0, newImg.GetDouble("xres"))
+	assert.Equal(t, 300.0, newImg.GetDouble("yres"))
+
+	// Original should be unchanged
+	assert.Equal(t, origXres, img.GetDouble("xres"))
+	assert.Equal(t, origYres, img.GetDouble("yres"))
+}
+
+func TestCopyChangingInterpretation(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	assert.Equal(t, InterpretationSRGB, img.Interpretation())
+
+	newImg, err := img.CopyChangingInterpretation(InterpretationBW)
+	require.NoError(t, err)
+	defer newImg.Close()
+
+	assert.Equal(t, InterpretationBW, newImg.Interpretation())
+
+	// Original should be unchanged
+	assert.Equal(t, InterpretationSRGB, img.Interpretation())
+}
+
+func TestExport_AllFormats(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	tests := []struct {
+		name   string
+		format ImageType
+	}{
+		{"JPEG", ImageTypeJPEG},
+		{"PNG", ImageTypePNG},
+		{"WEBP", ImageTypeWEBP},
+		{"GIF", ImageTypeGIF},
+		{"TIFF", ImageTypeTIFF},
+		{"HEIF", ImageTypeHEIF},
+		{"AVIF", ImageTypeAVIF},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if !IsTypeSupported(tc.format) {
+				t.Skipf("%s not supported", tc.name)
+			}
+
+			img, err := NewImageFromFile(resources + "png-24bit.png")
+			require.NoError(t, err)
+			defer img.Close()
+
+			buf, meta, err := img.Export(&ExportParams{Format: tc.format})
+			if err != nil && strings.Contains(err.Error(), "Unsupported compression") {
+				t.Skipf("%s encode not supported in this libvips build", tc.name)
+			}
+			require.NoError(t, err)
+			assert.NotEmpty(t, buf)
+			assert.Equal(t, tc.format, meta.Format)
+		})
+	}
+
+	// nil params delegates to ExportNative
+	t.Run("nil_params", func(t *testing.T) {
+		img, err := NewImageFromFile(resources + "png-24bit.png")
+		require.NoError(t, err)
+		defer img.Close()
+
+		buf, meta, err := img.Export(nil)
+		require.NoError(t, err)
+		assert.NotEmpty(t, buf)
+		assert.Equal(t, ImageTypePNG, meta.Format)
+	})
+
+	// Unsupported format returns error
+	t.Run("unsupported_format", func(t *testing.T) {
+		img, err := NewImageFromFile(resources + "png-24bit.png")
+		require.NoError(t, err)
+		defer img.Close()
+
+		_, _, err = img.Export(&ExportParams{Format: ImageType(99)})
+		assert.Error(t, err)
+	})
+}
+
+func TestExportNative_FormatDispatch(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	tests := []struct {
+		name     string
+		file     string
+		expected ImageType
+	}{
+		{"JPEG", "jpg-24bit.jpg", ImageTypeJPEG},
+		{"PNG", "png-24bit.png", ImageTypePNG},
+		{"GIF", "gif-animated.gif", ImageTypeGIF},
+		{"TIFF", "tif.tif", ImageTypeTIFF},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			img, err := NewImageFromFile(resources + tc.file)
+			require.NoError(t, err)
+			defer img.Close()
+
+			buf, meta, err := img.ExportNative()
+			require.NoError(t, err)
+			assert.NotEmpty(t, buf)
+			assert.Equal(t, tc.expected, meta.Format)
+		})
+	}
+}
+
+func TestToGoImage_GrayscaleAlpha(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Create a grayscale+alpha image (2 bands) to hit the 2-band path
+	img, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	err = img.ToColorSpace(InterpretationBW)
+	require.NoError(t, err)
+
+	// Should be 2 bands (gray + alpha)
+	assert.Equal(t, 2, img.Bands())
+
+	goImg, err := img.ToGoImage()
+	require.NoError(t, err)
+
+	nrgba, ok := goImg.(*image.NRGBA)
+	require.True(t, ok, "expected *image.NRGBA for 2-band image")
+	assert.Equal(t, img.Width(), nrgba.Bounds().Dx())
+	assert.Equal(t, img.Height(), nrgba.Bounds().Dy())
+}
+
+func TestExportMagick_NilParams(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	if !IsTypeSupported(ImageTypeMagick) {
+		t.Skip("magick not supported")
+	}
+
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// nil params defaults to JPG format
+	buf, meta, err := img.ExportMagick(nil)
+	require.NoError(t, err)
+	assert.NotEmpty(t, buf)
+	assert.Equal(t, ImageTypeMagick, meta.Format)
+}
+
+func TestExportMagick_ExplicitFormat(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	if !IsTypeSupported(ImageTypeMagick) {
+		t.Skip("magick not supported")
+	}
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	buf, meta, err := img.ExportMagick(&MagickExportParams{
+		Format: "PNG",
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, buf)
+	assert.Equal(t, ImageTypeMagick, meta.Format)
+}
+
+func TestRecomb_RGBA(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit+alpha.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// Should be 4 bands (RGBA)
+	require.Equal(t, 4, img.Bands())
+
+	// Sepia matrix (3x3) -- Recomb should expand to 4x4 for RGBA
+	matrix := [][]float64{
+		{0.3588, 0.7044, 0.1368},
+		{0.2990, 0.5870, 0.1140},
+		{0.2392, 0.4696, 0.0912},
+	}
+
+	err = img.Recomb(matrix)
+	require.NoError(t, err)
+	assert.True(t, img.HasAlpha())
+}
+
+func TestRotate_AllAngles(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	tests := []struct {
+		angle       Angle
+		swapDims    bool
+	}{
+		{Angle0, false},
+		{Angle90, true},
+		{Angle180, false},
+		{Angle270, true},
+	}
+
+	for _, tc := range tests {
+		t.Run(fmt.Sprintf("Angle%d", int(tc.angle)*90), func(t *testing.T) {
+			img, err := NewImageFromFile(resources + "png-24bit.png")
+			require.NoError(t, err)
+			defer img.Close()
+
+			origW := img.Width()
+			origH := img.Height()
+
+			err = img.Rotate(tc.angle)
+			require.NoError(t, err)
+
+			if tc.swapDims {
+				assert.Equal(t, origH, img.Width())
+				assert.Equal(t, origW, img.Height())
+			} else {
+				assert.Equal(t, origW, img.Width())
+				assert.Equal(t, origH, img.Height())
+			}
+		})
+	}
+}
+
+func TestRotate_Animated(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Load all pages so Rotate's Grid call works
+	params := NewImportParams()
+	params.NumPages.Set(-1)
+	img, err := LoadImageFromFile(resources+"gif-animated.gif", params)
+	require.NoError(t, err)
+	defer img.Close()
+
+	require.Greater(t, img.Pages(), 1)
+	origW := img.Width()
+	origPageH := img.GetPageHeight()
+
+	err = img.Rotate(Angle90)
+	require.NoError(t, err)
+
+	// Width/height should swap per page
+	assert.Equal(t, origPageH, img.Width())
+	assert.Equal(t, origW, img.GetPageHeight())
+}
+
+func TestPixelate(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	origW := img.Width()
+	origH := img.Height()
+
+	err = Pixelate(img, 4.0)
+	require.NoError(t, err)
+	assert.Equal(t, origW, img.Width())
+	assert.Equal(t, origH, img.Height())
+}
+
+func TestPixelate_InvalidFactor(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	err = Pixelate(img, 0.5)
+	assert.Error(t, err)
+}
+
+func TestTransformICCProfile_16bit(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-alpha-64bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// Should be 16-bit (ushort), hitting the depth=16 branch
+	require.NotEqual(t, BandFormatUchar, img.BandFormat())
+
+	err = img.TransformICCProfileWithFallback(SRGBIEC6196621ICCProfilePath, SRGBV2MicroICCProfilePath)
+	require.NoError(t, err)
+	assert.True(t, img.HasICCProfile())
+}
+
+func TestOptionString(t *testing.T) {
+	t.Run("empty", func(t *testing.T) {
+		p := &ImportParams{}
+		assert.Equal(t, "", p.OptionString())
+	})
+
+	t.Run("single_param", func(t *testing.T) {
+		p := &ImportParams{}
+		p.NumPages.Set(2)
+		assert.Equal(t, "n=2", p.OptionString())
+	})
+
+	t.Run("multiple_params", func(t *testing.T) {
+		p := &ImportParams{}
+		p.NumPages.Set(3)
+		p.Page.Set(1)
+		p.Density.Set(150)
+		result := p.OptionString()
+		assert.Contains(t, result, "n=3")
+		assert.Contains(t, result, "page=1")
+		assert.Contains(t, result, "dpi=150")
+	})
+}
+
+func TestExportNative_MoreFormats(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	t.Run("AVIF", func(t *testing.T) {
+		if !IsTypeSupported(ImageTypeAVIF) {
+			t.Skip("AVIF not supported")
+		}
+		img, err := NewImageFromFile(resources + "avif-8bit.avif")
+		if err != nil {
+			t.Skipf("AVIF load not supported: %v", err)
+		}
+		defer img.Close()
+
+		buf, meta, err := img.ExportNative()
+		if err != nil && strings.Contains(err.Error(), "Unsupported compression") {
+			t.Skip("AVIF encode not supported in this libvips build")
+		}
+		require.NoError(t, err)
+		assert.NotEmpty(t, buf)
+		assert.Equal(t, ImageTypeAVIF, meta.Format)
+	})
+
+	t.Run("HEIF", func(t *testing.T) {
+		if !IsTypeSupported(ImageTypeHEIF) {
+			t.Skip("HEIF not supported")
+		}
+		img, err := NewImageFromFile(resources + "heic-24bit.heic")
+		require.NoError(t, err)
+		defer img.Close()
+
+		buf, meta, err := img.ExportNative()
+		if err != nil && strings.Contains(err.Error(), "Unsupported compression") {
+			t.Skip("HEIF encode not supported in this libvips build")
+		}
+		require.NoError(t, err)
+		assert.NotEmpty(t, buf)
+		assert.Equal(t, ImageTypeHEIF, meta.Format)
+	})
+}
