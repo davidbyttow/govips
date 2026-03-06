@@ -31,7 +31,12 @@ jobs:
       - name: Test
         run: go test -v -coverprofile=profile.cov ./...
 
+      - name: Filter generated code from coverage
+        run: |
+          head -1 profile.cov > profile_filtered.cov
+          grep -v '/gen_' profile.cov >> profile_filtered.cov
+
       - name: Coveralls
         uses: shogo82148/actions-goveralls@v1
         with:
-          path-to-profile: profile.cov
+          path-to-profile: profile_filtered.cov
