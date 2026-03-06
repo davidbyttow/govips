@@ -34,7 +34,7 @@ jobs:
       - name: Filter generated code from coverage
         run: |
           head -1 profile.cov > profile_filtered.cov
-          grep -v '/gen_' profile.cov >> profile_filtered.cov
+          tail -n +2 profile.cov | grep -v '/gen_' >> profile_filtered.cov
 
       - name: Coveralls
         uses: shogo82148/actions-goveralls@v1
