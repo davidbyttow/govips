@@ -1633,3 +1633,147 @@ func TestCopyChangingInterpretation(t *testing.T) {
 	// Original should be unchanged
 	assert.Equal(t, InterpretationSRGB, img.Interpretation())
 }
+
+func TestExport_AllFormats(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	tests := []struct {
+		name   string
+		format ImageType
+	}{
+		{"JPEG", ImageTypeJPEG},
+		{"PNG", ImageTypePNG},
+		{"WEBP", ImageTypeWEBP},
+		{"GIF", ImageTypeGIF},
+		{"TIFF", ImageTypeTIFF},
+		{"HEIF", ImageTypeHEIF},
+		{"AVIF", ImageTypeAVIF},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if !IsTypeSupported(tc.format) {
+				t.Skipf("%s not supported", tc.name)
+			}
+
+			img, err := NewImageFromFile(resources + "png-24bit.png")
+			require.NoError(t, err)
+			defer img.Close()
+
+			buf, meta, err := img.Export(&ExportParams{Format: tc.format})
+			require.NoError(t, err)
+			assert.NotEmpty(t, buf)
+			assert.Equal(t, tc.format, meta.Format)
+		})
+	}
+
+	// nil params delegates to ExportNative
+	t.Run("nil_params", func(t *testing.T) {
+		img, err := NewImageFromFile(resources + "png-24bit.png")
+		require.NoError(t, err)
+		defer img.Close()
+
+		buf, meta, err := img.Export(nil)
+		require.NoError(t, err)
+		assert.NotEmpty(t, buf)
+		assert.Equal(t, ImageTypePNG, meta.Format)
+	})
+
+	// Unsupported format returns error
+	t.Run("unsupported_format", func(t *testing.T) {
+		img, err := NewImageFromFile(resources + "png-24bit.png")
+		require.NoError(t, err)
+		defer img.Close()
+
+		_, _, err = img.Export(&ExportParams{Format: ImageType(99)})
+		assert.Error(t, err)
+	})
+}
+
+func TestExportNative_FormatDispatch(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	tests := []struct {
+		name     string
+		file     string
+		expected ImageType
+	}{
+		{"JPEG", "jpg-24bit.jpg", ImageTypeJPEG},
+		{"PNG", "png-24bit.png", ImageTypePNG},
+		{"GIF", "gif-animated.gif", ImageTypeGIF},
+		{"TIFF", "tif.tif", ImageTypeTIFF},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			img, err := NewImageFromFile(resources + tc.file)
+			require.NoError(t, err)
+			defer img.Close()
+
+			buf, meta, err := img.ExportNative()
+			require.NoError(t, err)
+			assert.NotEmpty(t, buf)
+			assert.Equal(t, tc.expected, meta.Format)
+		})
+	}
+}
+
+func TestToGoImage_GrayscaleAlpha(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Create a grayscale+alpha image (2 bands) to hit the 2-band path
+	img, err := NewImageFromFile(resources + "png-8bit+alpha.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	err = img.ToColorSpace(InterpretationBW)
+	require.NoError(t, err)
+
+	// Should be 2 bands (gray + alpha)
+	assert.Equal(t, 2, img.Bands())
+
+	goImg, err := img.ToGoImage()
+	require.NoError(t, err)
+
+	nrgba, ok := goImg.(*image.NRGBA)
+	require.True(t, ok, "expected *image.NRGBA for 2-band image")
+	assert.Equal(t, img.Width(), nrgba.Bounds().Dx())
+	assert.Equal(t, img.Height(), nrgba.Bounds().Dy())
+}
+
+func TestExportMagick_NilParams(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	if !IsTypeSupported(ImageTypeMagick) {
+		t.Skip("magick not supported")
+	}
+
+	img, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+	defer img.Close()
+
+	// nil params defaults to JPG format
+	buf, meta, err := img.ExportMagick(nil)
+	require.NoError(t, err)
+	assert.NotEmpty(t, buf)
+	assert.Equal(t, ImageTypeMagick, meta.Format)
+}
+
+func TestExportMagick_ExplicitFormat(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	if !IsTypeSupported(ImageTypeMagick) {
+		t.Skip("magick not supported")
+	}
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	buf, meta, err := img.ExportMagick(&MagickExportParams{
+		Format: "PNG",
+	})
+	require.NoError(t, err)
+	assert.NotEmpty(t, buf)
+	assert.Equal(t, ImageTypeMagick, meta.Format)
+}
