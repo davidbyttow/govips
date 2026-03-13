@@ -115,6 +115,7 @@ type ImportParams struct {
 	Density     IntParameter
 
 	JpegShrinkFactor IntParameter
+	WebpScaleFactor  Float64Parameter
 	HeifThumbnail    BoolParameter
 	SvgUnlimited     BoolParameter
 	Access           IntParameter
@@ -144,6 +145,9 @@ func (i *ImportParams) OptionString() string {
 	}
 	if v := i.JpegShrinkFactor; v.IsSet() {
 		values = append(values, "shrink="+strconv.Itoa(v.Get()))
+	}
+	if v := i.WebpScaleFactor; v.IsSet() {
+		values = append(values, "scale="+strconv.FormatFloat(v.Get(), 'f', -1, 64))
 	}
 	if v := i.AutoRotate; v.IsSet() {
 		values = append(values, "autorotate="+boolToStr(v.Get()))

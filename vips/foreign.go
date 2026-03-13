@@ -365,6 +365,12 @@ func maybeSetIntParam(p IntParameter, cp *C.Param) {
 	}
 }
 
+func maybeSetDoubleParam(p Float64Parameter, cp *C.Param) {
+	if p.IsSet() {
+		C.set_double_param(cp, C.gdouble(p.Get()))
+	}
+}
+
 func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
 	p := C.create_load_params(C.ImageType(format))
 
@@ -373,6 +379,7 @@ func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
 	maybeSetIntParam(params.Page, &p.page)
 	maybeSetIntParam(params.NumPages, &p.n)
 	maybeSetIntParam(params.JpegShrinkFactor, &p.jpegShrink)
+	maybeSetDoubleParam(params.WebpScaleFactor, &p.webpScale)
 	maybeSetBoolParam(params.HeifThumbnail, &p.heifThumbnail)
 	maybeSetBoolParam(params.SvgUnlimited, &p.svgUnlimited)
 	maybeSetIntParam(params.Access, &p.access)

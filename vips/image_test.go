@@ -1927,6 +1927,25 @@ func TestOptionString(t *testing.T) {
 	})
 }
 
+func TestWebpScaleFactor(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	params := NewImportParams()
+	params.WebpScaleFactor.Set(0.5)
+	img, err := LoadImageFromFile(resources+"webp+alpha.webp", params)
+	require.NoError(t, err)
+	defer img.Close()
+
+	assert.Equal(t, 400, img.Width())
+	assert.Equal(t, 300, img.Height())
+}
+
+func TestOptionString_WebpScale(t *testing.T) {
+	p := &ImportParams{}
+	p.WebpScaleFactor.Set(0.25)
+	assert.Contains(t, p.OptionString(), "scale=0.25")
+}
+
 func TestExportNative_MoreFormats(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
