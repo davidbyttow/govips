@@ -16,7 +16,7 @@ govips now includes a built-in code generator (`cmd/vipsgen/`) that uses libvips
 
 ## Requirements
 
--   [libvips](https://github.com/libvips/libvips) 8.10+
+-   [libvips](https://github.com/libvips/libvips) 8.14+
 -   C compatible compiler such as gcc 4.6+ or clang 3.0+
 -   Go 1.23+
 
