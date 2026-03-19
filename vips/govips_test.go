@@ -10,5 +10,5 @@ func TestInitConfig(t *testing.T) {
 	running = false
 	require.NoError(t, Startup(&Config{CollectStats: true, CacheTrace: true}))
 	running = false
-	startupIfNeeded()
+	require.NoError(t, startupIfNeeded())
 }
