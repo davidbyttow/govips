@@ -1851,14 +1851,14 @@ func TestRotate_Animated(t *testing.T) {
 
 	require.Greater(t, img.Pages(), 1)
 	origW := img.Width()
-	origPageH := img.GetPageHeight()
+	origPageH := img.PageHeight()
 
 	err = img.Rotate(Angle90)
 	require.NoError(t, err)
 
 	// Width/height should swap per page
 	assert.Equal(t, origPageH, img.Width())
-	assert.Equal(t, origW, img.GetPageHeight())
+	assert.Equal(t, origW, img.PageHeight())
 }
 
 func TestPixelate(t *testing.T) {
