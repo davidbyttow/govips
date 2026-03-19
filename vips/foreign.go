@@ -146,7 +146,10 @@ func (i ImageType) FileExt() string {
 
 // IsTypeSupported checks whether given image type is supported by govips
 func IsTypeSupported(imageType ImageType) bool {
-	startupIfNeeded()
+	if err := startupIfNeeded(); err != nil {
+		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to start vips: %v", err))
+		return false
+	}
 
 	// BMP is supported via the magick loader
 	if imageType == ImageTypeBMP {

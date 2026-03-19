@@ -493,7 +493,9 @@ func NewImageFromBuffer(buf []byte) (*ImageRef, error) {
 
 // LoadImageFromBuffer loads an image buffer and creates a new Image
 func LoadImageFromBuffer(buf []byte, params *ImportParams) (*ImageRef, error) {
-	startupIfNeeded()
+	if err := startupIfNeeded(); err != nil {
+		return nil, err
+	}
 
 	if params == nil {
 		params = NewImportParams()
@@ -527,7 +529,9 @@ func NewThumbnailWithSizeFromFile(file string, width, height int, crop Interesti
 
 // LoadThumbnailFromFile loads an image from file and creates a new ImageRef with thumbnail crop and size
 func LoadThumbnailFromFile(file string, width, height int, crop Interesting, size Size, params *ImportParams) (*ImageRef, error) {
-	startupIfNeeded()
+	if err := startupIfNeeded(); err != nil {
+		return nil, err
+	}
 
 	vipsImage, format, err := vipsThumbnailFromFile(file, width, height, crop, size, params)
 	if err != nil {
@@ -547,7 +551,9 @@ func NewThumbnailWithSizeFromBuffer(buf []byte, width, height int, crop Interest
 
 // LoadThumbnailFromBuffer loads an image buffer and creates a new Image with thumbnail crop and size
 func LoadThumbnailFromBuffer(buf []byte, width, height int, crop Interesting, size Size, params *ImportParams) (*ImageRef, error) {
-	startupIfNeeded()
+	if err := startupIfNeeded(); err != nil {
+		return nil, err
+	}
 
 	vipsImage, format, err := vipsThumbnailFromBuffer(buf, width, height, crop, size, params)
 	if err != nil {
@@ -2416,7 +2422,9 @@ func (r *ImageRef) ToGoImage() (image.Image, error) {
 // The image is normalized to NRGBA (non-premultiplied RGBA, 8-bit) and
 // imported into libvips in sRGB color space.
 func NewImageFromGoImage(img image.Image) (*ImageRef, error) {
-	startupIfNeeded()
+	if err := startupIfNeeded(); err != nil {
+		return nil, err
+	}
 
 	bounds := img.Bounds()
 	width := bounds.Dx()

@@ -233,13 +233,14 @@ func ReadVipsMemStats(stats *MemoryStats) {
 	stats.Files = int64(C.vips_tracked_get_files())
 }
 
-func startupIfNeeded() {
+func startupIfNeeded() error {
 	if !running {
 		govipsLog("govips", LogLevelInfo, "libvips was forcibly started automatically, consider calling Startup/Shutdown yourself")
 		if err := Startup(nil); err != nil {
-			panic(err)
+			return err
 		}
 	}
+	return nil
 }
 
 // InitTypes initializes caches and figures out which image types are supported
