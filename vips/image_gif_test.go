@@ -70,7 +70,7 @@ func TestImage_GIF_Animated_ResizeWithVScale(t *testing.T) {
 		},
 		func(img *ImageRef) {
 			assert.Equal(t, 3, img.Pages())
-			assert.Equal(t, 100, img.GetPageHeight())
+			assert.Equal(t, 100, img.PageHeight())
 		},
 		nil)
 }
@@ -134,7 +134,7 @@ func TestImage_GIF_Animated_Crop(t *testing.T) {
 			return img.Crop(10, 20, 20, 20)
 		},
 		func(img *ImageRef) {
-			assert.Equal(t, img.GetPageHeight(), 20)
+			assert.Equal(t, img.PageHeight(), 20)
 		},
 		nil)
 }

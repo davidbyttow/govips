@@ -1996,7 +1996,7 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 	}
 
 	pages := r.Pages()
-	pageHeight := r.GetPageHeight()
+	pageHeight := r.PageHeight()
 
 	out, err := vipsResizeWithVScale(r.image, hScale, vScale, kernel)
 	if err != nil {
@@ -2193,7 +2193,7 @@ func (r *ImageRef) Rotate(angle Angle) error {
 			}
 		}
 
-		if err := r.Grid(r.GetPageHeight(), r.Pages(), 1); err != nil {
+		if err := r.Grid(r.PageHeight(), r.Pages(), 1); err != nil {
 			return err
 		}
 
