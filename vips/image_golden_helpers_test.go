@@ -197,7 +197,7 @@ func getEnvironment() string {
 func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) {
 	i := strings.LastIndex(file, ".")
 	if i < 0 {
-		panic("bad filename")
+		t.Fatal("bad filename")
 	}
 
 	name := strings.Replace(t.Name(), "/", "_", -1)
@@ -213,7 +213,7 @@ func assertGoldenMatch(t *testing.T, file string, buf []byte, format ImageType) 
 			failed := prefix + "-" + getEnvironment() + ".failed" + ext
 			err := os.WriteFile(failed, buf, 0666)
 			if err != nil {
-				panic(err)
+				t.Fatalf("failed to write failed golden file: %v", err)
 			}
 		}
 		return
