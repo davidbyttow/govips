@@ -2312,9 +2312,10 @@ func (r *ImageRef) determineInputICCProfile() (inputProfile string) {
 	return
 }
 
-// ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries
+// ToImage converts a VIPs image to a golang image.Image object, useful for interoperability with other golang libraries.
+// Deprecated: Use ToGoImage for a faster, direct conversion without encoding round-trip.
 func (r *ImageRef) ToImage(params *ExportParams) (image.Image, error) {
-	imageBytes, _, err := r.Export(params)
+	imageBytes, _, err := r.ExportNative()
 	if err != nil {
 		return nil, err
 	}
