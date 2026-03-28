@@ -88,6 +88,7 @@ func goldenTest(
 
 	img, err := NewImageFromFile(path)
 	require.NoError(t, err)
+	defer img.Close()
 
 	err = exec(img)
 	require.NoError(t, err)
@@ -97,6 +98,7 @@ func goldenTest(
 
 	result, err := NewImageFromBuffer(buf)
 	require.NoError(t, err)
+	defer result.Close()
 
 	validate(result)
 
@@ -133,6 +135,7 @@ func goldenCreateTest(
 
 	img, err := createFromFile(path)
 	require.NoError(t, err)
+	defer img.Close()
 
 	err = exec(img)
 	require.NoError(t, err)
@@ -142,6 +145,7 @@ func goldenCreateTest(
 
 	result, err := NewImageFromBuffer(buf)
 	require.NoError(t, err)
+	defer result.Close()
 
 	validate(result)
 
@@ -152,6 +156,7 @@ func goldenCreateTest(
 
 	img2, err := createFromBuffer(buf2)
 	require.NoError(t, err)
+	defer img2.Close()
 
 	err = exec(img2)
 	require.NoError(t, err)
@@ -161,6 +166,7 @@ func goldenCreateTest(
 
 	result2, err := NewImageFromBuffer(buf2)
 	require.NoError(t, err)
+	defer result2.Close()
 
 	validate(result2)
 
@@ -251,6 +257,7 @@ func goldenAnimatedTest(
 
 	img, err := LoadImageFromFile(path, importParams)
 	require.NoError(t, err)
+	defer img.Close()
 
 	err = exec(img)
 	require.NoError(t, err)
@@ -260,6 +267,7 @@ func goldenAnimatedTest(
 
 	result, err := NewImageFromBuffer(buf)
 	require.NoError(t, err)
+	defer result.Close()
 
 	validate(result)
 
