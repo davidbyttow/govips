@@ -2238,11 +2238,8 @@ func (r *ImageRef) Recomb(matrix [][]float64) error {
 	matrixImage := C.vips_image_new_from_memory(matrixPtr, matrixSize, C.int(numBands), C.int(numBands), 1, C.VIPS_FORMAT_DOUBLE)
 	defer clearImage(matrixImage)
 
-	// Check for any Vips errors
-	errMsg := C.GoString(C.vips_error_buffer())
-	if errMsg != "" {
-		C.vips_error_clear()
-		return errors.New("Vips error: " + errMsg)
+	if matrixImage == nil {
+		return handleVipsError()
 	}
 
 	// Recombine the image using the matrix
