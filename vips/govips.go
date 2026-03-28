@@ -130,14 +130,13 @@ func Startup(config *Config) error {
 			C.vips_cache_set_max(defaultMaxCacheSize)
 		}
 
-		if config.CacheTrace {
-			C.vips_cache_set_trace(toGboolean(true))
-		}
+		C.vips_cache_set_trace(toGboolean(config.CacheTrace))
 	} else {
 		C.vips_concurrency_set(defaultConcurrencyLevel)
 		C.vips_cache_set_max(defaultMaxCacheSize)
 		C.vips_cache_set_max_mem(defaultMaxCacheMem)
 		C.vips_cache_set_max_files(defaultMaxCacheFiles)
+		C.vips_cache_set_trace(toGboolean(false))
 	}
 
 	govipsLog("govips", LogLevelInfo, fmt.Sprintf("vips %s started with concurrency=%d cache_max_files=%d cache_max_mem=%d cache_max=%d",

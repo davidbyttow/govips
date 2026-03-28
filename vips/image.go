@@ -580,6 +580,7 @@ func (r *ImageRef) Metadata() *ImageMetadata {
 
 // Copy creates a new copy of the given image.
 func (r *ImageRef) Copy() (*ImageRef, error) {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, nil)
 	if err != nil {
 		return nil, err
@@ -590,6 +591,7 @@ func (r *ImageRef) Copy() (*ImageRef, error) {
 
 // Copy creates a new copy of the given image with the new X and Y resolution (PPI).
 func (r *ImageRef) CopyChangingResolution(xres, yres float64) (*ImageRef, error) {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, &CopyOptions{Xres: &xres, Yres: &yres})
 	if err != nil {
 		return nil, err
@@ -600,6 +602,7 @@ func (r *ImageRef) CopyChangingResolution(xres, yres float64) (*ImageRef, error)
 
 // Copy creates a new copy of the given image with the interpretation.
 func (r *ImageRef) CopyChangingInterpretation(interpretation Interpretation) (*ImageRef, error) {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, &CopyOptions{Interpretation: &interpretation})
 	if err != nil {
 		return nil, err
@@ -767,6 +770,7 @@ func (r *ImageRef) GetOrientation() int {
 
 // SetOrientation sets the orientation in the EXIF header of the associated image.
 func (r *ImageRef) SetOrientation(orientation int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, nil)
 	if err != nil {
 		return err
@@ -780,6 +784,7 @@ func (r *ImageRef) SetOrientation(orientation int) error {
 
 // RemoveOrientation removes the EXIF orientation information of the image.
 func (r *ImageRef) RemoveOrientation() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, nil)
 	if err != nil {
 		return err
@@ -858,6 +863,7 @@ func (r *ImageRef) GetPages() int {
 // SetPages sets the number of pages in the Image
 // For animated images this corresponds to the number of frames
 func (r *ImageRef) SetPages(pages int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, nil)
 	if err != nil {
 		return err
@@ -885,6 +891,7 @@ func (r *ImageRef) GetPageHeight() int {
 // SetPageHeight set the height of a page
 // For animated images this is used when "unrolling" back to frames
 func (r *ImageRef) SetPageHeight(height int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, nil)
 	if err != nil {
 		return err
@@ -1048,6 +1055,7 @@ func (r *ImageRef) ExportNative() ([]byte, *ImageMetadata, error) {
 
 // ExportJpeg exports the image as JPEG to a buffer.
 func (r *ImageRef) ExportJpeg(params *JpegExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewJpegExportParams()
 	}
@@ -1062,6 +1070,7 @@ func (r *ImageRef) ExportJpeg(params *JpegExportParams) ([]byte, *ImageMetadata,
 
 // ExportPng exports the image as PNG to a buffer.
 func (r *ImageRef) ExportPng(params *PngExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewPngExportParams()
 	}
@@ -1076,6 +1085,7 @@ func (r *ImageRef) ExportPng(params *PngExportParams) ([]byte, *ImageMetadata, e
 
 // ExportWebp exports the image as WEBP to a buffer.
 func (r *ImageRef) ExportWebp(params *WebpExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewWebpExportParams()
 	}
@@ -1093,6 +1103,7 @@ func (r *ImageRef) ExportWebp(params *WebpExportParams) ([]byte, *ImageMetadata,
 
 // ExportHeif exports the image as HEIF to a buffer.
 func (r *ImageRef) ExportHeif(params *HeifExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewHeifExportParams()
 	}
@@ -1107,6 +1118,7 @@ func (r *ImageRef) ExportHeif(params *HeifExportParams) ([]byte, *ImageMetadata,
 
 // ExportTiff exports the image as TIFF to a buffer.
 func (r *ImageRef) ExportTiff(params *TiffExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewTiffExportParams()
 	}
@@ -1121,6 +1133,7 @@ func (r *ImageRef) ExportTiff(params *TiffExportParams) ([]byte, *ImageMetadata,
 
 // ExportGIF exports the image as GIF to a buffer.
 func (r *ImageRef) ExportGIF(params *GifExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewGifExportParams()
 	}
@@ -1135,6 +1148,7 @@ func (r *ImageRef) ExportGIF(params *GifExportParams) ([]byte, *ImageMetadata, e
 
 // ExportAvif exports the image as AVIF to a buffer.
 func (r *ImageRef) ExportAvif(params *AvifExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewAvifExportParams()
 	}
@@ -1149,6 +1163,7 @@ func (r *ImageRef) ExportAvif(params *AvifExportParams) ([]byte, *ImageMetadata,
 
 // ExportJp2k exports the image as JPEG2000 to a buffer.
 func (r *ImageRef) ExportJp2k(params *Jp2kExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewJp2kExportParams()
 	}
@@ -1163,6 +1178,7 @@ func (r *ImageRef) ExportJp2k(params *Jp2kExportParams) ([]byte, *ImageMetadata,
 
 // ExportJxl exports the image as JPEG XL to a buffer.
 func (r *ImageRef) ExportJxl(params *JxlExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewJxlExportParams()
 	}
@@ -1177,6 +1193,7 @@ func (r *ImageRef) ExportJxl(params *JxlExportParams) ([]byte, *ImageMetadata, e
 
 // ExportMagick exports the image as Format set in param to a buffer.
 func (r *ImageRef) ExportMagick(params *MagickExportParams) ([]byte, *ImageMetadata, error) {
+	defer runtime.KeepAlive(r)
 	if params == nil {
 		params = NewMagickExportParams()
 		params.Format = "JPG"
@@ -1192,6 +1209,7 @@ func (r *ImageRef) ExportMagick(params *MagickExportParams) ([]byte, *ImageMetad
 
 // CompositeMulti composites the given overlay image on top of the associated image with provided blending mode.
 func (r *ImageRef) CompositeMulti(ins []*ImageComposite) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsComposite(toVipsCompositeStructs(r, ins))
 	if err != nil {
 		return err
@@ -1202,6 +1220,7 @@ func (r *ImageRef) CompositeMulti(ins []*ImageComposite) error {
 
 // Composite composites the given overlay image on top of the associated image with provided blending mode.
 func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenComposite2(r.image, overlay.image, mode, &Composite2Options{X: &x, Y: &y})
 	if err != nil {
 		return err
@@ -1212,6 +1231,7 @@ func (r *ImageRef) Composite(overlay *ImageRef, mode BlendMode, x, y int) error 
 
 // Insert draws the image on top of the associated image at the given coordinates.
 func (r *ImageRef) Insert(sub *ImageRef, x, y int, expand bool, background *ColorRGBA) error {
+	defer runtime.KeepAlive(r)
 	insertOpts := &InsertOptions{Expand: &expand}
 	if background != nil {
 		insertOpts.Background = []float64{float64(background.R), float64(background.G), float64(background.B), float64(background.A)}
@@ -1226,6 +1246,7 @@ func (r *ImageRef) Insert(sub *ImageRef, x, y int, expand bool, background *Colo
 
 // Join joins this image with another in the direction specified
 func (r *ImageRef) Join(in *ImageRef, dir Direction) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsJoin(r.image, in.image, dir)
 	if err != nil {
 		return err
@@ -1236,6 +1257,7 @@ func (r *ImageRef) Join(in *ImageRef, dir Direction) error {
 
 // ArrayJoin joins an array of images together wrapping at each n images
 func (r *ImageRef) ArrayJoin(images []*ImageRef, across int) error {
+	defer runtime.KeepAlive(r)
 	allImages := append([]*ImageRef{r}, images...)
 	inputs := make([]*C.VipsImage, len(allImages))
 	for i := range inputs {
@@ -1251,6 +1273,7 @@ func (r *ImageRef) ArrayJoin(images []*ImageRef, across int) error {
 
 // Mapim resamples an image using index to look up pixels
 func (r *ImageRef) Mapim(index *ImageRef) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenMapim(r.image, index.image, nil)
 	if err != nil {
 		return err
@@ -1261,6 +1284,7 @@ func (r *ImageRef) Mapim(index *ImageRef) error {
 
 // Maplut maps an image through another image acting as a LUT (Look Up Table)
 func (r *ImageRef) Maplut(lut *ImageRef) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenMaplut(r.image, lut.image, nil)
 	if err != nil {
 		return err
@@ -1271,6 +1295,7 @@ func (r *ImageRef) Maplut(lut *ImageRef) error {
 
 // ExtractBand extracts one or more bands out of the image (replacing the associated ImageRef)
 func (r *ImageRef) ExtractBand(band int, num int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenExtractBand(r.image, band, &ExtractBandOptions{N: &num})
 	if err != nil {
 		return err
@@ -1291,6 +1316,7 @@ func (r *ImageRef) ExtractBandToImage(band int, num int) (*ImageRef, error) {
 
 // BandJoin joins a set of images together, bandwise.
 func (r *ImageRef) BandJoin(images ...*ImageRef) error {
+	defer runtime.KeepAlive(r)
 	vipsImages := []*C.VipsImage{r.image}
 	for _, vipsImage := range images {
 		vipsImages = append(vipsImages, vipsImage.image)
@@ -1321,6 +1347,7 @@ func (r *ImageRef) BandSplit() ([]*ImageRef, error) {
 
 // BandJoinConst appends a set of constant bands to an image.
 func (r *ImageRef) BandJoinConst(constants []float64) error {
+	defer runtime.KeepAlive(r)
 	if len(constants) == 0 {
 		return errors.New("BandJoinConst: empty constants slice")
 	}
@@ -1334,6 +1361,7 @@ func (r *ImageRef) BandJoinConst(constants []float64) error {
 
 // AddAlpha adds an alpha channel to the associated image.
 func (r *ImageRef) AddAlpha() error {
+	defer runtime.KeepAlive(r)
 	if vipsHasAlpha(r.image) {
 		return nil
 	}
@@ -1349,6 +1377,7 @@ func (r *ImageRef) AddAlpha() error {
 // PremultiplyAlpha premultiplies the alpha channel.
 // See https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-premultiply
 func (r *ImageRef) PremultiplyAlpha() error {
+	defer runtime.KeepAlive(r)
 	if r.preMultiplication != nil || !vipsHasAlpha(r.image) {
 		return nil
 	}
@@ -1369,6 +1398,7 @@ func (r *ImageRef) PremultiplyAlpha() error {
 // UnpremultiplyAlpha unpremultiplies any alpha channel.
 // See https://libvips.github.io/libvips/API/current/libvips-conversion.html#vips-unpremultiply
 func (r *ImageRef) UnpremultiplyAlpha() error {
+	defer runtime.KeepAlive(r)
 	if r.preMultiplication == nil {
 		return nil
 	}
@@ -1391,6 +1421,7 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 
 // Cast converts the image to a target band format
 func (r *ImageRef) Cast(format BandFormat) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCast(r.image, format, nil)
 	if err != nil {
 		return err
@@ -1401,6 +1432,7 @@ func (r *ImageRef) Cast(format BandFormat) error {
 
 // Add calculates a sum of the image + addend and stores it back in the image
 func (r *ImageRef) Add(addend *ImageRef) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenAdd(r.image, addend.image)
 	if err != nil {
 		return err
@@ -1411,6 +1443,7 @@ func (r *ImageRef) Add(addend *ImageRef) error {
 
 // Multiply calculates the product of the image * multiplier and stores it back in the image
 func (r *ImageRef) Multiply(multiplier *ImageRef) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenMultiply(r.image, multiplier.image)
 	if err != nil {
 		return err
@@ -1421,6 +1454,7 @@ func (r *ImageRef) Multiply(multiplier *ImageRef) error {
 
 // Divide calculates the product of the image / denominator and stores it back in the image
 func (r *ImageRef) Divide(denominator *ImageRef) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenDivide(r.image, denominator.image)
 	if err != nil {
 		return err
@@ -1432,6 +1466,7 @@ func (r *ImageRef) Divide(denominator *ImageRef) error {
 // Linear passes an image through a linear transformation (i.e. output = input * a + b).
 // See https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear
 func (r *ImageRef) Linear(a, b []float64) error {
+	defer runtime.KeepAlive(r)
 	if len(a) != len(b) {
 		return errors.New("a and b must be of same length")
 	}
@@ -1447,6 +1482,7 @@ func (r *ImageRef) Linear(a, b []float64) error {
 // Linear1 runs Linear() with a single constant.
 // See https://libvips.github.io/libvips/API/current/libvips-arithmetic.html#vips-linear1
 func (r *ImageRef) Linear1(a, b float64) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenLinear(r.image, []float64{a}, []float64{b}, nil)
 	if err != nil {
 		return err
@@ -1458,6 +1494,7 @@ func (r *ImageRef) Linear1(a, b float64) error {
 // Adjusts the image's gamma value.
 // See https://www.libvips.org/API/current/libvips-conversion.html#vips-gamma
 func (r *ImageRef) Gamma(gamma float64) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenGamma(r.image, &GammaOptions{Exponent: &gamma})
 	if err != nil {
 		return err
@@ -1492,6 +1529,7 @@ func GetRotationAngleFromExif(orientation int) (Angle, bool) {
 // Thus, calling AutoRotate for HEIF images is not needed.
 // todo: use https://www.libvips.org/API/current/libvips-conversion.html#vips-autorot-remove-angle
 func (r *ImageRef) AutoRotate() error {
+	defer runtime.KeepAlive(r)
 	out, _, _, err := vipsGenAutorot(r.image)
 	if err != nil {
 		return err
@@ -1502,6 +1540,7 @@ func (r *ImageRef) AutoRotate() error {
 
 // ExtractArea crops the image to a specified area
 func (r *ImageRef) ExtractArea(left, top, width, height int) error {
+	defer runtime.KeepAlive(r)
 	if r.Height() > r.PageHeight() {
 		// use animated extract area if more than 1 pages loaded
 		out, err := vipsExtractAreaMultiPage(r.image, left, top, width, height)
@@ -1529,6 +1568,7 @@ func (r *ImageRef) GetICCProfile() []byte {
 // RemoveICCProfile removes the ICC Profile information from the image.
 // Typically, browsers and other software assume images without profile to be in the sRGB color space.
 func (r *ImageRef) RemoveICCProfile() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, nil)
 	if err != nil {
 		return err
@@ -1543,6 +1583,7 @@ func (r *ImageRef) RemoveICCProfile() error {
 // TransformICCProfileWithFallback transforms from the embedded ICC profile of the image to the ICC profile at the given path.
 // The fallback ICC profile is used if the image does not have an embedded ICC profile.
 func (r *ImageRef) TransformICCProfileWithFallback(targetProfilePath, fallbackProfilePath string) error {
+	defer runtime.KeepAlive(r)
 	if err := ensureLoadICCPath(&targetProfilePath); err != nil {
 		return err
 	}
@@ -1574,6 +1615,7 @@ func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
 func (r *ImageRef) OptimizeICCProfile() error {
+	defer runtime.KeepAlive(r)
 	inputProfile := r.determineInputICCProfile()
 	if !r.HasICCProfile() && (inputProfile == "") {
 		// No embedded ICC profile in the input image and no input profile determined, nothing to do.
@@ -1610,6 +1652,7 @@ func (r *ImageRef) OptimizeICCProfile() error {
 // N.B. this function won't remove the ICC profile, orientation and pages metadata
 // because govips needs it to correctly display the image.
 func (r *ImageRef) RemoveMetadata(keep ...string) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenCopy(r.image, nil)
 	if err != nil {
 		return err
@@ -1693,6 +1736,7 @@ func (r *ImageRef) GetExif() map[string]string {
 
 // ToColorSpace changes the color space of the image to the interpretation supplied as the parameter.
 func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsToColorSpace(r.image, interpretation)
 	if err != nil {
 		return err
@@ -1703,6 +1747,7 @@ func (r *ImageRef) ToColorSpace(interpretation Interpretation) error {
 
 // Flatten removes the alpha channel from the image and replaces it with the background color
 func (r *ImageRef) Flatten(backgroundColor *Color) error {
+	defer runtime.KeepAlive(r)
 	opts := &FlattenOptions{}
 	if backgroundColor != nil {
 		opts.Background = []float64{float64(backgroundColor.R), float64(backgroundColor.G), float64(backgroundColor.B)}
@@ -1718,6 +1763,7 @@ func (r *ImageRef) Flatten(backgroundColor *Color) error {
 // GaussianBlur blurs the image
 // add support minAmpl
 func (r *ImageRef) GaussianBlur(sigmas ...float64) error {
+	defer runtime.KeepAlive(r)
 	var (
 		sigma   = sigmas[0]
 		minAmpl = GaussBlurDefaultMinAMpl
@@ -1738,6 +1784,7 @@ func (r *ImageRef) GaussianBlur(sigmas ...float64) error {
 // x1: flat/jaggy threshold
 // m2: slope for jaggy areas
 func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenSharpen(r.image, &SharpenOptions{Sigma: &sigma, X1: &x1, M2: &m2})
 	if err != nil {
 		return err
@@ -1748,6 +1795,7 @@ func (r *ImageRef) Sharpen(sigma float64, x1 float64, m2 float64) error {
 
 // Apply Sobel edge detector to the image.
 func (r *ImageRef) Sobel() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenSobel(r.image)
 	if err != nil {
 		return err
@@ -1758,6 +1806,7 @@ func (r *ImageRef) Sobel() error {
 
 // Modulate the colors
 func (r *ImageRef) Modulate(brightness, saturation, hue float64) error {
+	defer runtime.KeepAlive(r)
 	var err error
 	var multiplications []float64
 	var additions []float64
@@ -1795,6 +1844,7 @@ func (r *ImageRef) Modulate(brightness, saturation, hue float64) error {
 
 // ModulateHSV modulates the image HSV values based on the supplier parameters.
 func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
+	defer runtime.KeepAlive(r)
 	var err error
 	var multiplications []float64
 	var additions []float64
@@ -1832,6 +1882,7 @@ func (r *ImageRef) ModulateHSV(brightness, saturation float64, hue int) error {
 
 // Invert inverts the image
 func (r *ImageRef) Invert() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenInvert(r.image)
 	if err != nil {
 		return err
@@ -1878,6 +1929,7 @@ func (r *ImageRef) GetPoint(x int, y int) ([]float64, error) {
 //
 // If there is more than one maxima or minima, one of them will be chosen at random.
 func (r *ImageRef) Stats() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenStats(r.image)
 	if err != nil {
 		return err
@@ -1890,6 +1942,7 @@ func (r *ImageRef) Stats() error {
 // Find the histogram for all bands (producing a one-band histogram).
 // char and uchar images are cast to uchar before histogramming, all other image types are cast to ushort.
 func (r *ImageRef) HistogramFind() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenHistFind(r.image, nil)
 	if err != nil {
 		return err
@@ -1900,6 +1953,7 @@ func (r *ImageRef) HistogramFind() error {
 
 // HistogramCumulative form cumulative histogram.
 func (r *ImageRef) HistogramCumulative() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenHistCum(r.image)
 	if err != nil {
 		return err
@@ -1912,6 +1966,7 @@ func (r *ImageRef) HistogramCumulative() error {
 // The maximum of each band becomes equal to the maximum index, so for example the max for a uchar
 // image becomes 255. Normalise each band separately.
 func (r *ImageRef) HistogramNormalise() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenHistNorm(r.image)
 	if err != nil {
 		return err
@@ -1940,6 +1995,7 @@ func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height 
 
 // Subtract calculate subtract operation between two images.
 func (r *ImageRef) Subtract(in2 *ImageRef) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenSubtract(r.image, in2.image)
 	if err != nil {
 		return err
@@ -1951,6 +2007,7 @@ func (r *ImageRef) Subtract(in2 *ImageRef) error {
 
 // Abs calculate abs operation.
 func (r *ImageRef) Abs() error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenAbs(r.image)
 	if err != nil {
 		return err
@@ -1981,6 +2038,7 @@ func (r *ImageRef) Min() (float64, int, int, error) {
 // At each position, the pixels inside the window are sorted into ascending order and the pixel at position
 // index is output. index numbers from 0.
 func (r *ImageRef) Rank(width int, height int, index int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenRank(r.image, width, height, index)
 	if err != nil {
 		return err
@@ -1997,6 +2055,7 @@ func (r *ImageRef) Resize(scale float64, kernel Kernel) error {
 // ResizeWithVScale resizes the image with both horizontal and vertical scaling.
 // The parameters are the scaling factors.
 func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error {
+	defer runtime.KeepAlive(r)
 	if err := r.PremultiplyAlpha(); err != nil {
 		return err
 	}
@@ -2027,6 +2086,7 @@ func (r *ImageRef) ResizeWithVScale(hScale, vScale float64, kernel Kernel) error
 // Thumbnail resizes the image to the given width and height.
 // crop decides algorithm vips uses to shrink and crop to fill target,
 func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsThumbnail(r.image, width, height, crop, SizeBoth)
 	if err != nil {
 		return err
@@ -2039,6 +2099,7 @@ func (r *ImageRef) Thumbnail(width, height int, crop Interesting) error {
 // crop decides algorithm vips uses to shrink and crop to fill target,
 // size controls upsize, downsize, both or force
 func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size Size) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsThumbnail(r.image, width, height, crop, size)
 	if err != nil {
 		return err
@@ -2049,6 +2110,7 @@ func (r *ImageRef) ThumbnailWithSize(width, height int, crop Interesting, size S
 
 // Embed embeds the given picture in a new one, i.e. the opposite of ExtractArea
 func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) error {
+	defer runtime.KeepAlive(r)
 	if r.Height() > r.PageHeight() {
 		out, err := vipsEmbedMultiPage(r.image, left, top, width, height, extend)
 		if err != nil {
@@ -2067,6 +2129,7 @@ func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) er
 
 // EmbedBackground embeds the given picture with a background color
 func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor *Color) error {
+	defer runtime.KeepAlive(r)
 	c := &ColorRGBA{
 		R: backgroundColor.R,
 		G: backgroundColor.G,
@@ -2091,6 +2154,7 @@ func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor
 
 // EmbedBackgroundRGBA embeds the given picture with a background rgba color
 func (r *ImageRef) EmbedBackgroundRGBA(left, top, width, height int, backgroundColor *ColorRGBA) error {
+	defer runtime.KeepAlive(r)
 	if r.Height() > r.PageHeight() {
 		out, err := vipsEmbedMultiPageBackground(r.image, left, top, width, height, backgroundColor)
 		if err != nil {
@@ -2109,6 +2173,7 @@ func (r *ImageRef) EmbedBackgroundRGBA(left, top, width, height int, backgroundC
 
 // Zoom zooms the image by repeating pixels (fast nearest-neighbour)
 func (r *ImageRef) Zoom(xFactor int, yFactor int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenZoom(r.image, xFactor, yFactor)
 	if err != nil {
 		return err
@@ -2118,6 +2183,7 @@ func (r *ImageRef) Zoom(xFactor int, yFactor int) error {
 }
 
 func (r *ImageRef) Gravity(gravity Gravity, width int, height int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenGravity(r.image, gravity, width, height, nil)
 	if err != nil {
 		return err
@@ -2129,6 +2195,7 @@ func (r *ImageRef) Gravity(gravity Gravity, width int, height int) error {
 
 // Flip flips the image either horizontally or vertically based on the parameter
 func (r *ImageRef) Flip(direction Direction) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsFlip(r.image, direction)
 	if err != nil {
 		return err
@@ -2139,6 +2206,7 @@ func (r *ImageRef) Flip(direction Direction) error {
 
 // Recomb recombines the image bands using the matrix provided
 func (r *ImageRef) Recomb(matrix [][]float64) error {
+	defer runtime.KeepAlive(r)
 	numBands := r.Bands()
 	// Ensure the provided matrix is 3x3
 	if len(matrix) != 3 || len(matrix[0]) != 3 || len(matrix[1]) != 3 || len(matrix[2]) != 3 {
@@ -2190,6 +2258,7 @@ func (r *ImageRef) Recomb(matrix [][]float64) error {
 
 // Rotate rotates the image by multiples of 90 degrees. To rotate by arbitrary angles use Similarity.
 func (r *ImageRef) Rotate(angle Angle) error {
+	defer runtime.KeepAlive(r)
 	width := r.Width()
 
 	if r.Pages() > 1 && (angle == Angle90 || angle == Angle270) {
@@ -2231,6 +2300,7 @@ func (r *ImageRef) Rotate(angle Angle) error {
 // AddAlpha.
 func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *ColorRGBA,
 	idx float64, idy float64, odx float64, ody float64) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsSimilarity(r.image, scale, angle, backgroundColor, idx, idy, odx, ody)
 	if err != nil {
 		return err
@@ -2241,6 +2311,7 @@ func (r *ImageRef) Similarity(scale float64, angle float64, backgroundColor *Col
 
 // Grid tiles the image pages into a matrix across*down
 func (r *ImageRef) Grid(tileHeight, across, down int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenGrid(r.image, tileHeight, across, down)
 	if err != nil {
 		return err
@@ -2251,6 +2322,7 @@ func (r *ImageRef) Grid(tileHeight, across, down int) error {
 
 // SmartCrop will crop the image based on interesting factor
 func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsSmartCrop(r.image, width, height, interesting)
 	if err != nil {
 		return err
@@ -2261,6 +2333,7 @@ func (r *ImageRef) SmartCrop(width int, height int, interesting Interesting) err
 
 // Crop will crop the image based on coordinate and box size
 func (r *ImageRef) Crop(left int, top int, width int, height int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsCrop(r.image, left, top, width, height)
 	if err != nil {
 		return err
@@ -2271,6 +2344,7 @@ func (r *ImageRef) Crop(left int, top int, width int, height int) error {
 
 // Label overlays a label on top of the image
 func (r *ImageRef) Label(labelParams *LabelParams) error {
+	defer runtime.KeepAlive(r)
 	out, err := labelImage(r.image, labelParams)
 	if err != nil {
 		return err
@@ -2281,6 +2355,7 @@ func (r *ImageRef) Label(labelParams *LabelParams) error {
 
 // Replicate repeats an image many times across and down
 func (r *ImageRef) Replicate(across int, down int) error {
+	defer runtime.KeepAlive(r)
 	out, err := vipsGenReplicate(r.image, across, down)
 	if err != nil {
 		return err
