@@ -21,6 +21,43 @@ func TestMain(m *testing.M) {
 	os.Exit(ret)
 }
 
+func TestOpenImageRefs(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	before := OpenImageRefs()
+
+	img1, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	img2, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	img3, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+
+	assert.Equal(t, before+3, OpenImageRefs())
+
+	img1.Close()
+	img2.Close()
+	assert.Equal(t, before+1, OpenImageRefs())
+
+	// Double close should not go negative
+	img1.Close()
+	assert.Equal(t, before+1, OpenImageRefs())
+
+	img3.Close()
+	assert.Equal(t, before, OpenImageRefs())
+}
+
+func TestAssertNoLeaks(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	img.Close()
+
+	// Should pass with no leaks
+	AssertNoLeaks(t)
+}
+
 func TestImageRef_WebP(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
