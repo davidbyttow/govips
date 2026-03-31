@@ -12,6 +12,8 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
+	"testing"
 )
 
 const (
@@ -222,6 +224,23 @@ type MemoryStats struct {
 	MemHigh int64
 	Files   int64
 	Allocs  int64
+}
+
+var openImageRefs atomic.Int64
+
+// OpenImageRefs returns the number of ImageRef instances that haven't been closed.
+func OpenImageRefs() int64 {
+	return openImageRefs.Load()
+}
+
+// AssertNoLeaks fails the test if any ImageRef instances remain open.
+// Call this at the end of tests to catch leaked images.
+func AssertNoLeaks(t testing.TB) {
+	t.Helper()
+	n := openImageRefs.Load()
+	if n != 0 {
+		t.Errorf("govips: %d ImageRef(s) not closed (leaked)", n)
+	}
 }
 
 // ReadVipsMemStats returns various memory statistics such as allocated memory and open files.
