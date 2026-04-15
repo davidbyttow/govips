@@ -715,6 +715,34 @@ func NewImageFromGoImage(img image.Image) (*ImageRef, error) {
 	return newImageRef(vipsImage, ImageTypeUnknown, ImageTypeUnknown, nil), nil
 }
 
+// NewImageFromHWCArray creates a new ImageRef from a pixel data in HWC(height, width, channels) format.
+func NewImageFromHWCArray(pixels []byte, bands int, width, height int, bandFormat BandFormat, interpretation Interpretation) (*ImageRef, error) {
+	if err := startupIfNeeded(); err != nil {
+		return nil, err
+	}
+
+	// copy pixels
+	_pixels := make([]byte, len(pixels))
+	copy(_pixels, pixels)
+
+	vipsImage := C.create_image_from_memory_copy(
+		unsafe.Pointer(&_pixels[0]),
+		C.size_t(len(_pixels)),
+		C.int(width),
+		C.int(height),
+		C.int(bands),
+		C.VipsBandFormat(bandFormat),
+	)
+	runtime.KeepAlive(_pixels)
+	if vipsImage == nil {
+		return nil, errors.New("failed to create vips image from memory")
+	}
+
+	vipsImage.Type = C.VipsInterpretation(interpretation)
+
+	return newImageRef(vipsImage, ImageTypeUnknown, ImageTypeUnknown, _pixels), nil
+}
+
 func newImageRef(vipsImage *C.VipsImage, currentFormat ImageType, originalFormat ImageType, buf []byte) *ImageRef {
 	imageRef := &ImageRef{
 		image:          vipsImage,
