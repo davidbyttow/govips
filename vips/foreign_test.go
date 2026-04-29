@@ -75,6 +75,18 @@ func Test_DetermineImageType__TIFF(t *testing.T) {
 	assert.Equal(t, ImageTypeTIFF, imageType)
 }
 
+func Test_DetermineImageType__BigTIFF(t *testing.T) {
+	for name, buf := range map[string][]byte{
+		"little_endian": {0x49, 0x49, 0x2B, 0x00, 0x08, 0x00, 0x00, 0x00, 0, 0, 0, 0},
+		"big_endian":    {0x4D, 0x4D, 0x00, 0x2B, 0x00, 0x08, 0x00, 0x00, 0, 0, 0, 0},
+	} {
+		t.Run(name, func(t *testing.T) {
+			imageType := DetermineImageType(buf)
+			assert.Equal(t, ImageTypeTIFF, imageType)
+		})
+	}
+}
+
 func Test_DetermineImageType__WEBP(t *testing.T) {
 	require.NoError(t, Startup(&Config{}))
 

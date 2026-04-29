@@ -216,9 +216,14 @@ func isPNG(buf []byte) bool {
 
 var tifII = []byte("\x49\x49\x2A\x00")
 var tifMM = []byte("\x4D\x4D\x00\x2A")
+var bigTifII = []byte("\x49\x49\x2B\x00")
+var bigTifMM = []byte("\x4D\x4D\x00\x2B")
 
 func isTIFF(buf []byte) bool {
-	return bytes.HasPrefix(buf, tifII) || bytes.HasPrefix(buf, tifMM)
+	return bytes.HasPrefix(buf, tifII) ||
+		bytes.HasPrefix(buf, tifMM) ||
+		bytes.HasPrefix(buf, bigTifII) ||
+		bytes.HasPrefix(buf, bigTifMM)
 }
 
 var webpHeader = []byte("\x57\x45\x42\x50")
