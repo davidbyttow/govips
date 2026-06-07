@@ -1603,6 +1603,105 @@ func TestNewImageFromGoImage_RGBA(t *testing.T) {
 	assert.Equal(t, 4, ref.Bands())
 }
 
+func TestNewImageFromMemory_RGB(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// 2x2 RGB: red, green, blue, white.
+	pixels := []byte{
+		255, 0, 0, 0, 255, 0,
+		0, 0, 255, 255, 255, 255,
+	}
+
+	ref, err := NewImageFromMemory(pixels, 2, 2, 3, BandFormatUchar, InterpretationSRGB)
+	require.NoError(t, err)
+	defer ref.Close()
+
+	assert.Equal(t, 2, ref.Width())
+	assert.Equal(t, 2, ref.Height())
+	assert.Equal(t, 3, ref.Bands())
+	assert.Equal(t, BandFormatUchar, ref.BandFormat())
+	assert.Equal(t, InterpretationSRGB, ref.Interpretation())
+
+	tl, err := ref.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{255, 0, 0}, tl)
+
+	br, err := ref.GetPoint(1, 1)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{255, 255, 255}, br)
+}
+
+func TestNewImageFromMemory_Float(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// 1x1 single-band float image holding the value 0.5.
+	pixels := make([]byte, 4)
+	bits := math.Float32bits(0.5)
+	pixels[0] = byte(bits)
+	pixels[1] = byte(bits >> 8)
+	pixels[2] = byte(bits >> 16)
+	pixels[3] = byte(bits >> 24)
+
+	ref, err := NewImageFromMemory(pixels, 1, 1, 1, BandFormatFloat, InterpretationBW)
+	require.NoError(t, err)
+	defer ref.Close()
+
+	assert.Equal(t, 1, ref.Width())
+	assert.Equal(t, 1, ref.Height())
+	assert.Equal(t, 1, ref.Bands())
+	assert.Equal(t, BandFormatFloat, ref.BandFormat())
+
+	// GetPoint hardcodes its sample count to 3/4 based on alpha presence, so
+	// only the first slot is meaningful for this 1-band image.
+	p, err := ref.GetPoint(0, 0)
+	require.NoError(t, err)
+	require.NotEmpty(t, p)
+	assert.InDelta(t, 0.5, p[0], 1e-6)
+}
+
+func TestNewImageFromMemory_BufferIsCopied(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	pixels := []byte{255, 0, 0, 0, 255, 0, 0, 0, 255, 128, 128, 128}
+
+	ref, err := NewImageFromMemory(pixels, 2, 2, 3, BandFormatUchar, InterpretationSRGB)
+	require.NoError(t, err)
+	defer ref.Close()
+
+	// Mutating the caller-side buffer must not affect the vips image.
+	for i := range pixels {
+		pixels[i] = 0
+	}
+
+	tl, err := ref.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{255, 0, 0}, tl)
+}
+
+func TestNewImageFromMemory_InvalidArgs(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	cases := []struct {
+		name   string
+		pixels []byte
+		w, h, b int
+		format BandFormat
+	}{
+		{"zero width", []byte{0}, 0, 1, 1, BandFormatUchar},
+		{"zero height", []byte{0}, 1, 0, 1, BandFormatUchar},
+		{"zero bands", []byte{0}, 1, 1, 0, BandFormatUchar},
+		{"size mismatch", []byte{0, 0, 0}, 2, 2, 3, BandFormatUchar},
+		{"unsupported format", make([]byte, 16), 1, 1, 1, BandFormatComplex},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			ref, err := NewImageFromMemory(tc.pixels, tc.w, tc.h, tc.b, tc.format, InterpretationSRGB)
+			require.Error(t, err)
+			assert.Nil(t, ref)
+		})
+	}
+}
+
 func TestAutoRotate(t *testing.T) {
 	require.NoError(t, Startup(nil))
 

@@ -715,6 +715,70 @@ func NewImageFromGoImage(img image.Image) (*ImageRef, error) {
 	return newImageRef(vipsImage, ImageTypeUnknown, ImageTypeUnknown, nil), nil
 }
 
+// NewImageFromMemory creates a new ImageRef from a raw, uncompressed pixel
+// buffer. The buffer is interpreted as height rows of width pixels, each pixel
+// holding bands samples of the given BandFormat, laid out contiguously (no row
+// stride padding).
+//
+// Use this for raw byte arrays from sources like ML inference outputs (ONNX,
+// TensorFlow), camera sensors, or any in-memory pixel data. For Go's
+// image.Image, use NewImageFromGoImage. For compressed bytes (PNG, JPEG, etc.),
+// use NewImageFromBuffer.
+//
+// The pixel data is copied into libvips, so the caller is free to reuse or
+// free the input slice after this call returns.
+func NewImageFromMemory(pixels []byte, width, height, bands int, format BandFormat, interpretation Interpretation) (*ImageRef, error) {
+	if err := startupIfNeeded(); err != nil {
+		return nil, err
+	}
+
+	if width <= 0 || height <= 0 || bands <= 0 {
+		return nil, fmt.Errorf("invalid dimensions: width=%d height=%d bands=%d", width, height, bands)
+	}
+
+	bytesPerSample, ok := bandFormatSizes[format]
+	if !ok {
+		return nil, fmt.Errorf("unsupported band format: %d", format)
+	}
+
+	expected := width * height * bands * bytesPerSample
+	if len(pixels) != expected {
+		return nil, fmt.Errorf("pixel buffer size mismatch: got %d bytes, expected %d (%dx%dx%d samples of %d bytes)",
+			len(pixels), expected, width, height, bands, bytesPerSample)
+	}
+
+	vipsImage := C.create_image_from_memory_copy(
+		unsafe.Pointer(&pixels[0]),
+		C.size_t(len(pixels)),
+		C.int(width),
+		C.int(height),
+		C.int(bands),
+		C.VipsBandFormat(format),
+	)
+	runtime.KeepAlive(pixels)
+	if vipsImage == nil {
+		return nil, errors.New("failed to create vips image from memory")
+	}
+
+	vipsImage.Type = C.VipsInterpretation(interpretation)
+
+	return newImageRef(vipsImage, ImageTypeUnknown, ImageTypeUnknown, nil), nil
+}
+
+// bandFormatSizes is the byte size of one sample for each supported BandFormat.
+// Complex/DPComplex are excluded — vips_image_new_from_memory rejects them in
+// practice and the size depends on real/imag pairing semantics.
+var bandFormatSizes = map[BandFormat]int{
+	BandFormatUchar:  1,
+	BandFormatChar:   1,
+	BandFormatUshort: 2,
+	BandFormatShort:  2,
+	BandFormatUint:   4,
+	BandFormatInt:    4,
+	BandFormatFloat:  4,
+	BandFormatDouble: 8,
+}
+
 func newImageRef(vipsImage *C.VipsImage, currentFormat ImageType, originalFormat ImageType, buf []byte) *ImageRef {
 	imageRef := &ImageRef{
 		image:          vipsImage,
