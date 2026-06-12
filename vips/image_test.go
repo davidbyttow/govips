@@ -663,6 +663,39 @@ func TestImageRef_Join(t *testing.T) {
 	assert.True(t, height == image.Height(), "Join image height is incorrect: %d != %d", height, image.Height())
 }
 
+// TestImageRef_Join_InputsRetained guards the ownership contract for
+// Join: the input images are borrowed, not consumed. Join must not
+// unref them, so each input ImageRef must remain fully usable and
+// independently closable afterwards. Previously vipsJoin unref'd both
+// inputs, dropping references it never owned and leaving the inputs one
+// ref short — an intermittent use-after-free once the input ImageRefs
+// were later closed or finalized.
+func TestImageRef_Join_InputsRetained(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	before := OpenImageRefs()
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	joinImage, err := NewImageFromFile(resources + "jpg-24bit.jpg")
+	require.NoError(t, err)
+
+	require.NoError(t, image.Join(joinImage, DirectionHorizontal))
+
+	// The borrowed input must still be a live, usable image.
+	pt, err := joinImage.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.NotEmpty(t, pt)
+	_, _, err = joinImage.ExportNative()
+	require.NoError(t, err)
+
+	// And it must be independently closable without a double free.
+	joinImage.Close()
+	image.Close()
+
+	assert.Equal(t, before, OpenImageRefs(), "Join must not leak or over-release ImageRefs")
+}
+
 func TestImageRef_ArrayJoin(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
@@ -1844,8 +1877,8 @@ func TestRotate_AllAngles(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
 	tests := []struct {
-		angle       Angle
-		swapDims    bool
+		angle    Angle
+		swapDims bool
 	}{
 		{Angle0, false},
 		{Angle90, true},
