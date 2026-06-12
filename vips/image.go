@@ -41,6 +41,12 @@ type ImageRef struct {
 	lock                sync.Mutex
 	preMultiplication   *PreMultiplicationState
 	optimizedIccProfile string
+
+	// streamSource is non-nil for sequentially stream-loaded images
+	// (LoadImageFromReader with AccessSequential): the image pulls
+	// pixels from the source on demand, so the C source and the Go
+	// reader stay alive until Close or materialize. See stream.go.
+	streamSource *streamSourceRef
 }
 
 // ImageMetadata is a data structure holding the width, height, orientation and other metadata of the picture.
@@ -747,7 +753,16 @@ func (r *ImageRef) Close() {
 
 	r.buf = nil
 
+	// Release the streaming source only after the image is gone: the
+	// image may still hold references that read from the source.
+	src := r.streamSource
+	r.streamSource = nil
+
 	r.lock.Unlock()
+
+	if src != nil {
+		src.release()
+	}
 }
 
 // setImage resets the image for this image and frees the previous one

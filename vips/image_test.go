@@ -1078,6 +1078,7 @@ func TestImageRef_Average(t *testing.T) {
 func TestImageRef_FindTrim_White(t *testing.T) {
 	image, err := NewImageFromFile(resources + "find_trim.png")
 	assert.NoError(t, err)
+	defer image.Close()
 	left, top, width, height, err := image.FindTrim(0, &Color{R: 255, G: 255, B: 255})
 	assert.NoError(t, err)
 
@@ -1090,6 +1091,7 @@ func TestImageRef_FindTrim_White(t *testing.T) {
 func TestImageRef_FindTrim_Gray(t *testing.T) {
 	image, err := NewImageFromFile(resources + "find_trim.png")
 	assert.NoError(t, err)
+	defer image.Close()
 	left, top, width, height, err := image.FindTrim(0, &Color{R: 238, G: 238, B: 238})
 	assert.NoError(t, err)
 
@@ -1102,6 +1104,7 @@ func TestImageRef_FindTrim_Gray(t *testing.T) {
 func TestImageRef_FindTrim_Threshold(t *testing.T) {
 	image, err := NewImageFromFile(resources + "find_trim.png")
 	assert.NoError(t, err)
+	defer image.Close()
 	left, top, width, height, err := image.FindTrim(17, &Color{R: 255, G: 255, B: 255})
 	assert.NoError(t, err)
 

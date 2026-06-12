@@ -423,6 +423,82 @@ if err != nil {
 os.WriteFile("output.avif", buf, 0644)
 ```
 
+### 15. Stream images with io.Reader and io.Writer
+
+Load directly from any `io.Reader` (HTTP body, S3 stream, file handle) and save directly to any `io.Writer` — without buffering the full compressed input or output in Go memory. If the reader also implements `io.Seeker` (like `os.File`), libvips uses random access for efficient loading of formats like HEIF. One exception on the save side: TIFF requires seekable output, so it is encoded in memory and written to `w` in a single chunk (bytes identical to `ExportTiff`).
+
+```go
+// Stream-load: no full-file buffer in Go memory
+f, err := os.Open("input.heic")
+if err != nil {
+	log.Fatal(err)
+}
+defer f.Close()
+
+image, err := vips.LoadImageFromReader(f, nil)
+if err != nil {
+	log.Fatal(err)
+}
+defer image.Close()
+
+// Process as usual
+if err := image.AutoRotate(); err != nil {
+	log.Fatal(err)
+}
+
+// Stream-save: encoded chunks written directly to the output
+out, err := os.Create("output.jpg")
+if err != nil {
+	log.Fatal(err)
+}
+defer out.Close()
+
+err = image.SaveToWriter(out, vips.ImageTypeJPEG, &vips.ExportParams{
+	Quality: 85,
+})
+if err != nil {
+	log.Fatal(err)
+}
+```
+
+For non-seekable readers (e.g. `http.Request.Body`), libvips buffers header data up to ~1 GB by default. Lower the limit to bound memory usage:
+
+```go
+vips.Startup(nil)
+vips.SetPipeReadLimit(100 * 1024 * 1024) // 100 MB
+```
+
+### 16. End-to-end streaming transcode
+
+`TranscodeStream` runs reader → decode → transform → encode → writer as one pipeline, picking the cheapest decode strategy automatically:
+
+```go
+// Upload handler: stream the request body through a JPEG transcode into
+// content-addressed storage, hashing the output while writing.
+hasher := sha256.New()
+err := vips.TranscodeStream(req.Body, io.MultiWriter(hasher, storage), &vips.TranscodeOptions{
+	Format:       vips.ImageTypeJPEG,
+	AutoRotate:   true,
+	ExportParams: &vips.ExportParams{Quality: 85, Interlaced: false},
+})
+```
+
+Two decode strategies:
+
+- **Sequential fast path** — when no random-access transform is needed, pixels flow from reader to writer in one pass. Peak RAM is bounded by libvips line caches, independent of file size *and* pixel count. Available directly via `LoadImageFromReader` with `params.Access.Set(vips.AccessSequential)`; the source then stays connected (keep the reader open) until `Close`.
+- **Materialized path** — when random access is required (e.g. EXIF rotation), the decoded frame is rendered in one streaming pass to memory or, above a threshold, to an unlinked scratch file on disc. RAM stays bounded either way; the source is released as soon as materialization finishes.
+
+```go
+vips.SetStreamDiscThreshold(64 << 20) // decoded frames >64 MB go to scratch disc (default 100 MB, or VIPS_DISC_THRESHOLD)
+vips.SetStreamScratchDir("/var/scratch") // default os.TempDir()
+```
+
+**Which operations keep the sequential fast path?** Sequential images may only be read top-to-bottom, once. Safe: resize/thumbnail (shrink), crop, flatten, colorspace conversion, sharpen/blur (line kernels), horizontal flip, format conversion. Forcing materialization: rotation (90°/180°/270°), vertical flip, `AutoRotate` for EXIF orientations 3–8 (`TranscodeStream` detects this from the header automatically), `FindTrim`, `SmartCrop`, and anything else that reads pixels out of order. Attempting a random-access operation on a sequential image fails with an "out of order read" error from libvips.
+
+**Codec caveats.** True end-to-end streaming also depends on the codec: progressive (interlaced) JPEG and interlaced PNG cannot stream — on decode the codec buffers all input before emitting rows, and on encode (govips' *default* JPEG params set `Interlace: true`) it buffers the whole image before writing the first byte. Pass `Interlaced: false` for streaming output. HEIF/HEIC decodes whole-frame inside libheif regardless of access mode, and TIFF output is encoded in memory (seekable-output requirement). Non-seekable inputs additionally accumulate compressed bytes read so far (bounded by `SetPipeReadLimit`).
+
+**Where errors surface.** On the default (materialized) load, truncated or erroring streams fail inside `LoadImageFromReader`/`TranscodeStream` during materialization. On the sequential path the load only reads the header, so the same failures surface from the operation that first consumes pixels — typically `SaveToWriter` — wrapped with the original reader error (`errors.Is` works).
+
 See the _examples/_ folder for more.
 
 ## Running tests
