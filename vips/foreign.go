@@ -446,6 +446,7 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 	p.webpMinSize = C.int(boolToInt(params.MinSize))
 	p.webpKMin = C.int(params.MinKeyFrames)
 	p.webpKMax = C.int(params.MaxKeyFrames)
+	p.webpTargetSize = C.int(params.TargetSize)
 
 	if params.IccProfile != "" {
 		p.webpIccProfile = C.CString(params.IccProfile)

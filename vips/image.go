@@ -297,6 +297,14 @@ type WebpExportParams struct {
 	MinSize         bool
 	MinKeyFrames    int
 	MaxKeyFrames    int
+	// TargetSize is the desired output size in bytes (libvips's webpsave
+	// "target_size" option, passed straight through to libwebp's own
+	// WebPConfig.target_size). When set (> 0), it takes precedence over
+	// Quality: libwebp runs its own internal search over the quality range,
+	// using more encoding passes, to produce output close to this size. It
+	// is a best effort: the resulting size may still land above or below
+	// the target. Leave at 0 (the default) to encode at Quality instead.
+	TargetSize int
 }
 
 // NewWebpExportParams creates default values for an export of a WEBP image.
