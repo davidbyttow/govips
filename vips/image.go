@@ -304,6 +304,9 @@ type WebpExportParams struct {
 	// using more encoding passes, to produce output close to this size. It
 	// is a best effort: the resulting size may still land above or below
 	// the target. Leave at 0 (the default) to encode at Quality instead.
+	//
+	// Requires libvips 8.17.4+ (when target_size was added to webpsave);
+	// ExportWebp returns an error if TargetSize is set on an older libvips.
 	TargetSize int
 }
 

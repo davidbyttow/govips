@@ -110,6 +110,11 @@ func TestImageRef_WebP__NearLossless(t *testing.T) {
 func TestImageRef_WebP__TargetSize(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
+	if MajorVersion < 8 || (MajorVersion == 8 && MinorVersion < 17) ||
+		(MajorVersion == 8 && MinorVersion == 17 && MicroVersion < 4) {
+		t.Skipf("webpsave target_size requires libvips 8.17.4+, found %s", Version)
+	}
+
 	srcBytes, err := os.ReadFile(resources + "png-24bit.png")
 	require.NoError(t, err)
 

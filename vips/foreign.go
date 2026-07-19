@@ -446,7 +446,17 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 	p.webpMinSize = C.int(boolToInt(params.MinSize))
 	p.webpKMin = C.int(params.MinKeyFrames)
 	p.webpKMax = C.int(params.MaxKeyFrames)
-	p.webpTargetSize = C.int(params.TargetSize)
+
+	if params.TargetSize > 0 {
+		// webpsave's "target_size" property was added in libvips 8.17.4; setting
+		// it on an older libvips fails at the C layer with an opaque "no property
+		// named `target_size'" error. Fail clearly instead.
+		if MajorVersion < 8 || (MajorVersion == 8 && MinorVersion < 17) ||
+			(MajorVersion == 8 && MinorVersion == 17 && MicroVersion < 4) {
+			return nil, fmt.Errorf("WebpExportParams.TargetSize requires libvips 8.17.4+, found %s", Version)
+		}
+		p.webpTargetSize = C.int(params.TargetSize)
+	}
 
 	if params.IccProfile != "" {
 		p.webpIccProfile = C.CString(params.IccProfile)
