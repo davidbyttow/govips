@@ -599,6 +599,46 @@ func TestImageRef_Close__AlreadyClosed(t *testing.T) {
 	runtime.GC()
 }
 
+func TestImageRef_SetKill__SetBeforeExportStopsEvaluation(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	image.SetKill(true)
+
+	_, _, err = image.ExportWebp(nil)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "killed")
+}
+
+func TestImageRef_SetKill__ClearsFlag(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	image.SetKill(true)
+	image.SetKill(false)
+
+	_, _, err = image.ExportWebp(nil)
+	require.NoError(t, err)
+}
+
+func TestImageRef_SetKill__ClosedImageIsNoOp(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	image.Close()
+
+	require.NotPanics(t, func() {
+		image.SetKill(true)
+	})
+}
+
 func TestImageRef_NotImage(t *testing.T) {
 	require.NoError(t, Startup(nil))
 

@@ -814,6 +814,16 @@ func (r *ImageRef) Close() {
 	r.lock.Unlock()
 }
 
+// SetKill sets the libvips kill flag used to stop image evaluation.
+func (r *ImageRef) SetKill(kill bool) {
+	r.lock.Lock()
+	defer r.lock.Unlock()
+
+	if r.image != nil {
+		C.vips_image_set_kill(r.image, toGboolean(kill))
+	}
+}
+
 // setImage resets the image for this image and frees the previous one
 func (r *ImageRef) setImage(image *C.VipsImage) {
 	r.lock.Lock()
