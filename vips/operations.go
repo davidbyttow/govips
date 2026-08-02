@@ -37,7 +37,7 @@ func vipsGetPoint(in *C.VipsImage, n int, x int, y int) ([]float64, error) {
 
 	// Copy from C memory into a Go slice, then free the C allocation.
 	result := make([]float64, n)
-	copy(result, (*[4]float64)(unsafe.Pointer(out))[:n:n])
+	copy(result, unsafe.Slice((*float64)(unsafe.Pointer(out)), n))
 	gFreePointer(unsafe.Pointer(out))
 	return result, nil
 }

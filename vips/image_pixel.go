@@ -264,14 +264,10 @@ func (r *ImageRef) FindTrim(threshold float64, backgroundColor *Color) (int, int
 }
 
 // GetPoint reads a single pixel on an image.
-// The pixel values are returned in a slice of length n.
+// The pixel values are returned in a slice with one element per band.
 func (r *ImageRef) GetPoint(x int, y int) ([]float64, error) {
 	defer runtime.KeepAlive(r)
-	n := 3
-	if vipsHasAlpha(r.image) {
-		n = 4
-	}
-	return vipsGetPoint(r.image, n, x, y)
+	return vipsGetPoint(r.image, r.Bands(), x, y)
 }
 
 // Stats find many image statistics in a single pass through the data. Image is changed into a one-band

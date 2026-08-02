@@ -145,7 +145,8 @@ func (r *ImageRef) Embed(left, top, width, height int, extend ExtendStrategy) er
 	return nil
 }
 
-// EmbedBackground embeds the given picture with a background color
+// EmbedBackground embeds the given picture with a background color.
+// For greyscale images (1-2 bands) the R value is used as the grey level.
 func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor *Color) error {
 	defer runtime.KeepAlive(r)
 	c := &ColorRGBA{
@@ -170,7 +171,9 @@ func (r *ImageRef) EmbedBackground(left, top, width, height int, backgroundColor
 	return nil
 }
 
-// EmbedBackgroundRGBA embeds the given picture with a background rgba color
+// EmbedBackgroundRGBA embeds the given picture with a background rgba color.
+// For greyscale images the background is built from R and A only:
+// 1 band uses {R}, 2 bands (grey+alpha) use {R, A}.
 func (r *ImageRef) EmbedBackgroundRGBA(left, top, width, height int, backgroundColor *ColorRGBA) error {
 	defer runtime.KeepAlive(r)
 	if r.Height() > r.PageHeight() {

@@ -766,6 +766,62 @@ func TestImageRef_Join_InputsRetained(t *testing.T) {
 	assert.Equal(t, before, OpenImageRefs(), "Join must not leak or over-release ImageRefs")
 }
 
+// https://github.com/davidbyttow/govips/issues/534
+func TestImageRef_EmbedBackgroundRGBA_GreyAlpha(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	require.NoError(t, image.ToColorSpace(InterpretationBW))
+	require.NoError(t, image.BandJoinConst([]float64{255}))
+	require.Equal(t, 2, image.Bands())
+
+	err = image.EmbedBackgroundRGBA(50, 50, 200, 200, &ColorRGBA{R: 165, A: 255})
+	require.NoError(t, err)
+
+	point, err := image.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{165, 255}, point)
+}
+
+func TestImageRef_EmbedBackground_Grey(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	require.NoError(t, image.ToColorSpace(InterpretationBW))
+	require.Equal(t, 1, image.Bands())
+
+	err = image.EmbedBackground(50, 50, 200, 200, &Color{R: 165})
+	require.NoError(t, err)
+
+	point, err := image.GetPoint(0, 0)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{165}, point)
+}
+
+func TestImageRef_DrawRect_GreyAlpha(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	image, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer image.Close()
+
+	require.NoError(t, image.ToColorSpace(InterpretationBW))
+	require.NoError(t, image.BandJoinConst([]float64{255}))
+
+	err = image.DrawRect(ColorRGBA{R: 128, A: 255}, 10, 10, 20, 20, true)
+	require.NoError(t, err)
+
+	point, err := image.GetPoint(15, 15)
+	require.NoError(t, err)
+	assert.Equal(t, []float64{128, 255}, point)
+}
+
 func TestImageRef_ArrayJoin(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
