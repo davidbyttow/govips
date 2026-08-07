@@ -5,3 +5,4 @@
 node_modules/
 /vipsgen
 .claude/
+profile.cov
