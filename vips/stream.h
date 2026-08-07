@@ -72,6 +72,12 @@ int save_webp_to_target(SaveParams *params, VipsTargetCustom *target);
 int save_heif_to_target(SaveParams *params, VipsTargetCustom *target);
 int save_gif_to_target(SaveParams *params, VipsTargetCustom *target);
 
+// Copies the first len bytes of the source into out without consuming
+// them (vips_source_sniff buffers and rewinds). Returns non-zero if the
+// stream is shorter than len or unreadable. Call before loading so the
+// sniff window is still rewindable for every source kind.
+int source_sniff_header(VipsSourceCustom *source, unsigned char *out, int len);
+
 // Unrefs *source / *target and sets it to NULL. NULL-safe.
 void clear_source(VipsSourceCustom **source);
 void clear_target(VipsTargetCustom **target);

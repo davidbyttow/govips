@@ -521,6 +521,13 @@ func LoadImageFromReader(r io.Reader, params *ImportParams) (*ImageRef, error) {
 		return nil, handleVipsError()
 	}
 
+	// Sniff the signature up front (buffered and rewound, not consumed):
+	// the loader nickname alone cannot express sub-formats — AVIF loads
+	// via heifload, BMP/PSD via magickload — but the buffer path reports
+	// them via DetermineImageType, and the streaming path must match.
+	var header [12]byte
+	headerKnown := C.source_sniff_header(source, (*C.uchar)(unsafe.Pointer(&header[0])), C.int(len(header))) == 0
+
 	loadParams := createImportParams(ImageTypeUnknown, params)
 
 	if code := C.load_from_source(source, &loadParams); code != 0 {
@@ -532,9 +539,18 @@ func LoadImageFromReader(r io.Reader, params *ImportParams) (*ImageRef, error) {
 
 	lazy := loadParams.outputImage
 	format := ImageType(loadParams.inputFormat)
+	originalFormat := format
+	if headerKnown && (format == ImageTypeHEIF || format == ImageTypeMagick) {
+		if sniffed := DetermineImageType(header[:]); sniffed != ImageTypeUnknown {
+			originalFormat = sniffed
+			if !isNeedToChangeLoaderToMagick(sniffed) {
+				format = sniffed
+			}
+		}
+	}
 
 	if sequentialAccess(params) {
-		ref := newImageRef(lazy, format, format, nil)
+		ref := newImageRef(lazy, format, originalFormat, nil)
 		ref.streamSource = &streamSourceRef{handle: handle, entry: entry, source: source}
 		govipsLog("govips", LogLevelDebug, fmt.Sprintf("created sequential imageRef %p from reader", ref))
 		return ref, nil
@@ -551,7 +567,7 @@ func LoadImageFromReader(r io.Reader, params *ImportParams) (*ImageRef, error) {
 		return nil, wrapStreamError("streaming load", err, entry.takeErr())
 	}
 
-	ref := newImageRef(out, format, format, nil)
+	ref := newImageRef(out, format, originalFormat, nil)
 	govipsLog("govips", LogLevelDebug, fmt.Sprintf("created imageRef %p from reader", ref))
 	return ref, nil
 }

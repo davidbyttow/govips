@@ -1,5 +1,7 @@
 #include "stream.h"
 
+#include <string.h>
+
 // Option setters shared with the buffer path, defined in foreign.c.
 // Reusing them keeps streaming output identical to the buffer output.
 extern int set_jpegload_options(VipsOperation *operation, LoadParams *params);
@@ -76,6 +78,15 @@ VipsTargetCustom *create_target_custom(int handle) {
                    GINT_TO_POINTER(handle));
 
   return target;
+}
+
+int source_sniff_header(VipsSourceCustom *source, unsigned char *out, int len) {
+  const unsigned char *p = vips_source_sniff(VIPS_SOURCE(source), (size_t) len);
+  if (!p) {
+    return -1;
+  }
+  memcpy(out, p, (size_t) len);
+  return 0;
 }
 
 static ImageType image_type_for_loader(const char *name) {

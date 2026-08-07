@@ -404,6 +404,38 @@ func TestSaveToWriter_ByteIdenticalToExport(t *testing.T) {
 	assert.Zero(t, targets, "all targets must be deregistered after save")
 }
 
+// TestLoadImageFromReader_SubFormatDetection: the loader nickname alone
+// cannot express sub-formats (AVIF loads via heifload, BMP/PSD via
+// magickload), so the streaming path sniffs the signature and must
+// report the same Format/OriginalFormat as the buffer path.
+func TestLoadImageFromReader_SubFormatDetection(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	for _, file := range []string{"avif-8bit.avif", "bmp.bmp", "psd.example.psd"} {
+		t.Run(file, func(t *testing.T) {
+			buf, err := os.ReadFile(resources + file)
+			require.NoError(t, err)
+
+			fromBuffer, err := LoadImageFromBuffer(buf, nil)
+			if err != nil {
+				t.Skipf("buffer load failed (environment lacks codec): %v", err)
+			}
+			defer fromBuffer.Close()
+
+			fromReader, err := LoadImageFromReader(bytes.NewReader(buf), nil)
+			if err != nil {
+				t.Skipf("no source loader for this format in this libvips build: %v", err)
+			}
+			defer fromReader.Close()
+
+			assert.Equal(t, fromBuffer.Format(), fromReader.Format(),
+				"streaming Format must match the buffer path")
+			assert.Equal(t, fromBuffer.OriginalFormat(), fromReader.OriginalFormat(),
+				"streaming OriginalFormat must match the buffer path")
+		})
+	}
+}
+
 // TestSaveToWriterTyped_ByteIdenticalToExport exercises format-specific
 // options that the generic SaveToWriter/ExportParams path cannot express,
 // verifying the typed savers stay byte-identical to their Export*
