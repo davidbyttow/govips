@@ -475,7 +475,10 @@ func NewMagickExportParams() *MagickExportParams {
 	}
 }
 
-// NewImageFromReader loads an ImageRef from the given reader
+// NewImageFromReader loads an ImageRef from the given reader by reading
+// the entire stream into memory first (io.ReadAll). For large inputs
+// prefer LoadImageFromReader, which streams compressed bytes through
+// libvips without buffering the whole input in Go memory.
 func NewImageFromReader(r io.Reader) (*ImageRef, error) {
 	buf, err := io.ReadAll(r)
 	if err != nil {

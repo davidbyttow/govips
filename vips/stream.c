@@ -276,9 +276,8 @@ int save_heif_to_target(SaveParams *params, VipsTargetCustom *target) {
   return save_target("heifsave_target", params, target, set_heifsave_options);
 }
 
-int save_tiff_to_target(SaveParams *params, VipsTargetCustom *target) {
-  return save_target("tiffsave_target", params, target, set_tiffsave_options);
-}
+// No save_tiff_to_target: libtiff requires seekable output, so the Go
+// side always encodes TIFF through the buffer path.
 
 int save_gif_to_target(SaveParams *params, VipsTargetCustom *target) {
   return save_target("gifsave_target", params, target, set_gifsave_options);

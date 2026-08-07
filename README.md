@@ -461,6 +461,8 @@ if err != nil {
 }
 ```
 
+For the full set of format-specific export options (PNG palette, WebP near-lossless/target size, TIFF compression, HEIF bit depth, ...), use the typed variants: `SaveToWriterJpeg`, `SaveToWriterPng`, `SaveToWriterWebp`, `SaveToWriterTiff`, `SaveToWriterHeif`, `SaveToWriterGif`.
+
 For non-seekable readers (e.g. `http.Request.Body`), libvips buffers header data up to ~1 GB by default. Lower the limit to bound memory usage:
 
 ```go

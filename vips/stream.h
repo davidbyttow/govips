@@ -70,7 +70,6 @@ int save_jpeg_to_target(SaveParams *params, VipsTargetCustom *target);
 int save_png_to_target(SaveParams *params, VipsTargetCustom *target);
 int save_webp_to_target(SaveParams *params, VipsTargetCustom *target);
 int save_heif_to_target(SaveParams *params, VipsTargetCustom *target);
-int save_tiff_to_target(SaveParams *params, VipsTargetCustom *target);
 int save_gif_to_target(SaveParams *params, VipsTargetCustom *target);
 
 // Unrefs *source / *target and sets it to NULL. NULL-safe.

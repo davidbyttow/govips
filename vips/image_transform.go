@@ -29,9 +29,10 @@ func GetRotationAngleFromExif(orientation int) (Angle, bool) {
 	return Angle0, false
 }
 
-// AutoRotate rotates the image upright based on the EXIF Orientation tag.
+// AutoRotate rotates the image upright based on the EXIF Orientation tag,
+// including the mirrored orientations (2, 4, 5 and 7), which libvips
+// handles with a flip since 8.10.
 // It also resets the orientation information in the EXIF tag to be 1 (i.e. upright).
-// N.B. libvips does not flip images currently (i.e. no support for orientations 2, 4, 5 and 7).
 // N.B. due to the HEIF image standard, HEIF images are always autorotated by default on load.
 // Thus, calling AutoRotate for HEIF images is not needed.
 // todo: use https://www.libvips.org/API/current/libvips-conversion.html#vips-autorot-remove-angle

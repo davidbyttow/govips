@@ -404,6 +404,58 @@ func TestSaveToWriter_ByteIdenticalToExport(t *testing.T) {
 	assert.Zero(t, targets, "all targets must be deregistered after save")
 }
 
+// TestSaveToWriterTyped_ByteIdenticalToExport exercises format-specific
+// options that the generic SaveToWriter/ExportParams path cannot express,
+// verifying the typed savers stay byte-identical to their Export*
+// counterparts.
+func TestSaveToWriterTyped_ByteIdenticalToExport(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	t.Run("png palette", func(t *testing.T) {
+		params := NewPngExportParams()
+		params.Palette = true
+		params.Bitdepth = 8
+		expected, _, err := img.ExportPng(params)
+		require.NoError(t, err)
+
+		var w bytes.Buffer
+		require.NoError(t, img.SaveToWriterPng(&w, params))
+		assert.True(t, bytes.Equal(expected, w.Bytes()),
+			"typed PNG streaming output must match ExportPng (got %d bytes, want %d)", w.Len(), len(expected))
+	})
+
+	t.Run("webp near-lossless", func(t *testing.T) {
+		params := NewWebpExportParams()
+		params.NearLossless = true
+		expected, _, err := img.ExportWebp(params)
+		require.NoError(t, err)
+
+		var w bytes.Buffer
+		require.NoError(t, img.SaveToWriterWebp(&w, params))
+		assert.True(t, bytes.Equal(expected, w.Bytes()),
+			"typed WebP streaming output must match ExportWebp (got %d bytes, want %d)", w.Len(), len(expected))
+	})
+
+	t.Run("tiff deflate", func(t *testing.T) {
+		params := NewTiffExportParams()
+		params.Compression = TiffCompressionDeflate
+		expected, _, err := img.ExportTiff(params)
+		require.NoError(t, err)
+
+		var w bytes.Buffer
+		require.NoError(t, img.SaveToWriterTiff(&w, params))
+		assert.True(t, bytes.Equal(expected, w.Bytes()),
+			"typed TIFF streaming output must match ExportTiff (got %d bytes, want %d)", w.Len(), len(expected))
+	})
+
+	_, targets := streamRegistrySizes()
+	assert.Zero(t, targets, "all targets must be deregistered after save")
+}
+
 func TestSaveToWriter_GenericParamsMatchExport(t *testing.T) {
 	require.NoError(t, Startup(nil))
 

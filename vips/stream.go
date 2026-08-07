@@ -69,13 +69,17 @@ type targetEntry struct {
 func (e *sourceEntry) takeErr() error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	return e.lastErr
+	err := e.lastErr
+	e.lastErr = nil
+	return err
 }
 
 func (e *targetEntry) takeErr() error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	return e.lastErr
+	err := e.lastErr
+	e.lastErr = nil
+	return err
 }
 
 // streamCallbacks maps integer handles to active source/target entries.
@@ -197,7 +201,12 @@ func sourceRead(handle int, buf []byte) int64 {
 	entry.mu.Lock()
 	defer entry.mu.Unlock()
 
-	for {
+	// (0, nil) is allowed by the io.Reader contract; retry rather than
+	// returning 0, which libvips would treat as EOF. Bound the retries so
+	// a pathological reader that returns (0, nil) forever fails the load
+	// instead of pinning a libvips worker thread inside this callback.
+	const maxZeroReads = 100
+	for i := 0; i < maxZeroReads; i++ {
 		n, err := entry.reader.Read(buf)
 		if n > 0 {
 			// A non-EOF error alongside n>0 will surface on the next call.
@@ -210,9 +219,9 @@ func sourceRead(handle int, buf []byte) int64 {
 			entry.lastErr = err
 			return -1
 		}
-		// (0, nil) is allowed by the io.Reader contract; retry rather
-		// than returning 0, which libvips would treat as EOF.
 	}
+	entry.lastErr = fmt.Errorf("reader returned (0, nil) %d times in a row", maxZeroReads)
+	return -1
 }
 
 func sourceSeek(handle int, offset int64, whence int) int64 {
@@ -263,8 +272,11 @@ func sourceSeek(handle int, offset int64, whence int) int64 {
 		// against the source length and turns it into the failure the
 		// heif glue's wait_for_file_size protocol relies on. Park the
 		// underlying seeker at EOF so strict io.Seeker implementations
-		// are never asked for an out-of-range position, and any read
-		// returns 0 bytes — exactly POSIX past-EOF behavior.
+		// are never asked for an out-of-range position; any read then
+		// returns 0 bytes. One divergence from POSIX: a subsequent
+		// SEEK_CUR resolves from EOF, not from the reported past-EOF
+		// position. That is fine in practice because libvips' codec glue
+		// only ever follows a past-EOF probe with an absolute seek.
 		if _, err := entry.seeker.Seek(size, io.SeekStart); err != nil {
 			entry.lastErr = err
 			return -1
@@ -343,8 +355,10 @@ const defaultDiscThreshold = 100 << 20
 // SetStreamScratchDir sets the directory used for scratch files when a
 // stream-loaded image is materialized to disc (see
 // SetStreamDiscThreshold). An empty string restores the default
-// (os.TempDir()). Scratch files are unlinked as soon as they are opened;
-// they never outlive the ImageRef even on crash.
+// (os.TempDir()). Scratch files are unlinked as soon as the decoded
+// image has been written and reopened, so on the happy path they never
+// outlive the ImageRef; a crash mid-materialization can leave one
+// behind in this directory.
 func SetStreamScratchDir(dir string) {
 	streamMaterialize.Lock()
 	defer streamMaterialize.Unlock()
@@ -433,7 +447,8 @@ func materializeImage(in *C.VipsImage) (*C.VipsImage, error) {
 	var out *C.VipsImage
 	code := C.write_image_to_disc(in, cPath, &out)
 	// Unlink immediately: the open file keeps the data alive until the
-	// image is closed, and the path never leaks even on crash.
+	// image is closed. (A crash during write_image_to_disc itself can
+	// still leave the scratch file behind; see SetStreamScratchDir.)
 	_ = os.Remove(path)
 	if code != 0 {
 		return nil, handleVipsError()
@@ -474,7 +489,15 @@ func sequentialAccess(params *ImportParams) bool {
 // Export*), not from this function.
 //
 // In every mode the returned ImageRef has no buffer backing: the full
-// compressed input is never held in Go memory.
+// compressed input is never held in Go memory. (NewImageFromReader, by
+// contrast, slurps the whole reader into a buffer via io.ReadAll before
+// decoding; prefer this function when input size matters.)
+//
+// Error strictness: when params.FailOnError is set, streaming loads use
+// libvips' fail_on=truncated, which is slightly laxer than the
+// fail_on=error used by the buffer loaders — truncated input always
+// errors deterministically, but some recoverable decode warnings that
+// the buffer path would reject are tolerated.
 //
 // params may be nil for default import settings.
 func LoadImageFromReader(r io.Reader, params *ImportParams) (*ImageRef, error) {
@@ -579,8 +602,103 @@ func (r *ImageRef) materialize() error {
 // encoded chunks to w as they are produced.
 //
 // params may be nil for the format's default export settings; the format
-// argument takes precedence over params.Format.
+// argument takes precedence over params.Format. For access to the full
+// set of format-specific options, use the typed variants
+// (SaveToWriterJpeg, SaveToWriterPng, SaveToWriterWebp, SaveToWriterTiff,
+// SaveToWriterHeif, SaveToWriterGif).
 func (r *ImageRef) SaveToWriter(w io.Writer, format ImageType, params *ExportParams) error {
+	return r.saveToWriter(w, format, func(in *C.VipsImage) (C.struct_SaveParams, func(), error) {
+		return streamSaveParams(in, format, params)
+	})
+}
+
+// SaveToWriterJpeg streams the image to w as JPEG with the full set of
+// JPEG export options. Behaves like SaveToWriter; params may be nil for
+// defaults. Output is byte-identical to ExportJpeg.
+func (r *ImageRef) SaveToWriterJpeg(w io.Writer, params *JpegExportParams) error {
+	if params == nil {
+		params = NewJpegExportParams()
+	}
+	p := *params
+	return r.saveToWriter(w, ImageTypeJPEG, func(in *C.VipsImage) (C.struct_SaveParams, func(), error) {
+		return newSaveParamsJPEG(in, p), func() {}, nil
+	})
+}
+
+// SaveToWriterPng streams the image to w as PNG with the full set of PNG
+// export options (Palette, Dither, Bitdepth, Filter, ...). Behaves like
+// SaveToWriter; params may be nil for defaults. Output is byte-identical
+// to ExportPng.
+func (r *ImageRef) SaveToWriterPng(w io.Writer, params *PngExportParams) error {
+	if params == nil {
+		params = NewPngExportParams()
+	}
+	p := *params
+	return r.saveToWriter(w, ImageTypePNG, func(in *C.VipsImage) (C.struct_SaveParams, func(), error) {
+		return newSaveParamsPNG(in, p), func() {}, nil
+	})
+}
+
+// SaveToWriterWebp streams the image to w as WebP with the full set of
+// WebP export options (NearLossless, IccProfile, TargetSize, ...).
+// Behaves like SaveToWriter; params may be nil for defaults. Output is
+// byte-identical to ExportWebp.
+func (r *ImageRef) SaveToWriterWebp(w io.Writer, params *WebpExportParams) error {
+	if params == nil {
+		params = NewWebpExportParams()
+	}
+	p := *params
+	return r.saveToWriter(w, ImageTypeWEBP, func(in *C.VipsImage) (C.struct_SaveParams, func(), error) {
+		return newSaveParamsWebP(in, p)
+	})
+}
+
+// SaveToWriterTiff writes the image to w as TIFF with the full set of
+// TIFF export options (Compression, Predictor, Tile, ...). Like the TIFF
+// path of SaveToWriter, the image is encoded in memory and written in a
+// single chunk (libtiff requires seekable output). params may be nil for
+// defaults. Output is byte-identical to ExportTiff.
+func (r *ImageRef) SaveToWriterTiff(w io.Writer, params *TiffExportParams) error {
+	if params == nil {
+		params = NewTiffExportParams()
+	}
+	p := *params
+	return r.saveToWriter(w, ImageTypeTIFF, func(in *C.VipsImage) (C.struct_SaveParams, func(), error) {
+		return newSaveParamsTIFF(in, p), func() {}, nil
+	})
+}
+
+// SaveToWriterHeif streams the image to w as HEIF with the full set of
+// HEIF export options (Bitdepth, Effort, ...). Behaves like SaveToWriter;
+// params may be nil for defaults. Output is byte-identical to ExportHeif.
+func (r *ImageRef) SaveToWriterHeif(w io.Writer, params *HeifExportParams) error {
+	if params == nil {
+		params = NewHeifExportParams()
+	}
+	p := *params
+	return r.saveToWriter(w, ImageTypeHEIF, func(in *C.VipsImage) (C.struct_SaveParams, func(), error) {
+		return newSaveParamsHEIF(in, p), func() {}, nil
+	})
+}
+
+// SaveToWriterGif streams the image to w as GIF with the full set of GIF
+// export options (Dither, Effort, Bitdepth, ...). Behaves like
+// SaveToWriter; params may be nil for defaults. Output is byte-identical
+// to ExportGIF.
+func (r *ImageRef) SaveToWriterGif(w io.Writer, params *GifExportParams) error {
+	if params == nil {
+		params = NewGifExportParams()
+	}
+	p := *params
+	return r.saveToWriter(w, ImageTypeGIF, func(in *C.VipsImage) (C.struct_SaveParams, func(), error) {
+		return newSaveParamsGIF(in, p), func() {}, nil
+	})
+}
+
+// saveToWriter is the shared core of SaveToWriter and its typed
+// variants: it locks the image, builds the C save params via
+// buildParams, and runs the streaming (or, for TIFF, buffered) save.
+func (r *ImageRef) saveToWriter(w io.Writer, format ImageType, buildParams func(*C.VipsImage) (C.struct_SaveParams, func(), error)) error {
 	if w == nil {
 		return errors.New("writer is nil")
 	}
@@ -593,7 +711,7 @@ func (r *ImageRef) SaveToWriter(w io.Writer, format ImageType, params *ExportPar
 		return errors.New("attempt to save a closed ImageRef")
 	}
 
-	saveParams, cleanup, err := streamSaveParams(r.image, format, params)
+	saveParams, cleanup, err := buildParams(r.image)
 	if err != nil {
 		return err
 	}
@@ -662,82 +780,27 @@ func (r *ImageRef) SaveToWriter(w io.Writer, format ImageType, params *ExportPar
 }
 
 // streamSaveParams builds the C save parameters for SaveToWriter using
-// the same ExportParams mapping as (*ImageRef).Export and the same
-// C-struct population as the Export* buffer savers, so streaming output
-// stays byte-identical to the buffer path. The returned cleanup must be
-// called after the save completes.
+// the same ExportParams mapping as (*ImageRef).Export (via the shared
+// *ParamsFromExport helpers) and the same C-struct population as the
+// Export* buffer savers, so streaming output stays byte-identical to the
+// buffer path. The returned cleanup must be called after the save
+// completes.
 func streamSaveParams(in *C.VipsImage, format ImageType, params *ExportParams) (C.struct_SaveParams, func(), error) {
 	noop := func() {}
 
 	switch format {
 	case ImageTypeJPEG:
-		jp := NewJpegExportParams()
-		if params != nil {
-			jp = &JpegExportParams{
-				Quality:            params.Quality,
-				StripMetadata:      params.StripMetadata,
-				Interlace:          params.Interlaced,
-				OptimizeCoding:     params.OptimizeCoding,
-				SubsampleMode:      params.SubsampleMode,
-				TrellisQuant:       params.TrellisQuant,
-				OvershootDeringing: params.OvershootDeringing,
-				OptimizeScans:      params.OptimizeScans,
-				QuantTable:         params.QuantTable,
-			}
-		}
-		return newSaveParamsJPEG(in, *jp), noop, nil
+		return newSaveParamsJPEG(in, *jpegParamsFromExport(params)), noop, nil
 	case ImageTypePNG:
-		pp := NewPngExportParams()
-		if params != nil {
-			pp = &PngExportParams{
-				StripMetadata: params.StripMetadata,
-				Compression:   params.Compression,
-				Interlace:     params.Interlaced,
-			}
-		}
-		return newSaveParamsPNG(in, *pp), noop, nil
+		return newSaveParamsPNG(in, *pngParamsFromExport(params)), noop, nil
 	case ImageTypeWEBP:
-		wp := NewWebpExportParams()
-		if params != nil {
-			wp = &WebpExportParams{
-				StripMetadata:   params.StripMetadata,
-				Quality:         params.Quality,
-				Lossless:        params.Lossless,
-				ReductionEffort: params.Effort,
-			}
-		}
-		return newSaveParamsWebP(in, *wp)
+		return newSaveParamsWebP(in, *webpParamsFromExport(params))
 	case ImageTypeHEIF:
-		hp := NewHeifExportParams()
-		if params != nil {
-			hp = &HeifExportParams{
-				Quality:  params.Quality,
-				Lossless: params.Lossless,
-			}
-		}
-		return newSaveParamsHEIF(in, *hp), noop, nil
+		return newSaveParamsHEIF(in, *heifParamsFromExport(params)), noop, nil
 	case ImageTypeTIFF:
-		tp := NewTiffExportParams()
-		if params != nil {
-			compression := TiffCompressionLzw
-			if params.Lossless {
-				compression = TiffCompressionNone
-			}
-			tp = &TiffExportParams{
-				StripMetadata: params.StripMetadata,
-				Quality:       params.Quality,
-				Compression:   compression,
-			}
-		}
-		return newSaveParamsTIFF(in, *tp), noop, nil
+		return newSaveParamsTIFF(in, *tiffParamsFromExport(params)), noop, nil
 	case ImageTypeGIF:
-		gp := NewGifExportParams()
-		if params != nil {
-			gp = &GifExportParams{
-				Quality: params.Quality,
-			}
-		}
-		return newSaveParamsGIF(in, *gp), noop, nil
+		return newSaveParamsGIF(in, *gifParamsFromExport(params)), noop, nil
 	default:
 		return C.struct_SaveParams{}, noop, fmt.Errorf("streaming save does not support format %q", ImageTypes[format])
 	}
