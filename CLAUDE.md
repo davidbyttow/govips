@@ -2,20 +2,7 @@
 
 Go bindings for libvips, the fast image processing library.
 
-## Build & Test
-
-```bash
-# Build
-go build ./...
-
-# Test (includes coverage)
-make test
-
-# Clean caches if builds act weird
-make clean-cache
-```
-
-Requires libvips-dev installed (`brew install vips` on macOS, `apt-get install libvips-dev` on Linux).
+**Read AGENTS.md first.** It has the setup, commands, layout, cgo/memory rules, testing conventions, and known local quirks. This file only adds Claude-specific workflow.
 
 ## Dev Flow
 
