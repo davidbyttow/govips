@@ -68,6 +68,7 @@ func (r *ImageRef) Rank(width int, height int, index int) error {
 // Mapim resamples an image using index to look up pixels
 func (r *ImageRef) Mapim(index *ImageRef) error {
 	defer runtime.KeepAlive(r)
+	defer runtime.KeepAlive(index)
 	out, err := vipsGenMapim(r.image, index.image, nil)
 	if err != nil {
 		return err
@@ -79,6 +80,7 @@ func (r *ImageRef) Mapim(index *ImageRef) error {
 // Maplut maps an image through another image acting as a LUT (Look Up Table)
 func (r *ImageRef) Maplut(lut *ImageRef) error {
 	defer runtime.KeepAlive(r)
+	defer runtime.KeepAlive(lut)
 	out, err := vipsGenMaplut(r.image, lut.image, nil)
 	if err != nil {
 		return err
@@ -111,6 +113,7 @@ func (r *ImageRef) ExtractBandToImage(band int, num int) (*ImageRef, error) {
 // BandJoin joins a set of images together, bandwise.
 func (r *ImageRef) BandJoin(images ...*ImageRef) error {
 	defer runtime.KeepAlive(r)
+	defer runtime.KeepAlive(images)
 	vipsImages := []*C.VipsImage{r.image}
 	for _, vipsImage := range images {
 		vipsImages = append(vipsImages, vipsImage.image)
@@ -216,6 +219,7 @@ func (r *ImageRef) UnpremultiplyAlpha() error {
 // Add calculates a sum of the image + addend and stores it back in the image
 func (r *ImageRef) Add(addend *ImageRef) error {
 	defer runtime.KeepAlive(r)
+	defer runtime.KeepAlive(addend)
 	out, err := vipsGenAdd(r.image, addend.image)
 	if err != nil {
 		return err
@@ -227,6 +231,7 @@ func (r *ImageRef) Add(addend *ImageRef) error {
 // Multiply calculates the product of the image * multiplier and stores it back in the image
 func (r *ImageRef) Multiply(multiplier *ImageRef) error {
 	defer runtime.KeepAlive(r)
+	defer runtime.KeepAlive(multiplier)
 	out, err := vipsGenMultiply(r.image, multiplier.image)
 	if err != nil {
 		return err
@@ -238,6 +243,7 @@ func (r *ImageRef) Multiply(multiplier *ImageRef) error {
 // Divide calculates the product of the image / denominator and stores it back in the image
 func (r *ImageRef) Divide(denominator *ImageRef) error {
 	defer runtime.KeepAlive(r)
+	defer runtime.KeepAlive(denominator)
 	out, err := vipsGenDivide(r.image, denominator.image)
 	if err != nil {
 		return err
@@ -347,6 +353,7 @@ func (r *ImageRef) DrawRect(ink ColorRGBA, left int, top int, width int, height 
 // Subtract calculate subtract operation between two images.
 func (r *ImageRef) Subtract(in2 *ImageRef) error {
 	defer runtime.KeepAlive(r)
+	defer runtime.KeepAlive(in2)
 	out, err := vipsGenSubtract(r.image, in2.image)
 	if err != nil {
 		return err
