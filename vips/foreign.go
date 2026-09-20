@@ -610,7 +610,10 @@ func vipsSaveMagickToBuffer(in *C.VipsImage, params MagickExportParams) ([]byte,
 	p.inputImage = in
 	p.outputFormat = C.MAGICK
 	p.quality = C.int(params.Quality)
-	p.magickFormat = C.CString(params.Format)
+	// libvips copies the string into the operation; nothing else frees it.
+	cFormat := C.CString(params.Format)
+	defer freeCString(cFormat)
+	p.magickFormat = cFormat
 	p.magickOptimizeGifFrames = C.int(boolToInt(params.OptimizeGifFrames))
 	p.magickOptimizeGifTransparency = C.int(boolToInt(params.OptimizeGifTransparency))
 	p.magickBitDepth = C.int(params.BitDepth)

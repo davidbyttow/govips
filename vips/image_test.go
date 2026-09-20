@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"image"
 	"image/color"
+	stdjpeg "image/jpeg"
 	"math"
+	"math/rand"
 	"os"
 	"runtime"
 	"strings"
@@ -820,6 +822,56 @@ func TestImageRef_DrawRect_GreyAlpha(t *testing.T) {
 	point, err := image.GetPoint(15, 15)
 	require.NoError(t, err)
 	assert.Equal(t, []float64{128, 255}, point)
+}
+
+// A failed DrawRect must leave the ImageRef owning its image. The error path
+// used to unref the input, so the later Close was a double-unref (#547).
+func TestImageRef_DrawRect_ErrorKeepsImage(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	// Noise compresses badly, so cutting the file short leaves most scanlines
+	// missing. Loading is lazy: the failure only surfaces when draw_rect
+	// decodes the whole image to draw in place.
+	const w, h = 1024, 768
+	rng := rand.New(rand.NewSource(1))
+	src := image.NewRGBA(image.Rect(0, 0, w, h))
+	rng.Read(src.Pix)
+	var buf bytes.Buffer
+	require.NoError(t, stdjpeg.Encode(&buf, src, &stdjpeg.Options{Quality: 95}))
+	truncated := buf.Bytes()[:buf.Len()/8]
+
+	params := NewImportParams()
+	params.FailOnError.Set(true)
+	img, err := LoadImageFromBuffer(truncated, params)
+	require.NoError(t, err)
+	defer img.Close()
+
+	// A lazy copy holds its own ref on img's VipsImage, so a stray unref drops
+	// the count without freeing anything and the read below stays safe.
+	holder, err := img.Copy()
+	require.NoError(t, err)
+	defer holder.Close()
+
+	before := vipsRefCount(img.image)
+	err = img.DrawRect(ColorRGBA{R: 0, G: 194, B: 241, A: 255}, 0, 0, w, 40, true)
+	require.Error(t, err)
+	assert.Equal(t, before, vipsRefCount(img.image))
+}
+
+func TestImageRef_SetBlob_RoundTrip(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	img, err := NewImageFromFile(resources + "png-24bit.png")
+	require.NoError(t, err)
+	defer img.Close()
+
+	payload := bytes.Repeat([]byte{0xAA, 0x55}, 2048)
+	img.SetBlob("govips-test-blob", payload)
+	assert.Equal(t, payload, img.GetBlob("govips-test-blob"))
+
+	// Empty input is a no-op, not a panic.
+	img.SetBlob("govips-test-empty", nil)
+	assert.Empty(t, img.GetBlob("govips-test-empty"))
 }
 
 func TestImageRef_ArrayJoin(t *testing.T) {
