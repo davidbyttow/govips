@@ -877,6 +877,12 @@ func clearImage(ref *C.VipsImage) {
 	C.clear_image(&ref)
 }
 
+// vipsRefCount reads the GObject reference count. Test-only: it lets tests
+// catch a stray unref without relying on a use-after-free to crash.
+func vipsRefCount(in *C.VipsImage) int {
+	return int((*C.GObject)(unsafe.Pointer(in)).ref_count)
+}
+
 // Coding represents VIPS_CODING type
 type Coding int
 

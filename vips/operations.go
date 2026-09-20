@@ -568,7 +568,9 @@ func vipsDrawRect(in *C.VipsImage, color ColorRGBA, left int, top int, width int
 
 	if err := C.draw_rect(in, C.double(color.R), C.double(color.G), C.double(color.B), C.double(color.A),
 		C.int(left), C.int(top), C.int(width), C.int(height), C.int(fillBit)); err != 0 {
-		return handleImageError(in)
+		// draw_rect works in place: there's no output image to release, and
+		// the ref on in belongs to the caller's ImageRef.
+		return handleVipsError()
 	}
 
 	return nil
@@ -780,12 +782,13 @@ func vipsDetermineImageTypeFromMetaLoader(in *C.VipsImage) ImageType {
 }
 
 func vipsImageSetBlob(in *C.VipsImage, name string, data []byte) {
-	cData := unsafe.Pointer(&data)
-	cDataLength := C.size_t(len(data))
+	if len(data) == 0 {
+		return
+	}
 
 	cField := C.CString(name)
 	defer freeCString(cField)
-	C.image_set_blob(in, cField, cData, cDataLength)
+	C.image_set_blob(in, cField, unsafe.Pointer(&data[0]), C.size_t(len(data)))
 }
 
 func vipsImageGetBlob(in *C.VipsImage, name string) []byte {
