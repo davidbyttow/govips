@@ -655,6 +655,9 @@ func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, err
 	p.heifLossless = C.int(boolToInt(params.Lossless))
 	p.heifBitdepth = C.int(params.Bitdepth)
 	p.heifEffort = C.int(effort)
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return nil, err
+	}
 
 	return vipsSaveToBuffer(p)
 }
@@ -670,6 +673,9 @@ func vipsSaveJP2KToBuffer(in *C.VipsImage, params Jp2kExportParams) ([]byte, err
 	p.jp2kTileWidth = C.int(params.TileWidth)
 	p.jp2kTileHeight = C.int(params.TileHeight)
 	p.jpegSubsample = C.VipsForeignSubsample(params.SubsampleMode)
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return nil, err
+	}
 
 	return vipsSaveToBuffer(p)
 }
@@ -708,6 +714,9 @@ func vipsSaveJxlToBuffer(in *C.VipsImage, params JxlExportParams) ([]byte, error
 	p.jxlTier = C.int(params.Tier)
 	p.jxlDistance = C.double(params.Distance)
 	p.jxlEffort = C.int(params.Effort)
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return nil, err
+	}
 
 	return vipsSaveToBuffer(p)
 }
@@ -729,6 +738,9 @@ func vipsSaveMagickToBuffer(in *C.VipsImage, params MagickExportParams) ([]byte,
 	p.magickOptimizeGifFrames = C.int(boolToInt(params.OptimizeGifFrames))
 	p.magickOptimizeGifTransparency = C.int(boolToInt(params.OptimizeGifTransparency))
 	p.magickBitDepth = C.int(params.BitDepth)
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return nil, err
+	}
 
 	return vipsSaveToBuffer(p)
 }

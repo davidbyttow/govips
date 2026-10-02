@@ -357,5 +357,84 @@ func init() {
 			p.Keep = k
 			return img.SaveToWriterWebp(io.Discard, p)
 		}},
+		keepCall{"ExportAvif", func(img *ImageRef, k ForeignKeep) error {
+			p := NewAvifExportParams()
+			p.Keep = k
+			_, _, err := img.ExportAvif(p)
+			return err
+		}},
+		keepCall{"ExportJp2k", func(img *ImageRef, k ForeignKeep) error {
+			p := NewJp2kExportParams()
+			p.Keep = k
+			_, _, err := img.ExportJp2k(p)
+			return err
+		}},
+		keepCall{"ExportJxl", func(img *ImageRef, k ForeignKeep) error {
+			p := NewJxlExportParams()
+			p.Keep = k
+			_, _, err := img.ExportJxl(p)
+			return err
+		}},
+		keepCall{"ExportMagick", func(img *ImageRef, k ForeignKeep) error {
+			p := NewMagickExportParams()
+			p.Format = "JPG"
+			p.Keep = k
+			_, _, err := img.ExportMagick(p)
+			return err
+		}},
 	)
+}
+
+// TestExportKeep_ICCFormats checks ICC retention for the HEIF-family and
+// JXL savers. Formats this environment can't save (e.g. macOS without a
+// loadable vips-heif / vips-jxl module) are skipped; CI runs them.
+func TestExportKeep_ICCFormats(t *testing.T) {
+	require.NoError(t, Startup(nil))
+	if !keepSupported() {
+		t.Skipf("keep requires libvips 8.15+, found %s", Version)
+	}
+	before := OpenImageRefs()
+	img := loadKeepSource(t)
+
+	formats := []struct {
+		name   string
+		export func(keep ForeignKeep) ([]byte, error)
+	}{
+		{"heif", func(k ForeignKeep) ([]byte, error) {
+			p := NewHeifExportParams()
+			p.Keep = k
+			b, _, err := img.ExportHeif(p)
+			return b, err
+		}},
+		{"avif", func(k ForeignKeep) ([]byte, error) {
+			p := NewAvifExportParams()
+			p.Keep = k
+			b, _, err := img.ExportAvif(p)
+			return b, err
+		}},
+		{"jxl", func(k ForeignKeep) ([]byte, error) {
+			p := NewJxlExportParams()
+			p.Keep = k
+			b, _, err := img.ExportJxl(p)
+			return b, err
+		}},
+	}
+
+	for _, f := range formats {
+		t.Run(f.name, func(t *testing.T) {
+			if _, err := f.export(0); err != nil {
+				t.Skipf("%s save unsupported in this environment: %v", f.name, err)
+			}
+			buf, err := f.export(ForeignKeepNone)
+			require.NoError(t, err)
+			assert.False(t, readKeepMeta(t, buf).ICC, "Keep=None must drop ICC")
+
+			buf, err = f.export(ForeignKeepIcc)
+			require.NoError(t, err)
+			assert.True(t, readKeepMeta(t, buf).ICC, "Keep=Icc must keep ICC")
+		})
+	}
+
+	img.Close()
+	assertNoNewImageRefs(t, before)
 }

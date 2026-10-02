@@ -457,6 +457,13 @@ type AvifExportParams struct {
 
 	// DEPRECATED - Use Effort instead.
 	Speed int
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewAvifExportParams creates default values for an export of an AVIF image.
@@ -476,6 +483,13 @@ type Jp2kExportParams struct {
 	TileWidth     int
 	TileHeight    int
 	SubsampleMode SubsampleMode
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewJp2kExportParams creates default values for an export of an JPEG2000 image.
@@ -495,6 +509,13 @@ type JxlExportParams struct {
 	Tier     int
 	Distance float64
 	Effort   int
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewJxlExportParams creates default values for an export of an JXL image.
@@ -514,6 +535,13 @@ type MagickExportParams struct {
 	OptimizeGifFrames       bool
 	OptimizeGifTransparency bool
 	BitDepth                int
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewMagickExportParams creates default values for an export of an image by ImageMagick.
