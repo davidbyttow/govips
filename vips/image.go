@@ -255,6 +255,13 @@ type JpegExportParams struct {
 	OvershootDeringing bool
 	OptimizeScans      bool
 	QuantTable         int
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewJpegExportParams creates default values for an export of a JPEG image.
@@ -277,6 +284,13 @@ type PngExportParams struct {
 	Dither        float64
 	Bitdepth      int
 	Profile       string
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewPngExportParams creates default values for an export of a PNG image.
@@ -337,6 +351,13 @@ type TiffExportParams struct {
 	Tile          bool
 	TileHeight    int
 	TileWidth     int
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewTiffExportParams creates default values for an export of a TIFF image.
@@ -370,6 +391,13 @@ type GifExportParams struct {
 	Dither   float64
 	Effort   int
 	Bitdepth int
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewGifExportParams creates default values for an export of a GIF image.
@@ -387,6 +415,13 @@ type HeifExportParams struct {
 	Bitdepth int
 	Effort   int
 	Lossless bool
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata (where
+	// present) decides as before. When set, it takes precedence over
+	// StripMetadata. Requires libvips 8.15+; saving returns an error if Keep
+	// is set on an older libvips.
+	Keep ForeignKeep
 }
 
 // NewHeifExportParams creates default values for an export of a HEIF image.

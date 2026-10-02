@@ -75,6 +75,22 @@ func resolveKeep(k ForeignKeep, major, minor int) (flags int, set bool, err erro
 	return int(k), true, nil
 }
 
+// applyKeep validates k against the running libvips and stores it in p.
+// Every save-param builder calls it, so the buffer and streaming paths
+// share one version guard.
+func applyKeep(p *C.struct_SaveParams, k ForeignKeep) error {
+	flags, set, err := resolveKeep(k, MajorVersion, MinorVersion)
+	if errors.Is(err, errKeepUnsupported) {
+		return fmt.Errorf("Keep requires libvips 8.15+, found %s", Version)
+	}
+	if err != nil {
+		return err
+	}
+	p.keep = C.int(flags)
+	p.keepSet = C.int(boolToInt(set))
+	return nil
+}
+
 // ImageType represents an image type
 type ImageType int
 
@@ -448,7 +464,7 @@ func createImportParams(format ImageType, params *ImportParams) C.LoadParams {
 	return p
 }
 
-func newSaveParamsJPEG(in *C.VipsImage, params JpegExportParams) C.struct_SaveParams {
+func newSaveParamsJPEG(in *C.VipsImage, params JpegExportParams) (C.struct_SaveParams, error) {
 	p := C.create_save_params(C.JPEG)
 	p.inputImage = in
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
@@ -460,16 +476,23 @@ func newSaveParamsJPEG(in *C.VipsImage, params JpegExportParams) C.struct_SavePa
 	p.jpegOvershootDeringing = C.int(boolToInt(params.OvershootDeringing))
 	p.jpegOptimizeScans = C.int(boolToInt(params.OptimizeScans))
 	p.jpegQuantTable = C.int(params.QuantTable)
-	return p
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return p, err
+	}
+	return p, nil
 }
 
 func vipsSaveJPEGToBuffer(in *C.VipsImage, params JpegExportParams) ([]byte, error) {
 	incOpCounter("save_jpeg_buffer")
 
-	return vipsSaveToBuffer(newSaveParamsJPEG(in, params))
+	p, err := newSaveParamsJPEG(in, params)
+	if err != nil {
+		return nil, err
+	}
+	return vipsSaveToBuffer(p)
 }
 
-func newSaveParamsPNG(in *C.VipsImage, params PngExportParams) C.struct_SaveParams {
+func newSaveParamsPNG(in *C.VipsImage, params PngExportParams) (C.struct_SaveParams, error) {
 	p := C.create_save_params(C.PNG)
 	p.inputImage = in
 	p.quality = C.int(params.Quality)
@@ -480,13 +503,20 @@ func newSaveParamsPNG(in *C.VipsImage, params PngExportParams) C.struct_SavePara
 	p.pngPalette = C.int(boolToInt(params.Palette))
 	p.pngDither = C.double(params.Dither)
 	p.pngBitdepth = C.int(params.Bitdepth)
-	return p
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return p, err
+	}
+	return p, nil
 }
 
 func vipsSavePNGToBuffer(in *C.VipsImage, params PngExportParams) ([]byte, error) {
 	incOpCounter("save_png_buffer")
 
-	return vipsSaveToBuffer(newSaveParamsPNG(in, params))
+	p, err := newSaveParamsPNG(in, params)
+	if err != nil {
+		return nil, err
+	}
+	return vipsSaveToBuffer(p)
 }
 
 // newSaveParamsWebP returns the populated params and a cleanup function
@@ -539,7 +569,7 @@ func vipsSaveWebPToBuffer(in *C.VipsImage, params WebpExportParams) ([]byte, err
 	return vipsSaveToBuffer(p)
 }
 
-func newSaveParamsTIFF(in *C.VipsImage, params TiffExportParams) C.struct_SaveParams {
+func newSaveParamsTIFF(in *C.VipsImage, params TiffExportParams) (C.struct_SaveParams, error) {
 	p := C.create_save_params(C.TIFF)
 	p.inputImage = in
 	p.stripMetadata = C.int(boolToInt(params.StripMetadata))
@@ -557,16 +587,23 @@ func newSaveParamsTIFF(in *C.VipsImage, params TiffExportParams) C.struct_SavePa
 	}
 	p.tiffTileHeight = C.int(tileHeight)
 	p.tiffTileWidth = C.int(tileWidth)
-	return p
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return p, err
+	}
+	return p, nil
 }
 
 func vipsSaveTIFFToBuffer(in *C.VipsImage, params TiffExportParams) ([]byte, error) {
 	incOpCounter("save_tiff_buffer")
 
-	return vipsSaveToBuffer(newSaveParamsTIFF(in, params))
+	p, err := newSaveParamsTIFF(in, params)
+	if err != nil {
+		return nil, err
+	}
+	return vipsSaveToBuffer(p)
 }
 
-func newSaveParamsHEIF(in *C.VipsImage, params HeifExportParams) C.struct_SaveParams {
+func newSaveParamsHEIF(in *C.VipsImage, params HeifExportParams) (C.struct_SaveParams, error) {
 	p := C.create_save_params(C.HEIF)
 	p.inputImage = in
 	p.outputFormat = C.HEIF
@@ -574,13 +611,20 @@ func newSaveParamsHEIF(in *C.VipsImage, params HeifExportParams) C.struct_SavePa
 	p.heifLossless = C.int(boolToInt(params.Lossless))
 	p.heifBitdepth = C.int(params.Bitdepth)
 	p.heifEffort = C.int(params.Effort)
-	return p
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return p, err
+	}
+	return p, nil
 }
 
 func vipsSaveHEIFToBuffer(in *C.VipsImage, params HeifExportParams) ([]byte, error) {
 	incOpCounter("save_heif_buffer")
 
-	return vipsSaveToBuffer(newSaveParamsHEIF(in, params))
+	p, err := newSaveParamsHEIF(in, params)
+	if err != nil {
+		return nil, err
+	}
+	return vipsSaveToBuffer(p)
 }
 
 func vipsSaveAVIFToBuffer(in *C.VipsImage, params AvifExportParams) ([]byte, error) {
@@ -619,20 +663,27 @@ func vipsSaveJP2KToBuffer(in *C.VipsImage, params Jp2kExportParams) ([]byte, err
 	return vipsSaveToBuffer(p)
 }
 
-func newSaveParamsGIF(in *C.VipsImage, params GifExportParams) C.struct_SaveParams {
+func newSaveParamsGIF(in *C.VipsImage, params GifExportParams) (C.struct_SaveParams, error) {
 	p := C.create_save_params(C.GIF)
 	p.inputImage = in
 	p.quality = C.int(params.Quality)
 	p.gifDither = C.double(params.Dither)
 	p.gifEffort = C.int(params.Effort)
 	p.gifBitdepth = C.int(params.Bitdepth)
-	return p
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return p, err
+	}
+	return p, nil
 }
 
 func vipsSaveGIFToBuffer(in *C.VipsImage, params GifExportParams) ([]byte, error) {
 	incOpCounter("save_gif_buffer")
 
-	return vipsSaveToBuffer(newSaveParamsGIF(in, params))
+	p, err := newSaveParamsGIF(in, params)
+	if err != nil {
+		return nil, err
+	}
+	return vipsSaveToBuffer(p)
 }
 
 func vipsSaveJxlToBuffer(in *C.VipsImage, params JxlExportParams) ([]byte, error) {

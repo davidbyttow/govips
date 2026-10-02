@@ -230,6 +230,14 @@ int save_buffer(const char *operationName, SaveParams *params,
     return 1;
   }
 
+  // "keep" is set here rather than in each per-format setter so every
+  // saver gets it the same way. It overrides the deprecated "strip".
+  if (params->keepSet &&
+      vips_object_set(VIPS_OBJECT(operation), "keep", params->keep, NULL)) {
+    g_object_unref(operation);
+    return 1;
+  }
+
   if (vips_cache_operation_buildp(&operation)) {
     vips_object_unref_outputs(VIPS_OBJECT(operation));
     g_object_unref(operation);
@@ -551,6 +559,8 @@ static SaveParams defaultSaveParams = {
     .interlace = FALSE,
     .quality = 0,
     .stripMetadata = FALSE,
+    .keep = 0,
+    .keepSet = FALSE,
 
     .jpegOptimizeCoding = FALSE,
     .jpegSubsample = VIPS_FOREIGN_SUBSAMPLE_ON,
