@@ -25,6 +25,56 @@ const (
 	VipsForeignSubsampleLast SubsampleMode = C.VIPS_FOREIGN_SUBSAMPLE_LAST
 )
 
+// ForeignKeep flags select which metadata a saver retains (libvips's "keep"
+// save option, libvips 8.15+). Values may be combined with |.
+//
+// The values are libvips's VipsForeignKeep bits written as literals rather
+// than C.VIPS_FOREIGN_KEEP_* because those macros don't exist in the
+// libvips 8.14 headers govips still builds against.
+const (
+	// ForeignKeepNone keeps no metadata. It is a Go-only sentinel (like
+	// KernelAuto) translated to VIPS_FOREIGN_KEEP_NONE (0) before reaching
+	// libvips, because the zero value of the Keep fields means "unset".
+	// It is a high bit rather than -1 so that it still composes with |.
+	ForeignKeepNone  ForeignKeep = 1 << 30
+	ForeignKeepExif  ForeignKeep = 1 << 0
+	ForeignKeepXmp   ForeignKeep = 1 << 1
+	ForeignKeepIptc  ForeignKeep = 1 << 2
+	ForeignKeepIcc   ForeignKeep = 1 << 3
+	ForeignKeepOther ForeignKeep = 1 << 4
+	// ForeignKeepGainmap keeps the UltraHDR gain map. It requires libvips
+	// 8.18+ and is ignored on older versions, which cannot load gain maps.
+	ForeignKeepGainmap ForeignKeep = 1 << 5
+	// ForeignKeepAll keeps all metadata the running libvips supports.
+	ForeignKeepAll = ForeignKeepExif | ForeignKeepXmp | ForeignKeepIptc |
+		ForeignKeepIcc | ForeignKeepOther | ForeignKeepGainmap
+)
+
+// errKeepUnsupported is returned by resolveKeep when the libvips version
+// predates the "keep" save option.
+var errKeepUnsupported = errors.New("keep requires libvips 8.15+")
+
+// resolveKeep maps a ForeignKeep value to the libvips "keep" flags for the
+// given libvips version. set is false when k is unset (zero), in which case
+// the caller must not pass "keep" at all and StripMetadata decides.
+func resolveKeep(k ForeignKeep, major, minor int) (flags int, set bool, err error) {
+	if k == 0 {
+		return 0, false, nil
+	}
+	if major < 8 || (major == 8 && minor < 15) {
+		return 0, false, errKeepUnsupported
+	}
+	if unknown := k &^ (ForeignKeepAll | ForeignKeepNone); unknown != 0 {
+		return 0, false, fmt.Errorf("unknown ForeignKeep bits: %#x", int(unknown))
+	}
+	k &^= ForeignKeepNone
+	if major == 8 && minor < 18 {
+		// libvips before 8.18 doesn't know VIPS_FOREIGN_KEEP_GAINMAP.
+		k &^= ForeignKeepGainmap
+	}
+	return int(k), true, nil
+}
+
 // ImageType represents an image type
 type ImageType int
 
