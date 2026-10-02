@@ -548,9 +548,20 @@ func newSaveParamsWebP(in *C.VipsImage, params WebpExportParams) (C.struct_SaveP
 		p.webpTargetSize = C.int(params.TargetSize)
 	}
 
+	if err := applyKeep(&p, params.Keep); err != nil {
+		return p, noop, err
+	}
+
+	iccProfile := params.IccProfile
+	if p.keepSet != 0 && ForeignKeep(p.keep)&ForeignKeepIcc == 0 {
+		// An explicit Keep without ICC wins over any profile: libvips
+		// would otherwise embed a supplied profile regardless of keep.
+		iccProfile = ""
+	}
+
 	cleanup := noop
-	if params.IccProfile != "" {
-		p.webpIccProfile = C.CString(params.IccProfile)
+	if iccProfile != "" {
+		p.webpIccProfile = C.CString(iccProfile)
 		profile := p.webpIccProfile
 		cleanup = func() { C.free(unsafe.Pointer(profile)) }
 	}

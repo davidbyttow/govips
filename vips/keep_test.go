@@ -1,8 +1,10 @@
 package vips
 
 import (
+	"bytes"
 	"errors"
 	"io"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -265,4 +267,95 @@ func TestExportKeep_AllPathsHonorKeep(t *testing.T) {
 
 	img.Close()
 	assertNoNewImageRefs(t, before)
+}
+
+func TestExportKeep_WebpMetadata(t *testing.T) {
+	runKeepMetadataCases(t, []keepExporter{{
+		name: "webp",
+		export: func(img *ImageRef, keep ForeignKeep, strip bool) ([]byte, error) {
+			p := NewWebpExportParams()
+			p.StripMetadata, p.Keep = strip, keep
+			b, _, err := img.ExportWebp(p)
+			return b, err
+		},
+		all:   everything,
+		unset: keepMeta{Exif: true, XMP: true}, // pre-existing: profile="none" drops ICC
+	}})
+}
+
+// When Keep is set it alone decides whether ICC is written; the profile
+// source (IccProfile for SaveToWriterWebp, OptimizeICCProfile for
+// ExportWebp; a pre-existing asymmetry) only chooses which profile.
+func TestExportKeep_WebpProfilePrecedence(t *testing.T) {
+	require.NoError(t, Startup(nil))
+	if !keepSupported() {
+		t.Skipf("keep requires libvips 8.15+, found %s", Version)
+	}
+	before := OpenImageRefs()
+
+	optimized := loadKeepSource(t)
+	require.NoError(t, optimized.OptimizeICCProfile())
+	plain := loadKeepSource(t)
+
+	exportOptimized := func(keep ForeignKeep) keepMeta {
+		p := NewWebpExportParams()
+		p.Keep = keep
+		buf, _, err := optimized.ExportWebp(p)
+		require.NoError(t, err)
+		return readKeepMeta(t, buf)
+	}
+	streamWithProfile := func(keep ForeignKeep) keepMeta {
+		p := NewWebpExportParams()
+		p.IccProfile = resources + "sRGB.icc"
+		p.Keep = keep
+		var w bytes.Buffer
+		require.NoError(t, plain.SaveToWriterWebp(&w, p))
+		return readKeepMeta(t, w.Bytes())
+	}
+
+	t.Run("optimized profile dropped without icc", func(t *testing.T) {
+		assert.False(t, exportOptimized(ForeignKeepNone).ICC)
+	})
+	t.Run("optimized profile kept with icc", func(t *testing.T) {
+		assert.True(t, exportOptimized(ForeignKeepIcc).ICC)
+	})
+	t.Run("explicit profile dropped without icc", func(t *testing.T) {
+		m := streamWithProfile(ForeignKeepExif)
+		assert.False(t, m.ICC)
+		assert.True(t, m.Exif)
+	})
+	t.Run("explicit profile embedded with icc", func(t *testing.T) {
+		p := NewWebpExportParams()
+		p.IccProfile = resources + "sRGB.icc"
+		p.Keep = ForeignKeepIcc
+		var w bytes.Buffer
+		require.NoError(t, plain.SaveToWriterWebp(&w, p))
+		out, err := NewImageFromBuffer(w.Bytes())
+		require.NoError(t, err)
+		defer out.Close()
+		want, err := os.ReadFile(resources + "sRGB.icc")
+		require.NoError(t, err)
+		// The explicit profile replaces the source's own (spec 5.3).
+		assert.Equal(t, want, out.GetICCProfile())
+	})
+
+	optimized.Close()
+	plain.Close()
+	assertNoNewImageRefs(t, before)
+}
+
+func init() {
+	keepCalls = append(keepCalls,
+		keepCall{"ExportWebp", func(img *ImageRef, k ForeignKeep) error {
+			p := NewWebpExportParams()
+			p.Keep = k
+			_, _, err := img.ExportWebp(p)
+			return err
+		}},
+		keepCall{"SaveToWriterWebp", func(img *ImageRef, k ForeignKeep) error {
+			p := NewWebpExportParams()
+			p.Keep = k
+			return img.SaveToWriterWebp(io.Discard, p)
+		}},
+	)
 }

@@ -308,11 +308,19 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
                       "lossless", params->webpLossless,
                       "near_lossless", params->webpNearLossless,
                       "reduction_effort", params->webpReductionEffort,
-                      "profile", params->webpIccProfile ? params->webpIccProfile : "none",
                       "min_size", params->webpMinSize,
                       "kmin", params->webpKMin,
                       "kmax", params->webpKMax,
                       NULL);
+
+  // Without an explicit Keep, keep the historical profile="none" default
+  // (byte-identical output). With Keep set, only pass a profile the caller
+  // chose, so "keep" alone decides about the embedded ICC.
+  if (!ret && (params->webpIccProfile || !params->keepSet)) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "profile",
+                          params->webpIccProfile ? params->webpIccProfile : "none",
+                          NULL);
+  }
 
   if (!ret && params->quality) {
     ret = vips_object_set(VIPS_OBJECT(operation), "Q", params->quality, NULL);

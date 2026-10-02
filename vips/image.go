@@ -328,6 +328,19 @@ type WebpExportParams struct {
 	// Requires libvips 8.17.4+ (when target_size was added to webpsave);
 	// ExportWebp returns an error if TargetSize is set on an older libvips.
 	TargetSize int
+
+	// Keep selects which metadata to retain (libvips's "keep" option; see
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata decides
+	// as before. When set, it takes precedence over StripMetadata, and it
+	// alone decides whether an ICC profile is written: without
+	// ForeignKeepIcc no profile is embedded, whatever its source. With
+	// ForeignKeepIcc, the embedded profile is the one the path already
+	// chooses: ExportWebp uses the profile picked by OptimizeICCProfile
+	// (and ignores IccProfile, as before), while SaveToWriterWebp uses
+	// IccProfile. With neither, the source image's profile is kept.
+	// Requires libvips 8.15+; saving returns an error if Keep is set on an
+	// older libvips.
+	Keep ForeignKeep
 }
 
 // NewWebpExportParams creates default values for an export of a WEBP image.
