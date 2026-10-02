@@ -488,6 +488,99 @@ func TestSaveToWriterTyped_ByteIdenticalToExport(t *testing.T) {
 	assert.Zero(t, targets, "all targets must be deregistered after save")
 }
 
+// TestSaveToWriterTyped_KeepByteIdenticalToExport checks that Keep is
+// applied identically on the streaming and buffer paths. It deliberately
+// avoids OptimizeICCProfile: only ExportWebp injects the optimized
+// profile, a pre-existing asymmetry outside this test's scope.
+func TestSaveToWriterTyped_KeepByteIdenticalToExport(t *testing.T) {
+	require.NoError(t, Startup(nil))
+	if !keepSupported() {
+		t.Skipf("keep requires libvips 8.15+, found %s", Version)
+	}
+	before := OpenImageRefs()
+	img := loadKeepSource(t)
+
+	cases := []struct {
+		name   string
+		export func() ([]byte, error)
+		stream func(w io.Writer) error
+	}{
+		{"jpeg",
+			func() ([]byte, error) {
+				b, _, err := img.ExportJpeg(&JpegExportParams{Quality: 80, Keep: ForeignKeepIcc})
+				return b, err
+			},
+			func(w io.Writer) error {
+				return img.SaveToWriterJpeg(w, &JpegExportParams{Quality: 80, Keep: ForeignKeepIcc})
+			}},
+		{"png",
+			func() ([]byte, error) {
+				b, _, err := img.ExportPng(&PngExportParams{Compression: 6, Keep: ForeignKeepIcc})
+				return b, err
+			},
+			func(w io.Writer) error {
+				return img.SaveToWriterPng(w, &PngExportParams{Compression: 6, Keep: ForeignKeepIcc})
+			}},
+		{"webp",
+			func() ([]byte, error) {
+				b, _, err := img.ExportWebp(&WebpExportParams{Quality: 75, Keep: ForeignKeepIcc})
+				return b, err
+			},
+			func(w io.Writer) error {
+				return img.SaveToWriterWebp(w, &WebpExportParams{Quality: 75, Keep: ForeignKeepIcc})
+			}},
+		{"tiff",
+			func() ([]byte, error) {
+				b, _, err := img.ExportTiff(&TiffExportParams{Quality: 80, Keep: ForeignKeepIcc})
+				return b, err
+			},
+			func(w io.Writer) error {
+				return img.SaveToWriterTiff(w, &TiffExportParams{Quality: 80, Keep: ForeignKeepIcc})
+			}},
+		{"gif",
+			func() ([]byte, error) {
+				b, _, err := img.ExportGIF(&GifExportParams{Effort: 7, Bitdepth: 8, Keep: ForeignKeepNone})
+				return b, err
+			},
+			func(w io.Writer) error {
+				return img.SaveToWriterGif(w, &GifExportParams{Effort: 7, Bitdepth: 8, Keep: ForeignKeepNone})
+			}},
+		{"heif",
+			func() ([]byte, error) {
+				b, _, err := img.ExportHeif(&HeifExportParams{Quality: 80, Keep: ForeignKeepIcc})
+				return b, err
+			},
+			func(w io.Writer) error {
+				return img.SaveToWriterHeif(w, &HeifExportParams{Quality: 80, Keep: ForeignKeepIcc})
+			}},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			if c.name == "heif" {
+				// Probe support with Keep unset; only a failure here means no HEIF encoder.
+				if _, _, perr := img.ExportHeif(NewHeifExportParams()); perr != nil {
+					t.Skipf("HEIF save unsupported in this environment: %v", perr)
+				}
+			}
+			expected, err := c.export()
+			require.NoError(t, err, "%s Keep export must succeed when the format is supported", c.name)
+			require.NotEmpty(t, expected)
+
+			var w bytes.Buffer
+			require.NoError(t, c.stream(&w))
+			assert.True(t, bytes.Equal(expected, w.Bytes()),
+				"%s streaming output with Keep must match Export (got %d bytes, want %d)", c.name, w.Len(), len(expected))
+		})
+	}
+
+	_, targets := streamRegistrySizes()
+	assert.Zero(t, targets, "all targets must be deregistered after save")
+
+	img.Close()
+	assertNoNewImageRefs(t, before)
+}
+
 func TestSaveToWriter_GenericParamsMatchExport(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
