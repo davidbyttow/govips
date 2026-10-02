@@ -93,8 +93,8 @@ type keepExporter struct {
 	name   string
 	export func(img *ImageRef, keep ForeignKeep, strip bool) ([]byte, error)
 	// all and unset are the metadata the format actually round-trips
-	// (measured on libvips 8.18.0, spec F11): TIFF drops EXIF, and unset
-	// WebP drops ICC because govips passes profile="none" (spec F5).
+	// (measured on libvips 8.15.1 and 8.18.0): tiffsave doesn't write EXIF,
+	// and WebP without Keep drops ICC because govips passes profile="none".
 	all, unset keepMeta
 }
 
@@ -181,8 +181,7 @@ type keepCall struct {
 	save func(img *ImageRef, keep ForeignKeep) error
 }
 
-// keepCalls lists every public save path that accepts Keep. Tasks 3 and 4
-// append the WebP, AVIF, JP2K, JXL and Magick entries.
+// keepCalls lists every public save path that accepts Keep.
 var keepCalls = []keepCall{
 	{"ExportJpeg", func(img *ImageRef, k ForeignKeep) error {
 		p := NewJpegExportParams()
@@ -239,12 +238,49 @@ var keepCalls = []keepCall{
 		p.Keep = k
 		return img.SaveToWriterHeif(io.Discard, p)
 	}},
+	{"ExportWebp", func(img *ImageRef, k ForeignKeep) error {
+		p := NewWebpExportParams()
+		p.Keep = k
+		_, _, err := img.ExportWebp(p)
+		return err
+	}},
+	{"SaveToWriterWebp", func(img *ImageRef, k ForeignKeep) error {
+		p := NewWebpExportParams()
+		p.Keep = k
+		return img.SaveToWriterWebp(io.Discard, p)
+	}},
+	{"ExportAvif", func(img *ImageRef, k ForeignKeep) error {
+		p := NewAvifExportParams()
+		p.Keep = k
+		_, _, err := img.ExportAvif(p)
+		return err
+	}},
+	{"ExportJp2k", func(img *ImageRef, k ForeignKeep) error {
+		p := NewJp2kExportParams()
+		p.Keep = k
+		_, _, err := img.ExportJp2k(p)
+		return err
+	}},
+	{"ExportJxl", func(img *ImageRef, k ForeignKeep) error {
+		p := NewJxlExportParams()
+		p.Keep = k
+		_, _, err := img.ExportJxl(p)
+		return err
+	}},
+	{"ExportMagick", func(img *ImageRef, k ForeignKeep) error {
+		p := NewMagickExportParams()
+		p.Format = "JPG"
+		p.Keep = k
+		_, _, err := img.ExportMagick(p)
+		return err
+	}},
 }
 
 // TestExportKeep_AllPathsHonorKeep proves every public save path reaches
-// applyKeep: on libvips < 8.15 each must return the version error; on
-// newer libvips each must save with Keep set. Formats this environment
-// can't save at all (probed with Keep unset) are skipped.
+// applyKeep: an invalid Keep must be rejected on every libvips version, and
+// a valid one must save on libvips 8.15+ and return the version error on
+// older libvips. Formats this environment can't save at all (probed with
+// Keep unset) are skipped.
 func TestExportKeep_AllPathsHonorKeep(t *testing.T) {
 	require.NoError(t, Startup(nil))
 	before := OpenImageRefs()
@@ -255,12 +291,17 @@ func TestExportKeep_AllPathsHonorKeep(t *testing.T) {
 			if err := c.save(img, 0); err != nil {
 				t.Skipf("%s unsupported in this environment: %v", c.name, err)
 			}
+			invalid := c.save(img, ForeignKeep(1<<6))
+			require.Error(t, invalid, "an unknown Keep bit must be rejected")
+
 			err := c.save(img, ForeignKeepIcc)
 			if keepSupported() {
 				assert.NoError(t, err)
+				assert.Contains(t, invalid.Error(), "unknown ForeignKeep bits")
 			} else {
 				require.Error(t, err)
 				assert.Contains(t, err.Error(), "8.15+")
+				assert.Contains(t, invalid.Error(), "8.15+")
 			}
 		})
 	}
@@ -335,7 +376,7 @@ func TestExportKeep_WebpProfilePrecedence(t *testing.T) {
 		defer out.Close()
 		want, err := os.ReadFile(resources + "sRGB.icc")
 		require.NoError(t, err)
-		// The explicit profile replaces the source's own (spec 5.3).
+		// The explicit profile replaces the source's own.
 		assert.Equal(t, want, out.GetICCProfile())
 	})
 
@@ -344,50 +385,12 @@ func TestExportKeep_WebpProfilePrecedence(t *testing.T) {
 	assertNoNewImageRefs(t, before)
 }
 
-func init() {
-	keepCalls = append(keepCalls,
-		keepCall{"ExportWebp", func(img *ImageRef, k ForeignKeep) error {
-			p := NewWebpExportParams()
-			p.Keep = k
-			_, _, err := img.ExportWebp(p)
-			return err
-		}},
-		keepCall{"SaveToWriterWebp", func(img *ImageRef, k ForeignKeep) error {
-			p := NewWebpExportParams()
-			p.Keep = k
-			return img.SaveToWriterWebp(io.Discard, p)
-		}},
-		keepCall{"ExportAvif", func(img *ImageRef, k ForeignKeep) error {
-			p := NewAvifExportParams()
-			p.Keep = k
-			_, _, err := img.ExportAvif(p)
-			return err
-		}},
-		keepCall{"ExportJp2k", func(img *ImageRef, k ForeignKeep) error {
-			p := NewJp2kExportParams()
-			p.Keep = k
-			_, _, err := img.ExportJp2k(p)
-			return err
-		}},
-		keepCall{"ExportJxl", func(img *ImageRef, k ForeignKeep) error {
-			p := NewJxlExportParams()
-			p.Keep = k
-			_, _, err := img.ExportJxl(p)
-			return err
-		}},
-		keepCall{"ExportMagick", func(img *ImageRef, k ForeignKeep) error {
-			p := NewMagickExportParams()
-			p.Format = "JPG"
-			p.Keep = k
-			_, _, err := img.ExportMagick(p)
-			return err
-		}},
-	)
-}
-
-// TestExportKeep_ICCFormats checks ICC retention for the HEIF-family and
-// JXL savers. Formats this environment can't save (e.g. macOS without a
-// loadable vips-heif / vips-jxl module) are skipped; CI runs them.
+// TestExportKeep_ICCFormats checks ICC retention for the HEIF-family savers
+// by comparing the reloaded profile with the source's. JXL is not asserted
+// here: libjxl canonicalizes colour profiles (an sRGB ICC is stored as an
+// enum and jxlload synthesizes a profile on load), so the reloaded profile
+// says nothing about Keep. Formats this environment can't save (e.g. macOS
+// without a loadable vips-heif module) are skipped.
 func TestExportKeep_ICCFormats(t *testing.T) {
 	require.NoError(t, Startup(nil))
 	if !keepSupported() {
@@ -395,6 +398,16 @@ func TestExportKeep_ICCFormats(t *testing.T) {
 	}
 	before := OpenImageRefs()
 	img := loadKeepSource(t)
+	source := img.GetICCProfile()
+	require.NotEmpty(t, source)
+
+	reloadedICC := func(t *testing.T, buf []byte) []byte {
+		t.Helper()
+		out, err := NewImageFromBuffer(buf)
+		require.NoError(t, err)
+		defer out.Close()
+		return out.GetICCProfile()
+	}
 
 	formats := []struct {
 		name   string
@@ -412,12 +425,6 @@ func TestExportKeep_ICCFormats(t *testing.T) {
 			b, _, err := img.ExportAvif(p)
 			return b, err
 		}},
-		{"jxl", func(k ForeignKeep) ([]byte, error) {
-			p := NewJxlExportParams()
-			p.Keep = k
-			b, _, err := img.ExportJxl(p)
-			return b, err
-		}},
 	}
 
 	for _, f := range formats {
@@ -427,11 +434,11 @@ func TestExportKeep_ICCFormats(t *testing.T) {
 			}
 			buf, err := f.export(ForeignKeepNone)
 			require.NoError(t, err)
-			assert.False(t, readKeepMeta(t, buf).ICC, "Keep=None must drop ICC")
+			assert.NotEqual(t, source, reloadedICC(t, buf), "Keep=None must drop the source ICC profile")
 
 			buf, err = f.export(ForeignKeepIcc)
 			require.NoError(t, err)
-			assert.True(t, readKeepMeta(t, buf).ICC, "Keep=Icc must keep ICC")
+			assert.Equal(t, source, reloadedICC(t, buf), "Keep=Icc must keep the source ICC profile")
 		})
 	}
 

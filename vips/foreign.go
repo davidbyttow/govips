@@ -42,8 +42,10 @@ const (
 	ForeignKeepIptc  ForeignKeep = 1 << 2
 	ForeignKeepIcc   ForeignKeep = 1 << 3
 	ForeignKeepOther ForeignKeep = 1 << 4
-	// ForeignKeepGainmap keeps the UltraHDR gain map. It requires libvips
-	// 8.18+ and is ignored on older versions, which cannot load gain maps.
+	// ForeignKeepGainmap keeps the UltraHDR gain map (libvips 8.18+). Older
+	// libvips cannot load gain maps, so the bit is dropped there: combined
+	// with other flags it changes nothing, but on its own it keeps no
+	// metadata at all, exactly like ForeignKeepNone.
 	ForeignKeepGainmap ForeignKeep = 1 << 5
 	// ForeignKeepAll keeps all metadata the running libvips supports.
 	ForeignKeepAll = ForeignKeepExif | ForeignKeepXmp | ForeignKeepIptc |
