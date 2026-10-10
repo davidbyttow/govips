@@ -2192,7 +2192,7 @@ func TestRotate_AllAngles(t *testing.T) {
 func TestRotate_Animated(t *testing.T) {
 	require.NoError(t, Startup(nil))
 
-	// Load all pages so Rotate's Grid call works
+	// Load all pages
 	params := NewImportParams()
 	params.NumPages.Set(-1)
 	img, err := LoadImageFromFile(resources+"gif-animated.gif", params)
@@ -2209,6 +2209,53 @@ func TestRotate_Animated(t *testing.T) {
 	// Width/height should swap per page
 	assert.Equal(t, origPageH, img.Width())
 	assert.Equal(t, origW, img.PageHeight())
+}
+
+// Pages() counts the pages in the file, so Rotate must not assume they are all loaded.
+func TestRotate_LoadedPages(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	for _, numPages := range []int{1, 2, -1} {
+		for _, angle := range []Angle{Angle90, Angle270} {
+			t.Run(fmt.Sprintf("NumPages%d_Angle%d", numPages, int(angle)*90), func(t *testing.T) {
+				params := NewImportParams()
+				params.NumPages.Set(numPages)
+				img, err := LoadImageFromFile(resources+"gif-animated.gif", params)
+				require.NoError(t, err)
+				defer img.Close()
+				filePages := img.Pages()
+				require.Greater(t, filePages, 1)
+
+				w, pageH := img.Width(), img.PageHeight()
+				loaded := img.Height() / pageH
+				want := map[[3]int][]float64{}
+				for page := 0; page < loaded; page++ {
+					for _, p := range [][2]int{{0, 0}, {w - 1, 0}, {0, pageH - 1}, {w / 3, pageH / 2}} {
+						v, err := img.GetPoint(p[0], page*pageH+p[1])
+						require.NoError(t, err)
+						want[[3]int{page, p[0], p[1]}] = v
+					}
+				}
+
+				require.NoError(t, img.Rotate(angle))
+
+				assert.Equal(t, pageH, img.Width())
+				assert.Equal(t, loaded*w, img.Height())
+				assert.Equal(t, w, img.PageHeight())
+				assert.Equal(t, filePages, img.Pages())
+				for k, v := range want {
+					page, x, y := k[0], k[1], k[2]
+					nx, ny := pageH-1-y, x
+					if angle == Angle270 {
+						nx, ny = y, w-1-x
+					}
+					got, err := img.GetPoint(nx, page*w+ny)
+					require.NoError(t, err)
+					assert.Equal(t, v, got, "page %d, pixel %d,%d", page, x, y)
+				}
+			})
+		}
+	}
 }
 
 func TestPixelate(t *testing.T) {

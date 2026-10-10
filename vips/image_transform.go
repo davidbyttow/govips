@@ -279,15 +279,17 @@ func (r *ImageRef) Recomb(matrix [][]float64) error {
 func (r *ImageRef) Rotate(angle Angle) error {
 	defer runtime.KeepAlive(r)
 	width := r.Width()
+	// Pages() is the page count of the file; only the loaded pages are stacked.
+	pages := r.Height() / r.PageHeight()
 
-	if r.Pages() > 1 && (angle == Angle90 || angle == Angle270) {
+	if pages > 1 && (angle == Angle90 || angle == Angle270) {
 		if angle == Angle270 {
 			if err := r.Flip(DirectionHorizontal); err != nil {
 				return err
 			}
 		}
 
-		if err := r.Grid(r.PageHeight(), r.Pages(), 1); err != nil {
+		if err := r.Grid(r.PageHeight(), pages, 1); err != nil {
 			return err
 		}
 
@@ -305,7 +307,7 @@ func (r *ImageRef) Rotate(angle Angle) error {
 	}
 	r.setImage(out)
 
-	if r.Pages() > 1 && (angle == Angle90 || angle == Angle270) {
+	if pages > 1 && (angle == Angle90 || angle == Angle270) {
 		if err := r.SetPageHeight(width); err != nil {
 			return err
 		}
