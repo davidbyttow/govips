@@ -330,8 +330,12 @@ type WebpExportParams struct {
 	TargetSize int
 
 	// Keep selects which metadata to retain (libvips's "keep" option; see
-	// ForeignKeep). The zero value leaves it unset, so StripMetadata decides
-	// as before. When set, it takes precedence over StripMetadata, and it
+	// ForeignKeep). The zero value leaves it unset, so StripMetadata decides,
+	// as for the other formats: the source image's ICC profile is kept
+	// unless StripMetadata is set. A profile from IccProfile or
+	// OptimizeICCProfile replaces the source profile and is embedded even
+	// when StripMetadata is set. When set, Keep takes precedence over
+	// StripMetadata, and it
 	// alone decides whether an ICC profile is written: without
 	// ForeignKeepIcc no profile is embedded, whatever its source. With
 	// ForeignKeepIcc, the embedded profile is the one the path already

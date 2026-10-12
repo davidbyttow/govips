@@ -93,8 +93,7 @@ type keepExporter struct {
 	name   string
 	export func(img *ImageRef, keep ForeignKeep, strip bool) ([]byte, error)
 	// all and unset are the metadata the format actually round-trips
-	// (measured on libvips 8.15.1 and 8.18.0): tiffsave doesn't write EXIF,
-	// and WebP without Keep drops ICC because govips passes profile="none".
+	// (measured on libvips 8.15.1 and 8.18.0): tiffsave doesn't write EXIF.
 	all, unset keepMeta
 }
 
@@ -320,8 +319,65 @@ func TestExportKeep_WebpMetadata(t *testing.T) {
 			return b, err
 		},
 		all:   everything,
-		unset: keepMeta{Exif: true, XMP: true}, // pre-existing: profile="none" drops ICC
+		unset: everything,
 	}})
+}
+
+// Without Keep, WebP follows StripMetadata like the other savers: the
+// source ICC profile is kept unless StripMetadata is set. Not gated on
+// keepSupported: this path doesn't use "keep", so it holds on 8.14 too.
+func TestExportWebp_KeepsSourceICC(t *testing.T) {
+	require.NoError(t, Startup(nil))
+	before := OpenImageRefs()
+	img := loadKeepSource(t)
+	want := img.GetICCProfile()
+	require.NotEmpty(t, want)
+
+	reloadedICC := func(t *testing.T, buf []byte) []byte {
+		t.Helper()
+		require.NotEmpty(t, buf)
+		out, err := NewImageFromBuffer(buf)
+		require.NoError(t, err)
+		defer out.Close()
+		return out.GetICCProfile()
+	}
+
+	t.Run("export", func(t *testing.T) {
+		buf, _, err := img.ExportWebp(NewWebpExportParams())
+		require.NoError(t, err)
+		assert.Equal(t, want, reloadedICC(t, buf))
+	})
+	t.Run("stream", func(t *testing.T) {
+		var w bytes.Buffer
+		require.NoError(t, img.SaveToWriterWebp(&w, NewWebpExportParams()))
+		assert.Equal(t, want, reloadedICC(t, w.Bytes()))
+	})
+	t.Run("generic export", func(t *testing.T) {
+		buf, _, err := img.Export(&ExportParams{Format: ImageTypeWEBP, Quality: 75})
+		require.NoError(t, err)
+		assert.Equal(t, want, reloadedICC(t, buf))
+	})
+	t.Run("strip", func(t *testing.T) {
+		p := NewWebpExportParams()
+		p.StripMetadata = true
+		buf, _, err := img.ExportWebp(p)
+		require.NoError(t, err)
+		assert.Empty(t, reloadedICC(t, buf))
+	})
+	t.Run("strip with supplied profile", func(t *testing.T) {
+		// Pre-existing: an explicit profile is embedded despite strip.
+		p := NewWebpExportParams()
+		p.StripMetadata = true
+		p.IccProfile = resources + "sRGB.icc"
+		var w bytes.Buffer
+		require.NoError(t, img.SaveToWriterWebp(&w, p))
+		srgb, err := os.ReadFile(resources + "sRGB.icc")
+		require.NoError(t, err)
+		assert.Equal(t, srgb, reloadedICC(t, w.Bytes()))
+	})
+
+	img.Close()
+	assertNoNewImageRefs(t, before)
 }
 
 // When Keep is set it alone decides whether ICC is written; the profile

@@ -484,6 +484,27 @@ func TestSaveToWriterTyped_ByteIdenticalToExport(t *testing.T) {
 			"typed TIFF streaming output must match ExportTiff (got %d bytes, want %d)", w.Len(), len(expected))
 	})
 
+	t.Run("webp source icc", func(t *testing.T) {
+		// Keep unset with an ICC-bearing source: the profile branch of
+		// set_webpsave_options must behave the same on both paths.
+		src, err := NewImageFromFile(resources + keepTestSource)
+		require.NoError(t, err)
+		defer src.Close()
+		require.True(t, src.HasICCProfile())
+
+		for _, strip := range []bool{false, true} {
+			params := NewWebpExportParams()
+			params.StripMetadata = strip
+			expected, _, err := src.ExportWebp(params)
+			require.NoError(t, err)
+
+			var w bytes.Buffer
+			require.NoError(t, src.SaveToWriterWebp(&w, params))
+			assert.True(t, bytes.Equal(expected, w.Bytes()),
+				"typed WebP streaming output (strip=%v) must match ExportWebp (got %d bytes, want %d)", strip, w.Len(), len(expected))
+		}
+	})
+
 	_, targets := streamRegistrySizes()
 	assert.Zero(t, targets, "all targets must be deregistered after save")
 }
