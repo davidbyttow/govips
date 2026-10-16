@@ -2211,6 +2211,99 @@ func TestRotate_Animated(t *testing.T) {
 	assert.Equal(t, origW, img.PageHeight())
 }
 
+// Transforms on a fully loaded animation must act on each frame and keep the
+// frame order (#554). Each case maps an input pixel (page, x, y) to where the
+// transform should put it; nil means only the geometry is checked.
+func TestAnimated_TransformsKeepFrames(t *testing.T) {
+	require.NoError(t, Startup(nil))
+
+	const scale = 0.3
+	cases := []struct {
+		name   string
+		apply  func(img *ImageRef) error
+		pageW  func(w, h int) int
+		pageH  func(w, h int) int
+		mapPix func(w, h, x, y int) (int, int)
+	}{
+		{
+			name:  "rotate 180",
+			apply: func(img *ImageRef) error { return img.Rotate(Angle180) },
+			pageW: func(w, h int) int { return w },
+			pageH: func(w, h int) int { return h },
+			mapPix: func(w, h, x, y int) (int, int) {
+				return w - 1 - x, h - 1 - y
+			},
+		},
+		{
+			name:  "flip vertical",
+			apply: func(img *ImageRef) error { return img.Flip(DirectionVertical) },
+			pageW: func(w, h int) int { return w },
+			pageH: func(w, h int) int { return h },
+			mapPix: func(w, h, x, y int) (int, int) {
+				return x, h - 1 - y
+			},
+		},
+		{
+			name:  "zoom",
+			apply: func(img *ImageRef) error { return img.Zoom(2, 3) },
+			pageW: func(w, h int) int { return 2 * w },
+			pageH: func(w, h int) int { return 3 * h },
+			mapPix: func(w, h, x, y int) (int, int) {
+				return 2 * x, 3 * y
+			},
+		},
+		{
+			// 128 * 0.3 = 38.4 rows per frame: the strip must be resized so
+			// every frame gets exactly 38 rows rather than one 307-row frame.
+			name:  "resize",
+			apply: func(img *ImageRef) error { return img.Resize(scale, KernelLanczos3) },
+			pageW: func(w, h int) int { return int(math.Round(float64(w) * scale)) },
+			pageH: func(w, h int) int { return int(math.Round(float64(h) * scale)) },
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			params := NewImportParams()
+			params.NumPages.Set(-1)
+			img, err := LoadImageFromFile(resources+"gif-animated.gif", params)
+			require.NoError(t, err)
+			defer img.Close()
+
+			w, pageH := img.Width(), img.PageHeight()
+			frames := img.Height() / pageH
+			require.Greater(t, frames, 1)
+			require.NotEqual(t, 0, (pageH*3)%10, "fixture must not scale to a whole number of rows")
+
+			type key struct{ page, x, y int }
+			want := map[key][]float64{}
+			if c.mapPix != nil {
+				for page := 0; page < frames; page++ {
+					for _, p := range [][2]int{{0, 0}, {w - 1, 0}, {0, pageH - 1}, {w / 3, pageH / 2}} {
+						v, err := img.GetPoint(p[0], page*pageH+p[1])
+						require.NoError(t, err)
+						want[key{page, p[0], p[1]}] = v
+					}
+				}
+			}
+
+			require.NoError(t, c.apply(img))
+
+			newPageH := c.pageH(w, pageH)
+			assert.Equal(t, c.pageW(w, pageH), img.Width())
+			assert.Equal(t, newPageH, img.PageHeight())
+			assert.Equal(t, frames*newPageH, img.Height(), "every frame must keep %d rows", newPageH)
+
+			for k, v := range want {
+				nx, ny := c.mapPix(w, pageH, k.x, k.y)
+				got, err := img.GetPoint(nx, k.page*newPageH+ny)
+				require.NoError(t, err)
+				assert.Equal(t, v, got, "page %d, pixel %d,%d", k.page, k.x, k.y)
+			}
+		})
+	}
+}
+
 // Pages() counts the pages in the file, so Rotate must not assume they are all loaded.
 func TestRotate_LoadedPages(t *testing.T) {
 	require.NoError(t, Startup(nil))
