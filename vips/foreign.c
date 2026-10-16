@@ -313,13 +313,17 @@ int set_webpsave_options(VipsOperation *operation, SaveParams *params) {
                       "kmax", params->webpKMax,
                       NULL);
 
-  // Without an explicit Keep, keep the historical profile="none" default
-  // (byte-identical output). With Keep set, only pass a profile the caller
-  // chose, so "keep" alone decides about the embedded ICC.
-  if (!ret && (params->webpIccProfile || !params->keepSet)) {
+  // Only pass a profile the caller chose; leaving "profile" unset lets
+  // strip/keep decide about the source image's own ICC, as for the other
+  // savers. With StripMetadata and no Keep, still pass "none": webpsave in
+  // libvips 8.14.0-8.14.1 ignores "strip" (a shadowed field, fixed in
+  // 8.14.2), and "none" is what keeps the ICC out there. Elsewhere strip
+  // already drops it.
+  if (!ret && params->webpIccProfile) {
     ret = vips_object_set(VIPS_OBJECT(operation), "profile",
-                          params->webpIccProfile ? params->webpIccProfile : "none",
-                          NULL);
+                          params->webpIccProfile, NULL);
+  } else if (!ret && params->stripMetadata && !params->keepSet) {
+    ret = vips_object_set(VIPS_OBJECT(operation), "profile", "none", NULL);
   }
 
   if (!ret && params->quality) {
