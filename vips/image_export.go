@@ -8,13 +8,15 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"path/filepath"
 	"runtime"
+	"strings"
 	"unsafe"
 )
 
 // Export creates a byte array of the image for use.
 // The function returns a byte array that can be written to a file e.g. via os.WriteFile().
-// N.B. govips does not currently have built-in support for directly exporting to a file.
+// For a native VIPS file snapshot, use SaveVips instead.
 // The function also returns a copy of the image metadata as well as an error.
 // Deprecated: Use ExportNative or format-specific Export methods
 func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) {
@@ -56,6 +58,49 @@ func (r *ImageRef) Export(params *ExportParams) ([]byte, *ImageMetadata, error) 
 		format = ImageTypeJPEG
 		return r.ExportJpeg(jpegParamsFromExport(params))
 	}
+}
+
+// SaveVips synchronously evaluates and saves the current image in native VIPS
+// format for inspection with tools such as vipsdisp. Unlike ExportNative, it
+// saves the current pixels, band format, interpretation and serializable
+// metadata without converting to the input file's format or unpremultiplying.
+// It does not save the computation graph or govips's Go-side state.
+//
+// filename must end in .v or .vips (case-insensitive): libvips can select a
+// different encoder for other suffixes even when called through vipssave.
+// Parent directories must already exist. Existing files are overwritten;
+// writing is not atomic and a failure can leave a partial file.
+//
+// Pixel data is uncompressed, so disk usage grows with width, height, bands
+// and bytes per sample. Saving can consume a sequential input; evaluating
+// that input again after saving is not guaranteed to work.
+func (r *ImageRef) SaveVips(filename string) error {
+	if filename == "" {
+		return errors.New("filename is empty")
+	}
+	if strings.ContainsRune(filename, '\x00') {
+		return errors.New("filename contains NUL")
+	}
+	ext := filepath.Ext(filename)
+	if !strings.EqualFold(ext, ".v") && !strings.EqualFold(ext, ".vips") {
+		return errors.New("native VIPS filename must end in .v or .vips")
+	}
+
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	defer runtime.KeepAlive(r)
+	if r.image == nil {
+		return errors.New("attempt to save a closed ImageRef")
+	}
+
+	if err := vipsSaveVips(r.image, filename); err != nil {
+		var ioErr error
+		if r.streamSource != nil {
+			ioErr = r.streamSource.entry.takeErr()
+		}
+		return wrapStreamError("vips save", err, ioErr)
+	}
+	return nil
 }
 
 // The *ParamsFromExport helpers map the generic (deprecated) ExportParams

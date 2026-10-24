@@ -152,4 +152,5 @@ typedef struct SaveParams {
 
 SaveParams create_save_params(ImageType outputFormat);
 int save_to_buffer(SaveParams *params);
+int save_vips(VipsImage *in, const char *filename);
 

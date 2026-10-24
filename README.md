@@ -503,11 +503,47 @@ vips.SetStreamScratchDir("/var/scratch") // default os.TempDir()
 
 See the _examples/_ folder for more.
 
+### 17. Inspect an intermediate image in native VIPS format
+
+Save a snapshot of the current pixels, band format and serializable metadata
+for inspection with `vipsdisp` or `vipsheader`:
+
+```go
+image, err := vips.NewImageFromFile("photo.png")
+if err != nil {
+	log.Fatal(err)
+}
+defer image.Close()
+
+if err := image.PremultiplyAlpha(); err != nil {
+	log.Fatal(err)
+}
+if err := image.SaveVips("checkpoint.v"); err != nil {
+	log.Fatal(err)
+}
+```
+
+`SaveVips` accepts only `.v` / `.vips` filenames (case-insensitive), and saves
+the current image without converting or unpremultiplying its pixels. It
+differs from `ExportNative`, which chooses an encoder based on the input
+format. The snapshot does not include the computation graph or govips's
+Go-side state, such as its pre-multiplication tracking.
+
+Saving evaluates the image synchronously and can consume a sequential input;
+evaluating that input again may fail. Native VIPS pixel data is uncompressed,
+so disk usage grows with dimensions, bands and bytes per sample. Parent
+directories must exist. Existing files are overwritten, writes are not
+atomic, and a failure may leave a partial file.
+
 ## Running tests
 
 ```bash
 $ make test
 ```
+
+Native VIPS snapshot round-trip tests use `vips` and `vipsheader` (provided by
+`libvips-tools` on Debian/Ubuntu). These tests skip locally if the tools are
+missing; CI requires them.
 
 ## Code Generation
 
