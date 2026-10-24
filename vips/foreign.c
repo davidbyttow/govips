@@ -2,6 +2,10 @@
 
 #include "lang.h"
 
+int save_vips(VipsImage *in, const char *filename) {
+  return vips_vipssave(in, filename, NULL);
+}
+
 void set_bool_param(Param *p, gboolean b) {
   p->type = PARAM_TYPE_BOOL;
   p->value.b = b;

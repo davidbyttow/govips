@@ -21,7 +21,11 @@ jobs:
         # of libheif1 around 24.04, so installing libvips-dev no longer pulls it
         # in transitively. Without it, any test that loads HEIC input fails with
         # "heif: Unsupported feature: Unsupported codec".
-        run: sudo apt-get update && sudo apt-get -y install libvips-dev libheif-plugin-libde265
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install libvips-dev libvips-tools libheif-plugin-libde265
+          command -v vips
+          command -v vipsheader
 
       - name: Build
         run: go build -v ./...

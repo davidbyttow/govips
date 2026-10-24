@@ -747,6 +747,16 @@ func vipsSaveMagickToBuffer(in *C.VipsImage, params MagickExportParams) ([]byte,
 	return vipsSaveToBuffer(p)
 }
 
+func vipsSaveVips(in *C.VipsImage, filename string) error {
+	incOpCounter("vipssave")
+	path := C.CString(filename)
+	defer C.free(unsafe.Pointer(path))
+	if C.save_vips(in, path) != 0 {
+		return handleVipsError()
+	}
+	return nil
+}
+
 func vipsSaveToBuffer(params C.struct_SaveParams) ([]byte, error) {
 	if err := C.save_to_buffer(&params); err != 0 {
 		return nil, handleSaveBufferError(params.outputBuffer)
