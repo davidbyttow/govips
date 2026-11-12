@@ -206,6 +206,22 @@ func ClearCache() {
 	C.vips_cache_drop_all()
 }
 
+// SetBlockUntrusted blocks or unblocks all libvips operations marked as untrusted.
+// This setting is process-wide. Call it after Startup and before processing images.
+func SetBlockUntrusted(block bool) {
+	C.vips_block_untrusted_set(toGboolean(block))
+}
+
+// SetOperationBlocked blocks or unblocks the named libvips operation class and
+// its descendants. For example, "VipsForeignLoad" selects all image loaders.
+// Unknown names are ignored. Use vips -l to see the class hierarchy.
+// This setting is process-wide. Call it after Startup and before processing images.
+func SetOperationBlocked(name string, blocked bool) {
+	cName := C.CString(name)
+	defer freeCString(cName)
+	C.vips_operation_block_set(cName, toGboolean(blocked))
+}
+
 // SetPipeReadLimit sets the maximum number of bytes libvips will buffer
 // when loading from a non-seekable source (a reader without io.Seeker
 // passed to LoadImageFromReader). The default is approximately 1 GB.
