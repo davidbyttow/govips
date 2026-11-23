@@ -505,14 +505,37 @@ func TestSaveToWriterTyped_ByteIdenticalToExport(t *testing.T) {
 		}
 	})
 
+	t.Run("webp optimized icc", func(t *testing.T) {
+		// After OptimizeICCProfile, with and without strip or IccProfile,
+		// both paths must embed the same profile (#559, #560).
+		src, err := NewImageFromFile(resources + keepTestSource)
+		require.NoError(t, err)
+		defer src.Close()
+		require.NoError(t, src.OptimizeICCProfile())
+
+		for _, strip := range []bool{false, true} {
+			for _, profile := range []string{"", resources + "sRGB.icc"} {
+				params := NewWebpExportParams()
+				params.StripMetadata = strip
+				params.IccProfile = profile
+				expected, _, err := src.ExportWebp(params)
+				require.NoError(t, err)
+
+				var w bytes.Buffer
+				require.NoError(t, src.SaveToWriterWebp(&w, params))
+				assert.True(t, bytes.Equal(expected, w.Bytes()),
+					"typed WebP streaming output (strip=%v, IccProfile=%q) must match ExportWebp (got %d bytes, want %d)", strip, profile, w.Len(), len(expected))
+			}
+		}
+	})
+
 	_, targets := streamRegistrySizes()
 	assert.Zero(t, targets, "all targets must be deregistered after save")
 }
 
 // TestSaveToWriterTyped_KeepByteIdenticalToExport checks that Keep is
-// applied identically on the streaming and buffer paths. It deliberately
-// avoids OptimizeICCProfile: only ExportWebp injects the optimized
-// profile, a pre-existing asymmetry outside this test's scope.
+// applied identically on the streaming and buffer paths. WebP with
+// OptimizeICCProfile is covered by TestSaveToWriterTyped_ByteIdenticalToExport.
 func TestSaveToWriterTyped_KeepByteIdenticalToExport(t *testing.T) {
 	require.NoError(t, Startup(nil))
 	if !keepSupported() {

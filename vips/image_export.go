@@ -200,10 +200,7 @@ func (r *ImageRef) ExportWebp(params *WebpExportParams) ([]byte, *ImageMetadata,
 		params = NewWebpExportParams()
 	}
 
-	paramsWithIccProfile := *params
-	paramsWithIccProfile.IccProfile = r.optimizedIccProfile
-
-	buf, err := vipsSaveWebPToBuffer(r.image, paramsWithIccProfile)
+	buf, err := vipsSaveWebPToBuffer(r.image, *params)
 	if err != nil {
 		return nil, nil, err
 	}

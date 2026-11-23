@@ -34,13 +34,12 @@ type ImageRef struct {
 	// NOTE: We keep a reference to this so that the input buffer is
 	// never garbage collected during processing. Some image loaders use random
 	// access transcoding and therefore need the original buffer to be in memory.
-	buf                 []byte
-	image               *C.VipsImage
-	format              ImageType
-	originalFormat      ImageType
-	lock                sync.Mutex
-	preMultiplication   *PreMultiplicationState
-	optimizedIccProfile string
+	buf               []byte
+	image             *C.VipsImage
+	format            ImageType
+	originalFormat    ImageType
+	lock              sync.Mutex
+	preMultiplication *PreMultiplicationState
 
 	// streamSource is non-nil for sequentially stream-loaded images
 	// (LoadImageFromReader with AccessSequential): the image pulls
@@ -313,10 +312,14 @@ type WebpExportParams struct {
 	Lossless        bool
 	NearLossless    bool
 	ReductionEffort int
-	IccProfile      string
-	MinSize         bool
-	MinKeyFrames    int
-	MaxKeyFrames    int
+	// IccProfile is the path of an ICC profile to embed in place of the
+	// image's own (including one set by OptimizeICCProfile). It only tags
+	// the output; pixels are not converted. On libvips 8.15+ it is
+	// embedded even when StripMetadata is set; see Keep.
+	IccProfile   string
+	MinSize      bool
+	MinKeyFrames int
+	MaxKeyFrames int
 	// TargetSize is the desired output size in bytes (libvips's webpsave
 	// "target_size" option, passed straight through to libwebp's own
 	// WebPConfig.target_size). When set (> 0), it takes precedence over
@@ -331,17 +334,14 @@ type WebpExportParams struct {
 
 	// Keep selects which metadata to retain (libvips's "keep" option; see
 	// ForeignKeep). The zero value leaves it unset, so StripMetadata decides,
-	// as for the other formats: the source image's ICC profile is kept
-	// unless StripMetadata is set. A profile from IccProfile or
-	// OptimizeICCProfile replaces the source profile and is embedded even
-	// when StripMetadata is set. When set, Keep takes precedence over
-	// StripMetadata, and it
-	// alone decides whether an ICC profile is written: without
-	// ForeignKeepIcc no profile is embedded, whatever its source. With
-	// ForeignKeepIcc, the embedded profile is the one the path already
-	// chooses: ExportWebp uses the profile picked by OptimizeICCProfile
-	// (and ignores IccProfile, as before), while SaveToWriterWebp uses
-	// IccProfile. With neither, the source image's profile is kept.
+	// as for the other formats: the image's own ICC profile (including one
+	// set by OptimizeICCProfile) is kept unless StripMetadata is set. A
+	// profile from IccProfile replaces it and, on libvips 8.15+, is
+	// embedded even when StripMetadata is set. When set, Keep takes
+	// precedence over StripMetadata, and it alone decides whether an ICC
+	// profile is written: without ForeignKeepIcc no profile is embedded,
+	// whatever its source. With ForeignKeepIcc, IccProfile is embedded if
+	// set, otherwise the image's own profile.
 	// Requires libvips 8.15+; saving returns an error if Keep is set on an
 	// older libvips.
 	Keep ForeignKeep

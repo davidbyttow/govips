@@ -64,6 +64,9 @@ func (r *ImageRef) TransformICCProfile(outputProfilePath string) error {
 // OptimizeICCProfile optimizes the ICC color profile of the image.
 // For two color channel images, it sets a grayscale profile.
 // For color images, it sets a CMYK or non-CMYK profile based on the image metadata.
+// WebP has no greyscale mode, so a greyscale image exported as WebP is saved
+// as RGB without the grayscale profile (libvips 8.14.2+ drops a profile that
+// doesn't fit the saved bands).
 func (r *ImageRef) OptimizeICCProfile() error {
 	defer runtime.KeepAlive(r)
 	inputProfile := r.determineInputICCProfile()
@@ -72,12 +75,12 @@ func (r *ImageRef) OptimizeICCProfile() error {
 		return nil
 	}
 
-	r.optimizedIccProfile = SRGBV2MicroICCProfilePath
+	profile := SRGBV2MicroICCProfilePath
 	if r.Bands() <= 2 {
-		r.optimizedIccProfile = SGrayV2MicroICCProfilePath
+		profile = SGrayV2MicroICCProfilePath
 	}
 
-	if err := ensureLoadICCPath(&r.optimizedIccProfile); err != nil {
+	if err := ensureLoadICCPath(&profile); err != nil {
 		return err
 	}
 
@@ -88,7 +91,7 @@ func (r *ImageRef) OptimizeICCProfile() error {
 		depth = 8
 	}
 
-	out, err := vipsICCTransform(r.image, r.optimizedIccProfile, inputProfile, IntentPerceptual, depth, embedded)
+	out, err := vipsICCTransform(r.image, profile, inputProfile, IntentPerceptual, depth, embedded)
 	if err != nil {
 		govipsLog("govips", LogLevelError, fmt.Sprintf("failed to do icc transform: %v", err.Error()))
 		return err
