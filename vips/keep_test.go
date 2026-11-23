@@ -68,6 +68,18 @@ func keepSupported() bool {
 	return MajorVersion > 8 || (MajorVersion == 8 && MinorVersion >= 15)
 }
 
+// libvipsAtLeast reports whether the running libvips is major.minor.micro
+// or newer.
+func libvipsAtLeast(major, minor, micro int) bool {
+	if MajorVersion != major {
+		return MajorVersion > major
+	}
+	if MinorVersion != minor {
+		return MinorVersion > minor
+	}
+	return MicroVersion >= micro
+}
+
 func loadKeepSource(t *testing.T) *ImageRef {
 	t.Helper()
 	img, err := NewImageFromFile(resources + keepTestSource)
@@ -365,7 +377,12 @@ func TestExportWebp_KeepsSourceICC(t *testing.T) {
 		assert.Empty(t, reloadedICC(t, buf))
 	})
 	t.Run("strip with supplied profile", func(t *testing.T) {
-		// Pre-existing: an explicit profile is embedded despite strip.
+		// An explicit profile is embedded despite strip on libvips 8.15+,
+		// which turns ICC back on when "profile" is set. 8.14.2-8.14.x
+		// webpsave skips the profile under strip.
+		if !libvipsAtLeast(8, 15, 0) {
+			t.Skipf("explicit profile under strip requires libvips 8.15+, found %s", Version)
+		}
 		p := NewWebpExportParams()
 		p.StripMetadata = true
 		p.IccProfile = resources + "sRGB.icc"
@@ -380,9 +397,144 @@ func TestExportWebp_KeepsSourceICC(t *testing.T) {
 	assertNoNewImageRefs(t, before)
 }
 
+// reloadWebp decodes buf and returns its ICC profile and band count.
+func reloadWebp(t *testing.T, buf []byte) (icc []byte, bands int) {
+	t.Helper()
+	require.NotEmpty(t, buf)
+	out, err := NewImageFromBuffer(buf)
+	require.NoError(t, err)
+	defer out.Close()
+	return out.GetICCProfile(), out.Bands()
+}
+
+// After OptimizeICCProfile, WebP follows StripMetadata like the other
+// savers on every path: the optimized profile is the image's own, so it
+// is kept by default and dropped by strip (#559).
+func TestExportWebp_OptimizedICCFollowsStrip(t *testing.T) {
+	require.NoError(t, Startup(nil))
+	before := OpenImageRefs()
+	img := loadKeepSource(t)
+	require.NoError(t, img.OptimizeICCProfile())
+	optimized := img.GetICCProfile()
+	require.NotEmpty(t, optimized)
+
+	paths := []struct {
+		name string
+		save func(strip bool) ([]byte, error)
+	}{
+		{"export", func(strip bool) ([]byte, error) {
+			p := NewWebpExportParams()
+			p.StripMetadata = strip
+			b, _, err := img.ExportWebp(p)
+			return b, err
+		}},
+		{"generic export", func(strip bool) ([]byte, error) {
+			b, _, err := img.Export(&ExportParams{Format: ImageTypeWEBP, Quality: 75, StripMetadata: strip})
+			return b, err
+		}},
+		{"stream", func(strip bool) ([]byte, error) {
+			p := NewWebpExportParams()
+			p.StripMetadata = strip
+			var w bytes.Buffer
+			err := img.SaveToWriterWebp(&w, p)
+			return w.Bytes(), err
+		}},
+	}
+	for _, path := range paths {
+		t.Run(path.name+" keeps optimized profile", func(t *testing.T) {
+			buf, err := path.save(false)
+			require.NoError(t, err)
+			icc, _ := reloadWebp(t, buf)
+			assert.Equal(t, optimized, icc)
+		})
+		t.Run(path.name+" strip drops optimized profile", func(t *testing.T) {
+			buf, err := path.save(true)
+			require.NoError(t, err)
+			icc, _ := reloadWebp(t, buf)
+			assert.Empty(t, icc)
+		})
+	}
+
+	img.Close()
+	assertNoNewImageRefs(t, before)
+}
+
+// WebP has no greyscale mode, so a grey image is saved as 3-band RGB.
+// libvips drops an inherited profile that doesn't fit the saved bands,
+// so the 1-channel GRAY profile from OptimizeICCProfile is not embedded
+// in the RGB file, matching what webpsave does for any inherited
+// profile (#559). libvips 8.14.0-8.14.1 only rejected a profile with more
+// channels than the image has, so they still embed it.
+func TestExportWebp_OptimizedGreyProfileNotEmbedded(t *testing.T) {
+	require.NoError(t, Startup(nil))
+	if !libvipsAtLeast(8, 14, 2) {
+		t.Skipf("dropping a band-mismatched profile requires libvips 8.14.2+, found %s", Version)
+	}
+	before := OpenImageRefs()
+	img, err := NewImageFromFile(resources + "jpg-8bit-grey-icc-dot-gain.jpg")
+	require.NoError(t, err)
+	require.NoError(t, img.OptimizeICCProfile())
+	require.Equal(t, 1, img.Bands())
+	require.NotEmpty(t, img.GetICCProfile())
+
+	buf, _, err := img.ExportWebp(NewWebpExportParams())
+	require.NoError(t, err)
+	icc, bands := reloadWebp(t, buf)
+	assert.Equal(t, 3, bands)
+	assert.Empty(t, icc)
+
+	img.Close()
+	assertNoNewImageRefs(t, before)
+}
+
+// ExportWebp embeds IccProfile like SaveToWriterWebp, with or without
+// OptimizeICCProfile. IccProfile only tags the output; it doesn't convert
+// pixels (#560).
+func TestExportWebp_HonorsIccProfile(t *testing.T) {
+	require.NoError(t, Startup(nil))
+	before := OpenImageRefs()
+	srgb, err := os.ReadFile(resources + "sRGB.icc")
+	require.NoError(t, err)
+
+	plain := loadKeepSource(t)
+	optimized := loadKeepSource(t)
+	require.NoError(t, optimized.OptimizeICCProfile())
+	require.NotEqual(t, srgb, plain.GetICCProfile())
+	require.NotEqual(t, srgb, optimized.GetICCProfile())
+
+	for _, tc := range []struct {
+		name  string
+		img   *ImageRef
+		strip bool
+	}{
+		{"source profile", plain, false},
+		{"optimized profile", optimized, false},
+		// libvips 8.15+ turns ICC back on when "profile" is set, so the
+		// explicit profile survives strip, as on SaveToWriterWebp.
+		{"optimized profile with strip", optimized, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.strip && !libvipsAtLeast(8, 15, 0) {
+				t.Skipf("explicit profile under strip requires libvips 8.15+, found %s", Version)
+			}
+			p := NewWebpExportParams()
+			p.IccProfile = resources + "sRGB.icc"
+			p.StripMetadata = tc.strip
+			buf, _, err := tc.img.ExportWebp(p)
+			require.NoError(t, err)
+			icc, _ := reloadWebp(t, buf)
+			assert.Equal(t, srgb, icc)
+		})
+	}
+
+	plain.Close()
+	optimized.Close()
+	assertNoNewImageRefs(t, before)
+}
+
 // When Keep is set it alone decides whether ICC is written; the profile
-// source (IccProfile for SaveToWriterWebp, OptimizeICCProfile for
-// ExportWebp; a pre-existing asymmetry) only chooses which profile.
+// source (IccProfile, or else the image's own, e.g. from
+// OptimizeICCProfile) only chooses which profile.
 func TestExportKeep_WebpProfilePrecedence(t *testing.T) {
 	require.NoError(t, Startup(nil))
 	if !keepSupported() {
